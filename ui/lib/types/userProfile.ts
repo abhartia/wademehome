@@ -1,0 +1,65 @@
+export type JourneyStage =
+  | "searching"
+  | "touring"
+  | "applying"
+  | "lease-signed"
+  | "moving"
+  | "moved-in";
+
+export const JOURNEY_STAGES: { value: JourneyStage; label: string }[] = [
+  { value: "searching", label: "Searching" },
+  { value: "touring", label: "Touring" },
+  { value: "applying", label: "Applying" },
+  { value: "lease-signed", label: "Lease Signed" },
+  { value: "moving", label: "Moving" },
+  { value: "moved-in", label: "Moved In" },
+];
+
+export interface UserProfile {
+  // Stage 1: Search trigger
+  searchTrigger: "reactive" | "proactive" | null;
+  triggerReason: string;
+  moveTimeline: string;
+  // Stage 2: City preferences
+  currentCity: string;
+  workLocation: string;
+  preferredCities: string[];
+  // Stage 3: Neighbourhood preferences
+  neighbourhoodPriorities: string[];
+  dealbreakers: string[];
+  // Stage 4: Budget
+  maxMonthlyRent: string;
+  creditScoreRange: string;
+  // Stage 5: Living situation
+  livingArrangement: "solo" | "roommates" | "partner" | "family" | null;
+  bedroomsNeeded: string;
+  hasPets: boolean;
+  petDetails: string;
+  // Journey stage
+  journeyStageOverride: JourneyStage | null;
+  // Meta
+  onboardingCompleted: boolean;
+  onboardingStep: number;
+  lastUpdated: string;
+}
+
+export const defaultProfile: UserProfile = {
+  searchTrigger: null,
+  triggerReason: "",
+  moveTimeline: "",
+  currentCity: "",
+  workLocation: "",
+  preferredCities: [],
+  neighbourhoodPriorities: [],
+  dealbreakers: [],
+  maxMonthlyRent: "",
+  creditScoreRange: "",
+  livingArrangement: null,
+  bedroomsNeeded: "",
+  hasPets: false,
+  petDetails: "",
+  journeyStageOverride: null,
+  onboardingCompleted: false,
+  onboardingStep: 0,
+  lastUpdated: "",
+};
