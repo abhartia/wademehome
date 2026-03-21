@@ -1,6 +1,7 @@
 "use client";
 
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
+import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +14,9 @@ import {
 } from "@/components/ui/sheet";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
-import Image from "next/image";
+import { Building2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface GuestPropertyDetailSheetProps {
   property: PropertyDataItem | null;
@@ -29,6 +30,12 @@ export function GuestPropertyDetailSheet({
   onOpenChange,
 }: GuestPropertyDetailSheetProps) {
   const propertyKey = useMemo(() => (property ? buildPropertyKey(property) : ""), [property]);
+  const [imageFailed, setImageFailed] = useState(false);
+  const heroSrc = property?.images_urls?.[0];
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [heroSrc]);
 
   if (!property) return null;
 
@@ -48,20 +55,29 @@ export function GuestPropertyDetailSheet({
 
         <div className="space-y-4 px-4 pb-4">
           <div className="relative h-56 w-full overflow-hidden rounded-md border bg-muted">
-            {property.images_urls[0] ? (
-              <Image
-                src={property.images_urls[0]}
+            {heroSrc && !imageFailed ? (
+              // Listing feeds use many third-party CDNs; next/image would require endless remotePatterns.
+              // eslint-disable-next-line @next/next/no-img-element -- arbitrary property image hosts
+              <img
+                src={heroSrc}
                 alt={property.name}
-                fill
-                sizes="(max-width: 640px) 100vw, 40vw"
-                className="object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+                onError={() => setImageFailed(true)}
               />
-            ) : null}
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                <Building2 className="h-12 w-12 opacity-40" aria-hidden />
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">{property.bedroom_range}</Badge>
-            <Badge variant="secondary">{property.rent_range}</Badge>
+            <Badge variant="secondary">
+              {formatPropertyRangeLabel(property.bedroom_range)}
+            </Badge>
+            <Badge variant="secondary">{formatPropertyRangeLabel(property.rent_range)}</Badge>
           </div>
 
           <div>

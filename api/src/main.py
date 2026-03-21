@@ -1,3 +1,4 @@
+import asyncio
 import json
 import traceback
 
@@ -27,9 +28,13 @@ from core.asgi_auth import ASGIAuthMiddleware
 from core.cors_middleware import CORSMiddleware
 from workflow.events import ResponseStreamEvent
 
+from core.logger import get_logger
 from core.sse import stop_event_result_to_sse_chunk
 from auth.router import router as auth_router
+from listings.router import router as listings_router
 from properties.router import router as properties_router
+
+logger = get_logger(__name__)
 langfuse = Langfuse()
 
 # Verify connection (optional – app runs even if Langfuse is misconfigured)
@@ -46,6 +51,7 @@ LlamaIndexInstrumentor().instrument()
 
 app = FastAPI(title="Multi-Agent API", description="API with listing and markets agents")
 app.include_router(auth_router)
+app.include_router(listings_router)
 app.include_router(properties_router)
 
 def get_event_generator(
@@ -53,31 +59,43 @@ def get_event_generator(
     request: Request
 ):
     async def event_generator():
-        async for event in handler.stream_events():
-            if await request.is_disconnected():
-                break
+        try:
+            async for event in handler.stream_events():
+                if await request.is_disconnected():
+                    logger.info(
+                        "listings/chat SSE: client disconnected; stopping event stream"
+                    )
+                    break
 
-            if isinstance(event, UIEvent):
-                # Handle UIEvent
-                yield f"8:{json.dumps([event.to_response()])}\n\n"
+                if isinstance(event, UIEvent):
+                    # Handle UIEvent
+                    yield f"8:{json.dumps([event.to_response()])}\n\n"
 
-            if isinstance(event, ResponseStreamEvent):
-                async for item in event.response_stream:
-                    yield f"0:{json.dumps(item.delta)}\n\n"
-            elif isinstance(event, StopEvent):
-                # Handle StopEvent
-                result = getattr(event, "result", None)
-                if result is None:
-                    # Keep protocol stable: always yield a string payload.
-                    yield stop_event_result_to_sse_chunk(result)
-                elif hasattr(result, "__aiter__"):
-                    async for item in result:
-                        delta = getattr(item, "delta", item)
-                        yield f"0:{json.dumps(str(delta))}\n\n"
-                else:
-                    # Best-effort serialization. Some workflow paths can return non-string
-                    # results (e.g. booleans/objects), and we don't want to kill the stream.
-                    yield stop_event_result_to_sse_chunk(result)
+                if isinstance(event, ResponseStreamEvent):
+                    async for item in event.response_stream:
+                        yield f"0:{json.dumps(item.delta)}\n\n"
+                elif isinstance(event, StopEvent):
+                    # Handle StopEvent
+                    result = getattr(event, "result", None)
+                    if result is None:
+                        # Keep protocol stable: always yield a string payload.
+                        yield stop_event_result_to_sse_chunk(result)
+                    elif hasattr(result, "__aiter__"):
+                        async for item in result:
+                            delta = getattr(item, "delta", item)
+                            yield f"0:{json.dumps(str(delta))}\n\n"
+                    else:
+                        # Best-effort serialization. Some workflow paths can return non-string
+                        # results (e.g. booleans/objects), and we don't want to kill the stream.
+                        yield stop_event_result_to_sse_chunk(result)
+        except asyncio.CancelledError:
+            logger.info("listings/chat SSE: event generator cancelled")
+            raise
+        except Exception:
+            logger.exception("listings/chat SSE: error while streaming workflow events")
+            raise
+        finally:
+            logger.debug("listings/chat SSE: event stream ended")
 
     return event_generator
 

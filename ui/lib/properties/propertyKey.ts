@@ -15,5 +15,6 @@ export function buildPropertyKey(property: PropertyDataItem): string {
   const lng =
     typeof property.longitude === "number" ? property.longitude.toFixed(4) : "na";
 
+  // Note: when lng is negative, concatenation produces three hyphens (e.g. 40.7---74.0), matching Python resolver.
   return `${name}--${address}--${lat}--${lng}`;
 }

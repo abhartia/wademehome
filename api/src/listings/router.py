@@ -1,0 +1,566 @@
+"""Public listing browse endpoints (same auth rules as /listings/chat via ASGI middleware)."""
+
+from __future__ import annotations
+
+import math
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
+from sqlalchemy import inspect, text
+
+from core.config import Config
+from core.logger import get_logger
+from listings.mapbox_client import driving_durations_minutes, forward_geocode, search_category_nearby
+from listings.market_snapshot import build_market_snapshot_sql, extract_zip_from_address, normalize_us_zip_query
+from listings.nearby_mapper import row_to_property_data_item
+from listings.property_key import item_matches_property_key, parse_property_key
+from listings.schemas import (
+    CommuteLegResult,
+    CommuteMatrixResponse,
+    GeocodeResponse,
+    MarketSnapshotResponse,
+    NearbyListingsResponse,
+    PoiHit,
+    PoiNearbyResponse,
+)
+from workflow.events import PropertyDataItem
+from workflow.utils import engine, listing_table_name, listing_table_schema
+
+logger = get_logger(__name__)
+
+router = APIRouter(prefix="/listings", tags=["listings"])
+
+
+def _haversine_mi_sql(*, table_alias: str | None = None) -> str:
+    """Spherical law of cosines, miles. Optional table alias for qualified columns."""
+    p = f"{table_alias}." if table_alias else ""
+    lat_col = f"{p}latitude"
+    lng_col = f"{p}longitude"
+    return f"""
+(
+  3958.8 * acos(
+    LEAST(1.0::double precision, GREATEST(-1.0::double precision,
+      sin(radians(:lat)) * sin(radians({lat_col}::double precision))
+      + cos(radians(:lat)) * cos(radians({lat_col}::double precision))
+        * cos(radians({lng_col}::double precision) - radians(:lng))
+    ))
+  )
+)
+"""
+
+
+def _qualified_table() -> str:
+    name = (listing_table_name or "").strip()
+    if not name:
+        return ""
+    schema = (listing_table_schema or "").strip()
+    if schema:
+        return f'"{schema}"."{name}"'
+    return f'"{name}"'
+
+
+def _table_columns_lower(conn, schema: str, tname: str) -> set[str]:
+    rows = conn.execute(
+        text(
+            """
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = :schema AND table_name = :tname
+            """
+        ),
+        {"schema": schema, "tname": tname},
+    ).fetchall()
+    return {str(r[0]).lower() for r in rows}
+
+
+def _distinct_on_building(cols: set[str]) -> tuple[str, str]:
+    """
+    DISTINCT ON (...) and leading ORDER BY expressions (must match).
+    Prefer property_id when present; else 5dp lat/lng (matches UI grouping).
+    """
+    if "property_id" in cols:
+        return "t_inner.property_id", "t_inner.property_id"
+    return (
+        "ROUND(t_inner.latitude::numeric, 5), ROUND(t_inner.longitude::numeric, 5)",
+        "ROUND(t_inner.latitude::numeric, 5), ROUND(t_inner.longitude::numeric, 5)",
+    )
+
+
+def _empty_response(radius_miles: float, limit: int) -> NearbyListingsResponse:
+    return NearbyListingsResponse(
+        properties=[],
+        total_in_radius=0,
+        radius_miles=radius_miles,
+        limit=limit,
+        used_global_nearest_fallback=False,
+    )
+
+
+@router.get("/nearby", response_model=NearbyListingsResponse)
+def get_nearby_listings(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+    radius_miles: float = Query(15, gt=0, le=500),
+    limit: int = Query(50, ge=1, le=100),
+) -> NearbyListingsResponse:
+    """
+    Up to `limit` map pins: one row per building/property (closest unit to the query point),
+    within `radius_miles` when any inventory exists in that radius; otherwise nearest buildings
+    globally. Requires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.
+    """
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        return _empty_response(radius_miles, limit)
+
+    if engine.dialect.name != "postgresql":
+        logger.warning("listings/nearby: unsupported dialect %s", engine.dialect.name)
+        return _empty_response(radius_miles, limit)
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+    hav = _haversine_mi_sql()
+    hav_inner = _haversine_mi_sql(table_alias="t_inner")
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                return _empty_response(radius_miles, limit)
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            distinct_on, order_building = _distinct_on_building(cols)
+
+            params: dict[str, Any] = {
+                "lat": latitude,
+                "lng": longitude,
+                "radius": radius_miles,
+                "limit": limit,
+            }
+
+            count_sql = text(
+                f"""
+                SELECT COUNT(*)::bigint AS c
+                FROM {qtable}
+                WHERE latitude IS NOT NULL
+                  AND longitude IS NOT NULL
+                  AND {hav} <= :radius
+                """
+            )
+            total = int(conn.execute(count_sql, params).scalar() or 0)
+
+            if total > 0:
+                select_sql = text(
+                    f"""
+                    SELECT * FROM (
+                      SELECT DISTINCT ON ({distinct_on})
+                        t_inner.*,
+                        ({hav_inner}) AS d_mi
+                      FROM {qtable} AS t_inner
+                      WHERE t_inner.latitude IS NOT NULL
+                        AND t_inner.longitude IS NOT NULL
+                        AND ({hav_inner}) <= :radius
+                      ORDER BY {order_building}, ({hav_inner}) ASC
+                    ) sub
+                    ORDER BY d_mi ASC
+                    LIMIT :limit
+                    """
+                )
+                used_fallback = False
+            else:
+                any_coords = int(
+                    conn.execute(
+                        text(
+                            f"""
+                            SELECT COUNT(*)::bigint
+                            FROM {qtable}
+                            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                            """
+                        )
+                    ).scalar()
+                    or 0
+                )
+                if any_coords == 0:
+                    return _empty_response(radius_miles, limit)
+                logger.info(
+                    "listings/nearby: 0 within radius=%s mi of (%s,%s); returning %s nearest buildings",
+                    radius_miles,
+                    latitude,
+                    longitude,
+                    limit,
+                )
+                select_sql = text(
+                    f"""
+                    SELECT * FROM (
+                      SELECT DISTINCT ON ({distinct_on})
+                        t_inner.*,
+                        ({hav_inner}) AS d_mi
+                      FROM {qtable} AS t_inner
+                      WHERE t_inner.latitude IS NOT NULL
+                        AND t_inner.longitude IS NOT NULL
+                      ORDER BY {order_building}, ({hav_inner}) ASC
+                    ) sub
+                    ORDER BY d_mi ASC
+                    LIMIT :limit
+                    """
+                )
+                used_fallback = True
+
+            result = conn.execute(select_sql, params)
+            rows = result.mappings().all()
+
+        properties: list[PropertyDataItem] = []
+        for row in rows:
+            try:
+                row_dict = dict(row)
+                row_dict.pop("d_mi", None)
+                properties.append(row_to_property_data_item(row_dict))
+            except Exception:
+                logger.exception("listings/nearby: skip row that failed to map")
+
+        return NearbyListingsResponse(
+            properties=properties,
+            total_in_radius=total,
+            radius_miles=radius_miles,
+            limit=limit,
+            used_global_nearest_fallback=used_fallback,
+        )
+    except Exception:
+        logger.exception("listings/nearby: query failed")
+        return _empty_response(radius_miles, limit)
+
+
+def _resolve_property_by_key(key: str) -> PropertyDataItem | None:
+    parsed = parse_property_key(key)
+    if parsed is None:
+        return None
+
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        return None
+    if engine.dialect.name != "postgresql":
+        return None
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                return None
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            distinct_on, order_building = _distinct_on_building(cols)
+
+            has_coord_tokens = parsed.lat_token != "na" and parsed.lng_token != "na"
+            if has_coord_tokens:
+                try:
+                    lat_k = float(parsed.lat_token)
+                    lng_k = float(parsed.lng_token)
+                except ValueError:
+                    return None
+                eps = 0.00012
+                params: dict[str, object] = {
+                    "lat0": lat_k - eps,
+                    "lat1": lat_k + eps,
+                    "lng0": lng_k - eps,
+                    "lng1": lng_k + eps,
+                    "limit": 250,
+                }
+                sql = text(
+                    f"""
+                    SELECT * FROM (
+                      SELECT DISTINCT ON ({distinct_on})
+                        t_inner.*
+                      FROM {qtable} AS t_inner
+                      WHERE t_inner.latitude IS NOT NULL
+                        AND t_inner.longitude IS NOT NULL
+                        AND t_inner.latitude BETWEEN :lat0 AND :lat1
+                        AND t_inner.longitude BETWEEN :lng0 AND :lng1
+                      ORDER BY {order_building}
+                    ) sub
+                    LIMIT :limit
+                    """
+                )
+                rows = conn.execute(sql, params).mappings().all()
+            else:
+                params = {"limit": 1800}
+                if "property_id" in cols:
+                    sql = text(
+                        f"""
+                        SELECT * FROM (
+                          SELECT DISTINCT ON (t_inner.property_id)
+                            t_inner.*
+                          FROM {qtable} AS t_inner
+                          ORDER BY t_inner.property_id
+                        ) sub
+                        LIMIT :limit
+                        """
+                    )
+                else:
+                    sql = text(
+                        f"""
+                        SELECT * FROM (
+                          SELECT DISTINCT ON ({distinct_on})
+                            t_inner.*
+                          FROM {qtable} AS t_inner
+                          WHERE t_inner.latitude IS NOT NULL
+                            AND t_inner.longitude IS NOT NULL
+                          ORDER BY {order_building}
+                        ) sub
+                        LIMIT :limit
+                        """
+                    )
+                rows = conn.execute(sql, params).mappings().all()
+
+        matches: list[PropertyDataItem] = []
+        for row in rows:
+            try:
+                item = row_to_property_data_item(dict(row))
+                if item_matches_property_key(key, item):
+                    matches.append(item)
+            except Exception:
+                logger.exception("listings/by-property-key: skip row")
+
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            logger.warning("listings/by-property-key: ambiguous key (%s matches)", len(matches))
+        return None
+    except Exception:
+        logger.exception("listings/by-property-key: query failed")
+        return None
+
+
+class GeocodeBody(BaseModel):
+    address: str = Field(..., min_length=3, max_length=500)
+
+
+class LatLngIn(BaseModel):
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+
+
+class CommuteMatrixBody(BaseModel):
+    origin: LatLngIn
+    destinations: list[LatLngIn] = Field(..., min_length=1, max_length=12)
+    labels: list[str] = Field(default_factory=list)
+
+
+@router.get("/by-property-key", response_model=PropertyDataItem)
+def get_listing_by_property_key(
+    property_key: str = Query(..., min_length=5, max_length=600),
+) -> PropertyDataItem:
+    item = _resolve_property_by_key(property_key)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return item
+
+
+@router.post("/geocode", response_model=GeocodeResponse)
+def geocode_address(body: GeocodeBody) -> GeocodeResponse:
+    token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
+    if not token:
+        raise HTTPException(status_code=503, detail="Geocoding unavailable")
+    pair = forward_geocode(body.address, token)
+    if pair is None:
+        raise HTTPException(status_code=404, detail="No coordinates for address")
+    lat, lng = pair
+    return GeocodeResponse(latitude=lat, longitude=lng)
+
+
+@router.get("/market-snapshot", response_model=MarketSnapshotResponse)
+def get_market_snapshot(
+    zip_q: str | None = Query(
+        None,
+        alias="zip",
+        max_length=12,
+        description="US ZIP; first 5 digits used (supports ZIP+4).",
+    ),
+    city: str | None = Query(None, max_length=120),
+    state: str | None = Query(None, max_length=32),
+    address: str | None = Query(
+        None,
+        max_length=500,
+        description="Deprecated fallback: extract ZIP from free-text only if zip/city/state are missing.",
+    ),
+) -> MarketSnapshotResponse:
+    city_t = (city or "").strip()
+    state_t = (state or "").strip()
+    zip_t = normalize_us_zip_query(zip_q or "") if zip_q else None
+    if not zip_t and address and not (city_t and state_t):
+        zip_t = normalize_us_zip_query(extract_zip_from_address(address or "") or "")
+
+    scope: str
+    zip_out: str | None = None
+    city_out: str | None = None
+    state_out: str | None = None
+    if zip_t:
+        scope = f"ZIP {zip_t}"
+        zip_out = zip_t
+    elif city_t and state_t:
+        scope = f"{city_t}, {state_t}"
+        city_out = city_t
+        state_out = state_t
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide zip= (US postal code), or both city= and state=, or address= with a 5-digit ZIP.",
+        )
+
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        raise HTTPException(status_code=503, detail="Listings database not configured")
+
+    if engine.dialect.name != "postgresql":
+        raise HTTPException(status_code=503, detail="Unsupported database dialect")
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                raise HTTPException(status_code=503, detail="Listings table missing")
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            built = build_market_snapshot_sql(
+                qtable,
+                cols,
+                zip_code=zip_t,
+                city=city_t if not zip_t else None,
+                state=state_t if not zip_t else None,
+            )
+            if built is None:
+                raise HTTPException(
+                    status_code=501,
+                    detail="Could not build market query (need rent columns plus zip or city+state columns on listings).",
+                )
+            sql, params = built
+            row = conn.execute(text(sql), params).mappings().first()
+            if row is None:
+                return MarketSnapshotResponse(
+                    scope=scope,
+                    zip=zip_out,
+                    city=city_out,
+                    state=state_out,
+                    sample_size=0,
+                    bedroom_mix={},
+                )
+
+            sample = int(row["sample_size"] or 0)
+            mix_raw = row["bedroom_mix"]
+            bedroom_mix: dict[str, int] = {}
+            if isinstance(mix_raw, dict):
+                bedroom_mix = {str(k): int(v) for k, v in mix_raw.items() if v is not None}
+
+            def _f(name: str) -> float | None:
+                v = row.get(name)
+                if v is None:
+                    return None
+                try:
+                    return float(v)
+                except (TypeError, ValueError):
+                    return None
+
+            return MarketSnapshotResponse(
+                scope=scope,
+                zip=zip_out,
+                city=city_out,
+                state=state_out,
+                sample_size=sample,
+                median_rent=_f("p50"),
+                p25_rent=_f("p25"),
+                p75_rent=_f("p75"),
+                bedroom_mix=bedroom_mix,
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("listings/market-snapshot failed")
+        raise HTTPException(status_code=500, detail="Market snapshot failed") from None
+
+
+@router.post("/commute-matrix", response_model=CommuteMatrixResponse)
+def commute_matrix(body: CommuteMatrixBody) -> CommuteMatrixResponse:
+    token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
+    if not token:
+        raise HTTPException(status_code=503, detail="Commute matrix unavailable")
+
+    dests = [(d.latitude, d.longitude) for d in body.destinations]
+    mins = driving_durations_minutes(
+        body.origin.latitude,
+        body.origin.longitude,
+        dests,
+        token,
+    )
+    labels = body.labels
+    legs: list[CommuteLegResult] = []
+    for i, _dest in enumerate(body.destinations):
+        lab = labels[i] if i < len(labels) else f"Stop {i + 1}"
+        m = mins[i] if i < len(mins) else None
+        legs.append(CommuteLegResult(label=lab, minutes=m, distance_meters=None))
+
+    return CommuteMatrixResponse(
+        origin_latitude=body.origin.latitude,
+        origin_longitude=body.origin.longitude,
+        legs=legs,
+    )
+
+
+# Mapbox Search Box canonical category ids (GET .../search/searchbox/v1/list/category).
+_POI_CATEGORIES: tuple[tuple[str, str], ...] = (
+    ("supermarket", "supermarket"),
+    ("pharmacy", "pharmacy"),
+    ("park", "park"),
+    ("gym", "gym"),
+)
+
+
+@router.get("/poi-nearby", response_model=PoiNearbyResponse)
+def poi_nearby(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+) -> PoiNearbyResponse:
+    token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
+    if not token:
+        raise HTTPException(status_code=503, detail="POI search unavailable")
+
+    items: list[PoiHit] = []
+    for cat, mapbox_category_id in _POI_CATEGORIES:
+        hits = search_category_nearby(
+            latitude, longitude, mapbox_category_id, token, limit=6
+        )
+        nearest = hits[0] if hits else None
+        name = None
+        nlat = nlng = ndm = None
+        if nearest:
+            name = nearest.get("name") or nearest.get("place_name")
+            nlat = nearest.get("latitude")
+            nlng = nearest.get("longitude")
+            raw_dm = nearest.get("distance_meters")
+            if (
+                isinstance(raw_dm, (int, float))
+                and math.isfinite(float(raw_dm))
+                and float(raw_dm) >= 0
+            ):
+                ndm = round(float(raw_dm), 1)
+        items.append(
+            PoiHit(
+                category=cat,
+                count=len(hits),
+                nearest_name=name if isinstance(name, str) else None,
+                nearest_latitude=float(nlat) if isinstance(nlat, (int, float)) else None,
+                nearest_longitude=float(nlng) if isinstance(nlng, (int, float)) else None,
+                nearest_distance_meters=ndm,
+            )
+        )
+
+    return PoiNearbyResponse(latitude=latitude, longitude=longitude, items=items)

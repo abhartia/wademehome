@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 from jsonschema import ValidationError
 from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.workflow import (Workflow, Context, StopEvent, step)
@@ -14,6 +15,8 @@ from workflow.events import (
     PropertyDataList,
     ResponseStreamEvent,
     SearchHintData,
+    SearchStatsData,
+    SearchSummaryData,
     UserInputEvent,
     TextToSQLEvent,
     WrongSQLStatementEvent,
@@ -23,6 +26,7 @@ from workflow.utils import (
     CHECK_QUERY_LAST_MESSAGE,
     CHECK_QUERY_OUTPUT_PARSER,
     SEARCH_HINT_SYSTEM,
+    SEARCH_SUMMARY_SYSTEM,
     WRONG_SQL_OUTPUT_PARSER,
     extract_chat_messages_query_tables,
     format_wrong_sql_message,
@@ -36,6 +40,59 @@ from llama_index.server.models.ui import UIEvent
 from workflow.property_parsing import parse_property_data_list_from_json
 
 logger = get_logger(__name__)
+
+_SQL_LIMIT_RE = re.compile(r"\bLIMIT\s+(\d+)\b", re.IGNORECASE)
+
+
+def _parse_sql_limit_cap(sql: str) -> int | None:
+    m = _SQL_LIMIT_RE.search(sql or "")
+    return int(m.group(1)) if m else None
+
+
+def _infer_sql_sort_note(sql: str) -> str | None:
+    s = (sql or "").upper()
+    if "ACOS(" in s or "3959" in s or "3958" in s or "3963" in s or "HAVERSINE" in s:
+        return "Sorted by distance from your search area."
+    if "ORDER BY" in s:
+        return "Ordered by the search query (e.g. distance or relevance)."
+    return None
+
+
+def _count_sql_result_rows(query_result_tuples: list) -> int:
+    n = 0
+    for tup in query_result_tuples:
+        if len(tup) < 2:
+            continue
+        r = tup[1]
+        if isinstance(r, list):
+            n += len(r)
+    return n
+
+
+def _merge_search_hint_heuristic(user_msg: str, hint: SearchHintData) -> SearchHintData:
+    """Boost suggest_account when the message reads like lifestyle + preference (prompt-only model can miss)."""
+    if hint.suggest_account:
+        return hint
+    t = (user_msg or "").lower()
+    first_person = bool(
+        re.search(
+            r"\b(i am|i'm|\bim\b|i want|i need|i prefer|we are|we're|i love|i like)\b",
+            t,
+        )
+    )
+    lifestyle = bool(
+        re.search(
+            r"\b(active|quiet|lifestyle|person|park|outdoors|fitness|gym|wfh|"
+            r"work from home|running|walkable|commute|pet|kids|family)\b",
+            t,
+        )
+    )
+    if first_person and lifestyle:
+        return SearchHintData(
+            suggest_account=True,
+            reason=hint.reason or "Save lifestyle and preferences across searches with a free account.",
+        )
+    return hint
 
 
 def _parse_search_hint_from_chat_response(resp: ChatResponse | None) -> SearchHintData:
@@ -56,6 +113,31 @@ def _parse_search_hint_from_chat_response(resp: ChatResponse | None) -> SearchHi
         except Exception:
             try:
                 return SearchHintData.model_validate_json(content)
+            except Exception:
+                return default
+    return default
+
+
+def _parse_search_summary_from_chat_response(
+    resp: ChatResponse | None,
+) -> SearchSummaryData:
+    default = SearchSummaryData(headline="Property search", bullets=[])
+    if not resp or not resp.message:
+        return default
+    content = resp.message.content
+    if content is None:
+        return default
+    if isinstance(content, dict):
+        try:
+            return SearchSummaryData.model_validate(content)
+        except Exception:
+            return default
+    if isinstance(content, str):
+        try:
+            return SearchSummaryData.model_validate_json(content.strip())
+        except Exception:
+            try:
+                return SearchSummaryData.model_validate_json(content)
             except Exception:
                 return default
     return default
@@ -84,24 +166,116 @@ class ListingFetcherWorkflow(Workflow):
             )
         )
 
-    async def _emit_search_hint(self, ctx: Context, user_msg: str) -> None:
+    def _format_recent_messages_for_hint(self, messages: list[ChatMessage]) -> str:
+        lines: list[str] = []
+        for m in messages[-10:]:
+            role = getattr(m, "role", None) or ""
+            block = getattr(m, "content", None) or ""
+            text = block if isinstance(block, str) else str(block)
+            lines.append(f"{role}: {text[:1200]}")
+        return "\n".join(lines)
+
+    async def _emit_search_hint(
+        self,
+        ctx: Context,
+        user_msg: str,
+        prior_messages: list[ChatMessage] | None,
+    ) -> None:
         """Lightweight classification for whether to suggest logging in (streamed early)."""
         hint = SearchHintData(suggest_account=False, reason=None)
         try:
+            hist_text = self._format_recent_messages_for_hint(prior_messages or [])
+            user_payload = (
+                "Classify using the whole session below, not only the latest line.\n\n"
+                f"Prior conversation (oldest to newest within this window):\n"
+                f"{hist_text or '(no prior turns)'}\n\n"
+                f"Latest user message:\n{user_msg}"
+            )
             sllm = self.llm.as_structured_llm(SearchHintData)
             resp = await asyncio.wait_for(
                 sllm.achat(
                     messages=[
                         ChatMessage(role="system", content=SEARCH_HINT_SYSTEM),
-                        ChatMessage(role="user", content=user_msg),
+                        ChatMessage(role="user", content=user_payload),
                     ]
                 ),
-                timeout=12.0,
+                timeout=6.0,
             )
             hint = _parse_search_hint_from_chat_response(resp)
+        except asyncio.TimeoutError:
+            logger.warning("search_hint classification timed out")
         except Exception:
             logger.exception("search_hint classification failed")
+        hint = _merge_search_hint_heuristic(user_msg, hint)
         ctx.write_event_to_stream(UIEvent(type="search_hint", data=hint))
+
+    async def _emit_search_summary(
+        self,
+        ctx: Context,
+        *,
+        user_query: str,
+        response_text: str,
+    ) -> None:
+        """Short UI summary for map search (streamed after listings)."""
+        try:
+            chat_hist = await ctx.store.get("chat_history", []) or []
+            hist_lines: list[str] = []
+            for m in chat_hist[-10:]:
+                role = getattr(m, "role", None) or ""
+                block = getattr(m, "content", None) or ""
+                text = block if isinstance(block, str) else str(block)
+                hist_lines.append(f"{role}: {text[:1200]}")
+            hist_text = "\n".join(hist_lines)
+            sllm = self.llm.as_structured_llm(SearchSummaryData)
+            resp = await asyncio.wait_for(
+                sllm.achat(
+                    messages=[
+                        ChatMessage(role="system", content=SEARCH_SUMMARY_SYSTEM),
+                        ChatMessage(
+                            role="user",
+                            content=(
+                                "Summarize the active search for the map UI.\n\n"
+                                f"Text-to-SQL / retrieval query:\n{user_query}\n\n"
+                                f"Conversation (recent):\n{hist_text}\n\n"
+                                f"Assistant reply excerpt:\n{(response_text or '')[:2200]}"
+                            ),
+                        ),
+                    ]
+                ),
+                timeout=28.0,
+            )
+            summary = _parse_search_summary_from_chat_response(resp)
+        except asyncio.TimeoutError:
+            logger.warning("search_summary generation timed out")
+            summary = SearchSummaryData(headline="Property search", bullets=[])
+        except Exception:
+            logger.exception("search_summary generation failed")
+            summary = SearchSummaryData(headline="Property search", bullets=[])
+        ctx.write_event_to_stream(UIEvent(type="search_summary", data=summary))
+
+    def _run_retrieval_gate_sync(
+        self, ev: UserInputEvent
+    ) -> tuple[dict, list[ChatMessage]]:
+        """Sync LLM call for should_retrieve_data; run in a thread so the event loop stays free."""
+        chat_history_with_previous_responses = [
+            *(ev.chat_history or []),
+            ChatMessage(
+                role="system",
+                content=(
+                    "Previous queries' results (may be in plain text or JSON format): "
+                    f"{self.chat_messages_query_tables}"
+                ),
+            ),
+        ]
+        response = self.llm.chat(
+            messages=[
+                *chat_history_with_previous_responses,
+                ChatMessage(role="user", content=ev.user_msg),
+                ChatMessage(role="system", content=CHECK_QUERY_LAST_MESSAGE),
+            ]
+        )
+        parsed = CHECK_QUERY_OUTPUT_PARSER.parse(response)
+        return parsed, chat_history_with_previous_responses
 
     @step
     async def check_data_query(
@@ -109,33 +283,24 @@ class ListingFetcherWorkflow(Workflow):
     ) -> (DBDataRequiredEvent | StopEvent):
         """Check if the user query needs data retrieval."""
 
-        await self._emit_search_hint(ctx, ev.user_msg)
-
-        chat_history_with_previous_responses = [
-            *(ev.chat_history or []),
-            ChatMessage(
-                role="system",
-                content=f"Previous queries' results (may be in plain text or JSON format): {self.chat_messages_query_tables}"
-            )
-        ]
-
-        response = self.llm.chat(
-            messages=[
-                *(chat_history_with_previous_responses or []),
-                ChatMessage(role="user", content=ev.user_msg),
-                ChatMessage(
-                    role="system",
-                    content=CHECK_QUERY_LAST_MESSAGE,
-                )
-            ]
+        hint_task = asyncio.create_task(
+            self._emit_search_hint(ctx, ev.user_msg, ev.chat_history)
         )
-
-        parsedResponse = CHECK_QUERY_OUTPUT_PARSER.parse(response)
+        check_task = asyncio.create_task(
+            asyncio.to_thread(self._run_retrieval_gate_sync, ev)
+        )
+        try:
+            await asyncio.gather(hint_task, check_task)
+        except BaseException:
+            hint_task.cancel()
+            check_task.cancel()
+            raise
+        parsedResponse, chat_history_with_previous_responses = check_task.result()
 
         if parsedResponse["should_retrieve_data"]:
             logger.info("check_data_query: should_retrieve_data=true")
             # Store chat history with previous responses in context for future steps
-            await ctx.set("chat_history", chat_history_with_previous_responses)
+            await ctx.store.set("chat_history", chat_history_with_previous_responses)
 
             return DBDataRequiredEvent(
                 query=ev.user_msg
@@ -146,29 +311,51 @@ class ListingFetcherWorkflow(Workflow):
                 "check_data_query: should_retrieve_data=false; skipping SQL retrieval"
             )
             self._emit_empty_property_listings(ctx)
-            return StopEvent(
-                content=True,
-                result=parsedResponse["response_to_user"]
-            )
+            return StopEvent(result=parsedResponse["response_to_user"])
+
+    def _text2sql_llm_sync(self, messages: list[ChatMessage]) -> ChatResponse:
+        return self.llm.chat(messages)
 
     @step
     async def generate_sql(
         self, ctx: Context, ev: DBDataRequiredEvent
-    ) -> TextToSQLEvent:
+    ) -> TextToSQLEvent | StopEvent:
         """Generate SQL statement."""
+
+        logger.info("generate_sql: entered query=%r", ev.query)
+        print(f"generate_sql: entered query={ev.query!r}")
 
         fmt_messages = text2sql_prompt.format_messages(
             query_str=ev.query,
             schema=get_listing_table_info()
         )
 
-        message_with_chat_history: list[ChatMessage] = await ctx.get("chat_history", [])
+        message_with_chat_history: list[ChatMessage] = await ctx.store.get("chat_history", [])
 
-        chat_response = self.llm.chat([
-            *message_with_chat_history,
-            *fmt_messages
-        ])
+        chat_response = await asyncio.to_thread(
+            self._text2sql_llm_sync,
+            [*message_with_chat_history, *fmt_messages],
+        )
         sql = parse_response_to_sql(chat_response)
+        if not (sql or "").strip():
+            raw = getattr(getattr(chat_response, "message", None), "content", None)
+            raw_preview = (
+                (raw[:800] + "…") if isinstance(raw, str) and len(raw) > 800 else raw
+            )
+            logger.warning(
+                "generate_sql: empty SQL after text2sql query=%r raw_preview=%r",
+                ev.query,
+                raw_preview,
+            )
+            print(f"generate_sql: empty SQL query={ev.query!r}")
+            self._emit_empty_property_listings(ctx)
+            return StopEvent(
+                result=(
+                    "We couldn't turn your request into a database search. "
+                    "Try rephrasing with a neighborhood, city, or ZIP code."
+                )
+            )
+
         logger.info("generate_sql: query=%r sql=%r", ev.query, sql)
         sql_preview = sql if len(sql) <= 1000 else (sql[:1000] + "…")
         print(f"generate_sql: query={ev.query!r} sql={sql_preview!r}")
@@ -229,14 +416,14 @@ class ListingFetcherWorkflow(Workflow):
             no_props_message = (
                 "No properties found for your search. Try a different zipcode or criteria."
             )
-            await ctx.set("no_properties_message", no_props_message)
+            await ctx.store.set("no_properties_message", no_props_message)
             return StopEvent(result=no_props_message)
 
         chat_response = await self.llm.astream_chat(
             get_response_synthesis_message(
                 query_str=ev.query,
                 query_result_tuples=query_result_tuples,
-                chat_history= await ctx.get("chat_history", []),
+                chat_history= await ctx.store.get("chat_history", []),
                 extra_instructions=""""
                     There is no need to add the images in the response, just return the property details.
                 """
@@ -266,7 +453,7 @@ class ListingFetcherWorkflow(Workflow):
                         )
             finally:
                 await chunk_queue.put(None)
-                await ctx.set("response_text", "".join(response_chunks))
+                await ctx.store.set("response_text", "".join(response_chunks))
 
         pump_task = asyncio.create_task(pump_llm_stream())
 
@@ -302,7 +489,7 @@ class ListingFetcherWorkflow(Workflow):
             try:
                 listings_properties_response = await asyncio.wait_for(
                     sllm.achat(messages=[
-                        *(await ctx.get("chat_history", [])),
+                        *(await ctx.store.get("chat_history", [])),
                         ChatMessage(
                             role="user",
                             content=f"""
@@ -312,6 +499,11 @@ class ListingFetcherWorkflow(Workflow):
                     - Whenever latitude and longitude columns are present in the SQL results for a listing, include them in the corresponding property's latitude and longitude fields in the output.
                     - If latitude or longitude are missing for a listing, set those fields to null.
                     - Include every listing from the SQL results in the output; if latitude or longitude are missing, set those fields to null (the map UI will omit pins without coordinates).
+                    - For EACH property, set "match_reason" to one short sentence (max ~200 chars) explaining
+                      why this row matches the user's search (use listing name, address, amenities text,
+                      description fields from SQL, and distance ordering if the query sorted by geography).
+                    - If unclear, give a best-effort tie to the user's stated criteria (e.g. "Park" in name,
+                      amenities mentioning parks, or closest matches to the user's area).
                     - Output must match the following JSON schema exactly:
                       PropertyDataList = {{
                         "properties": [
@@ -324,7 +516,8 @@ class ListingFetcherWorkflow(Workflow):
                             "bedroom_range": string,
                             "images_urls": string[],   // from SQL column `image_url` when possible
                             "main_amenities": string[], // max 4 items
-                            "amenities": string[]       // full amenities list
+                            "amenities": string[],      // full amenities list
+                            "match_reason": string | null
                           }}
                         ]
                       }}
@@ -360,7 +553,7 @@ class ListingFetcherWorkflow(Workflow):
                     listings_properties_json[:200],
                 )
 
-            await ctx.set("property_listings_emitted", True)
+            await ctx.store.set("property_listings_emitted", True)
             no_props_message = (
                 "No properties found for your search. Try a different zipcode or criteria."
             )
@@ -370,12 +563,28 @@ class ListingFetcherWorkflow(Workflow):
                     data=listings_properties,
                 )
             )
+            primary_sql = query_result_tuples[0][0] if query_result_tuples else ""
+            row_count = _count_sql_result_rows(query_result_tuples)
+            ctx.write_event_to_stream(
+                UIEvent(
+                    type="search_stats",
+                    data=SearchStatsData(
+                        returned_count=row_count,
+                        limit_cap=_parse_sql_limit_cap(primary_sql),
+                        sort_note=_infer_sql_sort_note(primary_sql),
+                    ),
+                )
+            )
             if len(listings_properties.properties) == 0:
-                await ctx.set("no_properties_message", no_props_message)
+                await ctx.store.set("no_properties_message", no_props_message)
 
         await extract_and_emit_properties()
-        # Do not block workflow completion on the full LLM stream.
-        # We already emitted `property_listings` above.
+        await pump_task
+        await self._emit_search_summary(
+            ctx,
+            user_query=ev.query,
+            response_text=await ctx.store.get("response_text", ""),
+        )
 
         return GeneratedResponseEvent(
             response=None,
@@ -391,12 +600,12 @@ class ListingFetcherWorkflow(Workflow):
 
         # If we've already emitted `property_listings` directly from
         # `generate_response`, skip structured extraction here.
-        if await ctx.get("property_listings_emitted", False):
-            no_props_message = await ctx.get("no_properties_message", "")
+        if await ctx.store.get("property_listings_emitted", False):
+            no_props_message = await ctx.store.get("no_properties_message", "")
             return StopEvent(result=no_props_message or "")
 
         # converting async generator to whole reponse
-        response_as_text = await ctx.get("response_text", "")
+        response_as_text = await ctx.store.get("response_text", "")
 
         sllm = self.llm.as_structured_llm(PropertyDataList)
 
@@ -409,7 +618,7 @@ class ListingFetcherWorkflow(Workflow):
         try:
             listings_properties_response = await asyncio.wait_for(
                 sllm.achat(messages=[
-                    *(await ctx.get("chat_history", [])),
+                    *(await ctx.store.get("chat_history", [])),
                     ChatMessage(
                         role="user",
                         content=f"""
@@ -419,19 +628,27 @@ class ListingFetcherWorkflow(Workflow):
                     - Whenever latitude and longitude columns are present in the SQL results for a listing, include them in the corresponding property's latitude and longitude fields in the output.
                     - If latitude or longitude are missing for a listing, set those fields to null.
                     - Include every listing from the SQL results in the output; if latitude or longitude are missing, set those fields to null (the map UI will omit pins without coordinates).
+                    - For EACH property, set "match_reason" to one short sentence (max ~200 chars) explaining
+                      why this row matches the user's search (name, amenities, description, distance if sorted by geo).
+                    - When SQL results include city, state, or postal code columns (e.g. city, state, zipcode / zip / postal_code),
+                      copy them into "city", "state", and "zip_code" on each property; otherwise set those fields to null.
                     - Output must match the following JSON schema exactly:
                       PropertyDataList = {{
                         "properties": [
                           {{
                             "name": string,
                             "address": string,
+                            "city": string | null,
+                            "state": string | null,
+                            "zip_code": string | null,
                             "latitude": number | null,
                             "longitude": number | null,
                             "rent_range": string,
                             "bedroom_range": string,
                             "images_urls": string[],   // from SQL column `image_url` when possible
                             "main_amenities": string[], // max 4 items
-                            "amenities": string[]       // full amenities list
+                            "amenities": string[],      // full amenities list
+                            "match_reason": string | null
                           }}
                         ]
                       }}
@@ -477,6 +694,18 @@ class ListingFetcherWorkflow(Workflow):
                 data=listings_properties,
             )
         )
+        primary_sql = ev.query_result_tuples[0][0] if ev.query_result_tuples else ""
+        row_count = _count_sql_result_rows(ev.query_result_tuples)
+        ctx.write_event_to_stream(
+            UIEvent(
+                type="search_stats",
+                data=SearchStatsData(
+                    returned_count=row_count,
+                    limit_cap=_parse_sql_limit_cap(primary_sql),
+                    sort_note=_infer_sql_sort_note(primary_sql),
+                ),
+            )
+        )
 
         return StopEvent(
             result=""
@@ -498,7 +727,7 @@ class ListingFetcherWorkflow(Workflow):
                 result=no_props_message
             )
 
-        table_context = await ctx.get("table_context_str", "")
+        table_context = await ctx.store.get("table_context_str", "")
 
         user_query = ev.original_event.query
 

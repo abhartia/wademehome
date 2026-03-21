@@ -10,8 +10,10 @@ Usage (from repo root):
   ./api/.venv/bin/python scripts/load_listings_from_parquet.py --if-exists append
   ./api/.venv/bin/python scripts/load_listings_from_parquet.py --dry-run
   ./api/.venv/bin/python scripts/load_listings_from_parquet.py --fast-postgres
+  ./api/.venv/bin/python scripts/load_listings_from_parquet.py --parquet env=local/.../units.parquet --fast-postgres --if-exists upsert
 
 --fast-postgres uses batched INSERT (psycopg2 execute_values): much faster than pandas to_sql.
+--if-exists upsert requires --fast-postgres; dedupes on listing_id and uses ON CONFLICT DO UPDATE.
 
 Requires: pandas, pyarrow, sqlalchemy, python-dotenv, psycopg2-binary (in api venv).
 """
@@ -205,13 +207,162 @@ def _load_via_execute_values(
         raw.close()
 
 
+def _table_exists(engine, table_name: str, schema: str | None) -> bool:
+    with engine.connect() as conn:
+        if schema:
+            return bool(
+                conn.execute(
+                    text(
+                        """
+                        SELECT EXISTS (
+                          SELECT 1 FROM information_schema.tables
+                          WHERE table_schema = :schema AND table_name = :tname
+                        )
+                        """
+                    ),
+                    {"schema": schema, "tname": table_name},
+                ).scalar()
+            )
+        return bool(
+            conn.execute(
+                text(
+                    """
+                    SELECT EXISTS (
+                      SELECT 1 FROM information_schema.tables
+                      WHERE table_schema = 'public' AND table_name = :tname
+                    )
+                    """
+                ),
+                {"tname": table_name},
+            ).scalar()
+        )
+
+
+def _dedupe_listing_ids_in_table(raw, *, qtable: str) -> int:
+    """Remove duplicate listing_id rows, keep one row per listing_id (lowest ctid). Returns rows deleted."""
+    cur = raw.cursor()
+    cur.execute(
+        f"""
+        WITH ranked AS (
+          SELECT ctid,
+                 ROW_NUMBER() OVER (PARTITION BY listing_id ORDER BY ctid) AS rn
+          FROM {qtable}
+          WHERE listing_id IS NOT NULL
+        )
+        DELETE FROM {qtable} t
+        USING ranked r
+        WHERE t.ctid = r.ctid AND r.rn > 1
+        """
+    )
+    deleted = cur.rowcount
+    raw.commit()
+    cur.close()
+    return deleted
+
+
+def _ensure_listing_id_unique_index(raw, *, qtable: str, table_name: str) -> None:
+    """Create a unique index on listing_id if missing (required for upsert)."""
+    cur = raw.cursor()
+    idx_name = f"uq_{table_name}_listing_id"
+    cur.execute(f'CREATE UNIQUE INDEX IF NOT EXISTS "{idx_name}" ON {qtable} ("listing_id")')
+    raw.commit()
+    cur.close()
+
+
+def _load_via_execute_values_upsert(
+    *,
+    engine,
+    df: pd.DataFrame,
+    table_name: str,
+    schema: str | None,
+    dtype: dict,
+    chunk_size: int,
+) -> None:
+    from psycopg2.extras import execute_values
+
+    schema_kw = schema if schema else None
+    qtable = f'"{schema}"."{table_name}"' if schema else f'"{table_name}"'
+
+    if "listing_id" not in df.columns:
+        raise SystemExit("upsert requires a listing_id column in the parquet")
+
+    before = len(df)
+    df = df.dropna(subset=["listing_id"])
+    df = df.drop_duplicates(subset=["listing_id"], keep="last")
+    dropped = before - len(df)
+    if dropped:
+        log(f"Deduped / dropped null listing_id: {dropped:,} rows removed, {len(df):,} remain")
+
+    if not _table_exists(engine, table_name, schema):
+        log(f"Table {qtable} missing; creating from parquet columns...")
+        df.iloc[:0].to_sql(
+            name=table_name,
+            con=engine,
+            schema=schema_kw,
+            if_exists="replace",
+            index=False,
+            dtype=dtype,
+        )
+
+    cols_sql = ", ".join(f'"{c}"' for c in df.columns)
+    update_cols = [c for c in df.columns if c != "listing_id"]
+    if not update_cols:
+        raise SystemExit("No columns to update besides listing_id")
+    set_sql = ", ".join(f'"{c}" = EXCLUDED."{c}"' for c in update_cols)
+    insert_sql = (
+        f"INSERT INTO {qtable} ({cols_sql}) VALUES %s "
+        f'ON CONFLICT ("listing_id") DO UPDATE SET {set_sql}'
+    )
+
+    log("Converting rows for PostgreSQL upsert...")
+    rows = dataframe_rows_for_psycopg2(df)
+
+    raw = engine.raw_connection()
+    try:
+        try:
+            _ensure_listing_id_unique_index(raw, qtable=qtable, table_name=table_name)
+        except Exception as e:
+            raw.rollback()
+            err = str(e).lower()
+            if "duplicate key" in err or "duplicated" in err or "unique" in err:
+                log("Existing table has duplicate listing_id values; deduping in DB (keep one row per listing_id)...")
+                n = _dedupe_listing_ids_in_table(raw, qtable=qtable)
+                log(f"  removed {n:,} duplicate rows")
+                _ensure_listing_id_unique_index(raw, qtable=qtable, table_name=table_name)
+            else:
+                raise SystemExit(
+                    f"Could not create unique index on listing_id: {e}"
+                ) from e
+        cur = raw.cursor()
+        total = len(rows)
+        for i in range(0, total, chunk_size):
+            batch = rows[i : i + chunk_size]
+            execute_values(cur, insert_sql, batch, page_size=len(batch))
+            log(f"  upserted {min(i + chunk_size, total):,} / {total:,}")
+        raw.commit()
+        cur.close()
+    except SystemExit:
+        raise
+    except Exception:
+        raw.rollback()
+        raise
+    finally:
+        raw.close()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument(
         "--if-exists",
-        choices=("replace", "append", "fail"),
+        choices=("replace", "append", "fail", "upsert"),
         default="replace",
-        help="pandas.DataFrame.to_sql if_exists (default: replace)",
+        help="replace|append|fail|upsert (upsert needs --fast-postgres, key listing_id)",
+    )
+    parser.add_argument(
+        "--parquet",
+        type=Path,
+        default=UNITS_PARQUET,
+        help=f"path to units.parquet (default: {UNITS_PARQUET})",
     )
     parser.add_argument(
         "--dry-run",
@@ -241,8 +392,13 @@ def main() -> int:
         log(f"ERROR: .env not found: {args.env_file}")
         return 1
 
-    if not UNITS_PARQUET.exists():
-        log(f"ERROR: parquet not found: {UNITS_PARQUET}")
+    parquet_path = args.parquet.resolve()
+    if not parquet_path.exists():
+        log(f"ERROR: parquet not found: {parquet_path}")
+        return 1
+
+    if args.if_exists == "upsert" and not args.fast_postgres:
+        log("ERROR: --if-exists upsert requires --fast-postgres")
         return 1
 
     load_dotenv(args.env_file, override=True)
@@ -257,12 +413,16 @@ def main() -> int:
     if schema:
         schema = schema.strip() or None
 
-    log("Reading parquet: " + str(UNITS_PARQUET))
-    df = pd.read_parquet(str(UNITS_PARQUET))
+    log("Reading parquet: " + str(parquet_path))
+    df = pd.read_parquet(str(parquet_path))
     log(f"Loaded rows: {len(df):,}")
     log(f"Columns: {len(df.columns)}")
 
-    df["image_url"] = df["images"].apply(first_image_url)
+    if "images" in df.columns:
+        df["image_url"] = df["images"].apply(first_image_url)
+    else:
+        df["image_url"] = None
+        log("No images column; image_url set to null")
     with_img = int(df["image_url"].notna().sum())
     log(f"Rows with derived image_url: {with_img:,}")
 
@@ -281,15 +441,25 @@ def main() -> int:
         if not database_url.startswith("postgresql"):
             log("ERROR: --fast-postgres only works when DATABASE_URL starts with postgresql")
             return 1
-        _load_via_execute_values(
-            engine=engine,
-            df=df,
-            table_name=table_name,
-            schema=schema,
-            dtype=dtype,
-            if_exists=args.if_exists,
-            chunk_size=max(100, args.chunk_size),
-        )
+        if args.if_exists == "upsert":
+            _load_via_execute_values_upsert(
+                engine=engine,
+                df=df,
+                table_name=table_name,
+                schema=schema,
+                dtype=dtype,
+                chunk_size=max(100, args.chunk_size),
+            )
+        else:
+            _load_via_execute_values(
+                engine=engine,
+                df=df,
+                table_name=table_name,
+                schema=schema,
+                dtype=dtype,
+                if_exists=args.if_exists,
+                chunk_size=max(100, args.chunk_size),
+            )
     else:
         df.to_sql(
             name=table_name,

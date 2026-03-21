@@ -49,6 +49,28 @@ def test_parse_property_data_list_invalid_json_raises() -> None:
         parse_property_data_list_from_json("{not-json")
 
 
+def test_parse_property_data_list_accepts_optional_match_reason() -> None:
+    payload = {
+        "properties": [
+            {
+                "name": "A",
+                "address": "Addr A",
+                "latitude": 40.0,
+                "longitude": -74.0,
+                "rent_range": "$2000-$2500",
+                "bedroom_range": "1-3 bedrooms",
+                "images_urls": [],
+                "main_amenities": [],
+                "amenities": [],
+                "match_reason": "Mentions park access matching your outdoor preference.",
+            }
+        ]
+    }
+    out = parse_property_data_list_from_json(json.dumps(payload))
+    assert out.properties[0].match_reason is not None
+    assert "park" in out.properties[0].match_reason.lower()
+
+
 def test_parse_property_data_list_validation_error_raises() -> None:
     # Missing required field `bedroom_range`
     payload = {

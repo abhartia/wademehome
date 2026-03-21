@@ -1,7 +1,7 @@
 from enum import Enum
 from llama_index.core.workflow import (StartEvent, Event)
 from llama_index.core.base.llms.types import ChatMessage
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Any
 
 
@@ -61,6 +61,18 @@ class GeneratedResponseEvent(Event):
 class PropertyDataItem(BaseModel):
     name: str
     address: str
+    city: str | None = Field(
+        default=None,
+        description="City or locality from the listings row when present (e.g. units.parquet `city`).",
+    )
+    state: str | None = Field(
+        default=None,
+        description="State / region code from the listings row when present (e.g. units.parquet `state`).",
+    )
+    zip_code: str | None = Field(
+        default=None,
+        description="Postal code from the listings row when present (e.g. units.parquet `zipcode`).",
+    )
     latitude: float | None = Field(
         default=None,
         description="Latitude of the property if available from the query results.",
@@ -87,9 +99,30 @@ class PropertyDataItem(BaseModel):
         """
     )
     amenities: List[str] = Field(description="list of amenities available in the property")
+    match_reason: str | None = Field(
+        default=None,
+        description=(
+            "One short sentence (max ~200 chars) explaining why this listing matches "
+            "the user's search (e.g. name/amenities mention 'park', proximity, filters applied)."
+        ),
+    )
 
 class PropertyDataList(BaseModel):
     properties: list[PropertyDataItem]
+
+
+class SearchStatsData(BaseModel):
+    """Streamed with listing results: transparency about counts and query shape."""
+
+    returned_count: int = Field(ge=0, description="Rows returned by the listing SQL query.")
+    limit_cap: int | None = Field(
+        default=None,
+        description="LIMIT from the SQL if parseable; None if unknown.",
+    )
+    sort_note: str | None = Field(
+        default=None,
+        description="Short UI line about ordering (e.g. distance sort).",
+    )
 
 
 class SearchHintData(BaseModel):
@@ -102,3 +135,28 @@ class SearchHintData(BaseModel):
         default=None,
         description="Optional short phrase for product UI (why an account may help).",
     )
+
+
+class SearchSummaryData(BaseModel):
+    """Compact map/search UI summary (not a chat transcript)."""
+
+    headline: str = Field(
+        description="One short line summarizing the active property search for a map UI."
+    )
+    bullets: List[str] = Field(
+        default_factory=list,
+        description="Up to 5 short bullet points: area, budget, beds, must-haves, etc.",
+    )
+
+    @field_validator("bullets", mode="before")
+    @classmethod
+    def cap_bullets(cls, v: object) -> List[str]:
+        if not isinstance(v, list):
+            return []
+        out: List[str] = []
+        for item in v:
+            if isinstance(item, str) and (t := item.strip()):
+                out.append(t)
+            if len(out) >= 6:
+                break
+        return out[:5]

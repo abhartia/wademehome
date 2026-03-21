@@ -36,6 +36,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/app", request.url));
   }
 
+  if (session && pathname === "/") {
+    return NextResponse.redirect(new URL("/app", request.url));
+  }
+
   if (!isPublic && !isProtected) return NextResponse.next();
   return NextResponse.next();
 }

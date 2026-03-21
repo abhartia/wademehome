@@ -8,7 +8,7 @@ from core.config import Config
 from prompts.loader import load_app_prompt
 from llama_index.core.prompts.base import PromptTemplate
 from llama_index.core.prompts.prompt_type import PromptType
-from llama_index.core.output_parsers.langchain import LangchainOutputParser
+from workflow.langchain_output_parser import LangchainOutputParser
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from llama_index.server.models.chat import ChatAPIMessage
 from llama_index.core.llms import ChatResponse, ChatMessage
@@ -130,6 +130,8 @@ CHECK_QUERY_LAST_MESSAGE = CHECK_QUERY_OUTPUT_PARSER.format(
 )
 
 SEARCH_HINT_SYSTEM = load_app_prompt("search_hint")
+
+SEARCH_SUMMARY_SYSTEM = load_app_prompt("search_summary")
 
 ##
 # Wrong SQL prompt mounting

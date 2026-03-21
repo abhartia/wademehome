@@ -1,6 +1,7 @@
 "use client";
 
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
+import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -112,8 +113,10 @@ export function PropertyDetailSheet({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">{property.bedroom_range}</Badge>
-            <Badge variant="secondary">{property.rent_range}</Badge>
+            <Badge variant="secondary">
+              {formatPropertyRangeLabel(property.bedroom_range)}
+            </Badge>
+            <Badge variant="secondary">{formatPropertyRangeLabel(property.rent_range)}</Badge>
           </div>
 
           <div>

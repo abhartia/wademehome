@@ -1,6 +1,7 @@
 "use client";
 
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
+import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE =
@@ -121,8 +122,8 @@ export function toTourRequestPayload(propertyKey: string, property: PropertyData
     property_name: property.name,
     property_address: property.address,
     property_image: property.images_urls[0] ?? null,
-    property_price: property.rent_range,
-    property_beds: property.bedroom_range,
+    property_price: formatPropertyRangeLabel(property.rent_range),
+    property_beds: formatPropertyRangeLabel(property.bedroom_range),
     property_tags: property.main_amenities ?? [],
   } satisfies TourRequestPayload;
 }

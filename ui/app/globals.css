@@ -110,6 +110,15 @@
 
 @source '../node_modules/@llamaindex/chat-ui/**/*.{ts,tsx}';
 
+.guest-home-intro > summary > .guest-home-intro-disclosure {
+  display: inline-block;
+  transition: transform 150ms ease;
+}
+
+.guest-home-intro[open] > summary > .guest-home-intro-disclosure {
+  transform: rotate(90deg);
+}
+
 .dark {
   --sidebar: hsl(240 5.9% 10%);
   --sidebar-foreground: hsl(240 4.8% 95.9%);

@@ -8,6 +8,7 @@ import "@llamaindex/chat-ui/styles/markdown.css";
 import "@llamaindex/chat-ui/styles/pdf.css";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
 import CustomChatMessages from "./CustomMessages";
 import { QuestionSuggestions } from "./QuestionSuggestions";
 import { useChat } from "ai/react";
@@ -64,6 +65,7 @@ const ListingsSidebar = ({
         <TabsContent value="map" className="flex-1 overflow-hidden">
           <PropertyListingsMap
             properties={properties}
+            fallbackCenter={DEFAULT_BROWSE_MAP_CENTER}
             onSelectProperty={onSelectProperty}
           />
         </TabsContent>

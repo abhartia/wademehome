@@ -21,7 +21,8 @@ const workSans = Work_Sans({
 
 export const metadata: Metadata = {
   title: "Wade Me Home",
-  description: "Find your perfect place.",
+  description:
+    "Renter-first rental search and tools for the full rental lifecycle: discovery, tours, applications, and move-in.",
   icons: {
     icon: "/logo.svg",
     shortcut: "/logo.svg",

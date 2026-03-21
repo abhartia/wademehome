@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Listings inventory columns",
+  "description": "Canonical shape for rental unit rows loaded from units.parquet (Greystar pipeline: greystar_scraper → units.parquet → scripts/load_listings_from_parquet.py → Postgres LISTINGS_TABLE_NAME). Runtime tables may include extra columns; the API resolves aliases case-insensitively via information_schema.",
+  "primarySource": "greystar_scraper/greystar_scraper.py (units DataFrame columns)",
+  "defaultParquetPaths": [
+    "data/stage=processed/units.parquet",
+    "greystar_scraper/env=local/source=greystar/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet"
+  ],
+  "columns": {
+    "address": {
+      "description": "Street line",
+      "parquetNames": ["address"],
+      "sqlAliases": ["address", "street_address", "full_address", "formatted_address", "location"]
+    },
+    "city": {
+      "description": "City or locality",
+      "parquetNames": ["city"],
+      "sqlAliases": ["city", "locality"]
+    },
+    "state": {
+      "description": "State / province code or name (Greystar uses 2-letter)",
+      "parquetNames": ["state"],
+      "sqlAliases": ["state", "state_code", "region"]
+    },
+    "zipcode": {
+      "description": "Postal code (US: 5 or ZIP+4)",
+      "parquetNames": ["zipcode"],
+      "sqlAliases": ["zipcode", "zip", "postal_code"]
+    },
+    "latitude": { "parquetNames": ["latitude"], "sqlAliases": ["latitude", "lat"] },
+    "longitude": { "parquetNames": ["longitude"], "sqlAliases": ["longitude", "lng", "lon"] },
+    "property_id": { "parquetNames": ["property_id"], "sqlAliases": ["property_id"] },
+    "listing_id": { "parquetNames": ["listing_id"], "sqlAliases": ["listing_id"] }
+  }
+}

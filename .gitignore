@@ -2,3 +2,5 @@
 .DS_Store
 *.example
 /data
+/greystar_scraper/env=local
+/.cursor

@@ -182,6 +182,26 @@ jobs:
           slot-name: ${{ env.AZURE_WEBAPP_BACKEND_SLOT }}
           images: ${{ env.ACR_LOGIN_SERVER }}/${{ env.BACKEND_IMAGE_NAME }}:${{ needs.build-backend.outputs.IMAGE_TAG }}
 
+      # Slot swap pings staging over HTTP; cold container pulls can exceed Azure's default patience.
+      - name: Wait for backend staging HTTP (before swap)
+        if: needs.build-backend.result == 'success'
+        run: |
+          set -euo pipefail
+          URL="https://${AZURE_WEBAPP_BACKEND}-${AZURE_WEBAPP_BACKEND_SLOT}.azurewebsites.net/health"
+          echo "Waiting for: $URL"
+          MAX_ATTEMPTS=60
+          SLEEP_SECS=10
+          for i in $(seq 1 "$MAX_ATTEMPTS"); do
+            if curl -fsS --max-time 30 "$URL" >/dev/null 2>&1; then
+              echo "Backend staging responded OK (attempt $i/$MAX_ATTEMPTS)"
+              exit 0
+            fi
+            echo "Backend staging not ready yet (attempt $i/$MAX_ATTEMPTS), sleeping ${SLEEP_SECS}s..."
+            sleep "$SLEEP_SECS"
+          done
+          echo "Timeout: backend staging never became healthy. Check slot logs and WEBSITES_PORT / container startup."
+          exit 1
+
       - name: Swap backend staging into production
         if: needs.build-backend.result == 'success'
         run: |
@@ -198,6 +218,25 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_FRONTEND }}
           slot-name: ${{ env.AZURE_WEBAPP_FRONTEND_SLOT }}
           images: ${{ env.ACR_LOGIN_SERVER }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ needs.build-frontend.outputs.IMAGE_TAG }}
+
+      - name: Wait for frontend staging HTTP (before swap)
+        if: needs.build-frontend.result == 'success'
+        run: |
+          set -euo pipefail
+          URL="https://${AZURE_WEBAPP_FRONTEND}-${AZURE_WEBAPP_FRONTEND_SLOT}.azurewebsites.net/"
+          echo "Waiting for: $URL"
+          MAX_ATTEMPTS=60
+          SLEEP_SECS=10
+          for i in $(seq 1 "$MAX_ATTEMPTS"); do
+            if curl -fsSL --max-time 45 "$URL" >/dev/null 2>&1; then
+              echo "Frontend staging responded OK (attempt $i/$MAX_ATTEMPTS)"
+              exit 0
+            fi
+            echo "Frontend staging not ready yet (attempt $i/$MAX_ATTEMPTS), sleeping ${SLEEP_SECS}s..."
+            sleep "$SLEEP_SECS"
+          done
+          echo "Timeout: frontend staging never became healthy. Check slot logs, ACR AcrPull on the slot identity, and WEBSITES_PORT=3000."
+          exit 1
 
       - name: Swap frontend staging into production
         if: needs.build-frontend.result == 'success'

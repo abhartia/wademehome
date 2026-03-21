@@ -30,6 +30,9 @@ class Config:
     LISTINGS_TABLE_NAME: str = env_manager.get("LISTINGS_TABLE_NAME", None)
     LISTINGS_TABLE_SCHEMA: str = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
 
+    # Mapbox (server-side geocoding, matrix, POI search). Optional; endpoints return 503 if unset.
+    MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
+
     @classmethod
     def get(cls, key: str, default: str | None = None) -> str | None:
         """Get any configuration value with automatic reload.
