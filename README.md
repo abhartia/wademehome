@@ -134,18 +134,33 @@ Configure backend app settings (prod + staging):
 ```bash
 # Required example values (replace with real values)
 DATABASE_URL="postgresql+psycopg2://user:pass@host:5432/db"
-OPENAI_API_KEY="sk-..."
+# Azure OpenAI (used by the API when these are set)
+AZURE_OPENAI_ENDPOINT="https://YOUR_RESOURCE.openai.azure.com/"
+AZURE_OPENAI_API_KEY="<your-api-key>"
+# Your Azure OpenAI deployment name
+AZURE_OPENAI_DEPLOYMENT="GPT4OMini"
+# Optional (falls back to defaults if omitted)
+AZURE_OPENAI_MODEL="gpt-4o-mini"
+AZURE_OPENAI_API_VERSION="2024-12-01-preview"
 CORS_ALLOWED_ORIGINS="https://wademehome.azurewebsites.net"
 
 az webapp config appsettings set -g "$RG" -n "$BACKEND_APP" --settings \
   DATABASE_URL="$DATABASE_URL" \
-  OPENAI_API_KEY="$OPENAI_API_KEY" \
+  AZURE_OPENAI_ENDPOINT="$AZURE_OPENAI_ENDPOINT" \
+  AZURE_OPENAI_API_KEY="$AZURE_OPENAI_API_KEY" \
+  AZURE_OPENAI_DEPLOYMENT="$AZURE_OPENAI_DEPLOYMENT" \
+  AZURE_OPENAI_MODEL="$AZURE_OPENAI_MODEL" \
+  AZURE_OPENAI_API_VERSION="$AZURE_OPENAI_API_VERSION" \
   CORS_ALLOWED_ORIGINS="$CORS_ALLOWED_ORIGINS" \
   WEBSITES_PORT=8000
 
 az webapp config appsettings set -g "$RG" -n "$BACKEND_APP" --slot staging --settings \
   DATABASE_URL="$DATABASE_URL" \
-  OPENAI_API_KEY="$OPENAI_API_KEY" \
+  AZURE_OPENAI_ENDPOINT="$AZURE_OPENAI_ENDPOINT" \
+  AZURE_OPENAI_API_KEY="$AZURE_OPENAI_API_KEY" \
+  AZURE_OPENAI_DEPLOYMENT="$AZURE_OPENAI_DEPLOYMENT" \
+  AZURE_OPENAI_MODEL="$AZURE_OPENAI_MODEL" \
+  AZURE_OPENAI_API_VERSION="$AZURE_OPENAI_API_VERSION" \
   CORS_ALLOWED_ORIGINS="$CORS_ALLOWED_ORIGINS" \
   WEBSITES_PORT=8000
 ```

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Work_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -47,7 +48,9 @@ gtag('consent', 'default', { analytics_storage: 'denied' });`}
         <QueryProvider>
           <AuthProvider>
             <AnalyticsConsentProvider>
-              <AnalyticsBootstrap />
+              <Suspense fallback={null}>
+                <AnalyticsBootstrap />
+              </Suspense>
               <UserProfileProvider>
                 <RoommateProvider>
                   <ToursProvider>

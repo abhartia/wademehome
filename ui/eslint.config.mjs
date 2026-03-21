@@ -18,6 +18,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Hey API / openapi-ts output — uses `any` by design
+      "lib/api/generated/**",
     ],
   },
 ];
