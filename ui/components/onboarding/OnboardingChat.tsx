@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { useAnalyticsConsent } from "@/components/providers/AnalyticsConsentProvider";
 import { UserProfile } from "@/lib/types/userProfile";
+import { trackOnboardingEvent } from "@/lib/analytics/ga";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/branding/BrandLogo";
 import { SendHorizonal } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -239,7 +242,7 @@ function ChatBubble({
     >
       {isAgent && (
         <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary">
-          <img src="/favicon.ico" alt="" className="h-4 w-4 brightness-0 invert" />
+          <BrandLogo className="h-4 w-4 text-primary-foreground" title="Assistant" />
         </div>
       )}
       <div
@@ -364,6 +367,7 @@ function SummaryCard({ onConfirm, onReset }: { onConfirm: () => void; onReset: (
 export function OnboardingChat() {
   const router = useRouter();
   const { profile, updateProfile, resetProfile } = useUserProfile();
+  const { hasConsent } = useAnalyticsConsent();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
@@ -375,6 +379,10 @@ export function OnboardingChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasInitialised = useRef(false);
+  const hasStartedTrackingRef = useRef(false);
+  const trackedStepIdsRef = useRef<Set<string>>(new Set());
+  const hasTrackedSummaryRef = useRef(false);
+  const hasCompletedRef = useRef(false);
 
   const currentStep = STEPS[currentStepIdx] as ConversationStep | undefined;
   const currentStage = currentStep?.stage ?? TOTAL_STAGES;
@@ -403,8 +411,48 @@ export function OnboardingChat() {
       addMessage("agent", "Welcome back! Here's your profile summary.");
     } else {
       addMessage("agent", STEPS[0].agentMessage);
+      if (hasConsent) {
+        trackOnboardingEvent("onboarding_started", {
+          entry_point: "onboarding_page",
+        });
+      }
+      hasStartedTrackingRef.current = true;
     }
-  }, [addMessage, profile.onboardingCompleted]);
+  }, [addMessage, hasConsent, profile.onboardingCompleted]);
+
+  useEffect(() => {
+    if (!hasConsent || !currentStep || showSummary || finished) return;
+    if (trackedStepIdsRef.current.has(currentStep.id)) return;
+    trackedStepIdsRef.current.add(currentStep.id);
+
+    trackOnboardingEvent("onboarding_step_viewed", {
+      step_id: currentStep.id,
+      stage: currentStep.stage,
+      quick_reply_mode: currentStep.quickReplyMode,
+      step_index: currentStepIdx + 1,
+    });
+  }, [currentStep, currentStepIdx, finished, hasConsent, showSummary]);
+
+  useEffect(() => {
+    if (!hasConsent || !showSummary || finished || hasTrackedSummaryRef.current)
+      return;
+    trackOnboardingEvent("onboarding_summary_viewed", {
+      total_steps: STEPS.length,
+    });
+    hasTrackedSummaryRef.current = true;
+  }, [finished, hasConsent, showSummary]);
+
+  useEffect(() => {
+    return () => {
+      if (!hasConsent || hasCompletedRef.current || !hasStartedTrackingRef.current)
+        return;
+      trackOnboardingEvent("onboarding_abandoned", {
+        last_step_id: currentStep?.id ?? "summary",
+        last_stage: currentStep?.stage ?? TOTAL_STAGES,
+        reached_summary: showSummary,
+      });
+    };
+  }, [currentStep?.id, currentStep?.stage, hasConsent, showSummary]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -455,6 +503,15 @@ export function OnboardingChat() {
     if (!currentStep || finished) return;
 
     if (currentStep.quickReplyMode === "single") {
+      if (hasConsent) {
+        trackOnboardingEvent("onboarding_answer_submitted", {
+          step_id: currentStep.id,
+          stage: currentStep.stage,
+          answer_source: "quick_reply",
+          quick_reply_mode: "single",
+          selected_count: 1,
+        });
+      }
       addMessage("user", option);
       setSelectedReplies([]);
       applyAnswer(currentStep, option);
@@ -470,6 +527,15 @@ export function OnboardingChat() {
 
   const handleMultiConfirm = () => {
     if (!currentStep || selectedReplies.length === 0) return;
+    if (hasConsent) {
+      trackOnboardingEvent("onboarding_answer_submitted", {
+        step_id: currentStep.id,
+        stage: currentStep.stage,
+        answer_source: "quick_reply",
+        quick_reply_mode: "multi",
+        selected_count: selectedReplies.length,
+      });
+    }
     addMessage("user", selectedReplies.join(", "));
     applyAnswer(currentStep, selectedReplies);
     setSelectedReplies([]);
@@ -480,6 +546,15 @@ export function OnboardingChat() {
     e.preventDefault();
     const text = inputValue.trim();
     if (!text || !currentStep || finished) return;
+    if (hasConsent) {
+      trackOnboardingEvent("onboarding_answer_submitted", {
+        step_id: currentStep.id,
+        stage: currentStep.stage,
+        answer_source: "free_text",
+        quick_reply_mode: currentStep.quickReplyMode,
+        typed_char_count: text.length,
+      });
+    }
 
     addMessage("user", text);
     applyAnswer(currentStep, text);
@@ -488,6 +563,12 @@ export function OnboardingChat() {
   };
 
   const handleConfirmProfile = () => {
+    if (hasConsent) {
+      trackOnboardingEvent("onboarding_completed", {
+        total_steps: STEPS.length,
+      });
+    }
+    hasCompletedRef.current = true;
     updateProfile({ onboardingCompleted: true });
     setFinished(true);
     addMessage(
@@ -498,6 +579,16 @@ export function OnboardingChat() {
   };
 
   const handleReset = () => {
+    if (hasConsent) {
+      trackOnboardingEvent("onboarding_reset", {
+        had_summary: showSummary,
+        was_completed: finished,
+      });
+    }
+    hasCompletedRef.current = false;
+    hasTrackedSummaryRef.current = false;
+    trackedStepIdsRef.current = new Set<string>();
+    hasStartedTrackingRef.current = false;
     resetProfile();
     setMessages([]);
     setCurrentStepIdx(0);

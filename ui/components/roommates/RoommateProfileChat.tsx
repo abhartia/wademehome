@@ -5,6 +5,7 @@ import { useRoommate } from "@/components/providers/RoommateProvider";
 import { MyRoommateProfile } from "@/lib/types/roommate";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/branding/BrandLogo";
 import { SendHorizonal } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -129,7 +130,7 @@ function ChatBubble({ role, content }: { role: "agent" | "user"; content: string
     >
       {isAgent && (
         <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary">
-          <img src="/favicon.ico" alt="" className="h-4 w-4 brightness-0 invert" />
+          <BrandLogo className="h-4 w-4 text-primary-foreground" title="Assistant" />
         </div>
       )}
       <div

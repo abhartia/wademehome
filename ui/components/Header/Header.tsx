@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/branding/BrandLogo";
 import { SquarePen } from "lucide-react";
 
 type Props = {
@@ -12,7 +13,7 @@ export default function Header({ onNewChat }: Props) {
     <div className="flex items-center justify-between p-2 px-4">
       <div className="flex items-center justify-between gap-2 w-full">
         <div className="flex items-center gap-2">
-          <img src="/favicon.ico" alt="brightplace" className="h-8" />
+          <BrandLogo className="h-8 w-8 text-primary" />
         </div>
 
         <Button

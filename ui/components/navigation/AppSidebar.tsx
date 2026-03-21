@@ -10,6 +10,7 @@ import {
   Users2,
   CalendarCheck,
   Package,
+  Shield,
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { Badge } from "@/components/ui/badge";
+import { BrandLogo } from "@/components/branding/BrandLogo";
 import { JourneyStage } from "@/lib/types/userProfile";
 
 const STAGE_EMPHASIS: Partial<Record<JourneyStage, string>> = {
@@ -49,7 +51,7 @@ export function AppSidebar() {
     : undefined;
 
   const coreItems = [
-    { title: "Home", href: "/", icon: Home },
+    { title: "Home", href: "/app", icon: Home },
     { title: "Search", href: "/search", icon: Search },
     { title: "Tours", href: "/tours", icon: CalendarCheck },
   ];
@@ -68,10 +70,10 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" variant="sidebar">
       <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/favicon.ico" alt="brightplace" className="h-7 w-7" />
+        <Link href="/app" className="flex items-center gap-2">
+          <BrandLogo className="h-7 w-7 text-primary" />
           <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">
-            brightplace
+            Wade Me Home
           </span>
         </Link>
       </SidebarHeader>
@@ -88,8 +90,8 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={
-                        item.href === "/"
-                          ? pathname === "/"
+                        item.href === "/app"
+                          ? pathname === "/app"
                           : pathname.startsWith(item.href)
                       }
                       tooltip={item.title}
@@ -118,6 +120,18 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === "/privacy"}
+              tooltip="Privacy"
+            >
+              <Link href="/privacy" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                <span>Privacy</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

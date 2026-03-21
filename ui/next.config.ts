@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: { root: __dirname },
+  // Root for Turbopack when using `npm run dev:turbo` (optional; webpack is default for `npm run dev`).
+  turbopack: {
+    root: __dirname,
   },
   images: {
     remotePatterns: [
@@ -13,6 +14,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.ctfassets.net",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
   },

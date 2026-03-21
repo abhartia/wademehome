@@ -10,6 +10,7 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 interface PropertyListingsMapProps {
   properties: PropertyDataItem[];
+  onSelectProperty?: (property: PropertyDataItem) => void;
 }
 
 const DEFAULT_VIEW_STATE = {
@@ -18,7 +19,10 @@ const DEFAULT_VIEW_STATE = {
   zoom: 11,
 };
 
-export function PropertyListingsMap({ properties }: PropertyListingsMapProps) {
+export function PropertyListingsMap({
+  properties,
+  onSelectProperty,
+}: PropertyListingsMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
@@ -186,6 +190,7 @@ export function PropertyListingsMap({ properties }: PropertyListingsMapProps) {
             </div>
           </div>
         `;
+        markerEl.addEventListener("click", () => onSelectProperty?.(primary));
 
         new mapboxglRef.Marker({ element: markerEl })
           .setLngLat([group.longitude, group.latitude])
@@ -201,7 +206,7 @@ export function PropertyListingsMap({ properties }: PropertyListingsMapProps) {
         mapRef.current = null;
       }
     };
-  }, [initialViewState, groupedProperties]);
+  }, [initialViewState, groupedProperties, onSelectProperty]);
 
   if (!MAPBOX_TOKEN) {
     return (

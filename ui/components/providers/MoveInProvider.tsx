@@ -20,7 +20,7 @@ import {
   SEED_CHECKLIST,
 } from "@/lib/mock/movein";
 
-const STORAGE_KEY = "brightplace_movein";
+const STORAGE_KEY = "wademehome_movein";
 
 interface PersistedState {
   plan: MoveInPlan;

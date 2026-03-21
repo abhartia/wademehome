@@ -11,7 +11,7 @@ export function inferJourneyStage(
   if (override) return override;
 
   try {
-    const moveIn = localStorage.getItem("brightplace_movein");
+    const moveIn = localStorage.getItem("wademehome_movein");
     if (moveIn) {
       const parsed = JSON.parse(moveIn);
       const hasOrders =
@@ -24,7 +24,7 @@ export function inferJourneyStage(
       if (hasOrders || hasChecked) return "moving";
     }
 
-    const guarantor = localStorage.getItem("brightplace_guarantor");
+    const guarantor = localStorage.getItem("wademehome_guarantor");
     if (guarantor) {
       const parsed = JSON.parse(guarantor);
       const hasSentRequest = parsed.requests?.some(
@@ -36,7 +36,7 @@ export function inferJourneyStage(
       if (hasSentRequest) return "applying";
     }
 
-    const tours = localStorage.getItem("brightplace_tours");
+    const tours = localStorage.getItem("wademehome_tours");
     if (tours) {
       const parsed = JSON.parse(tours);
       const hasActiveTours = parsed.some?.(
@@ -46,7 +46,7 @@ export function inferJourneyStage(
       if (hasActiveTours) return "touring";
     }
 
-    const profile = localStorage.getItem("brightplace_user_profile");
+    const profile = localStorage.getItem("wademehome_user_profile");
     if (profile) {
       const parsed = JSON.parse(profile);
       if (parsed.onboardingCompleted) return "searching";

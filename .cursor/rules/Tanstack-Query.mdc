@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Always use tanstack query at the front end for REST API calls

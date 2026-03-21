@@ -90,3 +90,15 @@ class PropertyDataItem(BaseModel):
 
 class PropertyDataList(BaseModel):
     properties: list[PropertyDataItem]
+
+
+class SearchHintData(BaseModel):
+    """Streamed to the UI before listing results when search may benefit from a logged-in profile."""
+
+    suggest_account: bool = Field(
+        description="True if the user shared personal or persistent context worth saving via an account."
+    )
+    reason: str | None = Field(
+        default=None,
+        description="Optional short phrase for product UI (why an account may help).",
+    )

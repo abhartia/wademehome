@@ -23,6 +23,7 @@ import { useUserProfile } from "./providers/UserProfileProvider";
 import { Badge } from "./ui/badge";
 import { SquarePen } from "lucide-react";
 import { Button } from "./ui/button";
+import { PropertyDetailSheet } from "./properties/PropertyDetailSheet";
 
 interface Props {
   chatUrl: string;
@@ -31,13 +32,19 @@ interface Props {
 
 interface ListingsSidebarProps {
   properties: PropertyDataItem[];
+  selectedProperty: PropertyDataItem | null;
+  onSelectProperty: (property: PropertyDataItem) => void;
 }
 
-const ListingsSidebar = ({ properties }: ListingsSidebarProps) => {
+const ListingsSidebar = ({
+  properties,
+  selectedProperty,
+  onSelectProperty,
+}: ListingsSidebarProps) => {
   if (!properties || properties.length === 0) return null;
 
   return (
-    <aside className="flex h-full flex-col gap-3">
+    <aside className="flex h-full flex-col gap-3 pb-2">
       <Tabs defaultValue="map" className="flex h-full flex-col">
         <div className="mb-1 flex items-center justify-between gap-2">
           <div>
@@ -55,11 +62,18 @@ const ListingsSidebar = ({ properties }: ListingsSidebarProps) => {
         </div>
 
         <TabsContent value="map" className="flex-1 overflow-hidden">
-          <PropertyListingsMap properties={properties} />
+          <PropertyListingsMap
+            properties={properties}
+            onSelectProperty={onSelectProperty}
+          />
         </TabsContent>
 
         <TabsContent value="list" className="flex-1 overflow-y-auto pr-1">
-          <PropertyList properties={properties} />
+          <PropertyList
+            properties={properties}
+            selectedProperty={selectedProperty}
+            onSelectProperty={onSelectProperty}
+          />
         </TabsContent>
       </Tabs>
     </aside>
@@ -97,6 +111,10 @@ export function ChatSectionInner({ chatUrl, questionSuggestions }: Props) {
   const [sidebarProperties, setSidebarProperties] = useState<
     PropertyDataItem[]
   >([]);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyDataItem | null>(
+    null,
+  );
+  const [isPropertyDetailOpen, setIsPropertyDetailOpen] = useState(false);
 
   const handler = useChat({
     api: chatUrl,
@@ -121,7 +139,10 @@ export function ChatSectionInner({ chatUrl, questionSuggestions }: Props) {
 
         if (propertyAnnotations.length > 0) {
           const latest = propertyAnnotations[propertyAnnotations.length - 1];
-          setSidebarProperties(latest.data.properties || []);
+          const nextProperties = latest.data.properties || [];
+          setSidebarProperties(nextProperties);
+          setSelectedProperty(nextProperties[0] ?? null);
+          setIsPropertyDetailOpen(false);
         }
       }
     },
@@ -141,6 +162,13 @@ export function ChatSectionInner({ chatUrl, questionSuggestions }: Props) {
     handler.stop();
     handler.setMessages([]);
     setSidebarProperties([]);
+    setSelectedProperty(null);
+    setIsPropertyDetailOpen(false);
+  };
+
+  const handleSelectProperty = (property: PropertyDataItem) => {
+    setSelectedProperty(property);
+    setIsPropertyDetailOpen(true);
   };
 
   return (
@@ -173,20 +201,29 @@ export function ChatSectionInner({ chatUrl, questionSuggestions }: Props) {
                   </ChatInput.Form>
                 </ChatInput>
                 <div className="px-5 text-sm text-muted-foreground">
-                  brightplace may make mistakes. Verify important info
+                  Wade Me Home may make mistakes. Verify important info
                 </div>
               </div>
               <QuestionSuggestions suggestions={questionSuggestions} />
             </div>
 
             {sidebarProperties.length > 0 && (
-              <div className="mt-4 w-full border-t pt-4 md:mt-0 md:w-[40%] md:border-l md:border-t-0 md:pl-4">
-                <ListingsSidebar properties={sidebarProperties} />
+              <div className="mt-4 w-full border-t pt-4 pr-2 md:mt-0 md:w-[40%] md:border-l md:border-t-0 md:pl-4 md:pr-4">
+                <ListingsSidebar
+                  properties={sidebarProperties}
+                  selectedProperty={selectedProperty}
+                  onSelectProperty={handleSelectProperty}
+                />
               </div>
             )}
           </div>
         </ChatSectionUI>
       </div>
+      <PropertyDetailSheet
+        property={selectedProperty}
+        open={isPropertyDetailOpen}
+        onOpenChange={setIsPropertyDetailOpen}
+      />
     </div>
   );
 }

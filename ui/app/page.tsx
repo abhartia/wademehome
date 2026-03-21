@@ -1,533 +1,314 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { PropertyListingsMap } from "@/components/annotations/PropertyListings/PropertyListingsMap";
+import { PropertyList } from "@/components/annotations/PropertyListings/PropertyListings";
+import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
+import { GuestPropertyDetailSheet } from "@/components/properties/GuestPropertyDetailSheet";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Sparkles,
-  Search,
-  MapPin,
-  DollarSign,
-  Home,
-  Users,
-  Users2,
-  ArrowRight,
-  CalendarCheck,
-  Calendar,
-  Clock,
-  ShieldCheck,
-  Package,
-  PartyPopper,
-  CheckCircle2,
-} from "lucide-react";
-import { useTours } from "@/components/providers/ToursProvider";
-import { useGuarantor } from "@/components/providers/GuarantorProvider";
-import { useMoveIn } from "@/components/providers/MoveInProvider";
-import { PropertyImage } from "@/components/ui/property-image";
-import { JourneyStageIndicator } from "@/components/journey/JourneyStageIndicator";
+import { BrandLogo } from "@/components/branding/BrandLogo";
+import { Input } from "@/components/ui/input";
+import { PublicSiteMenu } from "@/components/navigation/PublicSiteMenu";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import { useListingSearchStream } from "@/lib/listings/useListingSearchStream";
+import { Loader2, X } from "lucide-react";
 
-const MOCK_LISTINGS = [
+const FALLBACK_LOCATION = { latitude: 40.7128, longitude: -74.006 };
+
+const MIN_QUERY_CHARS = 2;
+/** Idle time after last keystroke before we treat the query as “settled” and search. */
+const SEARCH_IDLE_MS = 850;
+
+const SEED_LISTINGS: PropertyDataItem[] = [
   {
-    id: 1,
-    name: "The Rivington",
-    address: "123 Rivington St, New York, NY",
-    rent: "$2,850/mo",
-    beds: "1 bed",
-    image:
-      "https://images.ctfassets.net/pg6xj64qk0kh/2yULhK0VeJMq0IEWyQAPAx/e5e6e18cc0f19fa14c3f4e49f5dcefee/970_kent-1.jpg",
-    tags: ["Walkable", "Near transit"],
+    name: "Hudson View Residences",
+    address: "500 W 43rd St, New York, NY",
+    amenities: ["Gym", "Doorman", "Laundry"],
+    rent_range: "$2,850-$3,450",
+    bedroom_range: "1-2 BR",
+    images_urls: ["https://images.unsplash.com/photo-1460317442991-0ec209397118"],
+    main_amenities: ["Gym", "Doorman"],
+    latitude: 40.7592,
+    longitude: -73.9942,
   },
   {
-    id: 2,
-    name: "Avalon at Edgewater",
-    address: "1000 Ave at Port Imperial, Weehawken, NJ",
-    rent: "$3,200/mo",
-    beds: "2 bed",
-    image:
-      "https://images.ctfassets.net/pg6xj64qk0kh/2yULhK0VeJMq0IEWyQAPAx/e5e6e18cc0f19fa14c3f4e49f5dcefee/970_kent-1.jpg",
-    tags: ["Parking", "Gym"],
+    name: "Brooklyn Heights Lofts",
+    address: "35 Remsen St, Brooklyn, NY",
+    amenities: ["Pet Friendly", "Roof Deck"],
+    rent_range: "$2,200-$2,900",
+    bedroom_range: "Studio-1 BR",
+    images_urls: ["https://images.unsplash.com/photo-1480074568708-e7b720bb3f09"],
+    main_amenities: ["Pet Friendly", "Roof Deck"],
+    latitude: 40.6955,
+    longitude: -73.9955,
   },
   {
-    id: 3,
-    name: "The Lofts at Canal Walk",
-    address: "100 Canal Walk Blvd, New Brunswick, NJ",
-    rent: "$2,100/mo",
-    beds: "1 bed",
-    image:
-      "https://images.ctfassets.net/pg6xj64qk0kh/2yULhK0VeJMq0IEWyQAPAx/e5e6e18cc0f19fa14c3f4e49f5dcefee/970_kent-1.jpg",
-    tags: ["Safe & quiet", "Parks"],
+    name: "Jersey Waterfront Apartments",
+    address: "170 Greene St, Jersey City, NJ",
+    amenities: ["Parking", "Gym", "Lounge"],
+    rent_range: "$2,450-$3,100",
+    bedroom_range: "1-2 BR",
+    images_urls: ["https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd"],
+    main_amenities: ["Parking", "Gym"],
+    latitude: 40.7178,
+    longitude: -74.0428,
   },
 ];
 
-function formatDate(iso: string) {
-  if (!iso) return "";
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+function haversineMiles(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const earthRadiusMiles = 3958.8;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const aa =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+  return earthRadiusMiles * c;
 }
 
-export default function DashboardPage() {
-  const { profile, journeyStage } = useUserProfile();
-  const { tours } = useTours();
-  const { requests: guarantorRequests } = useGuarantor();
-  const { progress } = useMoveIn();
-  const onboarded = profile.onboardingCompleted;
+function composeListingMessage(
+  query: string,
+  location: { latitude: number; longitude: number },
+): string {
+  const q = query.trim();
+  return `${q}\n\n[System context: User's approximate browser location is latitude ${location.latitude}, longitude ${location.longitude}. Prefer listings near this area when relevant.]`;
+}
 
-  const stage = journeyStage;
+export default function LandingPage() {
+  const [query, setQuery] = useState("");
+  const [location, setLocation] = useState(FALLBACK_LOCATION);
+  const locationRef = useRef(FALLBACK_LOCATION);
+  const lastComposedSearchRef = useRef<string | null>(null);
+  const debouncedQuery = useDebouncedValue(query.trim(), SEARCH_IDLE_MS);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyDataItem | null>(null);
+  const [isPropertyDetailOpen, setIsPropertyDetailOpen] = useState(false);
+  const [accountHintDismissed, setAccountHintDismissed] = useState(false);
 
-  const showGuarantorCta =
-    onboarded &&
-    ["Below 650", "Fair (650-699)", "Not sure"].includes(
-      profile.creditScoreRange ?? "",
+  const { user, loading: authLoading } = useAuth();
+  const { phase, streamText, properties, searchHint, error, runSearch, reset } =
+    useListingSearchStream();
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const loc = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        locationRef.current = loc;
+        setLocation(loc);
+      },
+      () => {
+        locationRef.current = FALLBACK_LOCATION;
+        setLocation(FALLBACK_LOCATION);
+      },
+      { timeout: 5000 },
     );
-  const hasVerifiedGuarantor = guarantorRequests.some(
-    (r) => r.status === "signed" && r.verificationStatus === "verified",
+  }, []);
+
+  useEffect(() => {
+    if (debouncedQuery.length < MIN_QUERY_CHARS) {
+      lastComposedSearchRef.current = null;
+      reset();
+      return;
+    }
+    const composedMessage = composeListingMessage(debouncedQuery, locationRef.current);
+    if (composedMessage === lastComposedSearchRef.current) {
+      return;
+    }
+    lastComposedSearchRef.current = composedMessage;
+    void runSearch({ composedMessage });
+  }, [debouncedQuery, runSearch, reset]);
+
+  useEffect(() => {
+    setAccountHintDismissed(false);
+  }, [debouncedQuery]);
+
+  const seedNearby = useMemo(
+    () =>
+      SEED_LISTINGS.filter((listing) => {
+        if (typeof listing.latitude !== "number" || typeof listing.longitude !== "number")
+          return false;
+        const distance = haversineMiles(location, {
+          latitude: listing.latitude,
+          longitude: listing.longitude,
+        });
+        return distance <= 15;
+      }),
+    [location],
   );
 
-  const upcomingTours = tours
-    .filter((t) => t.status === "scheduled")
-    .sort(
-      (a, b) =>
-        new Date(a.scheduledDate).getTime() -
-        new Date(b.scheduledDate).getTime(),
-    )
-    .slice(0, 2);
+  const useAiSlice = debouncedQuery.length >= MIN_QUERY_CHARS;
 
-  const showMoveIn =
-    stage === "lease-signed" || stage === "moving" || stage === "moved-in";
-  const showListings =
-    stage !== "moving" && stage !== "moved-in" && stage !== "lease-signed";
-  const showTours =
-    stage !== "moved-in";
+  const nearbyListings: PropertyDataItem[] = useMemo(() => {
+    if (!useAiSlice) return seedNearby;
+    if (phase === "error") return [];
+    return properties;
+  }, [useAiSlice, seedNearby, phase, properties]);
+
+  const showAccountHint =
+    !authLoading &&
+    !user &&
+    useAiSlice &&
+    searchHint?.suggest_account &&
+    !accountHintDismissed;
+
+  const showAiActivity = useAiSlice && (phase === "streaming" || phase === "done" || phase === "error");
+
+  const handleSelectProperty = (property: PropertyDataItem) => {
+    setSelectedProperty(property);
+    setIsPropertyDetailOpen(true);
+  };
 
   return (
-    <div className="h-[calc(100vh-3rem)] overflow-y-auto">
-      <div className="mx-auto max-w-4xl space-y-8 p-6">
-        {/* Greeting + stage */}
-        <div className="flex items-start justify-between">
-          <div>
+    <div className="flex h-screen flex-col">
+      <div className="z-20 shrink-0 border-b bg-background/95 px-4 py-3 backdrop-blur">
+        <div className="relative">
+          <div className="flex w-full items-center gap-3">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">
-                {onboarded ? "Welcome back" : "Welcome to brightplace"}
-              </h1>
-              {onboarded && <JourneyStageIndicator stage={stage} />}
+              <BrandLogo className="h-7 w-7 text-primary" />
+              <span className="font-semibold text-foreground">Wade Me Home</span>
             </div>
-            <p className="mt-1 text-muted-foreground">
-              {stage === "moving"
-                ? "Your move-in is underway. Here\u2019s your progress."
-                : stage === "lease-signed"
-                  ? "Congratulations on signing! Time to prepare your move."
-                  : stage === "moved-in"
-                    ? "You\u2019re all moved in. Welcome home!"
-                    : onboarded
-                      ? "Here\u2019s a snapshot of your rental search."
-                      : "Let\u2019s find your perfect place."}
-            </p>
-          </div>
-        </div>
-
-        {/* Onboarding CTA (if not completed) */}
-        {!onboarded && (
-          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-semibold">Complete your profile</h2>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    Answer a few quick questions so I can personalise your
-                    search. Takes about 2 minutes.
-                  </p>
-                  {profile.onboardingStep > 0 && (
-                    <div className="mt-2 w-48">
-                      <Progress
-                        value={(profile.onboardingStep / 5) * 100}
-                        className="h-1.5"
-                      />
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Step {profile.onboardingStep} of 5 completed
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <Button asChild className="shrink-0 gap-1.5">
-                <Link href="/onboarding">
-                  {profile.onboardingStep > 0 ? "Continue" : "Get Started"}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by neighborhood, city, or building"
+              className="max-w-xl"
+              aria-label="Search listings"
+            />
+            <div className="ml-auto flex items-center gap-2">
+              <PublicSiteMenu />
+              <Button asChild variant="outline">
+                <Link href="/login">Log in</Link>
               </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Lease signed congratulations banner */}
-        {stage === "lease-signed" && (
-          <Card className="border-green-200/50 bg-gradient-to-r from-green-50/50 to-transparent">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
-                <PartyPopper className="h-5 w-5 text-green-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold text-green-800">
-                  Lease signed!
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Set up your utilities, hire movers, and track everything for a
-                  smooth move.
-                </p>
-              </div>
-              <Button variant="outline" size="sm" asChild className="shrink-0 gap-1.5">
-                <Link href="/move-in">
-                  Set up Move-in
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Move-in progress (when moving or moved-in) */}
-        {(stage === "moving" || stage === "moved-in") && (
-          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                {stage === "moved-in" ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                ) : (
-                  <Package className="h-5 w-5 text-primary" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold">
-                  {stage === "moved-in"
-                    ? "Move-in complete"
-                    : "Move-in progress"}
-                </h3>
-                <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>
-                    {progress.vendorsSetUp}/{progress.vendorsTotal} vendors
-                  </span>
-                  <span>
-                    {progress.checklistDone}/{progress.checklistTotal} tasks
-                  </span>
-                </div>
-                <Progress
-                  value={
-                    ((progress.checklistDone + progress.vendorsSetUp) /
-                      (progress.checklistTotal + progress.vendorsTotal)) *
-                    100
-                  }
-                  className="mt-1.5 h-1.5"
-                />
-              </div>
-              <Button variant="outline" size="sm" asChild className="shrink-0 gap-1.5">
-                <Link href="/move-in">
-                  {stage === "moved-in" ? "Review" : "View Hub"}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick actions -- adapt based on stage */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {showMoveIn ? (
-            <Button
-              variant="outline"
-              asChild
-              className="h-auto min-w-0 justify-start gap-3 border-primary/30 bg-primary/5 p-4 text-left"
-            >
-              <Link href="/move-in" className="min-w-0 flex-1">
-                <Package className="h-5 w-5 shrink-0 text-primary" />
-                <div className="min-w-0 whitespace-normal">
-                  <div className="font-medium">Move-in Hub</div>
-                  <div className="text-xs text-muted-foreground">
-                    Vendors, checklists, and tasks
-                  </div>
-                </div>
-              </Link>
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              asChild
-              className="h-auto min-w-0 justify-start gap-3 p-4 text-left"
-            >
-              <Link href="/search" className="min-w-0 flex-1">
-                <Search className="h-5 w-5 shrink-0 text-primary" />
-                <div className="min-w-0 whitespace-normal">
-                  <div className="font-medium">Start a Search</div>
-                  <div className="text-xs text-muted-foreground">
-                    Chat with our AI to find listings
-                  </div>
-                </div>
-              </Link>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            asChild
-            className="h-auto min-w-0 justify-start gap-3 p-4 text-left"
-          >
-            <Link href="/tours" className="min-w-0 flex-1">
-              <CalendarCheck className="h-5 w-5 shrink-0 text-primary" />
-              <div className="min-w-0 whitespace-normal">
-                <div className="font-medium">My Tours</div>
-                <div className="text-xs text-muted-foreground">
-                  Schedule tours and take notes
-                </div>
-              </div>
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            asChild
-            className={`h-auto min-w-0 justify-start gap-3 p-4 text-left ${
-              profile.livingArrangement === "roommates"
-                ? "border-primary/30 bg-primary/5"
-                : ""
-            }`}
-          >
-            <Link href="/roommates" className="min-w-0 flex-1">
-              <Users2 className="h-5 w-5 shrink-0 text-primary" />
-              <div className="min-w-0 whitespace-normal">
-                <div className="font-medium">Find Roommates</div>
-                <div className="text-xs text-muted-foreground">
-                  AI-matched roommates for your lifestyle
-                </div>
-              </div>
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            asChild
-            className="h-auto min-w-0 justify-start gap-3 p-4 text-left"
-          >
-            <Link
-              href={onboarded ? "/profile" : "/onboarding"}
-              className="min-w-0 flex-1"
-            >
-              <Users className="h-5 w-5 shrink-0 text-primary" />
-              <div className="min-w-0 whitespace-normal">
-                <div className="font-medium">
-                  {onboarded ? "Edit Preferences" : "Set Preferences"}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {onboarded
-                    ? "View and update your memory bank"
-                    : "Tell us what you\u2019re looking for"}
-                </div>
-              </div>
-            </Link>
-          </Button>
-        </div>
-
-        {/* Preference summary (if onboarded, not in late stages) */}
-        {onboarded && showListings && (
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-1">
-                <MapPin className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm font-medium">Location</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg font-semibold">
-                  {profile.preferredCities.join(", ") || "\u2014"}
-                </p>
-                {profile.workLocation && (
-                  <p className="text-xs text-muted-foreground">
-                    Work: {profile.workLocation}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-1">
-                <DollarSign className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm font-medium">Budget</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg font-semibold">
-                  {profile.maxMonthlyRent || "\u2014"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {profile.moveTimeline}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-1">
-                <Home className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm font-medium">Living</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg font-semibold">
-                  {profile.bedroomsNeeded || "\u2014"}
-                </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {profile.livingArrangement ?? "\u2014"}
-                  {profile.hasPets ? ` + ${profile.petDetails}` : ""}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Guarantor CTA (credit-score gated) */}
-        {showGuarantorCta && (
-          <Card className="border-amber-200/50 bg-gradient-to-r from-amber-50/50 to-transparent">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                <ShieldCheck className="h-5 w-5 text-amber-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                {hasVerifiedGuarantor ? (
-                  <>
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-sm font-semibold text-green-800">
-                        Guarantor verified
-                      </h3>
-                      <Badge
-                        variant="outline"
-                        className="border-green-200 bg-green-50 px-1.5 py-0 text-[10px] text-green-700"
-                      >
-                        Active
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Your co-signer agreement is in place.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-sm font-semibold">
-                      Need a guarantor?
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      If your application needs a co-signer, we can handle the
-                      signing process for you.
-                    </p>
-                  </>
-                )}
-              </div>
-              <Button variant="outline" size="sm" asChild className="shrink-0 gap-1.5">
-                <Link href="/guarantor">
-                  {hasVerifiedGuarantor ? "Manage" : "Get Started"}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Upcoming tours */}
-        {onboarded && showTours && upcomingTours.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Upcoming Tours</h2>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/tours">View all</Link>
+              <Button asChild>
+                <Link href="/signup">Sign up</Link>
               </Button>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {upcomingTours.map((tour) => (
-                <Card key={tour.id}>
-                  <CardContent className="flex items-center gap-3 p-3">
-                    <PropertyImage
-                      src={tour.property.image}
-                      alt={tour.property.name}
-                      className="h-12 w-12 shrink-0 rounded object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {tour.property.name}
-                      </p>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(tour.scheduledDate)}
-                        </span>
-                        {tour.scheduledTime && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {tour.scheduledTime}
-                          </span>
-                        )}
+          </div>
+
+          {useAiSlice && (showAccountHint || showAiActivity) && (
+            <div
+              className="pointer-events-none absolute left-0 right-0 top-full z-30 mt-2 flex max-h-[min(40vh,14rem)] flex-col gap-2 overflow-y-auto rounded-md border border-border/60 bg-background/98 p-2 shadow-lg backdrop-blur"
+              aria-live="polite"
+            >
+              <div className="pointer-events-auto flex flex-col gap-2">
+                {showAccountHint && (
+                  <Card className="border-primary/30 bg-primary/5">
+                    <CardContent className="flex items-start gap-3 py-3">
+                      <div className="min-w-0 flex-1 text-sm">
+                        <p className="font-medium text-foreground">
+                          Save your situation for smarter search
+                        </p>
+                        <p className="mt-1 text-muted-foreground">
+                          {searchHint?.reason
+                            ? `${searchHint.reason} `
+                            : ""}
+                          Create a free account to remember your preferences and use the full search
+                          experience.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button asChild size="sm">
+                            <Link href="/signup">Create account</Link>
+                          </Button>
+                          <Button asChild size="sm" variant="outline">
+                            <Link href="/login">Log in</Link>
+                          </Button>
+                          <Button asChild size="sm" variant="ghost">
+                            <Link href="/search">Full search</Link>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <Badge variant="default" className="shrink-0 text-[10px]">
-                      Scheduled
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => setAccountHintDismissed(true)}
+                        aria-label="Dismiss"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
 
-        {/* Recommended listings (hidden in late stages) */}
-        {onboarded && showListings && (
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Recommended for You</h2>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/search">View all</Link>
-              </Button>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {MOCK_LISTINGS.map((listing) => (
-                <Card
-                  key={listing.id}
-                  className="gap-0 overflow-hidden p-0"
-                >
-                  <div className="aspect-[4/3] overflow-hidden bg-muted">
-                    <PropertyImage
-                      src={listing.image}
-                      alt={listing.name}
-                      className="h-full w-full object-cover"
-                    />
+                {showAiActivity && (
+                  <div className="rounded-md border bg-muted/40 px-3 py-2">
+                    <div className="mb-1 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                      {phase === "streaming" && (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                          <span>Searching listings with AI…</span>
+                        </>
+                      )}
+                      {phase === "done" && <span>Latest response</span>}
+                      {phase === "error" && <span className="text-destructive">Search failed</span>}
+                    </div>
+                    {phase === "streaming" && streamText.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Interpreting your request and querying listings…
+                      </p>
+                    )}
+                    {streamText.length > 0 && (
+                      <div className="max-h-28 overflow-y-auto text-sm leading-snug text-foreground">
+                        {streamText}
+                      </div>
+                    )}
+                    {phase === "error" && error && (
+                      <p className="text-sm text-destructive">{error.message}</p>
+                    )}
                   </div>
-                  <CardContent className="p-3">
-                    <h3 className="font-medium">{listing.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {listing.address}
-                    </p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-sm font-semibold">
-                        {listing.rent}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {listing.beds}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {listing.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-[10px]"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+      <div className="grid min-h-0 flex-1 gap-3 p-3 lg:grid-cols-[1fr_360px]">
+        <div className="min-h-0 rounded-md border">
+          <PropertyListingsMap
+            properties={nearbyListings}
+            onSelectProperty={handleSelectProperty}
+          />
+        </div>
+        <div className="min-h-0 overflow-y-auto rounded-md border p-2">
+          <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+            {useAiSlice ? (
+              <>
+                {phase === "streaming" && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
+                )}
+                <span>Results ({nearbyListings.length})</span>
+              </>
+            ) : (
+              <span>Nearby sample listings ({nearbyListings.length})</span>
+            )}
+          </div>
+          {!useAiSlice && (
+            <p className="mb-2 text-xs text-muted-foreground">
+              Type at least {MIN_QUERY_CHARS} characters to search live listings with AI.
+            </p>
+          )}
+          <PropertyList
+            properties={nearbyListings}
+            selectedProperty={selectedProperty}
+            onSelectProperty={handleSelectProperty}
+          />
+        </div>
+      </div>
+      <GuestPropertyDetailSheet
+        property={selectedProperty}
+        open={isPropertyDetailOpen}
+        onOpenChange={setIsPropertyDetailOpen}
+      />
     </div>
   );
 }

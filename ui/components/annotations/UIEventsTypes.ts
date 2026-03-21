@@ -6,6 +6,7 @@ export type UIEventTabularPayload = {
 
 export enum UIEventsTypesEnum {
   PROPERTY_LISTINGS = "property_listings",
+  SEARCH_HINT = "search_hint",
 }
 
 export type UIEventTypes = UIEventsTypesEnum;
@@ -29,4 +30,12 @@ export interface UIPropertyListingAnnotation {
   }
 }
 
-export type UIEventsAnnotations = UIPropertyListingAnnotation;
+export interface UISearchHintAnnotation {
+  type: UIEventsTypesEnum.SEARCH_HINT;
+  data: {
+    suggest_account: boolean;
+    reason?: string | null;
+  };
+}
+
+export type UIEventsAnnotations = UIPropertyListingAnnotation | UISearchHintAnnotation;

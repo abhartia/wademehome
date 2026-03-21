@@ -10,7 +10,7 @@ import {
 import { Tour, TourNote, TourProperty, TourStatus } from "@/lib/types/tours";
 import { SEED_TOURS } from "@/lib/mock/tours";
 
-const STORAGE_KEY = "brightplace_tours";
+const STORAGE_KEY = "wademehome_tours";
 
 interface ToursContextValue {
   tours: Tour[];

@@ -1,5 +1,5 @@
 import { ChatMessage, ChatMessages, useChatUI } from "@llamaindex/chat-ui";
-import Image from "next/image";
+import { BrandLogo } from "@/components/branding/BrandLogo";
 
 function CustomChatMessages() {
   const { messages, isLoading, append } = useChatUI();
@@ -16,13 +16,7 @@ function CustomChatMessages() {
           >
             {!isLoading && (
               <div className="bg-background flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border">
-                <Image
-                  src="/favicon.ico"
-                  width={40}
-                  height={40}
-                  className="border-1 rounded-full border-transparent"
-                  alt={"Assistant profile image"}
-                />
+                <BrandLogo className="h-5 w-5 text-primary" title="Assistant profile image" />
               </div>
             )}
 

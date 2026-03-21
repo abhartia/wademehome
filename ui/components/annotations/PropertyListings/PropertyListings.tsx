@@ -3,6 +3,7 @@ import { Building2, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { PropertyDataItem, UIPropertyListingAnnotation } from "../UIEventsTypes";
+import { cn } from "@/lib/utils";
 
 interface Props {
   data: UIPropertyListingAnnotation["data"];
@@ -31,11 +32,29 @@ function ListingImage({ src, alt }: { src: string | undefined; alt: string }) {
   );
 }
 
-const PropertyCard = ({ property }: { property: PropertyDataItem }) => {
+const PropertyCard = ({
+  property,
+  isSelected,
+  onSelectProperty,
+}: {
+  property: PropertyDataItem;
+  isSelected: boolean;
+  onSelectProperty?: (property: PropertyDataItem) => void;
+}) => {
   const imageUrl = property.images_urls?.[0];
 
   return (
-    <Card className="flex w-full flex-row gap-3 py-0">
+    <button
+      type="button"
+      onClick={() => onSelectProperty?.(property)}
+      className="w-full text-left"
+    >
+      <Card
+        className={cn(
+          "flex w-full flex-row gap-3 py-0 transition-colors",
+          isSelected ? "ring-2 ring-primary" : "hover:bg-muted/30",
+        )}
+      >
       <div className="relative h-48 w-32 shrink-0 overflow-hidden rounded-l-md bg-muted">
         <ListingImage src={imageUrl} alt={property.name} />
       </div>
@@ -62,17 +81,34 @@ const PropertyCard = ({ property }: { property: PropertyDataItem }) => {
           </div>
         </div>
       </div>
-    </Card>
+      </Card>
+    </button>
   );
 };
 
-export const PropertyList = ({ properties }: { properties: PropertyDataItem[] }) => {
+export const PropertyList = ({
+  properties,
+  selectedProperty,
+  onSelectProperty,
+}: {
+  properties: PropertyDataItem[];
+  selectedProperty?: PropertyDataItem | null;
+  onSelectProperty?: (property: PropertyDataItem) => void;
+}) => {
   if (!properties || properties.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2">
       {properties.map((property, index) => (
-        <PropertyCard key={index} property={property} />
+        <PropertyCard
+          key={index}
+          property={property}
+          isSelected={
+            selectedProperty?.name === property.name &&
+            selectedProperty?.address === property.address
+          }
+          onSelectProperty={onSelectProperty}
+        />
       ))}
     </div>
   );

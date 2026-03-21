@@ -15,7 +15,7 @@ import {
   RoommateMessage,
 } from "@/lib/types/roommate";
 
-const STORAGE_KEY = "brightplace_roommate_profile";
+const STORAGE_KEY = "wademehome_roommate_profile";
 
 interface RoommateContextValue {
   myProfile: MyRoommateProfile;
@@ -92,7 +92,7 @@ export function RoommateProvider({
             messages: [
               {
                 role: "them" as const,
-                content: `Hey! I saw we matched on brightplace. Nice to meet you!`,
+                content: `Hey! I saw we matched on wademehome. Nice to meet you!`,
                 time: new Date().toISOString(),
               },
             ],

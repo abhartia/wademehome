@@ -4,10 +4,13 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "./AppSidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { isMarketingPath } from "@/lib/routes/marketingPaths";
+import { useEffect } from "react";
 
 const pageTitles: Record<string, string> = {
-  "/": "Home",
+  "/app": "Home",
   "/search": "Search",
   "/tours": "Tours & Notes",
   "/roommates": "Roommates",
@@ -19,6 +22,21 @@ const pageTitles: Record<string, string> = {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const shouldUseShell = !isMarketingPath(pathname);
+
+  useEffect(() => {
+    if (!loading && shouldUseShell && !user) {
+      router.replace("/login");
+    }
+  }, [loading, shouldUseShell, user, router]);
+
+  if (!shouldUseShell) {
+    return <main className="min-h-screen">{children}</main>;
+  }
+  if (loading || !user) return null;
+
   const pageTitle = pageTitles[pathname] ?? "";
 
   return (

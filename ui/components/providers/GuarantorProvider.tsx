@@ -15,7 +15,7 @@ import {
 } from "@/lib/types/guarantor";
 import { SEED_GUARANTORS, SEED_REQUESTS } from "@/lib/mock/guarantors";
 
-const STORAGE_KEY = "brightplace_guarantor";
+const STORAGE_KEY = "wademehome_guarantor";
 
 interface PersistedState {
   savedGuarantors: SavedGuarantor[];

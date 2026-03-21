@@ -15,7 +15,7 @@ import {
 } from "@/lib/types/userProfile";
 import { inferJourneyStage } from "@/lib/journeyStage";
 
-const STORAGE_KEY = "brightplace_user_profile";
+const STORAGE_KEY = "wademehome_user_profile";
 
 interface UserProfileContextValue {
   profile: UserProfile;

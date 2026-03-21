@@ -129,6 +129,8 @@ CHECK_QUERY_LAST_MESSAGE = CHECK_QUERY_OUTPUT_PARSER.format(
     load_app_prompt('check_data_query')
 )
 
+SEARCH_HINT_SYSTEM = load_app_prompt("search_hint")
+
 ##
 # Wrong SQL prompt mounting
 ##
