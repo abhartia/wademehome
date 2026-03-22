@@ -30,16 +30,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     pathname === "/signup" ||
     !isMarketingPath(pathname);
 
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isPending, isFetching, isError } = useQuery({
     queryKey: authMeQueryKey(),
     queryFn: ({ signal }) => fetchAuthSession(signal),
     enabled: shouldFetchMe,
     retry: false,
-    staleTime: 30_000,
+    // Always reconcile with server when entering a route that needs auth (avoid stale "logged in" UI).
+    staleTime: 0,
+    // Global QueryClient sets refetchOnWindowFocus: false; session must refresh when the tab wakes.
+    refetchOnWindowFocus: true,
   });
 
-  const user = data?.user ?? null;
-  const loading = shouldFetchMe ? isLoading || isFetching : false;
+  // Failed refetch keeps previous success data by default — treat as logged out (fixes 401 + stale cache).
+  const rawUser = isError ? null : (data?.user ?? null);
+  const user =
+    rawUser &&
+    typeof rawUser.id === "string" &&
+    rawUser.id.length > 0 &&
+    typeof rawUser.email === "string"
+      ? rawUser
+      : null;
+
+  const loading = shouldFetchMe ? isPending || isFetching : false;
 
   const refresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
