@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { isMarketingPath } from "@/lib/routes/marketingPaths";
+import { isMarketingPath, normalizePathname } from "@/lib/routes/marketingPaths";
 import { authMeQueryKey, fetchAuthSession } from "@/lib/api/authSessionQuery";
 import { logoutAuthLogoutPostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import type { UserResponse } from "@/lib/api/generated/types.gen";
@@ -20,15 +20,16 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const path = normalizePathname(usePathname());
   const queryClient = useQueryClient();
 
   // Include login/signup so we can redirect already-authenticated users (middleware no longer does cookie-only redirects).
+  // Must use normalizePathname: when pathname is briefly "", `path === "/"` still enables `/auth/me` on the home route.
   const shouldFetchMe =
-    pathname === "/" ||
-    pathname === "/login" ||
-    pathname === "/signup" ||
-    !isMarketingPath(pathname);
+    path === "/" ||
+    path === "/login" ||
+    path === "/signup" ||
+    !isMarketingPath(path);
 
   const { data, isPending, isFetching, isError } = useQuery({
     queryKey: authMeQueryKey(),
@@ -41,15 +42,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refetchOnWindowFocus: true,
   });
 
-  // Failed refetch keeps previous success data by default — treat as logged out (fixes 401 + stale cache).
-  const rawUser = isError ? null : (data?.user ?? null);
-  const user =
-    rawUser &&
-    typeof rawUser.id === "string" &&
-    rawUser.id.length > 0 &&
-    typeof rawUser.email === "string"
-      ? rawUser
-      : null;
+  // On error, TanStack may still expose stale `data` — never trust it for session (see fetchAuthSession throw on 401).
+  const user = (() => {
+    if (isError) return null;
+    const u = data?.user;
+    if (
+      !u ||
+      typeof u.id !== "string" ||
+      !u.id.length ||
+      typeof u.email !== "string" ||
+      !u.email.length
+    ) {
+      return null;
+    }
+    return u;
+  })();
 
   const loading = shouldFetchMe ? isPending || isFetching : false;
 

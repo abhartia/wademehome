@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { isMarketingPath } from "@/lib/routes/marketingPaths";
+import { isMarketingPath, normalizePathname } from "@/lib/routes/marketingPaths";
 import { useEffect } from "react";
 
 const pageTitles: Record<string, string> = {
@@ -24,7 +24,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
-  const shouldUseShell = !isMarketingPath(pathname);
+  const path = normalizePathname(pathname);
+  const shouldUseShell = !isMarketingPath(path);
 
   useEffect(() => {
     if (!loading && shouldUseShell && !user) {
@@ -34,22 +35,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading || !user || !shouldUseShell) return;
-    if (user.onboarding_completed && pathname === "/onboarding") {
+    if (user.onboarding_completed && path === "/onboarding") {
       router.replace("/app");
       return;
     }
-    if (!user.onboarding_completed && pathname !== "/onboarding") {
+    if (!user.onboarding_completed && path !== "/onboarding") {
       router.replace("/onboarding");
     }
-  }, [loading, user, shouldUseShell, pathname, router]);
+  }, [loading, user, shouldUseShell, path, router]);
 
   if (!shouldUseShell) {
     return <main className="min-h-screen">{children}</main>;
   }
   if (loading || !user) return null;
 
-  const pageTitle = pageTitles[pathname] ?? "";
-  const isOnboarding = pathname === "/onboarding";
+  const pageTitle = pageTitles[path] ?? "";
+  const isOnboarding = path === "/onboarding";
 
   if (isOnboarding) {
     return (
