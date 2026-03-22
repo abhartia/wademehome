@@ -33,13 +33,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (session && (pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/app", request.url));
-  }
-
-  if (session && pathname === "/") {
-    return NextResponse.redirect(new URL("/app", request.url));
-  }
+  // Do not redirect based on cookie presence alone: invalid/stale `wmh_session` would
+  // send users to /app while `/auth/me` returns 401. Logged-in routing is handled client-side
+  // after session validation (see LoggedInHomeRedirect, login/signup pages).
 
   if (!isPublic && !isProtected) return NextResponse.next();
   return NextResponse.next();

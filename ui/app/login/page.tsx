@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +18,12 @@ import { getApiErrorMessage } from "@/lib/api/errors";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { refresh } = useAuth();
+  const { refresh, user, loading } = useAuth();
+
+  useEffect(() => {
+    if (loading || !user) return;
+    router.replace(user.onboarding_completed ? "/app" : "/onboarding");
+  }, [loading, user, router]);
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LoggedInHomeRedirect } from "@/components/auth/LoggedInHomeRedirect";
 import { GuestHomeSearchClient } from "./GuestHomeSearchClient";
 import {
   GuestHomeIntroDisclosure,
@@ -41,6 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function HomePage() {
   return (
     <div className="flex h-screen flex-col">
+      <LoggedInHomeRedirect />
       <GuestHomeStructuredData />
       <GuestHomeSearchClient intro={<GuestHomeIntroDisclosure />} />
     </div>

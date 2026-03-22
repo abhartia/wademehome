@@ -23,7 +23,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
 
-  const shouldFetchMe = pathname === "/" || !isMarketingPath(pathname);
+  // Include login/signup so we can redirect already-authenticated users (middleware no longer does cookie-only redirects).
+  const shouldFetchMe =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    !isMarketingPath(pathname);
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: authMeQueryKey(),
