@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { Work_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { MIDDLEWARE_PATHNAME_HEADER } from "@/lib/middlewareHeaders";
+import { isMarketingPath, normalizePathname } from "@/lib/routes/marketingPaths";
 import { UserProfileProvider } from "@/components/providers/UserProfileProvider";
 import { RoommateProvider } from "@/components/providers/RoommateProvider";
 import { ToursProvider } from "@/components/providers/ToursProvider";
@@ -30,11 +33,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = await headers();
+  const path = normalizePathname(headerList.get(MIDDLEWARE_PATHNAME_HEADER) ?? "/");
+  const marketing = isMarketingPath(path);
+
+  const content = marketing ? (
+    <main className="min-h-screen">{children}</main>
+  ) : (
+    <AppShell>{children}</AppShell>
+  );
+
   return (
     <html lang="en">
       <head>
@@ -56,9 +69,7 @@ gtag('consent', 'default', { analytics_storage: 'denied' });`}
                 <RoommateProvider>
                   <ToursProvider>
                     <GuarantorProvider>
-                      <MoveInProvider>
-                        <AppShell>{children}</AppShell>
-                      </MoveInProvider>
+                      <MoveInProvider>{content}</MoveInProvider>
                     </GuarantorProvider>
                   </ToursProvider>
                 </RoommateProvider>

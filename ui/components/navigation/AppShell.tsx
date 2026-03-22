@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { isMarketingPath, normalizePathname } from "@/lib/routes/marketingPaths";
+import { normalizePathname } from "@/lib/routes/marketingPaths";
 import { useEffect } from "react";
 
 const pageTitles: Record<string, string> = {
@@ -25,16 +25,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const path = normalizePathname(pathname);
-  const shouldUseShell = !isMarketingPath(path);
 
   useEffect(() => {
-    if (!loading && shouldUseShell && !user) {
+    if (!loading && !user) {
       router.replace("/login");
     }
-  }, [loading, shouldUseShell, user, router]);
+  }, [loading, user, router]);
 
   useEffect(() => {
-    if (loading || !user || !shouldUseShell) return;
+    if (loading || !user) return;
     if (user.onboarding_completed && path === "/onboarding") {
       router.replace("/app");
       return;
@@ -42,11 +41,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (!user.onboarding_completed && path !== "/onboarding") {
       router.replace("/onboarding");
     }
-  }, [loading, user, shouldUseShell, path, router]);
+  }, [loading, user, path, router]);
 
-  if (!shouldUseShell) {
-    return <main className="min-h-screen">{children}</main>;
-  }
   if (loading || !user) return null;
 
   const pageTitle = pageTitles[path] ?? "";
