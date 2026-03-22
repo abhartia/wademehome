@@ -33,6 +33,19 @@ class Config:
     # Mapbox (server-side geocoding, matrix, POI search). Optional; endpoints return 503 if unset.
     MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
 
+    # Resend (magic link + verification email). Read from env / Azure App Settings.
+    RESEND_API_KEY: str = env_manager.get("RESEND_API_KEY", "") or ""
+    RESEND_FROM_EMAIL: str = env_manager.get("RESEND_FROM_EMAIL", "") or ""
+
+    # Auth (cookies, session TTL, magic links). Must use env_manager so production env is honored.
+    AUTH_UI_BASE_URL: str = env_manager.get("AUTH_UI_BASE_URL", "http://localhost:3000") or "http://localhost:3000"
+    AUTH_COOKIE_NAME: str = env_manager.get("AUTH_COOKIE_NAME", "wmh_session") or "wmh_session"
+    AUTH_COOKIE_SECURE: str = env_manager.get("AUTH_COOKIE_SECURE", "false") or "false"
+    AUTH_COOKIE_SAMESITE: str = env_manager.get("AUTH_COOKIE_SAMESITE", "lax") or "lax"
+    AUTH_SESSION_DAYS: str = env_manager.get("AUTH_SESSION_DAYS", "14") or "14"
+    AUTH_MAGIC_LINK_MINUTES: str = env_manager.get("AUTH_MAGIC_LINK_MINUTES", "15") or "15"
+    AUTH_VERIFY_EMAIL_HOURS: str = env_manager.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48"
+
     @classmethod
     def _refresh_values(cls) -> None:
         """Re-sync class attributes after .env reload (see env_manager.auto_reload)."""
@@ -50,6 +63,17 @@ class Config:
         cls.LISTINGS_TABLE_NAME = env_manager.get("LISTINGS_TABLE_NAME", None)
         cls.LISTINGS_TABLE_SCHEMA = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
         cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
+        cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""
+        cls.RESEND_FROM_EMAIL = env_manager.get("RESEND_FROM_EMAIL", "") or ""
+        cls.AUTH_UI_BASE_URL = (
+            env_manager.get("AUTH_UI_BASE_URL", "http://localhost:3000") or "http://localhost:3000"
+        )
+        cls.AUTH_COOKIE_NAME = env_manager.get("AUTH_COOKIE_NAME", "wmh_session") or "wmh_session"
+        cls.AUTH_COOKIE_SECURE = env_manager.get("AUTH_COOKIE_SECURE", "false") or "false"
+        cls.AUTH_COOKIE_SAMESITE = env_manager.get("AUTH_COOKIE_SAMESITE", "lax") or "lax"
+        cls.AUTH_SESSION_DAYS = env_manager.get("AUTH_SESSION_DAYS", "14") or "14"
+        cls.AUTH_MAGIC_LINK_MINUTES = env_manager.get("AUTH_MAGIC_LINK_MINUTES", "15") or "15"
+        cls.AUTH_VERIFY_EMAIL_HOURS = env_manager.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48"
 
     @classmethod
     def get(cls, key: str, default: str | None = None) -> str | None:

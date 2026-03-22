@@ -1,10 +1,10 @@
 /**
  * Default map center for guest browse and nearby listing queries.
  * Override with NEXT_PUBLIC_DEFAULT_BROWSE_LAT / NEXT_PUBLIC_DEFAULT_BROWSE_LNG (e.g. your primary market).
- * If unset, uses the approximate geographic center of the contiguous US (not tied to any metro name).
+ * If unset, defaults to New York City.
  */
-const DEFAULT_LAT = 39.8283;
-const DEFAULT_LNG = -98.5795;
+const DEFAULT_LAT = 40.7128;
+const DEFAULT_LNG = -74.006;
 
 function parseCoord(raw: string | undefined, fallback: number): number {
   if (raw === undefined || raw.trim() === "") return fallback;
