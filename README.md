@@ -197,6 +197,8 @@ You should see `"acrUseManagedIdentityCreds": true`. Then **restart** the slot o
 
 Configure backend app settings (prod + staging):
 
+**Shell safety:** If the Postgres password contains `&`, `*`, `!`, or spaces, **do not** paste `DATABASE_URL="...&..."` in bash — `&` runs the rest as a background job and values can be truncated or show as `null` in CLI output. Use **single-quoted** strings, a `.env` file, or [Key Vault references](https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references).
+
 ```bash
 # Required example values (replace with real values)
 DATABASE_URL="postgresql+psycopg2://user:pass@host:5432/db"
@@ -288,8 +290,17 @@ then the site **never started your app container** — the failure is **ACR auth
 1. **Grant `AcrPull` on the ACR** to the **staging slot’s** managed identity (and production’s), as in the `az role assignment create` block above — use `az webapp identity show --slot staging` to get the right `principalId`.
 2. Set **`acrUseManagedIdentityCreds: true`** on that slot (CLI `az webapp config set ... --generic-configurations '{"acrUseManagedIdentityCreds": true}'` with `--slot staging` when needed). Without this, Azure may still try admin/registry secrets and fail with unauthorized even when `AcrPull` is assigned.
 3. In the **Portal**, for **each** slot (production + **staging**): open the **slot as its own app** (see **Finding staging in the Portal** above), then **Deployment Center** / **Containers** → **Registry authentication** = **Managed identity** (not invalid admin credentials).
-4. Confirm the image tag exists: `az acr repository show-tags -n wademehomeacr --repository wademehome-frontend -o table` (or set `ACR_NAME` and use `-n "$ACR_NAME"`).
-5. If the registry uses **private endpoints / network rules**, the App Service plan may need **VNet integration** or ACR must allow the app’s outbound path.
+4. Confirm the **backend** image tag exists (not only frontend): `az acr repository show-tags -g "$RG" -n "$ACR_NAME" --repository wademehome-backend -o table`. If the commit SHA tag is missing, the workflow may not have pushed, or you are pointing at a tag that was never built.
+5. **Clear stale Docker registry app settings** so the platform does not try admin/password auth (which fails when ACR admin is disabled). List keys: `az webapp config appsettings list -g "$RG" -n "$BACKEND_APP" --slot staging -o table`. If you see `DOCKER_REGISTRY_SERVER_USERNAME`, `DOCKER_REGISTRY_SERVER_PASSWORD`, or a wrong `DOCKER_REGISTRY_SERVER_URL`, remove them and rely on managed identity:
+   ```bash
+   az webapp config appsettings delete -g "$RG" -n "$BACKEND_APP" --slot staging --setting-names \
+     DOCKER_REGISTRY_SERVER_USERNAME DOCKER_REGISTRY_SERVER_PASSWORD
+   az webapp config appsettings set -g "$RG" -n "$BACKEND_APP" --slot staging --settings \
+     DOCKER_REGISTRY_SERVER_URL="https://${ACR_NAME}.azurecr.io"
+   ```
+   Then set `acrUseManagedIdentityCreds: true` again (see above) and **restart** the slot.
+6. Set **`acrUseManagedIdentityCreds: true`** on **production** as well as staging (four `az webapp config set` commands in the earlier section). A misconfigured production slot does not fix staging, but both should match.
+7. If the registry uses **private endpoints / network rules**, the App Service plan may need **VNet integration** or ACR must allow the app’s outbound path.
 
 Verify role assignments on the registry (look for all four app principals):
 

@@ -191,7 +191,8 @@ const STEPS: ConversationStep[] = [
   {
     id: "living",
     stage: 5,
-    agentMessage: "Last stretch -- who's moving in?",
+    agentMessage:
+      "Last stretch — who's moving in?\n\nIf you choose Me + roommate(s), we'll turn on the roommate matching platform: Roommates appears in your sidebar so you can build a roommate profile, see compatible people, and connect.",
     quickReplies: ["Just me", "Me + roommate(s)", "Me + partner", "My family"],
     quickReplyMode: "single",
     profileKey: "livingArrangement",
@@ -321,6 +322,17 @@ function QuickReplyChips({
 function SummaryCard({ onConfirm, onReset }: { onConfirm: () => void; onReset: () => void }) {
   const { profile } = useUserProfile();
 
+  const livingSummary =
+    profile.livingArrangement === "solo"
+      ? "Just you"
+      : profile.livingArrangement === "roommates"
+        ? "You + roommate(s) — roommate matching on"
+        : profile.livingArrangement === "partner"
+          ? "You + partner"
+          : profile.livingArrangement === "family"
+            ? "Family"
+            : "—";
+
   const rows: { label: string; value: string }[] = [
     { label: "Reason", value: profile.triggerReason || "—" },
     { label: "Timeline", value: profile.moveTimeline || "—" },
@@ -341,7 +353,7 @@ function SummaryCard({ onConfirm, onReset }: { onConfirm: () => void; onReset: (
     { label: "Credit", value: profile.creditScoreRange || "—" },
     {
       label: "Living",
-      value: profile.livingArrangement ?? "—",
+      value: livingSummary,
     },
     { label: "Bedrooms", value: profile.bedroomsNeeded || "—" },
     {
@@ -541,7 +553,17 @@ export function OnboardingChat() {
       addMessage("user", option);
       setSelectedReplies([]);
       applyAnswer(currentStep, option);
-      advanceToNextStep(currentStepIdx);
+      if (currentStep.id === "living" && option === "Me + roommate(s)") {
+        setTimeout(() => {
+          addMessage(
+            "agent",
+            "Great — roommate matching is on. After you finish onboarding, open Roommates in the sidebar to complete your roommate profile and start browsing matches.",
+          );
+          setTimeout(() => advanceToNextStep(currentStepIdx), 450);
+        }, 400);
+      } else {
+        advanceToNextStep(currentStepIdx);
+      }
     } else {
       setSelectedReplies((prev) =>
         prev.includes(option)
@@ -599,7 +621,9 @@ export function OnboardingChat() {
     setFinished(true);
     addMessage(
       "agent",
-      "You're all set! I'll use these preferences to personalise your search experience. Head to Search whenever you're ready.",
+      profile.roommateSearchEnabled
+        ? "You're all set! I'll use these preferences to personalise your search experience. Roommates is in your sidebar when you're ready to set up matching — and you can start searching listings anytime."
+        : "You're all set! I'll use these preferences to personalise your search experience. Head to Search whenever you're ready.",
     );
     void (async () => {
       try {
