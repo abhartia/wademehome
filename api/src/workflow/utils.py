@@ -76,12 +76,52 @@ def get_response_synthesis_message(
 listing_table_name = Config.get("LISTINGS_TABLE_NAME")
 listing_table_schema = Config.get("LISTINGS_TABLE_SCHEMA")
 
-engine = create_engine(Config.get("DATABASE_URL"))
+_workflow_engine = None
+_sql_database = None
+_sql_retriever = None
 
-sql_database = SQLDatabase(
-  engine,
-  schema=listing_table_schema
-)
+
+def get_engine():
+    """Lazily create the workflow SQLAlchemy engine (avoids DB I/O at import time)."""
+    global _workflow_engine
+    if _workflow_engine is None:
+        database_url = Config.get("DATABASE_URL")
+        connect_args: dict = {}
+        if database_url and "postgresql" in database_url:
+            connect_args["connect_timeout"] = 5
+        _workflow_engine = create_engine(
+            database_url,
+            future=True,
+            connect_args=connect_args,
+        )
+    return _workflow_engine
+
+
+class _LazyEngine:
+    """Forwards to get_engine() so callers can keep using `engine` without eager connect()."""
+
+    __slots__ = ()
+
+    def __getattr__(self, name: str):
+        return getattr(get_engine(), name)
+
+
+engine = _LazyEngine()
+
+
+def get_sql_database() -> SQLDatabase:
+    global _sql_database
+    if _sql_database is None:
+        _sql_database = SQLDatabase(get_engine(), schema=listing_table_schema)
+    return _sql_database
+
+
+def get_sql_retriever() -> SQLRetriever:
+    global _sql_retriever
+    if _sql_retriever is None:
+        _sql_retriever = SQLRetriever(get_sql_database())
+    return _sql_retriever
+
 
 CHAT_TEXT_TO_SQL_PROMPT = PromptTemplate(
     load_app_prompt('text2sql_chat'),
@@ -92,8 +132,6 @@ text2sql_prompt = CHAT_TEXT_TO_SQL_PROMPT.partial_format(
     dialect=engine.dialect.name
 )
 
-sql_retriever = SQLRetriever(SQLDatabase(engine))
-
 def get_listing_table_info():
   if not listing_table_name:
     return (
@@ -101,7 +139,7 @@ def get_listing_table_info():
       "then ensure the database has that table."
     )
   try:
-    info = sql_database.get_single_table_info(listing_table_name)
+    info = get_sql_database().get_single_table_info(listing_table_name)
     return info if info is not None else "(Table not found or empty schema.)"
   except Exception:
     return "(Could not load table schema. Check LISTINGS_TABLE_NAME and database.)"

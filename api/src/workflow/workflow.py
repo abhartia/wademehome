@@ -36,7 +36,7 @@ from workflow.utils import (
     get_response_synthesis_message,
     parse_response_to_sql,
     text2sql_prompt,
-    sql_retriever,
+    get_sql_retriever,
 )
 from llama_index.server.models.ui import UIEvent
 from listings.nearby_mapper import property_list_from_sql_rows
@@ -383,7 +383,7 @@ class ListingFetcherWorkflow(Workflow):
                 logger.info("DB retrieve: sql=%r", sql_query)
                 sql_preview = sql_query if len(sql_query) <= 1200 else (sql_query[:1200] + "…")
                 print(f"DB retrieve: sql={sql_preview!r}")
-                retrieved_rows = sql_retriever.retrieve(sql_query)
+                retrieved_rows = get_sql_retriever().retrieve(sql_query)
             except BaseException as e:
                 logger.exception("DB retrieve failed for sql=%r", sql_query)
                 return WrongSQLStatementEvent(
