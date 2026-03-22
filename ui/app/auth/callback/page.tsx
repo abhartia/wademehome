@@ -1,16 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
-
-const API_BASE = process.env.NEXT_PUBLIC_CHAT_API_URL ?? "";
+import { authMeQueryKey } from "@/lib/api/authSessionQuery";
+import { verifyMagicLinkAuthMagicLinkVerifyPostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
   const params = useSearchParams();
   const { refresh } = useAuth();
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState("Signing you in...");
+  const started = useRef(false);
+
+  const verifyMutation = useMutation({
+    ...verifyMagicLinkAuthMagicLinkVerifyPostMutation(),
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
+      await refresh();
+      if (!data?.user?.onboarding_completed) {
+        router.replace("/onboarding");
+      } else {
+        router.replace("/app");
+      }
+    },
+    onError: (err) => {
+      setMessage(getApiErrorMessage(err));
+    },
+  });
 
   useEffect(() => {
     const token = params.get("token");
@@ -18,21 +38,10 @@ export default function AuthCallbackPage() {
       setMessage("Missing magic-link token.");
       return;
     }
-    (async () => {
-      const response = await fetch(`${API_BASE}/auth/magic-link/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ token }),
-      });
-      if (!response.ok) {
-        setMessage("Magic link is invalid or expired.");
-        return;
-      }
-      await refresh();
-      router.replace("/app");
-    })();
-  }, [params, refresh, router]);
+    if (started.current) return;
+    started.current = true;
+    verifyMutation.mutate({ body: { token } });
+  }, [params, verifyMutation]);
 
   return <div className="p-8 text-center">{message}</div>;
 }

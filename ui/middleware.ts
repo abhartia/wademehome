@@ -7,6 +7,7 @@ const PUBLIC_PATHS = new Set([
   "/signup",
   "/privacy",
   "/auth/callback",
+  "/auth/verify-email",
   "/for-property-managers",
   "/blog",
 ]);

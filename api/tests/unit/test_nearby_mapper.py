@@ -1,3 +1,5 @@
+import json
+
 from listings.nearby_mapper import row_to_property_data_item
 
 
@@ -78,3 +80,43 @@ def test_row_to_property_amenities_comma_string() -> None:
     )
     assert p.amenities == ["Doorman", "Roof deck", "Gym"]
     assert p.main_amenities == ["Doorman", "Roof deck", "Gym"]
+
+
+def test_images_json_beats_single_image_url() -> None:
+    imgs = json.dumps(
+        [
+            {"url": "https://cdn.example.com/1.jpg"},
+            {"photoUrl": "https://cdn.example.com/2.jpg"},
+        ]
+    )
+    p = row_to_property_data_item(
+        {
+            "name": "Tower",
+            "address": "1 Main",
+            "latitude": 0.0,
+            "longitude": 0.0,
+            "image_url": "https://thumb.example.com/only.jpg",
+            "images": imgs,
+        }
+    )
+    assert p.images_urls == [
+        "https://cdn.example.com/1.jpg",
+        "https://cdn.example.com/2.jpg",
+    ]
+
+
+def test_images_urls_column_takes_priority_over_images() -> None:
+    p = row_to_property_data_item(
+        {
+            "name": "Tower",
+            "address": "1 Main",
+            "latitude": 0.0,
+            "longitude": 0.0,
+            "images_urls": '["https://a.example.com/x.jpg", "https://a.example.com/y.jpg"]',
+            "images": json.dumps([{"url": "https://b.example.com/z.jpg"}]),
+        }
+    )
+    assert p.images_urls == [
+        "https://a.example.com/x.jpg",
+        "https://a.example.com/y.jpg",
+    ]

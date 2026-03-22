@@ -17,7 +17,7 @@ class ASGIAuthMiddleware:
         self.app = app
         self.validator = TokenValidator()
         self.exclude_paths = {
-            "/docs", "/redoc", "/openapi.json", "/actuator/health",
+            "/docs", "/redoc", "/openapi.json", "/actuator/health", "/health",
             "/", "/favicon.ico", "/api/components", "/api/layout"
         }
         self.exclude_prefixes = {

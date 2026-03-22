@@ -3,57 +3,33 @@
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getPropertyNotePropertiesNotesPropertyKeyGetOptions,
+  getPropertyNotePropertiesNotesPropertyKeyGetQueryKey,
+  listFavoritesPropertiesFavoritesGetOptions,
+  listFavoritesPropertiesFavoritesGetQueryKey,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
+import {
+  createTourRequestPropertiesTourRequestsPost,
+  toggleFavoritePropertiesFavoritesTogglePost,
+  upsertPropertyNotePropertiesNotesPropertyKeyPut,
+} from "@/lib/api/generated/sdk.gen";
+import type {
+  FavoriteResponse,
+  FavoriteToggleResponse,
+  PropertyNoteGetResponse,
+  PropertyNoteResponse,
+  TourRequestCreate,
+  TourRequestCreateResponse,
+} from "@/lib/api/generated/types.gen";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_CHAT_API_URL ?? "";
+export type FavoriteProperty = FavoriteResponse;
 
-export type FavoriteProperty = {
-  property_key: string;
-  property_name: string;
-  property_address: string;
-  created_at: string;
-};
-
-export type PropertyNote = {
-  property_key: string;
-  note: string;
-  updated_at: string;
-};
-
-type TourRequestPayload = {
-  property_key: string;
-  property_name: string;
-  property_address: string;
-  property_image?: string | null;
-  property_price?: string | null;
-  property_beds?: string | null;
-  property_tags?: string[];
-  requested_date?: string | null;
-  requested_time?: string | null;
-};
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-    ...init,
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed: ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-}
+export type PropertyNote = PropertyNoteResponse;
 
 export function usePropertyFavorites(options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: ["property-favorites"],
-    queryFn: () => request<{ favorites: FavoriteProperty[] }>("/properties/favorites"),
+    ...listFavoritesPropertiesFavoritesGetOptions({}),
     enabled: options?.enabled ?? true,
   });
 }
@@ -61,62 +37,78 @@ export function usePropertyFavorites(options?: { enabled?: boolean }) {
 export function useToggleFavorite() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: {
+    mutationFn: async (input: {
       propertyKey: string;
       propertyName: string;
       propertyAddress: string;
-    }) =>
-      request<{ favorited: boolean }>("/properties/favorites/toggle", {
-        method: "POST",
-        body: JSON.stringify({
+    }): Promise<FavoriteToggleResponse> => {
+      const { data } = await toggleFavoritePropertiesFavoritesTogglePost({
+        body: {
           property_key: input.propertyKey,
           property_name: input.propertyName,
           property_address: input.propertyAddress,
-        }),
-      }),
+        },
+        throwOnError: true,
+      });
+      return data!;
+    },
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["property-favorites"] });
+      await qc.invalidateQueries({
+        queryKey: listFavoritesPropertiesFavoritesGetQueryKey({}),
+      });
     },
   });
 }
 
 export function usePropertyNote(propertyKey: string, options?: { enabled?: boolean }) {
+  const enabled = Boolean(propertyKey) && (options?.enabled ?? true);
   return useQuery({
-    queryKey: ["property-note", propertyKey],
-    queryFn: () => request<{ note: PropertyNote | null }>(`/properties/notes/${propertyKey}`),
-    enabled: Boolean(propertyKey) && (options?.enabled ?? true),
+    ...getPropertyNotePropertiesNotesPropertyKeyGetOptions({
+      path: { property_key: propertyKey },
+    }),
+    enabled,
   });
 }
 
 export function useUpsertPropertyNote(propertyKey: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (note: string) =>
-      request<{ note: PropertyNote }>(`/properties/notes/${propertyKey}`, {
-        method: "PUT",
-        body: JSON.stringify({ note }),
-      }),
+    mutationFn: async (note: string): Promise<PropertyNoteGetResponse> => {
+      const { data } = await upsertPropertyNotePropertiesNotesPropertyKeyPut({
+        path: { property_key: propertyKey },
+        body: { note },
+        throwOnError: true,
+      });
+      return data!;
+    },
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["property-note", propertyKey] });
+      await qc.invalidateQueries({
+        queryKey: getPropertyNotePropertiesNotesPropertyKeyGetQueryKey({
+          path: { property_key: propertyKey },
+        }),
+      });
     },
   });
 }
 
 export function useCreateTourRequest() {
-  const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: TourRequestPayload) =>
-      request<{ id: string }>("/properties/tour-requests", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["tour-requests"] });
+    mutationFn: async (
+      payload: TourRequestCreate,
+    ): Promise<TourRequestCreateResponse> => {
+      const { data } = await createTourRequestPropertiesTourRequestsPost({
+        body: payload,
+        throwOnError: true,
+      });
+      return data!;
     },
   });
 }
 
-export function toTourRequestPayload(propertyKey: string, property: PropertyDataItem) {
+export function toTourRequestPayload(
+  propertyKey: string,
+  property: PropertyDataItem,
+): TourRequestCreate {
   return {
     property_key: propertyKey,
     property_name: property.name,
@@ -125,5 +117,5 @@ export function toTourRequestPayload(propertyKey: string, property: PropertyData
     property_price: formatPropertyRangeLabel(property.rent_range),
     property_beds: formatPropertyRangeLabel(property.bedroom_range),
     property_tags: property.main_amenities ?? [],
-  } satisfies TourRequestPayload;
+  };
 }

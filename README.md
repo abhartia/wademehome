@@ -150,7 +150,50 @@ az role assignment create --assignee-object-id "$BACKEND_STAGING_PID" --assignee
 
 **Important:** production and **each deployment slot** get **different** system-assigned identities. If you only granted `AcrPull` to production, **staging will fail** with `ImagePullUnauthorizedFailure` when pulling `*.azurecr.io/...`.
 
-**Portal (required for managed identity pull):** for **production** and **staging**, open the web app → **Deployment Center** (or **Settings → Container**) and set **Registry authentication** to **Managed identity** (system-assigned) targeting your ACR. If the app is still configured to use **admin username/password** but ACR admin is disabled or secrets are wrong, pulls will also fail with unauthorized.
+**RBAC alone is not enough:** the web app must also be told to **use** that identity when pulling (`acrUseManagedIdentityCreds`). If the Portal does not show **Deployment Center** / **Containers** on the backend, set it with the CLI block below (works for **production** and **staging**).
+
+#### Finding **staging** in the Portal (each app is separate)
+
+Settings apply **per slot**. You are not configuring staging if you only open **Deployment slots** and use **Swap** / **Traffic %** — that page is the parent app.
+
+1. Open **`wademehome-backend`** (or **`wademehome`**) in the Portal.
+2. Left menu → **Deployment slots**.
+3. Click the **staging** slot **name** in the table (e.g. `staging` link). The top title should show you are on **`wademehome-backend (staging)`** (or similar), not only the root app.
+4. On **that** blade: **Settings → Containers** (Linux) or **Deployment → Deployment Center** → **Settings** → set **Authentication** to **Managed identity** and pick your ACR.
+
+If step 3 never opens a separate context, use the CLI in the next section for **`wademehome-backend`** and **`--slot staging`**.
+
+#### Enable managed identity ACR pull via CLI (production + staging)
+
+Run for **both** apps and **both** slots (four commands per app: prod without `--slot`, staging with `--slot staging`). Uses the same `RG`, `BACKEND_APP`, `FRONTEND_APP` as above.
+
+```bash
+RG="wademehome-rg"
+FRONTEND_APP="wademehome"
+BACKEND_APP="wademehome-backend"
+
+# Frontend — production + staging
+az webapp config set -g "$RG" -n "$FRONTEND_APP" \
+  --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+az webapp config set -g "$RG" -n "$FRONTEND_APP" --slot staging \
+  --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+
+# Backend — production + staging (fixes ImagePullUnauthorizedFailure on wademehome-backend-staging)
+az webapp config set -g "$RG" -n "$BACKEND_APP" \
+  --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+az webapp config set -g "$RG" -n "$BACKEND_APP" --slot staging \
+  --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+```
+
+Confirm (optional):
+
+```bash
+az webapp config show -g "$RG" -n "$BACKEND_APP" --slot staging --query "{acrUseManagedIdentityCreds:acrUseManagedIdentityCreds,linuxFxVersion:linuxFxVersion}" -o json
+```
+
+You should see `"acrUseManagedIdentityCreds": true`. Then **restart** the slot or re-run the GitHub deploy workflow.
+
+**Portal (optional):** If the blade exists, **Deployment Center** / **Containers** → **Registry authentication** = **Managed identity** (system-assigned). If the app still uses **admin username/password** while ACR admin is off or secrets are wrong, pulls fail with unauthorized.
 
 Configure backend app settings (prod + staging):
 
@@ -243,9 +286,10 @@ If **Diagnose and solve problems** or **Log stream** (platform) shows:
 then the site **never started your app container** — the failure is **ACR authentication**, not Next.js/Python.
 
 1. **Grant `AcrPull` on the ACR** to the **staging slot’s** managed identity (and production’s), as in the `az role assignment create` block above — use `az webapp identity show --slot staging` to get the right `principalId`.
-2. In the **Portal**, for **each** slot (production + **staging**): **Deployment Center** / **Container** → **Registry authentication** = **Managed identity** (not invalid admin credentials).
-3. Confirm the image tag exists: `az acr repository show-tags -n wademehomeacr --repository wademehome-frontend -o table` (or set `ACR_NAME` and use `-n "$ACR_NAME"`).
-4. If the registry uses **private endpoints / network rules**, the App Service plan may need **VNet integration** or ACR must allow the app’s outbound path.
+2. Set **`acrUseManagedIdentityCreds: true`** on that slot (CLI `az webapp config set ... --generic-configurations '{"acrUseManagedIdentityCreds": true}'` with `--slot staging` when needed). Without this, Azure may still try admin/registry secrets and fail with unauthorized even when `AcrPull` is assigned.
+3. In the **Portal**, for **each** slot (production + **staging**): open the **slot as its own app** (see **Finding staging in the Portal** above), then **Deployment Center** / **Containers** → **Registry authentication** = **Managed identity** (not invalid admin credentials).
+4. Confirm the image tag exists: `az acr repository show-tags -n wademehomeacr --repository wademehome-frontend -o table` (or set `ACR_NAME` and use `-n "$ACR_NAME"`).
+5. If the registry uses **private endpoints / network rules**, the App Service plan may need **VNet integration** or ACR must allow the app’s outbound path.
 
 Verify role assignments on the registry (look for all four app principals):
 
@@ -264,7 +308,7 @@ Azure runs an HTTP check against the **staging** slot before it will swap. If th
 
 **If pulls are unauthorized (above), staging will never answer HTTP** until ACR access is fixed.
 
-The GitHub workflow waits for staging to return HTTP 200 (backend: `/health`, frontend: `/`) before calling `az webapp deployment slot swap`. If it still fails after that wait, check in Azure Portal (or CLI):
+The GitHub workflow waits for staging to return HTTP 200 (backend: `/health` or `/`, frontend: `/`) before calling `az webapp deployment slot swap`. The job log prints **`http_code=`** each attempt (`000` = connection/TLS failure or no listener; `502`/`503` = platform or app not ready). If it times out, check in Azure Portal (or CLI):
 
 1. **Staging slot URL responds** (replace names if yours differ):
    - API: `curl -fsS https://wademehome-backend-staging.azurewebsites.net/health`

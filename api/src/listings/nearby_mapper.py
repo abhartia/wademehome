@@ -12,7 +12,7 @@ import re
 from decimal import Decimal
 from typing import Any, Mapping
 
-from workflow.events import PropertyDataItem
+from workflow.events import PropertyDataItem, PropertyDataList
 
 
 def _get_ci(row: Mapping[str, Any], *keys: str) -> Any:
@@ -181,17 +181,54 @@ def _amenities_merged(row: Mapping[str, Any]) -> list[str]:
     return out
 
 
-def _images_from_row(row: Mapping[str, Any]) -> list[str]:
-    url = _get_ci(row, "image_url", "primary_image_url", "photo_url", "thumbnail_url")
-    if isinstance(url, str) and url.strip():
-        return [url.strip()]
-    raw = _get_ci(row, "images_urls", "image_urls", "photos")
+def _urls_from_greystar_images_value(raw: Any) -> list[str]:
+    """Greystar `images` cell: JSON array of URL strings and/or objects with url/photoUrl/src."""
+    if raw is None or raw == "":
+        return []
     if isinstance(raw, list):
-        out = [str(x).strip() for x in raw if str(x).strip()]
+        arr = raw
+    elif isinstance(raw, str) and raw.strip():
+        s = raw.strip()
+        if not s.startswith("["):
+            return []
+        try:
+            data = json.loads(s)
+        except json.JSONDecodeError:
+            return []
+        if not isinstance(data, list):
+            return []
+        arr = data
+    else:
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in arr:
+        url: str | None = None
+        if isinstance(item, str):
+            t = item.strip()
+            if t.startswith("http"):
+                url = t
+        elif isinstance(item, dict):
+            for key in ("url", "photoUrl", "src", "imageUrl", "image_url"):
+                v = item.get(key)
+                if isinstance(v, str) and v.strip().startswith("http"):
+                    url = v.strip()
+                    break
+        if url and url not in seen:
+            seen.add(url)
+            out.append(url)
+    return out
+
+
+def _images_from_row(row: Mapping[str, Any]) -> list[str]:
+    # 1) Denormalized column from loader / ETL
+    raw_list = _get_ci(row, "images_urls", "image_urls")
+    if isinstance(raw_list, list):
+        out = [str(x).strip() for x in raw_list if str(x).strip()]
         if out:
             return out
-    if isinstance(raw, str) and raw.strip():
-        s = raw.strip()
+    if isinstance(raw_list, str) and raw_list.strip():
+        s = raw_list.strip()
         if s.startswith("["):
             try:
                 data = json.loads(s)
@@ -201,9 +238,74 @@ def _images_from_row(row: Mapping[str, Any]) -> list[str]:
                         return out
             except json.JSONDecodeError:
                 pass
-        if s.startswith("http"):
-            return [s]
+
+    # 2) Greystar `images` JSON (often richer than image_url alone)
+    raw_im = _get_ci(row, "images")
+    from_images = _urls_from_greystar_images_value(raw_im)
+    if from_images:
+        return from_images
+
+    # 3) Legacy `photos` column (list or JSON string)
+    raw_photos = _get_ci(row, "photos")
+    if isinstance(raw_photos, list):
+        out = [str(x).strip() for x in raw_photos if str(x).strip()]
+        if out:
+            return out
+    if isinstance(raw_photos, str) and raw_photos.strip():
+        ps = raw_photos.strip()
+        if ps.startswith("["):
+            try:
+                data = json.loads(ps)
+                if isinstance(data, list):
+                    out = [str(x).strip() for x in data if str(x).strip()]
+                    if out:
+                        return out
+            except json.JSONDecodeError:
+                pass
+        if ps.startswith("http"):
+            return [ps]
+
+    # 4) Single thumbnail / primary URL
+    url = _get_ci(row, "image_url", "primary_image_url", "photo_url", "thumbnail_url")
+    if isinstance(url, str) and url.strip():
+        return [url.strip()]
+
     return []
+
+
+def mapping_from_raw_sql_row(
+    row: Any,
+    col_keys: list[str] | None,
+) -> dict[str, Any] | None:
+    """Turn a SQLAlchemy-style row + column names into a dict for `row_to_property_data_item`."""
+    if isinstance(row, Mapping):
+        return dict(row)
+    if col_keys and isinstance(row, (list, tuple)):
+        out: dict[str, Any] = {}
+        for i, key in enumerate(col_keys):
+            if i < len(row):
+                out[str(key)] = row[i]
+        return out
+    return None
+
+
+def property_list_from_sql_rows(
+    rows: list[Any] | None,
+    col_keys: list[str] | None,
+) -> PropertyDataList:
+    """Build PropertyDataList from raw SQL `result` + `col_keys` (LlamaIndex SQLRetriever metadata)."""
+    if not rows:
+        return PropertyDataList(properties=[])
+    out: list[PropertyDataItem] = []
+    for row in rows:
+        m = mapping_from_raw_sql_row(row, col_keys)
+        if not m:
+            continue
+        try:
+            out.append(row_to_property_data_item(m))
+        except Exception:
+            continue
+    return PropertyDataList(properties=out)
 
 
 def row_to_property_data_item(row: Mapping[str, Any]) -> PropertyDataItem:

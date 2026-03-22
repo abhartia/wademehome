@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRoommate } from "@/components/providers/RoommateProvider";
 import { RoommateProfileChat } from "@/components/roommates/RoommateProfileChat";
@@ -78,8 +80,24 @@ function MyProfileView() {
 }
 
 export default function RoommatesPage() {
+  const router = useRouter();
+  const { profile } = useUserProfile();
   const { myProfile, connections } = useRoommate();
   const [activeTab, setActiveTab] = useState("find");
+
+  useEffect(() => {
+    if (!profile.roommateSearchEnabled) {
+      router.replace("/profile");
+    }
+  }, [profile.roommateSearchEnabled, router]);
+
+  if (!profile.roommateSearchEnabled) {
+    return (
+      <div className="flex h-[calc(100vh-3rem)] items-center justify-center text-sm text-muted-foreground">
+        Redirecting…
+      </div>
+    );
+  }
 
   const handleProfileComplete = () => {
     setActiveTab("find");

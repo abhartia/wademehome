@@ -187,19 +187,27 @@ jobs:
         if: needs.build-backend.result == 'success'
         run: |
           set -euo pipefail
-          URL="https://${AZURE_WEBAPP_BACKEND}-${AZURE_WEBAPP_BACKEND_SLOT}.azurewebsites.net/health"
-          echo "Waiting for: $URL"
+          BASE="https://${AZURE_WEBAPP_BACKEND}-${AZURE_WEBAPP_BACKEND_SLOT}.azurewebsites.net"
+          echo "Waiting for HTTP 200 from backend staging: $BASE (/health or /)"
           MAX_ATTEMPTS=60
           SLEEP_SECS=10
           for i in $(seq 1 "$MAX_ATTEMPTS"); do
-            if curl -fsS --max-time 30 "$URL" >/dev/null 2>&1; then
-              echo "Backend staging responded OK (attempt $i/$MAX_ATTEMPTS)"
-              exit 0
-            fi
-            echo "Backend staging not ready yet (attempt $i/$MAX_ATTEMPTS), sleeping ${SLEEP_SECS}s..."
+            ok=""
+            for path in /health /; do
+              code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${BASE}${path}" 2>/dev/null || echo "000")"
+              if [ "$code" = "200" ]; then
+                echo "Backend staging OK (attempt $i/$MAX_ATTEMPTS) path=${path} http_code=${code}"
+                exit 0
+              fi
+              ok="${ok} ${path}=${code}"
+            done
+            echo "Backend staging not ready (attempt $i/$MAX_ATTEMPTS):${ok} — sleeping ${SLEEP_SECS}s"
             sleep "$SLEEP_SECS"
           done
-          echo "Timeout: backend staging never became healthy. Check slot logs and WEBSITES_PORT / container startup."
+          echo "Timeout. Typical causes: ImagePullUnauthorizedFailure on staging slot, WEBSITES_PORT!=8000, or container crash (check staging platform + container logs)."
+          echo "Last probe:"
+          curl -sS -o /dev/null -w 'GET /health -> %{http_code}\n' --max-time 30 "${BASE}/health" || true
+          curl -sS -o /dev/null -w 'GET / -> %{http_code}\n' --max-time 30 "${BASE}/" || true
           exit 1
 
       - name: Swap backend staging into production
@@ -224,18 +232,20 @@ jobs:
         run: |
           set -euo pipefail
           URL="https://${AZURE_WEBAPP_FRONTEND}-${AZURE_WEBAPP_FRONTEND_SLOT}.azurewebsites.net/"
-          echo "Waiting for: $URL"
+          echo "Waiting for HTTP 200 from: $URL"
           MAX_ATTEMPTS=60
           SLEEP_SECS=10
           for i in $(seq 1 "$MAX_ATTEMPTS"); do
-            if curl -fsSL --max-time 45 "$URL" >/dev/null 2>&1; then
-              echo "Frontend staging responded OK (attempt $i/$MAX_ATTEMPTS)"
+            code="$(curl -sSL -o /dev/null -w '%{http_code}' --max-time 45 "$URL" 2>/dev/null || echo "000")"
+            if [ "$code" = "200" ]; then
+              echo "Frontend staging OK (attempt $i/$MAX_ATTEMPTS) http_code=${code}"
               exit 0
             fi
-            echo "Frontend staging not ready yet (attempt $i/$MAX_ATTEMPTS), sleeping ${SLEEP_SECS}s..."
+            echo "Frontend staging not ready (attempt $i/$MAX_ATTEMPTS) http_code=${code} — sleeping ${SLEEP_SECS}s"
             sleep "$SLEEP_SECS"
           done
-          echo "Timeout: frontend staging never became healthy. Check slot logs, ACR AcrPull on the slot identity, and WEBSITES_PORT=3000."
+          echo "Timeout. Typical causes: ImagePullUnauthorizedFailure, WEBSITES_PORT!=3000, or container crash."
+          curl -sSL -o /dev/null -w 'GET / -> %{http_code}\n' --max-time 45 "$URL" || true
           exit 1
 
       - name: Swap frontend staging into production

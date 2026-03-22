@@ -32,12 +32,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [loading, shouldUseShell, user, router]);
 
+  useEffect(() => {
+    if (loading || !user || !shouldUseShell) return;
+    if (user.onboarding_completed && pathname === "/onboarding") {
+      router.replace("/app");
+      return;
+    }
+    if (!user.onboarding_completed && pathname !== "/onboarding") {
+      router.replace("/onboarding");
+    }
+  }, [loading, user, shouldUseShell, pathname, router]);
+
   if (!shouldUseShell) {
     return <main className="min-h-screen">{children}</main>;
   }
   if (loading || !user) return null;
 
   const pageTitle = pageTitles[pathname] ?? "";
+  const isOnboarding = pathname === "/onboarding";
+
+  if (isOnboarding) {
+    return (
+      <TooltipProvider>
+        <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden">
+          <header className="flex h-12 shrink-0 items-center border-b px-4">
+            <span className="text-sm font-medium text-muted-foreground">
+              {pageTitle}
+            </span>
+          </header>
+          <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
+        </div>
+      </TooltipProvider>
+    );
+  }
 
   return (
     <TooltipProvider>

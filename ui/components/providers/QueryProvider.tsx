@@ -24,9 +24,17 @@ export function QueryProvider({ children }: QueryProviderProps) {
 
   useEffect(() => {
     const baseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL ?? apiClient.getConfig().baseUrl;
+      process.env.NEXT_PUBLIC_API_BASE_URL ??
+      process.env.NEXT_PUBLIC_CHAT_API_URL ??
+      apiClient.getConfig().baseUrl;
 
-    apiClient.setConfig({ baseUrl });
+    const token = process.env.NEXT_PUBLIC_CHAT_API_TOKEN;
+
+    apiClient.setConfig({
+      baseUrl,
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
   }, []);
 
   return (

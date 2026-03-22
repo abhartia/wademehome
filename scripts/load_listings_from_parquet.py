@@ -3,7 +3,8 @@
 Load units.parquet into PostgreSQL as LISTINGS_TABLE_NAME (default: listings).
 
 Reads api/.env for DATABASE_URL, LISTINGS_TABLE_NAME, LISTINGS_TABLE_SCHEMA.
-Derives image_url from the images JSON column for text-to-SQL prompts.
+Derives image_url (first URL) and images_urls (JSON array string) from the images JSON column.
+Run Alembic migrations before loading if the DB uses managed columns (e.g. images_urls).
 
 Usage (from repo root):
   ./api/.venv/bin/python scripts/load_listings_from_parquet.py
@@ -87,23 +88,45 @@ def _engine_kwargs(database_url: str) -> dict:
 
 
 def first_image_url(images_value) -> str | None:
+    urls = all_image_urls_from_images_cell(images_value)
+    return urls[0] if urls else None
+
+
+def all_image_urls_from_images_cell(images_value) -> list[str]:
+    """Parse Greystar `images` JSON (strings and/or {url, photoUrl, ...}); dedupe, preserve order."""
     if images_value is None:
-        return None
-    if pd.isna(images_value):
-        return None
+        return []
+    try:
+        if pd.isna(images_value):
+            return []
+    except (ValueError, TypeError):
+        pass
     if not isinstance(images_value, str) or not images_value.strip():
-        return None
+        return []
     try:
         arr = json.loads(images_value)
     except (json.JSONDecodeError, TypeError):
-        return None
-    if isinstance(arr, list) and arr:
-        first = arr[0]
-        if isinstance(first, dict):
-            return first.get("url")
-        if isinstance(first, str):
-            return first
-    return None
+        return []
+    if not isinstance(arr, list):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in arr:
+        url: str | None = None
+        if isinstance(item, str):
+            s = item.strip()
+            if s.startswith("http"):
+                url = s
+        elif isinstance(item, dict):
+            for key in ("url", "photoUrl", "src", "imageUrl", "image_url"):
+                v = item.get(key)
+                if isinstance(v, str) and v.strip().startswith("http"):
+                    url = v.strip()
+                    break
+        if url and url not in seen:
+            seen.add(url)
+            out.append(url)
+    return out
 
 
 def _build_dtype(df: pd.DataFrame) -> dict:
@@ -420,11 +443,19 @@ def main() -> int:
 
     if "images" in df.columns:
         df["image_url"] = df["images"].apply(first_image_url)
+        def _images_urls_json(cell) -> str | None:
+            urls = all_image_urls_from_images_cell(cell)
+            return json.dumps(urls) if urls else None
+
+        df["images_urls"] = df["images"].apply(_images_urls_json)
     else:
         df["image_url"] = None
-        log("No images column; image_url set to null")
+        df["images_urls"] = None
+        log("No images column; image_url and images_urls set to null")
     with_img = int(df["image_url"].notna().sum())
     log(f"Rows with derived image_url: {with_img:,}")
+    with_many = int(df["images_urls"].notna().sum()) if "images_urls" in df.columns else 0
+    log(f"Rows with images_urls JSON: {with_many:,}")
 
     if args.dry_run:
         log("Dry run: skipping DB write.")

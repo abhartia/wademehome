@@ -40,6 +40,7 @@ const STAGE_EMPHASIS: Partial<Record<JourneyStage, string>> = {
 export function AppSidebar() {
   const pathname = usePathname();
   const { profile, journeyStage } = useUserProfile();
+  const showRoommates = profile.roommateSearchEnabled;
 
   const showMoveIn =
     journeyStage === "lease-signed" ||
@@ -61,7 +62,9 @@ export function AppSidebar() {
     : [];
 
   const bottomItems = [
-    { title: "Roommates", href: "/roommates", icon: Users2 },
+    ...(showRoommates
+      ? [{ title: "Roommates", href: "/roommates", icon: Users2 }]
+      : []),
     { title: "Profile", href: "/profile", icon: UserCircle },
   ];
 

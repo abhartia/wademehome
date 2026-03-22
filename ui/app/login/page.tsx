@@ -3,61 +3,92 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/AuthProvider";
-
-const API_BASE = process.env.NEXT_PUBLIC_CHAT_API_URL ?? "";
+import { authMeQueryKey } from "@/lib/api/authSessionQuery";
+import {
+  loginAuthLoginPostMutation,
+  requestMagicLinkAuthMagicLinkRequestPostMutation,
+  resendVerificationEmailAuthVerifyEmailResendPostMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
 export default function LoginPage() {
   const router = useRouter();
   const { refresh } = useAuth();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [needsVerify, setNeedsVerify] = useState(false);
+
+  const loginMutation = useMutation({
+    ...loginAuthLoginPostMutation(),
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
+      await refresh();
+      if (!data?.user?.onboarding_completed) {
+        router.replace("/onboarding");
+      } else {
+        router.replace("/app");
+      }
+    },
+  });
+
+  const resendMutation = useMutation({
+    ...resendVerificationEmailAuthVerifyEmailResendPostMutation(),
+  });
+
+  const magicMutation = useMutation({
+    ...requestMagicLinkAuthMagicLinkRequestPostMutation(),
+  });
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setLoading(true);
     setError("");
+    setInfo("");
+    setNeedsVerify(false);
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
+      await loginMutation.mutateAsync({
+        body: { email, password },
       });
-      if (!response.ok) {
-        const data = (await response.json()) as { detail?: string };
-        throw new Error(data.detail || "Login failed");
-      }
-      await refresh();
-      router.replace("/app");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
+      const msg = getApiErrorMessage(err);
+      if (msg.toLowerCase().includes("verify")) {
+        setNeedsVerify(true);
+      }
+      setError(msg);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email.trim()) return;
+    setError("");
+    setInfo("");
+    try {
+      await resendMutation.mutateAsync({
+        body: { email: email.trim() },
+      });
+      setInfo("Verification email sent. Check your inbox.");
+    } catch (err) {
+      setError(getApiErrorMessage(err));
     }
   };
 
   const handleMagicLink = async () => {
-    setLoading(true);
     setError("");
+    setInfo("");
     try {
-      const response = await fetch(`${API_BASE}/auth/magic-link/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email }),
+      await magicMutation.mutateAsync({
+        body: { email },
       });
-      if (!response.ok) throw new Error("Could not send magic link");
-      setError("Magic link sent. Check your inbox.");
+      setInfo("Magic link sent. Check your inbox.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Magic link failed");
-    } finally {
-      setLoading(false);
+      setError(getApiErrorMessage(err));
     }
   };
 
@@ -84,11 +115,27 @@ export default function LoginPage() {
               required
             />
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button disabled={loading} className="w-full" type="submit">
+            {info && <p className="text-sm text-muted-foreground">{info}</p>}
+            {needsVerify && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                disabled={resendMutation.isPending || !email}
+                onClick={handleResendVerification}
+              >
+                Resend verification email
+              </Button>
+            )}
+            <Button
+              disabled={loginMutation.isPending}
+              className="w-full"
+              type="submit"
+            >
               Continue
             </Button>
             <Button
-              disabled={loading || !email}
+              disabled={magicMutation.isPending || !email}
               className="w-full"
               variant="outline"
               type="button"
@@ -98,7 +145,10 @@ export default function LoginPage() {
             </Button>
           </form>
           <p className="mt-3 text-sm text-muted-foreground">
-            New here? <Link href="/signup" className="underline">Create an account</Link>
+            New here?{" "}
+            <Link href="/signup" className="underline">
+              Create an account
+            </Link>
           </p>
         </CardContent>
       </Card>

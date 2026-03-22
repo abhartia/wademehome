@@ -92,6 +92,8 @@ type GuestHomeSearchInnerProps = {
   listingPhase: ListingSearchPhase;
   query: string;
   setQuery: (value: string) => void;
+  browseMapCenter: { latitude: number; longitude: number };
+  onBrowseMapCenterChange: (c: { latitude: number; longitude: number }) => void;
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
   selectedProperty: PropertyDataItem | null;
   setSelectedProperty: (p: PropertyDataItem | null) => void;
@@ -110,6 +112,8 @@ function GuestHomeSearchInner({
   listingPhase,
   query,
   setQuery,
+  browseMapCenter,
+  onBrowseMapCenterChange,
   nearbyQuery,
   selectedProperty,
   setSelectedProperty,
@@ -374,7 +378,11 @@ function GuestHomeSearchInner({
           <div className="h-full min-h-[200px]">
             <PropertyListingsMap
               properties={nearbyListings}
-              fallbackCenter={DEFAULT_BROWSE_MAP_CENTER}
+              fallbackCenter={browseMapCenter}
+              followDataCamera={showingSearchPins}
+              onBrowseCenterChange={
+                listingSessionActive ? undefined : onBrowseMapCenterChange
+              }
               globalNearestFallback={Boolean(nearbyQuery.data?.used_global_nearest_fallback)}
               openPropertySheetOnMarkerClick={false}
             />
@@ -416,8 +424,9 @@ function GuestHomeSearchInner({
           {!useAiSlice && (
             <div className="mb-3 space-y-2 border-l-2 border-primary/35 pl-3">
               <p className="text-[11px] leading-snug text-muted-foreground">
-                Pins show listings near the default browse area on the map (fast SQL)—not necessarily
-                where your browser is. Type at least{" "}
+                Pins show listings near the <span className="font-medium text-foreground">map center</span>{" "}
+                (fast SQL)—pan or zoom the map to load a new area. This is not tied to your browser
+                location. Type at least{" "}
                 <span className="font-medium text-foreground">{MIN_QUERY_CHARS}</span> characters,
                 then press <span className="font-medium text-foreground">Enter</span> or{" "}
                 <span className="font-medium text-foreground">Search</span> to run an AI-assisted
@@ -467,12 +476,26 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const [listingSessionActive, setListingSessionActive] = useState(false);
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
+  const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
+
+  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number }) => {
+    setBrowseMapCenter((prev) => {
+      if (
+        Math.abs(prev.latitude - c.latitude) < 1e-6 &&
+        Math.abs(prev.longitude - c.longitude) < 1e-6
+      ) {
+        return prev;
+      }
+      return { latitude: c.latitude, longitude: c.longitude };
+    });
+  }, []);
 
   const nearbyQuery = useNearbyListings({
-    latitude: DEFAULT_BROWSE_MAP_CENTER.latitude,
-    longitude: DEFAULT_BROWSE_MAP_CENTER.longitude,
+    latitude: browseMapCenter.latitude,
+    longitude: browseMapCenter.longitude,
     radiusMiles: DEFAULT_NEARBY_RADIUS_MILES,
     limit: DEFAULT_NEARBY_LIMIT,
+    enabled: !listingSessionActive,
   });
 
   useEffect(() => {
@@ -513,6 +536,8 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
     listingPhase,
     query,
     setQuery,
+    browseMapCenter,
+    onBrowseMapCenterChange,
     nearbyQuery,
     selectedProperty,
     setSelectedProperty,

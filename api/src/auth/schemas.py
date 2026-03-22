@@ -19,10 +19,26 @@ class MagicLinkVerifyRequest(BaseModel):
     token: str
 
 
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
 class UserResponse(BaseModel):
     id: str
     email: EmailStr
+    email_verified: bool = False
+    onboarding_completed: bool = False
 
 
 class AuthResponse(BaseModel):
     user: UserResponse
+
+
+class SignupResponse(BaseModel):
+    ok: bool = True
+    email: EmailStr
+    message: str = "Check your email to verify your account."

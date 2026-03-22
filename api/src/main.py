@@ -33,6 +33,7 @@ from core.sse import stop_event_result_to_sse_chunk
 from auth.router import router as auth_router
 from listings.router import router as listings_router
 from properties.router import router as properties_router
+from portal.router import router as portal_router
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -53,6 +54,7 @@ app = FastAPI(title="Multi-Agent API", description="API with listing and markets
 app.include_router(auth_router)
 app.include_router(listings_router)
 app.include_router(properties_router)
+app.include_router(portal_router)
 
 def get_event_generator(
     handler: WorkflowHandler,
@@ -159,6 +161,9 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+# Preserve FastAPI instance for OpenAPI export / tooling (ASGI stack has no .openapi()).
+fastapi_app = app
 
 # Wrap the app at the ASGI level - order matters: CORS first, then Auth
 app = ASGIAuthMiddleware(app)

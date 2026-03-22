@@ -15,12 +15,23 @@ from urllib.parse import urlencode
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from bs4 import BeautifulSoup
 import gzip
-from google.cloud import storage
 from proxy_manager import ProxyManager
 import threading
 
 # Constants
 GCS_BUCKET = "scrapers-v2"
+
+
+def _gcs_client():
+    """Lazy import so `--env local` works without installing google-cloud-storage."""
+    try:
+        from google.cloud import storage
+    except ImportError as e:
+        raise ImportError(
+            "google-cloud-storage is required when env is not 'local' (GCS upload/list). "
+            "For local-only runs use --env local, or install: pip install google-cloud-storage"
+        ) from e
+    return storage.Client()
 
 proxy_manager = ProxyManager([
     "IP_1:3128",
@@ -187,14 +198,63 @@ def flatten_units(prop_meta, units, url, scraped_at, extras=None):
 
     return results
 
-def extract_photos(prop_meta):
+
+def _url_from_gallery_item(item) -> str | None:
+    """Normalize Greystar imageGallery / photos entries to an http(s) URL string."""
+    if item is None:
+        return None
+    if isinstance(item, str):
+        s = item.strip()
+        return s if s.startswith("http") else None
+    if isinstance(item, dict):
+        for key in (
+            "url",
+            "photoUrl",
+            "src",
+            "imageUrl",
+            "image_url",
+            "large",
+            "medium",
+            "small",
+        ):
+            v = item.get(key)
+            if isinstance(v, str) and v.strip().startswith("http"):
+                return v.strip()
+    return None
+
+
+def collect_image_urls_from_gallery(*iterables) -> list[str]:
+    """Merge multiple gallery lists; preserve order; dedupe by URL."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for it in iterables:
+        if not it:
+            continue
+        for raw in it:
+            url = _url_from_gallery_item(raw)
+            if url and url not in seen:
+                seen.add(url)
+                out.append(url)
+    return out
+
+
+def extract_photos(prop_meta, gallery_urls: list[str] | None = None):
     results = []
-    photos = prop_meta.get("photos", [])
+    photos: list = list(prop_meta.get("photos") or [])
+    if gallery_urls:
+        for u in gallery_urls:
+            if isinstance(u, str) and u.strip().startswith("http"):
+                photos.append({"url": u.strip()})
     property_id = prop_meta.get("propertyId")
     scraped_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     for idx, photo in enumerate(photos):
-        url = photo.get("url") or photo.get("photoUrl")
+        if isinstance(photo, str) and photo.strip().startswith("http"):
+            url = photo.strip()
+        elif isinstance(photo, dict):
+            url = photo.get("url") or photo.get("photoUrl")
+        else:
+            continue
         if not url:
             continue
         photo_id = os.path.basename(url.split("?")[0])
@@ -223,7 +283,7 @@ def save_raw_property_html(env, property_id, html, scraped_at):
         with gzip.open(path, "wt", encoding="utf-8") as f:
             f.write(html)
     else:
-        client = storage.Client()
+        client = _gcs_client()
         blob = client.bucket(GCS_BUCKET).blob(path)
         compressed_html = gzip.compress(html.encode("utf-8"))
         blob.upload_from_string(compressed_html, content_type="application/gzip")
@@ -237,14 +297,14 @@ def save_raw_property(env, property_id, full_data, scraped_at):
         with gzip.open(path, "wt", encoding="utf-8") as f:
             json.dump(full_data, f)
     else:
-        client = storage.Client()
+        client = _gcs_client()
         blob = client.bucket(GCS_BUCKET).blob(path)
         compressed_json = gzip.compress(json.dumps(full_data).encode("utf-8"))
         blob.upload_from_string(compressed_json, content_type="application/gzip")
         logger.info(f"Uploaded compressed JSON: {path}")
 
 def upload_to_gcs(env, filepath, prefix):
-    client = storage.Client()
+    client = _gcs_client()
     bucket = client.bucket(GCS_BUCKET)
     blob_path = f"{prefix}/{os.path.basename(filepath)}"
     blob = bucket.blob(blob_path)
@@ -389,7 +449,11 @@ def scrape_property_page(url, env, scraped_at, session, max_retries=3):
             extras["phone"] = contact.get("phoneNumber")
             extras["email"] = contact.get("email")
             extras["website"] = contact.get("communityWebsiteUrl")
-            extras["images"] = data.get("property", {}).get("imageGallery", [])
+            prop_block = data.get("property") or {}
+            extras["images"] = collect_image_urls_from_gallery(
+                prop_block.get("imageGallery", []),
+                prop_block.get("photos", []),
+            )
 
             subtype = extras["building_subtype"]
             if subtype == "Student":
@@ -413,7 +477,7 @@ def scrape_property_page(url, env, scraped_at, session, max_retries=3):
     save_raw_property(env, property_id, full_data, scraped_at)  # ✅ Save full __NEXT_DATA__
 
     units = flatten_units(prop_meta, available_units, url, scraped_at, extras) if available_units else []
-    photos = extract_photos(prop_meta)
+    photos = extract_photos(prop_meta, gallery_urls=extras.get("images"))
 
     return units, photos
 
@@ -554,7 +618,7 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str = No
             scraped_at_dirs = glob(base_glob)
             scraped_at_dates = sorted({Path(p).parts[-1].split("=")[-1] for p in scraped_at_dirs})
         else:
-            client = storage.Client()
+            client = _gcs_client()
             blobs = client.list_blobs(GCS_BUCKET, prefix=f"env={env}/source=greystar/stage=raw/entity=property/")
             scraped_at_dates = sorted({
                 part.split("=")[-1]
@@ -579,7 +643,7 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str = No
         raw_paths = glob(local_pattern)
         logger.info(f"[PROCESS_LOCAL] Local mode: found {len(raw_paths)} property.json* files")
     else:
-        client = storage.Client()
+        client = _gcs_client()
         prefix = f"env={env}/source=greystar/stage=raw/entity=property/"
         raw_blobs = [
             b for b in client.list_blobs(GCS_BUCKET, prefix=prefix)
@@ -641,8 +705,11 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str = No
                 extras["phone"] = contact.get("phoneNumber")
                 extras["email"] = contact.get("email")
                 extras["website"] = contact.get("communityWebsiteUrl")
-                # NOTE: pass lists; flatten_units will json.dumps them
-                extras["images"] = data.get("property", {}).get("imageGallery", [])
+                prop_block = data.get("property") or {}
+                extras["images"] = collect_image_urls_from_gallery(
+                    prop_block.get("imageGallery", []),
+                    prop_block.get("photos", []),
+                )
                 # interpret subtype -> building_type
                 subtype = extras["building_subtype"]
                 if subtype == "Student":
@@ -660,7 +727,7 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str = No
                 extras["fees"] = data.get("fees", [])
 
         units = flatten_units(prop_meta, available_units, url=None, scraped_at=scraped_at_val, extras=extras)
-        photos = extract_photos(prop_meta)  # safe no-op if photos absent
+        photos = extract_photos(prop_meta, gallery_urls=extras.get("images"))
         return units, photos
 
     # 4) Iterate and build rows

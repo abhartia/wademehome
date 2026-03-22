@@ -1,6 +1,6 @@
 "use client";
 
-import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
+import { PropertyImageGallery } from "@/components/properties/PropertyImageGallery";
 import { PropertyDetailMap } from "@/components/properties/detail/PropertyDetailMap";
 import { PropertyRenterInsights } from "@/components/properties/detail/PropertyRenterInsights";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNearbyListings } from "@/lib/listings/useNearbyListings";
 import { useListingGeocode } from "@/lib/listings/useListingGeocode";
 import { usePropertyByKey } from "@/lib/listings/usePropertyByKey";
-import { getListingsApiBase } from "@/lib/listings/listingsApi";
+import { isApiConfigured } from "@/lib/api/isApiConfigured";
 import {
   toTourRequestPayload,
   useCreateTourRequest,
@@ -23,7 +23,6 @@ import {
 } from "@/lib/properties/api";
 import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { getCachedProperty, cacheProperty } from "@/lib/properties/propertyStorage";
-import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -73,7 +72,7 @@ export default function PropertyDetailsPage() {
 
   const { user, loading: authLoading } = useAuth();
   const apiEnabled = Boolean(user) && !authLoading;
-  const apiBaseConfigured = Boolean(getListingsApiBase());
+  const apiBaseConfigured = isApiConfigured();
 
   const cached = useMemo(() => (propertyKey ? getCachedProperty(propertyKey) : null), [propertyKey]);
   const listingQuery = usePropertyByKey(propertyKey, {
@@ -191,7 +190,7 @@ export default function PropertyDetailsPage() {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
         <div className="space-y-6">
-          <PropertyImageGallery property={property} />
+          <PropertyImageGallery property={property} variant="page" />
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{formatPropertyRangeLabel(property.rent_range)}</Badge>
@@ -359,68 +358,5 @@ export default function PropertyDetailsPage() {
         </aside>
       </div>
     </main>
-  );
-}
-
-function PropertyImageGallery({ property }: { property: PropertyDataItem }) {
-  const urls = property.images_urls?.filter(Boolean) ?? [];
-  const [failed, setFailed] = useState<Record<number, boolean>>({});
-
-  if (urls.length === 0) {
-    return (
-      <div className="relative flex h-80 w-full items-center justify-center overflow-hidden rounded-lg border bg-muted">
-        <Building2 className="h-16 w-16 text-muted-foreground/40" aria-hidden />
-      </div>
-    );
-  }
-
-  const [hero, ...rest] = urls;
-
-  return (
-    <div className="space-y-3">
-      <div className="relative h-80 w-full overflow-hidden rounded-lg border bg-muted">
-        {!failed[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element -- arbitrary listing CDNs
-          <img
-            src={hero}
-            alt={property.name}
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="eager"
-            decoding="async"
-            onError={() => setFailed((f) => ({ ...f, 0: true }))}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <Building2 className="h-14 w-14 opacity-40" />
-          </div>
-        )}
-      </div>
-      {rest.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-          {rest.map((src, i) => {
-            const idx = i + 1;
-            return (
-              <div key={`${src}-${idx}`} className="relative aspect-[4/3] overflow-hidden rounded-md border bg-muted">
-                {!failed[idx] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={src}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                    onError={() => setFailed((f) => ({ ...f, [idx]: true }))}
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <Building2 className="h-8 w-8 text-muted-foreground/35" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
   );
 }

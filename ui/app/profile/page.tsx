@@ -21,6 +21,7 @@ import {
   Package,
 } from "lucide-react";
 import { JourneyStageSelector } from "@/components/journey/JourneyStageSelector";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function EmptyState() {
   return (
@@ -45,7 +46,7 @@ function EmptyState() {
 }
 
 export default function ProfilePage() {
-  const { profile } = useUserProfile();
+  const { profile, updateProfile } = useUserProfile();
   const [showJson, setShowJson] = useState(false);
 
   if (!profile.onboardingCompleted) return <EmptyState />;
@@ -147,6 +148,31 @@ export default function ProfilePage() {
         <Card>
           <CardContent className="p-4">
             <JourneyStageSelector />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Roommate search</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Turn this on to show the Roommates section in the sidebar and use
+              roommate matching. You can also enable it by choosing &quot;Me +
+              roommate(s)&quot; during onboarding.
+            </p>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+              <Checkbox
+                checked={profile.roommateSearchEnabled}
+                onCheckedChange={(v) =>
+                  updateProfile({ roommateSearchEnabled: v === true })
+                }
+                className="mt-0.5"
+              />
+              <span className="text-sm font-medium leading-snug">
+                Show roommate tools in the app
+              </span>
+            </label>
           </CardContent>
         </Card>
 

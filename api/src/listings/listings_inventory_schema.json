@@ -31,6 +31,21 @@
     "latitude": { "parquetNames": ["latitude"], "sqlAliases": ["latitude", "lat"] },
     "longitude": { "parquetNames": ["longitude"], "sqlAliases": ["longitude", "lng", "lon"] },
     "property_id": { "parquetNames": ["property_id"], "sqlAliases": ["property_id"] },
-    "listing_id": { "parquetNames": ["listing_id"], "sqlAliases": ["listing_id"] }
+    "listing_id": { "parquetNames": ["listing_id"], "sqlAliases": ["listing_id"] },
+    "images": {
+      "description": "JSON array of image URLs (strings) and/or objects with url/photoUrl (Greystar scraper)",
+      "parquetNames": ["images"],
+      "sqlAliases": ["images"]
+    },
+    "images_urls": {
+      "description": "Denormalized JSON array of HTTP URLs (TEXT), populated by load_listings_from_parquet; managed by Alembic",
+      "parquetNames": [],
+      "sqlAliases": ["images_urls", "image_urls"]
+    },
+    "image_url": {
+      "description": "First image URL for prompts and legacy consumers",
+      "parquetNames": [],
+      "sqlAliases": ["image_url", "primary_image_url", "photo_url", "thumbnail_url"]
+    }
   }
 }

@@ -1,20 +1,14 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isMarketingPath } from "@/lib/routes/marketingPaths";
+import { authMeQueryKey, fetchAuthSession } from "@/lib/api/authSessionQuery";
+import { logoutAuthLogoutPostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
+import type { UserResponse } from "@/lib/api/generated/types.gen";
 
-type AuthUser = {
-  id: string;
-  email: string;
-};
+export type AuthUser = UserResponse;
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -25,49 +19,38 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const API_BASE = process.env.NEXT_PUBLIC_CHAT_API_URL ?? "";
-
-async function fetchMe(): Promise<AuthUser | null> {
-  const response = await fetch(`${API_BASE}/auth/me`, {
-    method: "GET",
-    credentials: "include",
-  });
-  if (!response.ok) return null;
-  const data = (await response.json()) as { user: AuthUser };
-  return data.user;
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const shouldFetchMe = pathname === "/" || !isMarketingPath(pathname);
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: authMeQueryKey(),
+    queryFn: ({ signal }) => fetchAuthSession(signal),
+    enabled: shouldFetchMe,
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const user = data?.user ?? null;
+  const loading = shouldFetchMe ? isLoading || isFetching : false;
 
   const refresh = useCallback(async () => {
-    const nextUser = await fetchMe();
-    setUser(nextUser);
-    setLoading(false);
-  }, []);
+    await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
+  }, [queryClient]);
+
+  const logoutMutation = useMutation({
+    ...logoutAuthLogoutPostMutation(),
+    onSettled: () => {
+      queryClient.setQueryData(authMeQueryKey(), null);
+      void queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
+    },
+  });
 
   const logout = useCallback(async () => {
-    await fetch(`${API_BASE}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-    setUser(null);
-  }, []);
-
-  useEffect(() => {
-    // Home page needs session to suppress guest CTAs (e.g. AI search account hint).
-    if (pathname === "/") {
-      void refresh();
-      return;
-    }
-    if (isMarketingPath(pathname)) {
-      setLoading(false);
-      return;
-    }
-    void refresh();
-  }, [pathname, refresh]);
+    await logoutMutation.mutateAsync({});
+  }, [logoutMutation]);
 
   const value = useMemo(
     () => ({

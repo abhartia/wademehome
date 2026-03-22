@@ -1,67 +1,59 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { isApiConfigured } from "@/lib/api/isApiConfigured";
+import { poiNearbyListingsPoiNearbyGetQueryKey } from "@/lib/api/generated/@tanstack/react-query.gen";
+import { poiNearbyListingsPoiNearbyGet } from "@/lib/api/generated/sdk.gen";
+import type { PoiHit, PoiNearbyResponse } from "@/lib/api/generated/types.gen";
 
-import { getListingsApiBase, listingsAuthHeaders } from "./listingsApi";
+export type { PoiHit };
 
-export type PoiHit = {
-  category: string;
-  count: number;
-  nearest_name: string | null;
-  nearest_latitude: number | null;
-  nearest_longitude: number | null;
-  /** Meters from the listing pin to the nearest POI in this category (when known). */
-  nearest_distance_meters?: number | null;
-};
-
-export type PoiNearbyResponse = {
-  latitude: number;
-  longitude: number;
-  items: PoiHit[];
-  /** True when the API is up but POI search is not configured (e.g. missing MAPBOX_ACCESS_TOKEN). */
+export type PoiNearbyResult = PoiNearbyResponse & {
+  /** Present when the API returns 503 (e.g. POI provider not configured). */
   service_unavailable?: boolean;
 };
-
-async function fetchPoiNearby(latitude: number, longitude: number): Promise<PoiNearbyResponse> {
-  const base = getListingsApiBase();
-  if (!base) {
-    throw new Error("Listings API base URL is not configured");
-  }
-  const url = new URL(`${base}/listings/poi-nearby`);
-  url.searchParams.set("latitude", String(latitude));
-  url.searchParams.set("longitude", String(longitude));
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    credentials: "include",
-    headers: listingsAuthHeaders(),
-  });
-  if (response.status === 503) {
-    return {
-      latitude,
-      longitude,
-      items: [],
-      service_unavailable: true,
-    };
-  }
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed: ${response.status}`);
-  }
-  const data = (await response.json()) as Omit<PoiNearbyResponse, "service_unavailable">;
-  return { ...data, service_unavailable: false };
-}
 
 export function usePoiNearby(
   latitude: number | undefined,
   longitude: number | undefined,
   options?: { enabled?: boolean },
 ) {
-  const has = typeof latitude === "number" && typeof longitude === "number" && Number.isFinite(latitude) && Number.isFinite(longitude);
-  const enabled = (options?.enabled ?? true) && has && Boolean(getListingsApiBase());
+  const has =
+    typeof latitude === "number" &&
+    typeof longitude === "number" &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude);
+  const enabled =
+    (options?.enabled ?? true) && has && isApiConfigured();
 
   return useQuery({
-    queryKey: ["listings-poi-nearby", latitude, longitude],
-    queryFn: () => fetchPoiNearby(latitude as number, longitude as number),
+    queryKey: poiNearbyListingsPoiNearbyGetQueryKey({
+      query: { latitude: latitude!, longitude: longitude! },
+    }),
+    queryFn: async ({ signal }) => {
+      const res = await poiNearbyListingsPoiNearbyGet({
+        query: { latitude: latitude!, longitude: longitude! },
+        throwOnError: false,
+        signal,
+      });
+      if (res.response?.status === 503) {
+        return {
+          latitude: latitude!,
+          longitude: longitude!,
+          items: [],
+          service_unavailable: true,
+        } satisfies PoiNearbyResult;
+      }
+      if (!res.response?.ok) {
+        throw new Error(
+          `POI nearby failed: ${res.response?.status ?? "unknown"}`,
+        );
+      }
+      return {
+        ...res.data!,
+        service_unavailable: false,
+      } satisfies PoiNearbyResult;
+    },
     enabled,
     staleTime: 30 * 60_000,
     retry: 1,

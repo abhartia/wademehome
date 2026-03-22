@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
+import { PropertyImageGallery } from "@/components/properties/PropertyImageGallery";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
@@ -100,17 +100,7 @@ export function PropertyDetailSheet({
         </SheetHeader>
 
         <div className="px-4 pb-4 space-y-4">
-          <div className="relative h-56 w-full overflow-hidden rounded-md border bg-muted">
-            {property.images_urls[0] ? (
-              <Image
-                src={property.images_urls[0]}
-                alt={property.name}
-                fill
-                sizes="(max-width: 640px) 100vw, 40vw"
-                className="object-cover"
-              />
-            ) : null}
-          </div>
+          <PropertyImageGallery property={property} variant="sheet" />
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">

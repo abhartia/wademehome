@@ -1,38 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { isApiConfigured } from "@/lib/api/isApiConfigured";
+import { getMarketSnapshotListingsMarketSnapshotGetOptions } from "@/lib/api/generated/@tanstack/react-query.gen";
+import type { MarketSnapshotResponse } from "@/lib/api/generated/types.gen";
 
-import { getListingsApiBase, listingsFetch } from "./listingsApi";
-
-export type MarketSnapshotResponse = {
-  scope: string;
-  zip: string | null;
-  city: string | null;
-  state: string | null;
-  sample_size: number;
-  median_rent: number | null;
-  p25_rent: number | null;
-  p75_rent: number | null;
-  bedroom_mix: Record<string, number>;
-};
-
-async function fetchMarketSnapshot(params: {
-  zip?: string;
-  city?: string;
-  state?: string;
-  address?: string;
-}): Promise<MarketSnapshotResponse> {
-  const base = getListingsApiBase();
-  if (!base) {
-    throw new Error("Listings API base URL is not configured");
-  }
-  const url = new URL(`${base}/listings/market-snapshot`);
-  if (params.zip?.trim()) url.searchParams.set("zip", params.zip.trim());
-  if (params.city?.trim()) url.searchParams.set("city", params.city.trim());
-  if (params.state?.trim()) url.searchParams.set("state", params.state.trim());
-  if (params.address?.trim()) url.searchParams.set("address", params.address.trim());
-  return listingsFetch<MarketSnapshotResponse>(url.toString(), { method: "GET" });
-}
+export type { MarketSnapshotResponse };
 
 export function useMarketSnapshot(
   params: { zip?: string; city?: string; state?: string; address?: string },
@@ -43,18 +16,18 @@ export function useMarketSnapshot(
   const hasAddrFallback = Boolean(params.address?.trim());
   const enabled =
     (options?.enabled ?? true) &&
-    Boolean(getListingsApiBase()) &&
+    isApiConfigured() &&
     (hasZip || hasCityState || hasAddrFallback);
 
   return useQuery({
-    queryKey: [
-      "listings-market-snapshot",
-      params.zip ?? "",
-      params.city ?? "",
-      params.state ?? "",
-      params.address ?? "",
-    ],
-    queryFn: () => fetchMarketSnapshot(params),
+    ...getMarketSnapshotListingsMarketSnapshotGetOptions({
+      query: {
+        zip: params.zip?.trim() || null,
+        city: params.city?.trim() || null,
+        state: params.state?.trim() || null,
+        address: params.address?.trim() || null,
+      },
+    }),
     enabled,
     staleTime: 10 * 60_000,
     retry: 1,

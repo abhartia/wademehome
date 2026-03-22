@@ -6,8 +6,10 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ChecklistItem,
   MoveInPlan,
@@ -19,6 +21,14 @@ import {
   SEED_ORDERS,
   SEED_CHECKLIST,
 } from "@/lib/mock/movein";
+import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  readMoveInPortalMoveInGetOptions,
+  readMoveInPortalMoveInGetQueryKey,
+  syncMoveInPortalMoveInPutMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
+import type { MoveInStatePayload } from "@/lib/api/generated/types.gen";
+import { moveInFromApi, moveInToApiPayload } from "@/lib/api/portalMappers";
 
 const STORAGE_KEY = "wademehome_movein";
 
@@ -55,12 +65,42 @@ interface MoveInContextValue {
 const MoveInContext = createContext<MoveInContextValue | null>(null);
 
 export function MoveInProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [plan, setPlan] = useState<MoveInPlan>(SEED_PLAN);
   const [orders, setOrders] = useState<VendorOrder[]>([]);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const skipSave = useRef(false);
+  const debounceRef = useRef<number | undefined>(undefined);
+  const syncMutateRef = useRef<(opts: { body: MoveInStatePayload }) => void>(
+    () => {},
+  );
+
+  const syncMutation = useMutation({
+    ...syncMoveInPortalMoveInPutMutation(),
+    onSuccess: (data) => {
+      skipSave.current = true;
+      const parsed = moveInFromApi(data);
+      setPlan(parsed.plan);
+      setOrders(parsed.orders);
+      setChecklist(parsed.checklist);
+      queryClient.setQueryData(readMoveInPortalMoveInGetQueryKey({}), data);
+    },
+  });
+  syncMutateRef.current = syncMutation.mutate;
+
+  const { data: serverState } = useQuery({
+    ...readMoveInPortalMoveInGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readMoveInPortalMoveInGetQueryKey({}),
+  });
 
   useEffect(() => {
+    if (user) {
+      setHydrated(true);
+      return;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -79,14 +119,36 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
       setChecklist(SEED_CHECKLIST);
     }
     setHydrated(true);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (hydrated) {
-      const state: PersistedState = { plan, orders, checklist };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (!user || serverState === undefined) return;
+    skipSave.current = true;
+    const parsed = moveInFromApi(serverState);
+    setPlan(parsed.plan);
+    setOrders(parsed.orders);
+    setChecklist(parsed.checklist);
+  }, [user, serverState]);
+
+  useEffect(() => {
+    if (!hydrated || user) return;
+    const state: PersistedState = { plan, orders, checklist };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [plan, orders, checklist, hydrated, user]);
+
+  useEffect(() => {
+    if (!user || !hydrated) return;
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
     }
-  }, [plan, orders, checklist, hydrated]);
+    window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      const body = moveInToApiPayload(plan, orders, checklist) as unknown as MoveInStatePayload;
+      syncMutateRef.current({ body });
+    }, 600);
+    return () => window.clearTimeout(debounceRef.current);
+  }, [plan, orders, checklist, user, hydrated]);
 
   const updatePlan = useCallback((partial: Partial<MoveInPlan>) => {
     setPlan((prev) => ({ ...prev, ...partial }));

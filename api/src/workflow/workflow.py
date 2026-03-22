@@ -1,6 +1,8 @@
 import asyncio
 import json
 import re
+from typing import Any
+
 from jsonschema import ValidationError
 from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.workflow import (Workflow, Context, StopEvent, step)
@@ -37,7 +39,9 @@ from workflow.utils import (
     sql_retriever,
 )
 from llama_index.server.models.ui import UIEvent
-from workflow.property_parsing import parse_property_data_list_from_json
+from listings.nearby_mapper import property_list_from_sql_rows
+
+from workflow.property_parsing import parse_property_data_list_from_llm_content
 
 logger = get_logger(__name__)
 
@@ -370,7 +374,9 @@ class ListingFetcherWorkflow(Workflow):
 
         # Splitting the SQL queries in case there are multiple statements
         sql_queries = [query.strip() for query in ev.sql.split(';') if query.strip()]
-        query_result_tuples: list[tuple[str, str]] = []
+        # Each entry: [sql, result_rows, col_keys | None] — col_keys enables SQL→PropertyDataList fallback.
+        query_result_tuples: list[list[Any]] = []
+        await ctx.store.set("no_properties_message", "")
 
         for sql_query in sql_queries:
             try:
@@ -390,8 +396,13 @@ class ListingFetcherWorkflow(Workflow):
             logger.info("DB retrieve: rows=%d", retrieved_count)
             print(f"DB retrieve: rows={retrieved_count}")
 
-            if retrieved_rows and hasattr(retrieved_rows[0], 'metadata'):
-                result = retrieved_rows[0].metadata.get('result', [])
+            if retrieved_rows and hasattr(retrieved_rows[0], "metadata"):
+                meta = retrieved_rows[0].metadata
+                result = meta.get("result", [])
+                col_keys_raw = meta.get("col_keys")
+                col_keys: list[str] | None = None
+                if isinstance(col_keys_raw, list) and col_keys_raw:
+                    col_keys = [str(c) for c in col_keys_raw]
                 if isinstance(result, list):
                     sample = result[:3]
                     first = sample[0] if sample else None
@@ -407,9 +418,7 @@ class ListingFetcherWorkflow(Workflow):
                 else:
                     logger.info("DB retrieve: result_type=%s", type(result).__name__)
 
-                query_result_tuples.append(
-                    [sql_query, result]
-                )
+                query_result_tuples.append([sql_query, result, col_keys])
 
         if len(query_result_tuples) == 0:
             self._emit_empty_property_listings(ctx)
@@ -536,22 +545,29 @@ class ListingFetcherWorkflow(Workflow):
             except Exception as e:
                 logger.warning("generate_response: structured extraction failed: %s", e)
 
-            # Default to empty to keep the UI deterministic.
-            listings_properties = PropertyDataList(properties=[])
-
-            listings_properties_json = (
-                (listings_properties_response.message.content if listings_properties_response else None)
-                or ""
+            row_count = _count_sql_result_rows(query_result_tuples)
+            raw_content = (
+                listings_properties_response.message.content
+                if listings_properties_response and listings_properties_response.message
+                else None
             )
-
-            try:
-                listings_properties = parse_property_data_list_from_json(listings_properties_json)
-            except (json.JSONDecodeError, ValidationError) as e:
-                logger.warning(
-                    "generate_response: failed parsing property data: %s raw_prefix=%r",
-                    e,
-                    listings_properties_json[:200],
-                )
+            listings_properties = parse_property_data_list_from_llm_content(raw_content)
+            if not listings_properties.properties and row_count > 0:
+                merged: list[Any] = []
+                for tup in query_result_tuples:
+                    if len(tup) < 2:
+                        continue
+                    rows = tup[1]
+                    ckeys = tup[2] if len(tup) > 2 else None
+                    if isinstance(rows, list) and rows:
+                        fb = property_list_from_sql_rows(rows, ckeys)
+                        merged.extend(fb.properties)
+                if merged:
+                    listings_properties = PropertyDataList(properties=merged)
+                    logger.info(
+                        "generate_response: structured extraction empty; SQL fallback emitted %d listings",
+                        len(merged),
+                    )
 
             await ctx.store.set("property_listings_emitted", True)
             no_props_message = (
@@ -564,7 +580,6 @@ class ListingFetcherWorkflow(Workflow):
                 )
             )
             primary_sql = query_result_tuples[0][0] if query_result_tuples else ""
-            row_count = _count_sql_result_rows(query_result_tuples)
             ctx.write_event_to_stream(
                 UIEvent(
                     type="search_stats",
@@ -575,8 +590,14 @@ class ListingFetcherWorkflow(Workflow):
                     ),
                 )
             )
-            if len(listings_properties.properties) == 0:
+            if row_count == 0 and len(listings_properties.properties) == 0:
                 await ctx.store.set("no_properties_message", no_props_message)
+            elif len(listings_properties.properties) == 0 and row_count > 0:
+                logger.warning(
+                    "generate_response: DB returned %d rows but property_listings is still empty "
+                    "(structured parse failed and SQL row mapping produced no items)",
+                    row_count,
+                )
 
         await extract_and_emit_properties()
         await pump_task
@@ -601,6 +622,9 @@ class ListingFetcherWorkflow(Workflow):
         # If we've already emitted `property_listings` directly from
         # `generate_response`, skip structured extraction here.
         if await ctx.store.get("property_listings_emitted", False):
+            row_done = _count_sql_result_rows(ev.query_result_tuples or [])
+            if row_done > 0:
+                return StopEvent(result="")
             no_props_message = await ctx.store.get("no_properties_message", "")
             return StopEvent(result=no_props_message or "")
 
@@ -669,19 +693,25 @@ class ListingFetcherWorkflow(Workflow):
             # want to emit `property_listings` so the UI doesn't stall.
             print(f"extract_property_cards: structured LLM failed: {e}")
 
-        # Default to an empty list to keep the UI deterministic even if the model
-        # returns malformed/empty structured output.
-        listings_properties = PropertyDataList(properties=[])
-
-        # content comes as a JSON string and needs to be converted to PropertyDataList
-        listings_properties_json = (
-            (listings_properties_response.message.content if listings_properties_response else None)
-            or ""
+        row_count = _count_sql_result_rows(ev.query_result_tuples or [])
+        raw_content = (
+            listings_properties_response.message.content
+            if listings_properties_response and listings_properties_response.message
+            else None
         )
-        try:
-            listings_properties = parse_property_data_list_from_json(listings_properties_json)
-        except (json.JSONDecodeError, ValidationError) as e:
-            print(f"Error parsing property data: {e}. raw_prefix={listings_properties_json[:200]}")
+        listings_properties = parse_property_data_list_from_llm_content(raw_content)
+        if not listings_properties.properties and row_count > 0:
+            merged_cards: list[Any] = []
+            for tup in ev.query_result_tuples or []:
+                if len(tup) < 2:
+                    continue
+                rows = tup[1]
+                ckeys = tup[2] if len(tup) > 2 else None
+                if isinstance(rows, list) and rows:
+                    fb = property_list_from_sql_rows(rows, ckeys)
+                    merged_cards.extend(fb.properties)
+            if merged_cards:
+                listings_properties = PropertyDataList(properties=merged_cards)
 
         print(
             "extract_property_cards: parsed_properties=",

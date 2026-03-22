@@ -32,3 +32,33 @@ def send_magic_link_email(email: str, magic_link: str) -> None:
     with request.urlopen(req) as response:
         if response.status >= 300:
             raise ValueError("Failed to send email via Resend")
+
+
+def send_verification_email(email: str, verify_link: str) -> None:
+    api_key = Config.get("RESEND_API_KEY", "")
+    from_email = Config.get("RESEND_FROM_EMAIL", "")
+    if not api_key or not from_email:
+        raise ValueError("Resend is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL.")
+
+    payload = {
+        "from": from_email,
+        "to": [email],
+        "subject": "Verify your Wademehome email",
+        "html": (
+            "<p>Thanks for signing up. Confirm your email to activate your account:</p>"
+            f'<p><a href="{verify_link}">{verify_link}</a></p>'
+            "<p>If you did not create an account, you can ignore this message.</p>"
+        ),
+    }
+    req = request.Request(
+        url="https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+    with request.urlopen(req) as response:
+        if response.status >= 300:
+            raise ValueError("Failed to send email via Resend")

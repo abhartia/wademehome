@@ -85,6 +85,16 @@ interface PropertyListingsMapProps {
   properties: PropertyDataItem[];
   /** When there are no mappable pins yet, center the map here (e.g. user / fallback location). */
   fallbackCenter: { latitude: number; longitude: number };
+  /**
+   * When true (default), camera jumps to fit pins / fallback when data changes.
+   * When false, pan/zoom is preserved while markers refresh (guest browse + map-driven nearby SQL).
+   */
+  followDataCamera?: boolean;
+  /**
+   * Browse mode only: called (debounced) after the user pans/zooms, and once when leaving
+   * follow-data mode so the parent can refetch listings for the visible area.
+   */
+  onBrowseCenterChange?: (center: { latitude: number; longitude: number }) => void;
   /** API returned nearest inventory rows because nothing matched the search radius. */
   globalNearestFallback?: boolean;
   onSelectProperty?: (property: PropertyDataItem) => void;
@@ -100,6 +110,8 @@ type MapboxModule = typeof mapboxgl;
 export function PropertyListingsMap({
   properties,
   fallbackCenter,
+  followDataCamera = true,
+  onBrowseCenterChange,
   globalNearestFallback = false,
   onSelectProperty,
   openPropertySheetOnMarkerClick = true,
@@ -107,6 +119,15 @@ export function PropertyListingsMap({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapboxRef = useRef<MapboxModule | null>(null);
+  /** First-render center only — avoids remounting the map when browse center updates from panning. */
+  const mapBootstrapCenterRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  if (mapBootstrapCenterRef.current === null) {
+    mapBootstrapCenterRef.current = {
+      latitude: fallbackCenter.latitude,
+      longitude: fallbackCenter.longitude,
+    };
+  }
+  const prevFollowDataCameraRef = useRef(followDataCamera);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const onSelectRef = useRef(onSelectProperty);
   onSelectRef.current = onSelectProperty;
@@ -191,10 +212,12 @@ export function PropertyListingsMap({
 
       mapboxglRef.accessToken = MAPBOX_TOKEN as string;
 
+      const boot = mapBootstrapCenterRef.current;
+      if (!boot) return;
       mapInstance = new mapboxglRef.Map({
         container: mapContainerRef.current as HTMLDivElement,
         style: "mapbox://styles/bhartiaa/clmjaeebd01qt01qx0qsv1dng",
-        center: [fallbackCenter.longitude, fallbackCenter.latitude],
+        center: [boot.longitude, boot.latitude],
         zoom: 11,
       });
 
@@ -217,19 +240,55 @@ export function PropertyListingsMap({
       mapRef.current = null;
       mapboxRef.current = null;
     };
-  }, [MAPBOX_TOKEN, fallbackCenter.latitude, fallbackCenter.longitude]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- remount map only when token env changes
+  }, [MAPBOX_TOKEN]);
 
   useEffect(() => {
     if (!mapReady) return;
     const mapInstance = mapRef.current;
     if (!mapInstance) return;
+    if (!followDataCamera) return;
 
     mapInstance.jumpTo({
       center: [cameraView.longitude, cameraView.latitude],
       zoom: cameraView.zoom,
     });
     mapInstance.resize();
-  }, [mapReady, cameraView]);
+  }, [mapReady, followDataCamera, cameraView]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    const prev = prevFollowDataCameraRef.current;
+    prevFollowDataCameraRef.current = followDataCamera;
+    if (
+      onBrowseCenterChange &&
+      prev === true &&
+      followDataCamera === false &&
+      mapRef.current
+    ) {
+      const c = mapRef.current.getCenter();
+      onBrowseCenterChange({ latitude: c.lat, longitude: c.lng });
+    }
+  }, [mapReady, followDataCamera, onBrowseCenterChange]);
+
+  useEffect(() => {
+    if (!mapReady || followDataCamera || !onBrowseCenterChange) return;
+    const map = mapRef.current;
+    if (!map) return;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const c = map.getCenter();
+        onBrowseCenterChange({ latitude: c.lat, longitude: c.lng });
+      }, 450);
+    };
+    map.on("moveend", schedule);
+    return () => {
+      map.off("moveend", schedule);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, [mapReady, followDataCamera, onBrowseCenterChange]);
 
   useEffect(() => {
     if (!mapReady) return;

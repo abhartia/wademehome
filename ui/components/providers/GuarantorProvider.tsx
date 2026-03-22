@@ -5,8 +5,10 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GuarantorRequest,
   GuarantorRequestStatus,
@@ -14,6 +16,14 @@ import {
   SavedGuarantor,
 } from "@/lib/types/guarantor";
 import { SEED_GUARANTORS, SEED_REQUESTS } from "@/lib/mock/guarantors";
+import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  readGuarantorsPortalGuarantorsGetOptions,
+  readGuarantorsPortalGuarantorsGetQueryKey,
+  syncGuarantorsPortalGuarantorsPutMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
+import type { GuarantorStatePayload } from "@/lib/api/generated/types.gen";
+import { guarantorStateFromApi, guarantorStateToApiPayload } from "@/lib/api/portalMappers";
 
 const STORAGE_KEY = "wademehome_guarantor";
 
@@ -41,11 +51,40 @@ interface GuarantorContextValue {
 const GuarantorContext = createContext<GuarantorContextValue | null>(null);
 
 export function GuarantorProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [savedGuarantors, setSavedGuarantors] = useState<SavedGuarantor[]>([]);
   const [requests, setRequests] = useState<GuarantorRequest[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const skipSave = useRef(false);
+  const debounceRef = useRef<number | undefined>(undefined);
+  const syncMutateRef = useRef<(opts: { body: GuarantorStatePayload }) => void>(
+    () => {},
+  );
+
+  const syncMutation = useMutation({
+    ...syncGuarantorsPortalGuarantorsPutMutation(),
+    onSuccess: (data) => {
+      skipSave.current = true;
+      const parsed = guarantorStateFromApi(data);
+      setSavedGuarantors(parsed.savedGuarantors);
+      setRequests(parsed.requests);
+      queryClient.setQueryData(readGuarantorsPortalGuarantorsGetQueryKey({}), data);
+    },
+  });
+  syncMutateRef.current = syncMutation.mutate;
+
+  const { data: serverState } = useQuery({
+    ...readGuarantorsPortalGuarantorsGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readGuarantorsPortalGuarantorsGetQueryKey({}),
+  });
 
   useEffect(() => {
+    if (user) {
+      setHydrated(true);
+      return;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -61,14 +100,38 @@ export function GuarantorProvider({ children }: { children: React.ReactNode }) {
       setRequests(SEED_REQUESTS);
     }
     setHydrated(true);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (hydrated) {
-      const state: PersistedState = { savedGuarantors, requests };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (!user || serverState === undefined) return;
+    skipSave.current = true;
+    const parsed = guarantorStateFromApi(serverState);
+    setSavedGuarantors(parsed.savedGuarantors);
+    setRequests(parsed.requests);
+  }, [user, serverState]);
+
+  useEffect(() => {
+    if (!hydrated || user) return;
+    const state: PersistedState = { savedGuarantors, requests };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [savedGuarantors, requests, hydrated, user]);
+
+  useEffect(() => {
+    if (!user || !hydrated) return;
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
     }
-  }, [savedGuarantors, requests, hydrated]);
+    window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      const body = guarantorStateToApiPayload(
+        savedGuarantors,
+        requests,
+      ) as unknown as GuarantorStatePayload;
+      syncMutateRef.current({ body });
+    }, 600);
+    return () => window.clearTimeout(debounceRef.current);
+  }, [savedGuarantors, requests, user, hydrated]);
 
   const addGuarantor = useCallback(
     (info: Omit<SavedGuarantor, "id" | "createdAt">) => {

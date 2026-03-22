@@ -6,16 +6,32 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   defaultProfile,
   JourneyStage,
   UserProfile,
 } from "@/lib/types/userProfile";
 import { inferJourneyStage } from "@/lib/journeyStage";
+import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  readProfilePortalProfileGetOptions,
+  readProfilePortalProfileGetQueryKey,
+  updateProfilePortalProfilePatchMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
+import {
+  profileFromApi,
+  userProfileToProfilePatch,
+} from "@/lib/api/portalMappers";
 
 const STORAGE_KEY = "wademehome_user_profile";
+
+function profilePatchFingerprint(p: UserProfile): string {
+  return JSON.stringify(userProfileToProfilePatch(p));
+}
 
 interface UserProfileContextValue {
   profile: UserProfile;
@@ -31,26 +47,82 @@ export function UserProfileProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [hydrated, setHydrated] = useState(false);
+  const skipSave = useRef(false);
+  const debounceRef = useRef<number | undefined>(undefined);
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+  const lastSyncedPatchJson = useRef<string | null>(null);
+  const patchMutateRef = useRef<
+    (opts: { body: ReturnType<typeof userProfileToProfilePatch> }) => void
+  >(() => {});
+
+  const patchMutation = useMutation({
+    ...updateProfilePortalProfilePatchMutation(),
+    onSuccess: (data) => {
+      skipSave.current = true;
+      const next = profileFromApi(data);
+      setProfile(next);
+      lastSyncedPatchJson.current = profilePatchFingerprint(next);
+      queryClient.setQueryData(readProfilePortalProfileGetQueryKey({}), data);
+    },
+  });
+  patchMutateRef.current = patchMutation.mutate;
+
+  const { data: serverProfile } = useQuery({
+    ...readProfilePortalProfileGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readProfilePortalProfileGetQueryKey({}),
+  });
 
   useEffect(() => {
+    if (user) {
+      setHydrated(true);
+      return;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         setProfile({ ...defaultProfile, ...JSON.parse(stored) });
       }
     } catch {
-      // ignore parse errors
+      // ignore
     }
     setHydrated(true);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (hydrated) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    if (!user || !serverProfile) return;
+    skipSave.current = true;
+    const next = profileFromApi(serverProfile);
+    setProfile(next);
+    lastSyncedPatchJson.current = profilePatchFingerprint(next);
+  }, [user, serverProfile]);
+
+  useEffect(() => {
+    if (!hydrated || user) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  }, [profile, hydrated, user]);
+
+  useEffect(() => {
+    if (!user || !hydrated) return;
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
     }
-  }, [profile, hydrated]);
+    window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      const p = profileRef.current;
+      const body = userProfileToProfilePatch(p);
+      const fp = JSON.stringify(body);
+      if (fp === lastSyncedPatchJson.current) return;
+      patchMutateRef.current({ body });
+    }, 600);
+    return () => window.clearTimeout(debounceRef.current);
+  }, [profile, user, hydrated]);
 
   const updateProfile = useCallback((partial: Partial<UserProfile>) => {
     setProfile((prev) => ({
@@ -63,13 +135,18 @@ export function UserProfileProvider({
   const resetProfile = useCallback(() => {
     setProfile(defaultProfile);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+    lastSyncedPatchJson.current = profilePatchFingerprint(defaultProfile);
+    if (user) {
+      skipSave.current = true;
+      patchMutateRef.current({
+        body: userProfileToProfilePatch(defaultProfile),
+      });
+    }
+  }, [user]);
 
   const journeyStage = useMemo(
     () =>
-      hydrated
-        ? inferJourneyStage(profile.journeyStageOverride)
-        : null,
+      hydrated ? inferJourneyStage(profile.journeyStageOverride) : null,
     [hydrated, profile],
   );
 

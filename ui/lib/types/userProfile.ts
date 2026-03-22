@@ -32,6 +32,8 @@ export interface UserProfile {
   creditScoreRange: string;
   // Stage 5: Living situation
   livingArrangement: "solo" | "roommates" | "partner" | "family" | null;
+  /** Show Roommates nav + routes; set from onboarding (roommates) or Profile toggle. */
+  roommateSearchEnabled: boolean;
   bedroomsNeeded: string;
   hasPets: boolean;
   petDetails: string;
@@ -55,6 +57,7 @@ export const defaultProfile: UserProfile = {
   maxMonthlyRent: "",
   creditScoreRange: "",
   livingArrangement: null,
+  roommateSearchEnabled: false,
   bedroomsNeeded: "",
   hasPets: false,
   petDetails: "",

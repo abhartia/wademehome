@@ -19,20 +19,19 @@ This Python scraper extracts unit-level rental data from [Greystar.com](https://
 
 ### 1. Install dependencies
 
+**Local-only scraping** (`--env local`, files under `env=local/...` — no GCS):
+
+```bash
+pip install -r requirements-local.txt
+```
+
+**Full install** (includes `google-cloud-storage` for `--env` dev/test/prod uploads and `process_local` against GCS):
+
 ```bash
 pip install -r requirements.txt
 ```
 
-Dependencies include:
-- `requests`
-- `pandas`
-- `beautifulsoup4`
-- `google-cloud-storage`
-- `rapidfuzz`
-- `lxml`
-- `pyarrow` (Parquet engine)
-- `tqdm` (optional)
-- `playwright` (if browser usage added later)
+Core dependencies: `requests`, `pandas`, `beautifulsoup4`, `rapidfuzz`, `lxml`, `pyarrow`. GCS is loaded only when needed, so local mode does not require `google-cloud-storage` to be installed.
 
 ### 2. Configure environment variables
 

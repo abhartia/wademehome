@@ -18,6 +18,9 @@ export interface RoommateProfile {
   petDetails: string;
   interests: string[];
   university?: string;
+  /** Present when restored from a saved connection / match */
+  compatibilityScore?: number;
+  compatibilityReasons?: string[];
 }
 
 export interface RoommateMatch extends RoommateProfile {

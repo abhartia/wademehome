@@ -77,6 +77,9 @@ class RoommateConnectionStatus(str, Enum):
 
 class Users(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        Index("ix_users_email_verification_token_hash", "email_verification_token_hash"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -87,6 +90,11 @@ class Users(Base):
         SQLEnum(UserRole, name="user_role"), nullable=False, default=UserRole.user
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    email_verification_token_hash: Mapped[str | None] = mapped_column(String(128))
+    email_verification_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -189,6 +197,9 @@ class UserProfiles(Base):
     max_monthly_rent: Mapped[str | None] = mapped_column(String(64))
     credit_score_range: Mapped[str | None] = mapped_column(String(64))
     living_arrangement: Mapped[str | None] = mapped_column(String(32))
+    roommate_search_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     bedrooms_needed: Mapped[str | None] = mapped_column(String(32))
     has_pets: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     pet_details: Mapped[str | None] = mapped_column(Text)
@@ -251,7 +262,10 @@ class UserTours(Base):
     )
 
     user: Mapped["Users"] = relationship(back_populates="tours")
-    notes: Mapped[list["TourNotes"]] = relationship(back_populates="tour")
+    notes: Mapped[list["TourNotes"]] = relationship(
+        back_populates="tour",
+        passive_deletes=True,
+    )
 
 
 class PropertyFavorites(Base):

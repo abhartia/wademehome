@@ -99,7 +99,10 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 Default `npm run dev` uses the **webpack** dev server. For Turbopack (often faster HMR), use `npm run dev:turbo`; if you see odd manifest errors, prefer webpack dev.
 
-If you see `ENOENT` errors for files under `ui/.next/` (e.g. `_buildManifest.js.tmp`, `server-reference-manifest.json`), stop the dev server, run `rm -rf .next` in `ui/`, and start `npm run dev` again.
+If you see `ENOENT` errors for files under `ui/.next/` (e.g. `_buildManifest.js.tmp`, `server-reference-manifest.json`, **`required-server-files.json`**), the build output is missing or stale:
+
+- **Development:** stop the dev server, run `rm -rf .next` in `ui/`, then `npm run dev` again.
+- **Production (`next start`):** `required-server-files.json` is created by `next build`. Run `rm -rf .next && npm run build` in `ui/`, then `npm run start`. Do not run `next start` after a failed or partial build.
 
 ## Learn More
 

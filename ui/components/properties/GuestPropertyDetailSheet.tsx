@@ -12,11 +12,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { PropertyImageGallery } from "@/components/properties/PropertyImageGallery";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
-import { Building2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 interface GuestPropertyDetailSheetProps {
   property: PropertyDataItem | null;
@@ -30,12 +30,6 @@ export function GuestPropertyDetailSheet({
   onOpenChange,
 }: GuestPropertyDetailSheetProps) {
   const propertyKey = useMemo(() => (property ? buildPropertyKey(property) : ""), [property]);
-  const [imageFailed, setImageFailed] = useState(false);
-  const heroSrc = property?.images_urls?.[0];
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [heroSrc]);
 
   if (!property) return null;
 
@@ -54,24 +48,7 @@ export function GuestPropertyDetailSheet({
         </SheetHeader>
 
         <div className="space-y-4 px-4 pb-4">
-          <div className="relative h-56 w-full overflow-hidden rounded-md border bg-muted">
-            {heroSrc && !imageFailed ? (
-              // Listing feeds use many third-party CDNs; next/image would require endless remotePatterns.
-              // eslint-disable-next-line @next/next/no-img-element -- arbitrary property image hosts
-              <img
-                src={heroSrc}
-                alt={property.name}
-                className="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-                onError={() => setImageFailed(true)}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                <Building2 className="h-12 w-12 opacity-40" aria-hidden />
-              </div>
-            )}
-          </div>
+          <PropertyImageGallery property={property} variant="sheet" />
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">

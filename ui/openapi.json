@@ -1,0 +1,3478 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Multi-Agent API",
+    "description": "API with listing and markets agents",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Signup",
+        "operationId": "signup_auth_signup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify-email": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify Email Route",
+        "operationId": "verify_email_route_auth_verify_email_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify-email/resend": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Resend Verification Email",
+        "operationId": "resend_verification_email_auth_verify_email_resend_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/magic-link/request": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Request Magic Link",
+        "operationId": "request_magic_link_auth_magic_link_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MagicLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/magic-link/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify Magic Link",
+        "operationId": "verify_magic_link_auth_magic_link_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MagicLinkVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Me",
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/nearby": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Get Nearby Listings",
+        "description": "Up to `limit` map pins: one row per building/property (closest unit to the query point),\nwithin `radius_miles` when any inventory exists in that radius; otherwise nearest buildings\nglobally. Requires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.",
+        "operationId": "get_nearby_listings_listings_nearby_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          },
+          {
+            "name": "radius_miles",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 500,
+              "exclusiveMinimum": 0,
+              "default": 15,
+              "title": "Radius Miles"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearbyListingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/by-property-key": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Get Listing By Property Key",
+        "operationId": "get_listing_by_property_key_listings_by_property_key_get",
+        "parameters": [
+          {
+            "name": "property_key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 600,
+              "title": "Property Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyDataItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/geocode": {
+      "post": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Geocode Address",
+        "operationId": "geocode_address_listings_geocode_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeocodeBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/market-snapshot": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Get Market Snapshot",
+        "operationId": "get_market_snapshot_listings_market_snapshot_get",
+        "parameters": [
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 12
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US ZIP; first 5 digits used (supports ZIP+4).",
+              "title": "Zip"
+            },
+            "description": "US ZIP; first 5 digits used (supports ZIP+4)."
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Deprecated fallback: extract ZIP from free-text only if zip/city/state are missing.",
+              "title": "Address"
+            },
+            "description": "Deprecated fallback: extract ZIP from free-text only if zip/city/state are missing."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketSnapshotResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/commute-matrix": {
+      "post": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Commute Matrix",
+        "operationId": "commute_matrix_listings_commute_matrix_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommuteMatrixBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommuteMatrixResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/poi-nearby": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Poi Nearby",
+        "operationId": "poi_nearby_listings_poi_nearby_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoiNearbyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/properties/favorites": {
+      "get": {
+        "tags": [
+          "properties"
+        ],
+        "summary": "List Favorites",
+        "operationId": "list_favorites_properties_favorites_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/properties/favorites/toggle": {
+      "post": {
+        "tags": [
+          "properties"
+        ],
+        "summary": "Toggle Favorite",
+        "operationId": "toggle_favorite_properties_favorites_toggle_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteToggleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteToggleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/properties/notes/{property_key}": {
+      "get": {
+        "tags": [
+          "properties"
+        ],
+        "summary": "Get Property Note",
+        "operationId": "get_property_note_properties_notes__property_key__get",
+        "parameters": [
+          {
+            "name": "property_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyNoteGetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "properties"
+        ],
+        "summary": "Upsert Property Note",
+        "operationId": "upsert_property_note_properties_notes__property_key__put",
+        "parameters": [
+          {
+            "name": "property_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropertyNoteUpsertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyNoteGetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/properties/tour-requests": {
+      "post": {
+        "tags": [
+          "properties"
+        ],
+        "summary": "Create Tour Request",
+        "operationId": "create_tour_request_properties_tour_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TourRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourRequestCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/portal/profile": {
+      "get": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Read Profile",
+        "operationId": "read_profile_portal_profile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Update Profile",
+        "operationId": "update_profile_portal_profile_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfilePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/portal/tours": {
+      "get": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Read Tours",
+        "operationId": "read_tours_portal_tours_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Sync Tours",
+        "operationId": "sync_tours_portal_tours_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToursStatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/portal/guarantors": {
+      "get": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Read Guarantors",
+        "operationId": "read_guarantors_portal_guarantors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Sync Guarantors",
+        "operationId": "sync_guarantors_portal_guarantors_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuarantorStatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/portal/move-in": {
+      "get": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Read Move In",
+        "operationId": "read_move_in_portal_move_in_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Sync Move In",
+        "operationId": "sync_move_in_portal_move_in_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveInStatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/portal/roommates": {
+      "get": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Read Roommates",
+        "operationId": "read_roommates_portal_roommates_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "portal"
+        ],
+        "summary": "Sync Roommates",
+        "operationId": "sync_roommates_portal_roommates_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoommateStatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/chat": {
+      "post": {
+        "summary": "Listing Chat",
+        "operationId": "listing_chat_listings_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthResponse": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user"
+        ],
+        "title": "AuthResponse"
+      },
+      "ChatAPIMessage": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/MessageRole"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "annotations": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/FileAnnotation"
+                    },
+                    {}
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annotations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ChatAPIMessage"
+      },
+      "ChatData": {
+        "properties": {
+          "llamaCloudPipeline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LlamaCloudPipeline"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The selected LlamaCloud pipeline to use for the chat"
+          }
+        },
+        "type": "object",
+        "title": "ChatData",
+        "description": "The data of a chat."
+      },
+      "ChatRequest": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatAPIMessage"
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatData"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The data of the chat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "messages"
+        ],
+        "title": "ChatRequest",
+        "description": "The request to the chat API."
+      },
+      "ChecklistItemPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "label"
+        ],
+        "title": "ChecklistItemPayload"
+      },
+      "CommuteLegResult": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "distance_meters": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Meters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "CommuteLegResult"
+      },
+      "CommuteMatrixBody": {
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/LatLngIn"
+          },
+          "destinations": {
+            "items": {
+              "$ref": "#/components/schemas/LatLngIn"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Destinations"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Labels"
+          }
+        },
+        "type": "object",
+        "required": [
+          "origin",
+          "destinations"
+        ],
+        "title": "CommuteMatrixBody"
+      },
+      "CommuteMatrixResponse": {
+        "properties": {
+          "origin_latitude": {
+            "type": "number",
+            "title": "Origin Latitude"
+          },
+          "origin_longitude": {
+            "type": "number",
+            "title": "Origin Longitude"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/CommuteLegResult"
+            },
+            "type": "array",
+            "title": "Legs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "origin_latitude",
+          "origin_longitude",
+          "legs"
+        ],
+        "title": "CommuteMatrixResponse"
+      },
+      "FavoriteListResponse": {
+        "properties": {
+          "favorites": {
+            "items": {
+              "$ref": "#/components/schemas/FavoriteResponse"
+            },
+            "type": "array",
+            "title": "Favorites"
+          }
+        },
+        "type": "object",
+        "required": [
+          "favorites"
+        ],
+        "title": "FavoriteListResponse"
+      },
+      "FavoriteResponse": {
+        "properties": {
+          "property_key": {
+            "type": "string",
+            "title": "Property Key"
+          },
+          "property_name": {
+            "type": "string",
+            "title": "Property Name"
+          },
+          "property_address": {
+            "type": "string",
+            "title": "Property Address"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_key",
+          "property_name",
+          "property_address",
+          "created_at"
+        ],
+        "title": "FavoriteResponse"
+      },
+      "FavoriteToggleRequest": {
+        "properties": {
+          "property_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Property Key"
+          },
+          "property_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Property Name"
+          },
+          "property_address": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Property Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_key",
+          "property_name",
+          "property_address"
+        ],
+        "title": "FavoriteToggleRequest"
+      },
+      "FavoriteToggleResponse": {
+        "properties": {
+          "favorited": {
+            "type": "boolean",
+            "title": "Favorited"
+          }
+        },
+        "type": "object",
+        "required": [
+          "favorited"
+        ],
+        "title": "FavoriteToggleResponse"
+      },
+      "FileAnnotation": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "document_file",
+            "title": "Type"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FileData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "data"
+        ],
+        "title": "FileAnnotation",
+        "description": "The annotation of a file."
+      },
+      "FileData": {
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ServerFileResponse"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "FileData",
+        "description": "The data of a file."
+      },
+      "GeocodeBody": {
+        "properties": {
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "address"
+        ],
+        "title": "GeocodeBody"
+      },
+      "GeocodeResponse": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "title": "GeocodeResponse"
+      },
+      "GuarantorRequestPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "guarantor_id": {
+            "type": "string",
+            "title": "Guarantor Id"
+          },
+          "guarantor_snapshot": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Guarantor Snapshot"
+          },
+          "lease": {
+            "$ref": "#/components/schemas/LeasePayload"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status",
+            "default": "pending"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "sent_at": {
+            "type": "string",
+            "title": "Sent At",
+            "default": ""
+          },
+          "viewed_at": {
+            "type": "string",
+            "title": "Viewed At",
+            "default": ""
+          },
+          "signed_at": {
+            "type": "string",
+            "title": "Signed At",
+            "default": ""
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At",
+            "default": ""
+          },
+          "status_history": {
+            "items": {
+              "$ref": "#/components/schemas/StatusHistoryPayload"
+            },
+            "type": "array",
+            "title": "Status History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "guarantor_id",
+          "lease",
+          "status"
+        ],
+        "title": "GuarantorRequestPayload"
+      },
+      "GuarantorStatePayload": {
+        "properties": {
+          "saved_guarantors": {
+            "items": {
+              "$ref": "#/components/schemas/SavedGuarantorPayload"
+            },
+            "type": "array",
+            "title": "Saved Guarantors"
+          },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/GuarantorRequestPayload"
+            },
+            "type": "array",
+            "title": "Requests"
+          }
+        },
+        "type": "object",
+        "title": "GuarantorStatePayload"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LatLngIn": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "title": "LatLngIn"
+      },
+      "LeasePayload": {
+        "properties": {
+          "property_name": {
+            "type": "string",
+            "title": "Property Name"
+          },
+          "property_address": {
+            "type": "string",
+            "title": "Property Address"
+          },
+          "monthly_rent": {
+            "type": "string",
+            "title": "Monthly Rent"
+          },
+          "lease_start": {
+            "type": "string",
+            "title": "Lease Start",
+            "default": ""
+          },
+          "lease_term": {
+            "type": "string",
+            "title": "Lease Term",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_name",
+          "property_address",
+          "monthly_rent"
+        ],
+        "title": "LeasePayload"
+      },
+      "LlamaCloudPipeline": {
+        "properties": {
+          "pipeline": {
+            "type": "string",
+            "title": "Pipeline"
+          },
+          "project": {
+            "type": "string",
+            "title": "Project"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline",
+          "project"
+        ],
+        "title": "LlamaCloudPipeline",
+        "description": "The selected LlamaCloud pipeline to use for the chat.\n(Only available when the app is configured to use LlamaCloud)"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "MagicLinkRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "MagicLinkRequest"
+      },
+      "MagicLinkVerifyRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "MagicLinkVerifyRequest"
+      },
+      "MarketSnapshotResponse": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "description": "Human-readable filter, e.g. \"ZIP 78701\" or \"Austin, TX\"."
+          },
+          "zip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip",
+            "description": "5-digit US ZIP when the filter used postal code."
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "sample_size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sample Size"
+          },
+          "median_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Rent"
+          },
+          "p25_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P25 Rent"
+          },
+          "p75_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P75 Rent"
+          },
+          "bedroom_mix": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Bedroom Mix"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scope",
+          "sample_size"
+        ],
+        "title": "MarketSnapshotResponse"
+      },
+      "MessageRole": {
+        "type": "string",
+        "enum": [
+          "system",
+          "developer",
+          "user",
+          "assistant",
+          "function",
+          "tool",
+          "chatbot",
+          "model"
+        ],
+        "title": "MessageRole",
+        "description": "Message role."
+      },
+      "MoveInPlanPayload": {
+        "properties": {
+          "target_address": {
+            "type": "string",
+            "title": "Target Address",
+            "default": ""
+          },
+          "move_date": {
+            "type": "string",
+            "title": "Move Date",
+            "default": ""
+          },
+          "move_from_address": {
+            "type": "string",
+            "title": "Move From Address",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "MoveInPlanPayload"
+      },
+      "MoveInStatePayload": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/MoveInPlanPayload"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/VendorOrderPayload"
+            },
+            "type": "array",
+            "title": "Orders"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemPayload"
+            },
+            "type": "array",
+            "title": "Checklist"
+          }
+        },
+        "type": "object",
+        "title": "MoveInStatePayload"
+      },
+      "MyRoommateProfilePayload": {
+        "properties": {
+          "sleep_schedule": {
+            "type": "string",
+            "title": "Sleep Schedule",
+            "default": ""
+          },
+          "cleanliness_level": {
+            "type": "string",
+            "title": "Cleanliness Level",
+            "default": ""
+          },
+          "noise_level": {
+            "type": "string",
+            "title": "Noise Level",
+            "default": ""
+          },
+          "guest_policy": {
+            "type": "string",
+            "title": "Guest Policy",
+            "default": ""
+          },
+          "smoking": {
+            "type": "string",
+            "title": "Smoking",
+            "default": ""
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio",
+            "default": ""
+          },
+          "profile_completed": {
+            "type": "boolean",
+            "title": "Profile Completed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "MyRoommateProfilePayload"
+      },
+      "NearbyListingsResponse": {
+        "properties": {
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/PropertyDataItem"
+            },
+            "type": "array",
+            "title": "Properties"
+          },
+          "total_in_radius": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total In Radius"
+          },
+          "radius_miles": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Radius Miles"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Limit"
+          },
+          "used_global_nearest_fallback": {
+            "type": "boolean",
+            "title": "Used Global Nearest Fallback",
+            "description": "True when nothing matched the radius; properties are the nearest rows with coordinates (any distance) so the map is still usable.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "properties",
+          "total_in_radius",
+          "radius_miles",
+          "limit"
+        ],
+        "title": "NearbyListingsResponse"
+      },
+      "PoiHit": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          },
+          "nearest_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nearest Name"
+          },
+          "nearest_latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nearest Latitude"
+          },
+          "nearest_longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nearest Longitude"
+          },
+          "nearest_distance_meters": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nearest Distance Meters",
+            "description": "Straight-line distance from the query pin to the nearest POI (meters)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "count"
+        ],
+        "title": "PoiHit"
+      },
+      "PoiNearbyResponse": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PoiHit"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude",
+          "items"
+        ],
+        "title": "PoiNearbyResponse"
+      },
+      "ProfileOut": {
+        "properties": {
+          "search_trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Trigger"
+          },
+          "trigger_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger Reason"
+          },
+          "move_timeline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Move Timeline"
+          },
+          "current_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current City"
+          },
+          "work_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Location"
+          },
+          "preferred_cities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Cities"
+          },
+          "neighbourhood_priorities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Neighbourhood Priorities"
+          },
+          "dealbreakers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dealbreakers"
+          },
+          "max_monthly_rent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Monthly Rent"
+          },
+          "credit_score_range": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Score Range"
+          },
+          "living_arrangement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Living Arrangement"
+          },
+          "roommate_search_enabled": {
+            "type": "boolean",
+            "title": "Roommate Search Enabled",
+            "default": false
+          },
+          "bedrooms_needed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bedrooms Needed"
+          },
+          "has_pets": {
+            "type": "boolean",
+            "title": "Has Pets",
+            "default": false
+          },
+          "pet_details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pet Details"
+          },
+          "journey_stage_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Journey Stage Override"
+          },
+          "onboarding_completed": {
+            "type": "boolean",
+            "title": "Onboarding Completed",
+            "default": false
+          },
+          "onboarding_step": {
+            "type": "integer",
+            "title": "Onboarding Step",
+            "default": 0
+          },
+          "last_updated": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Updated"
+          }
+        },
+        "type": "object",
+        "title": "ProfileOut"
+      },
+      "ProfilePatch": {
+        "properties": {
+          "search_trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Trigger"
+          },
+          "trigger_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger Reason"
+          },
+          "move_timeline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Move Timeline"
+          },
+          "current_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current City"
+          },
+          "work_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Location"
+          },
+          "preferred_cities": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Cities"
+          },
+          "neighbourhood_priorities": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Neighbourhood Priorities"
+          },
+          "dealbreakers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dealbreakers"
+          },
+          "max_monthly_rent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Monthly Rent"
+          },
+          "credit_score_range": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Score Range"
+          },
+          "living_arrangement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Living Arrangement"
+          },
+          "roommate_search_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roommate Search Enabled"
+          },
+          "bedrooms_needed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bedrooms Needed"
+          },
+          "has_pets": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Pets"
+          },
+          "pet_details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pet Details"
+          },
+          "journey_stage_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Journey Stage Override"
+          },
+          "onboarding_completed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarding Completed"
+          },
+          "onboarding_step": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarding Step"
+          }
+        },
+        "type": "object",
+        "title": "ProfilePatch"
+      },
+      "PropertyDataItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "description": "City or locality from the listings row when present (e.g. units.parquet `city`)."
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State",
+            "description": "State / region code from the listings row when present (e.g. units.parquet `state`)."
+          },
+          "zip_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip Code",
+            "description": "Postal code from the listings row when present (e.g. units.parquet `zipcode`)."
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude",
+            "description": "Latitude of the property if available from the query results."
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude",
+            "description": "Longitude of the property if available from the query results."
+          },
+          "rent_range": {
+            "type": "string",
+            "title": "Rent Range",
+            "description": "rent range from the units available with currency, e.g., $2000-$2500"
+          },
+          "bedroom_range": {
+            "type": "string",
+            "title": "Bedroom Range",
+            "description": "bedroom range from the units available, e.g., 1-3 bedrooms"
+          },
+          "images_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Images Urls",
+            "description": "list of image URLs of the property",
+            "default": []
+          },
+          "main_amenities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Main Amenities",
+            "description": "\n            List of the four main amenities of the property, which should include things related to:\n            - pool\n            - Gym / Fitness center\n            - Parking / Garage\n            - Policies, e.g., pet friendly\n            - Location features, e.g., waterfront, beach access\n            - Building features, e.g., elevator, doorman\n\n            Maximum of four items.\n            It's important to keep the items concise and avoid full sentences.\n        "
+          },
+          "amenities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Amenities",
+            "description": "list of amenities available in the property"
+          },
+          "match_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Reason",
+            "description": "One short sentence (max ~200 chars) explaining why this listing matches the user's search (e.g. name/amenities mention 'park', proximity, filters applied)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "address",
+          "rent_range",
+          "bedroom_range",
+          "main_amenities",
+          "amenities"
+        ],
+        "title": "PropertyDataItem"
+      },
+      "PropertyNoteGetResponse": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PropertyNoteResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "note"
+        ],
+        "title": "PropertyNoteGetResponse"
+      },
+      "PropertyNoteResponse": {
+        "properties": {
+          "property_key": {
+            "type": "string",
+            "title": "Property Key"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_key",
+          "note",
+          "updated_at"
+        ],
+        "title": "PropertyNoteResponse"
+      },
+      "PropertyNoteUpsertRequest": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 6000,
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "note"
+        ],
+        "title": "PropertyNoteUpsertRequest"
+      },
+      "ResendVerificationRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "ResendVerificationRequest"
+      },
+      "RoommateConnectionPayload": {
+        "properties": {
+          "roommate": {
+            "$ref": "#/components/schemas/RoommateProfilePayload"
+          },
+          "connected_at": {
+            "type": "string",
+            "title": "Connected At",
+            "default": ""
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/RoommateMessagePayload"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roommate"
+        ],
+        "title": "RoommateConnectionPayload"
+      },
+      "RoommateMessagePayload": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "time": {
+            "type": "string",
+            "title": "Time",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "RoommateMessagePayload"
+      },
+      "RoommateProfilePayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "age": {
+            "type": "integer",
+            "title": "Age",
+            "default": 0
+          },
+          "occupation": {
+            "type": "string",
+            "title": "Occupation",
+            "default": ""
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio",
+            "default": ""
+          },
+          "avatar_initials": {
+            "type": "string",
+            "title": "Avatar Initials",
+            "default": ""
+          },
+          "sleep_schedule": {
+            "type": "string",
+            "title": "Sleep Schedule",
+            "default": ""
+          },
+          "cleanliness_level": {
+            "type": "string",
+            "title": "Cleanliness Level",
+            "default": ""
+          },
+          "noise_level": {
+            "type": "string",
+            "title": "Noise Level",
+            "default": ""
+          },
+          "guest_policy": {
+            "type": "string",
+            "title": "Guest Policy",
+            "default": ""
+          },
+          "smoking": {
+            "type": "string",
+            "title": "Smoking",
+            "default": ""
+          },
+          "target_city": {
+            "type": "string",
+            "title": "Target City",
+            "default": ""
+          },
+          "max_budget": {
+            "type": "string",
+            "title": "Max Budget",
+            "default": ""
+          },
+          "move_timeline": {
+            "type": "string",
+            "title": "Move Timeline",
+            "default": ""
+          },
+          "bedrooms_wanted": {
+            "type": "string",
+            "title": "Bedrooms Wanted",
+            "default": ""
+          },
+          "has_pets": {
+            "type": "boolean",
+            "title": "Has Pets",
+            "default": false
+          },
+          "pet_details": {
+            "type": "string",
+            "title": "Pet Details",
+            "default": ""
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "university": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "University"
+          },
+          "compatibility_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compatibility Score"
+          },
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Compatibility Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "RoommateProfilePayload"
+      },
+      "RoommateStatePayload": {
+        "properties": {
+          "my_profile": {
+            "$ref": "#/components/schemas/MyRoommateProfilePayload"
+          },
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/RoommateConnectionPayload"
+            },
+            "type": "array",
+            "title": "Connections"
+          }
+        },
+        "type": "object",
+        "title": "RoommateStatePayload"
+      },
+      "SavedGuarantorPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": ""
+          },
+          "relationship": {
+            "type": "string",
+            "title": "Relationship"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "relationship"
+        ],
+        "title": "SavedGuarantorPayload"
+      },
+      "ServerFileResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ServerFileResponse"
+      },
+      "SignupRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "SignupRequest"
+      },
+      "SignupResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Check your email to verify your account."
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "SignupResponse"
+      },
+      "StatusHistoryPayload": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "timestamp"
+        ],
+        "title": "StatusHistoryPayload"
+      },
+      "TourNotePayload": {
+        "properties": {
+          "ratings": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Ratings"
+          },
+          "pros": {
+            "type": "string",
+            "title": "Pros",
+            "default": ""
+          },
+          "cons": {
+            "type": "string",
+            "title": "Cons",
+            "default": ""
+          },
+          "general_notes": {
+            "type": "string",
+            "title": "General Notes",
+            "default": ""
+          },
+          "would_apply": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Would Apply"
+          },
+          "photo_checklist": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Photo Checklist"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "TourNotePayload"
+      },
+      "TourPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "property": {
+            "$ref": "#/components/schemas/TourPropertyPayload"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "title": "Scheduled Date",
+            "default": ""
+          },
+          "scheduled_time": {
+            "type": "string",
+            "title": "Scheduled Time",
+            "default": ""
+          },
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TourNotePayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "property",
+          "status"
+        ],
+        "title": "TourPayload"
+      },
+      "TourPropertyPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "rent": {
+            "type": "string",
+            "title": "Rent",
+            "default": ""
+          },
+          "beds": {
+            "type": "string",
+            "title": "Beds",
+            "default": ""
+          },
+          "image": {
+            "type": "string",
+            "title": "Image",
+            "default": ""
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "address"
+        ],
+        "title": "TourPropertyPayload"
+      },
+      "TourRequestCreate": {
+        "properties": {
+          "property_key": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Property Key"
+          },
+          "property_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Property Name"
+          },
+          "property_address": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Property Address"
+          },
+          "property_image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Image"
+          },
+          "property_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Price"
+          },
+          "property_beds": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Beds"
+          },
+          "property_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Property Tags"
+          },
+          "requested_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Date"
+          },
+          "requested_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_key",
+          "property_name",
+          "property_address"
+        ],
+        "title": "TourRequestCreate"
+      },
+      "TourRequestCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "TourRequestCreateResponse"
+      },
+      "ToursStatePayload": {
+        "properties": {
+          "tours": {
+            "items": {
+              "$ref": "#/components/schemas/TourPayload"
+            },
+            "type": "array",
+            "title": "Tours"
+          }
+        },
+        "type": "object",
+        "title": "ToursStatePayload"
+      },
+      "UserResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified",
+            "default": false
+          },
+          "onboarding_completed": {
+            "type": "boolean",
+            "title": "Onboarding Completed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email"
+        ],
+        "title": "UserResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VendorOrderPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "vendor_id": {
+            "type": "string",
+            "title": "Vendor Id",
+            "default": ""
+          },
+          "vendor_name": {
+            "type": "string",
+            "title": "Vendor Name",
+            "default": ""
+          },
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id",
+            "default": ""
+          },
+          "plan_name": {
+            "type": "string",
+            "title": "Plan Name",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "title": "Scheduled Date",
+            "default": ""
+          },
+          "account_number": {
+            "type": "string",
+            "title": "Account Number",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "monthly_cost": {
+            "type": "string",
+            "title": "Monthly Cost",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "status"
+        ],
+        "title": "VendorOrderPayload"
+      },
+      "VerifyEmailRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "VerifyEmailRequest"
+      }
+    }
+  }
+}

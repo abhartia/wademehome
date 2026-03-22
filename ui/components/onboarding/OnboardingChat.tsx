@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { authMeQueryKey } from "@/lib/api/authSessionQuery";
+import {
+  readProfilePortalProfileGetQueryKey,
+  updateProfilePortalProfilePatchMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
+import { userProfileToProfilePatch } from "@/lib/api/portalMappers";
+import { toast } from "sonner";
 import { useAnalyticsConsent } from "@/components/providers/AnalyticsConsentProvider";
 import { UserProfile } from "@/lib/types/userProfile";
 import { trackOnboardingEvent } from "@/lib/analytics/ga";
@@ -194,7 +203,11 @@ const STEPS: ConversationStep[] = [
         "Me + partner": "partner",
         "My family": "family",
       };
-      return { livingArrangement: map[val] ?? "solo" };
+      const arrangement = map[val] ?? "solo";
+      return {
+        livingArrangement: arrangement,
+        roommateSearchEnabled: arrangement === "roommates",
+      };
     },
   },
   {
@@ -366,8 +379,21 @@ function SummaryCard({ onConfirm, onReset }: { onConfirm: () => void; onReset: (
 
 export function OnboardingChat() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { profile, updateProfile, resetProfile } = useUserProfile();
+  const { refresh } = useAuth();
   const { hasConsent } = useAnalyticsConsent();
+
+  const completeOnboardingMutation = useMutation({
+    ...updateProfilePortalProfilePatchMutation(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: readProfilePortalProfileGetQueryKey({}),
+      });
+      await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
+      await refresh();
+    },
+  });
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
@@ -575,7 +601,21 @@ export function OnboardingChat() {
       "agent",
       "You're all set! I'll use these preferences to personalise your search experience. Head to Search whenever you're ready.",
     );
-    setTimeout(() => router.push("/"), 1500);
+    void (async () => {
+      try {
+        await completeOnboardingMutation.mutateAsync({
+          body: userProfileToProfilePatch({
+            ...profile,
+            onboardingCompleted: true,
+          }),
+        });
+        setTimeout(() => router.push("/app"), 1500);
+      } catch (e) {
+        const message =
+          e instanceof Error ? e.message : "Could not save onboarding to the server.";
+        toast.error(message);
+      }
+    })();
   };
 
   const handleReset = () => {

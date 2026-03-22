@@ -15,7 +15,8 @@ import { useCommuteMatrix } from "@/lib/listings/useCommuteMatrix";
 import { useMarketSnapshot } from "@/lib/listings/useMarketSnapshot";
 import { useOpenMeteoPropertyInsights } from "@/lib/listings/useOpenMeteoPropertyInsights";
 import { usePoiNearby } from "@/lib/listings/usePoiNearby";
-import { getListingsApiBase } from "@/lib/listings/listingsApi";
+import { isApiConfigured } from "@/lib/api/isApiConfigured";
+import { geocodeAddressListingsGeocodePostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { amenityTourHints } from "@/lib/properties/amenityHints";
 import { appleMapsUrl, extractZipFromAddress, mapsSearchUrl } from "@/lib/properties/addressUtils";
@@ -31,6 +32,7 @@ import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -120,7 +122,8 @@ export function PropertyRenterInsights({
     { enabled: locationReady },
   );
   const commuteMutation = useCommuteMatrix();
-  const apiConfigured = Boolean(getListingsApiBase());
+  const geocodeMutation = useMutation(geocodeAddressListingsGeocodePostMutation());
+  const apiConfigured = isApiConfigured();
 
   const [destinations, setDestinations] = useState<CommuteDestination[]>([]);
   useEffect(() => {
@@ -135,13 +138,8 @@ export function PropertyRenterInsights({
     const addr = newAddress.trim();
     if (!label || !addr) return;
     try {
-      const base = getListingsApiBase();
-      if (!base) return;
-      const { listingsFetch } = await import("@/lib/listings/listingsApi");
-      const res = await listingsFetch<{ latitude: number; longitude: number }>(`${base}/listings/geocode`, {
-        method: "POST",
-        body: JSON.stringify({ address: addr }),
-      });
+      if (!isApiConfigured()) return;
+      const res = await geocodeMutation.mutateAsync({ body: { address: addr } });
       const item: CommuteDestination = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         label,
@@ -165,9 +163,14 @@ export function PropertyRenterInsights({
   const onRunCommute = async () => {
     if (destinations.length === 0 || mapLatitude == null || mapLongitude == null) return;
     await commuteMutation.mutateAsync({
-      origin: { latitude: mapLatitude, longitude: mapLongitude },
-      destinations: destinations.map((d) => ({ latitude: d.latitude, longitude: d.longitude })),
-      labels: destinations.map((d) => d.label),
+      body: {
+        origin: { latitude: mapLatitude, longitude: mapLongitude },
+        destinations: destinations.map((d) => ({
+          latitude: d.latitude,
+          longitude: d.longitude,
+        })),
+        labels: destinations.map((d) => d.label),
+      },
     });
   };
 
@@ -253,10 +256,10 @@ export function PropertyRenterInsights({
           ) : (
             <p className="text-muted-foreground">No comparable rent sample for this ZIP yet.</p>
           )}
-          {market.data && market.data.sample_size > 0 && Object.keys(market.data.bedroom_mix).length > 0 ? (
+          {market.data && market.data.sample_size > 0 && Object.keys(market.data.bedroom_mix ?? {}).length > 0 ? (
             <p className="text-xs text-muted-foreground">
               Bedroom mix (top groups):{" "}
-              {Object.entries(market.data.bedroom_mix)
+              {Object.entries(market.data.bedroom_mix ?? {})
                 .map(([k, v]) => `${k}: ${v}`)
                 .join(" · ")}
             </p>

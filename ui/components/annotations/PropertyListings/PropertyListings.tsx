@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin } from "lucide-react";
@@ -47,6 +48,8 @@ const PropertyCard = ({
   onSelectProperty?: (property: PropertyDataItem) => void;
 }) => {
   const imageUrl = property.images_urls?.[0];
+  const photoCount = property.images_urls?.filter(Boolean).length ?? 0;
+  const extraPhotos = photoCount > 1 ? photoCount - 1 : 0;
 
   return (
     <button
@@ -62,6 +65,14 @@ const PropertyCard = ({
       >
       <div className="relative h-48 w-32 shrink-0 overflow-hidden rounded-l-md bg-muted">
         <ListingImage src={imageUrl} alt={property.name} />
+        {extraPhotos > 0 ? (
+          <Badge
+            variant="secondary"
+            className="pointer-events-none absolute bottom-1.5 right-1.5 px-1.5 py-0 text-[10px] font-medium shadow-sm"
+          >
+            +{extraPhotos} photos
+          </Badge>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col justify-between px-2 py-3">
         <div>
@@ -108,12 +119,22 @@ const BuildingGroupCard = ({
   onSelectProperty?: (property: PropertyDataItem) => void;
 }) => {
   const imageUrl = representative.images_urls?.[0];
+  const photoCount = representative.images_urls?.filter(Boolean).length ?? 0;
+  const extraPhotos = photoCount > 1 ? photoCount - 1 : 0;
 
   return (
     <Card className="overflow-hidden py-0">
       <div className="flex flex-row gap-3 border-b border-border/60">
         <div className="relative h-40 w-28 shrink-0 overflow-hidden bg-muted md:h-44 md:w-32">
           <ListingImage src={imageUrl} alt={representative.name} />
+          {extraPhotos > 0 ? (
+            <Badge
+              variant="secondary"
+              className="pointer-events-none absolute bottom-1.5 right-1.5 px-1.5 py-0 text-[10px] font-medium shadow-sm"
+            >
+              +{extraPhotos} photos
+            </Badge>
+          ) : null}
         </div>
         <div className="flex min-w-0 flex-1 flex-col px-2 py-3">
           <h3 className="text-lg font-bold leading-none">{representative.name}</h3>

@@ -1,0 +1,8 @@
+# Minimal deps for --env local (disk only; no GCS).
+# Full pipeline including dev/test/prod GCS: use requirements.txt
+requests
+pandas
+beautifulsoup4
+rapidfuzz
+lxml
+pyarrow

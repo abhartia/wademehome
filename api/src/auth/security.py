@@ -61,3 +61,8 @@ def session_ttl() -> timedelta:
 def magic_link_ttl() -> timedelta:
     minutes = int(Config.get("AUTH_MAGIC_LINK_MINUTES", "15") or "15")
     return timedelta(minutes=minutes)
+
+
+def verify_email_ttl() -> timedelta:
+    hours = int(Config.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48")
+    return timedelta(hours=hours)
