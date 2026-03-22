@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { PublicSiteMenu } from "@/components/navigation/PublicSiteMenu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GuestHomeListingChatRuntime } from "@/app/GuestHomeListingChatRuntime";
+import { GuestHomeListingChatRuntime } from "./GuestHomeListingChatRuntime";
 import {
   DEFAULT_NEARBY_LIMIT,
   DEFAULT_NEARBY_RADIUS_MILES,
