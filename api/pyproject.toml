@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "api"
@@ -40,16 +40,9 @@ markers = [
   "live: live test subset gated behind env vars (no mocks)",
 ]
 
-[tool.hatch.build]
-sources = { "src" = "" }
+[tool.setuptools.packages.find]
+where = ["src"]
 
-# load_app_prompt() opens *.md next to loader.py; ship them via force-include (not only *.py).
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/prompts/check_data_query.md" = "prompts/check_data_query.md"
-"src/prompts/search_hint.md" = "prompts/search_hint.md"
-"src/prompts/search_summary.md" = "prompts/search_summary.md"
-"src/prompts/text2sql_chat.md" = "prompts/text2sql_chat.md"
-"src/prompts/wrong_sql.md" = "prompts/wrong_sql.md"
+# load_app_prompt() reads *.md next to loader.py; setuptools wheels omit them unless declared here.
+[tool.setuptools.package-data]
+prompts = ["*.md"]

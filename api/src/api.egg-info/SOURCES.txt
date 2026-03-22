@@ -38,7 +38,13 @@ src/portal/__init__.py
 src/portal/router.py
 src/portal/schemas.py
 src/portal/service.py
+src/prompts/__init__.py
+src/prompts/check_data_query.md
 src/prompts/loader.py
+src/prompts/search_hint.md
+src/prompts/search_summary.md
+src/prompts/text2sql_chat.md
+src/prompts/wrong_sql.md
 src/properties/__init__.py
 src/properties/router.py
 src/properties/schemas.py
