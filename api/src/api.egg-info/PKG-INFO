@@ -4,15 +4,42 @@ Version: 0.1.0
 Summary: Add your description here
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
+Requires-Dist: alembic>=1.16.5
+Requires-Dist: email-validator>=2.3.0
 Requires-Dist: fastapi>=0.116.1
+Requires-Dist: griffe<2,>=1.14.0
 Requires-Dist: jsonschema>=4.25.1
-Requires-Dist: langchain>=0.3.27
+Requires-Dist: langchain<1.0,>=0.3.27
 Requires-Dist: langfuse>=3.3.5
-Requires-Dist: llama-index<0.14.0,>=0.13.1
-Requires-Dist: llama-index-llms-openai>=0.5.6
-Requires-Dist: llama-index-llms-azure-openai>=0.2.0
+Requires-Dist: llama-index<0.15.0,>=0.14.18
+Requires-Dist: llama-index-core>=0.14.18
+Requires-Dist: llama-index-llms-openai>=0.6.0
+Requires-Dist: llama-index-llms-azure-openai>=0.4.0
 Requires-Dist: llama-index-server>=0.1.27
 Requires-Dist: openinference-instrumentation-llama-index>=4.3.5
 Requires-Dist: psycopg2-binary>=2.9.10
+Requires-Dist: pytest>=8.0.0
+Requires-Dist: pytest-asyncio>=0.24.0
+Requires-Dist: sqlalchemy>=2.0.43
 Requires-Dist: uvicorn>=0.35.0
 Requires-Dist: pyodbc>=5.3.0
+
+# API
+
+## Database migrations (Alembic)
+
+From the `api/` directory, with `DATABASE_URL` set in `.env`:
+
+```bash
+PYTHONPATH=src uv run alembic upgrade head
+```
+
+Check current revision:
+
+```bash
+PYTHONPATH=src uv run alembic current
+```
+
+`PYTHONPATH=src` is required so Alembic can import `core.config` and models.
+
+Inventory listings table (see `LISTINGS_TABLE_NAME` / `LISTINGS_TABLE_SCHEMA` in `.env`) gets additive columns via Alembic as well—for example `images_urls` (JSON array as `TEXT`). Set those env vars before running migrations if you use a non-default table or schema.

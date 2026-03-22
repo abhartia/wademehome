@@ -4,3 +4,5 @@
 /data
 /greystar_scraper/env=local
 /.cursor
+/api/build
+/api/dist_check
