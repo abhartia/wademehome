@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  requestMagicLinkAuthMagicLinkRequestPostMutation,
   resendVerificationEmailAuthVerifyEmailResendPostMutation,
   signupAuthSignupPostMutation,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
@@ -33,6 +34,10 @@ export default function SignupPage() {
     ...signupAuthSignupPostMutation(),
   });
 
+  const magicMutation = useMutation({
+    ...requestMagicLinkAuthMagicLinkRequestPostMutation(),
+  });
+
   const resendMutation = useMutation({
     ...resendVerificationEmailAuthVerifyEmailResendPostMutation(),
   });
@@ -40,11 +45,25 @@ export default function SignupPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError("");
+    setInfo("");
     try {
       await signupMutation.mutateAsync({
         body: { email, password },
       });
       setSent(true);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
+  };
+
+  const handleMagicLink = async () => {
+    setError("");
+    setInfo("");
+    try {
+      await magicMutation.mutateAsync({
+        body: { email },
+      });
+      setInfo("Magic link sent. Check your inbox—opening it creates your account and signs you in.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -107,12 +126,22 @@ export default function SignupPage() {
                 minLength={8}
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
+              {info && <p className="text-sm text-muted-foreground">{info}</p>}
               <Button
                 disabled={signupMutation.isPending}
                 className="w-full"
                 type="submit"
               >
                 Sign up
+              </Button>
+              <Button
+                disabled={magicMutation.isPending || !email}
+                className="w-full"
+                variant="outline"
+                type="button"
+                onClick={handleMagicLink}
+              >
+                Email me a magic link instead
               </Button>
             </form>
           )}

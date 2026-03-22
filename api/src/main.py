@@ -118,7 +118,6 @@ def get_llm() -> LLM:
         model=Config.get("OPENAI_MODEL", "gpt-4.1"),
     )
 
-
 # Listing endpoints
 @app.post("/listings/chat")
 async def listing_chat(chat_request: ChatRequest, request: Request):
