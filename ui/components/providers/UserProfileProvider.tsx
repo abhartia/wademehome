@@ -72,11 +72,20 @@ export function UserProfileProvider({
   });
   patchMutateRef.current = patchMutation.mutate;
 
-  const { data: serverProfile } = useQuery({
+  const {
+    data: serverProfile,
+    isSuccess: profileQuerySuccess,
+    isPending: profileQueryPending,
+    isFetching: profileQueryFetching,
+  } = useQuery({
     ...readProfilePortalProfileGetOptions({}),
     enabled: Boolean(user),
     queryKey: readProfilePortalProfileGetQueryKey({}),
   });
+
+  /** Never debounce-sync until /portal/profile has settled; avoids PATCHing defaults over real server state. */
+  const portalReadyForAutosync =
+    Boolean(user) && profileQuerySuccess && !profileQueryPending && !profileQueryFetching;
 
   useEffect(() => {
     if (user) {
@@ -108,7 +117,7 @@ export function UserProfileProvider({
   }, [profile, hydrated, user]);
 
   useEffect(() => {
-    if (!user || !hydrated) return;
+    if (!user || !hydrated || !portalReadyForAutosync) return;
     if (skipSave.current) {
       skipSave.current = false;
       return;
@@ -122,7 +131,7 @@ export function UserProfileProvider({
       patchMutateRef.current({ body });
     }, 600);
     return () => window.clearTimeout(debounceRef.current);
-  }, [profile, user, hydrated]);
+  }, [profile, user, hydrated, portalReadyForAutosync]);
 
   const updateProfile = useCallback((partial: Partial<UserProfile>) => {
     setProfile((prev) => ({

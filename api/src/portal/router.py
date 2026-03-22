@@ -31,7 +31,10 @@ router = APIRouter(prefix="/portal", tags=["portal"])
 def read_profile(user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     out = get_profile(db, user.id)
     if not out:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        # Match PATCH behaviour (creates row on first write). Avoid 404 so the client can
+        # load server state before any debounced sync — otherwise a default profile PATCH
+        # can clear onboarding_completed in the database.
+        return ProfileOut()
     return out
 
 
