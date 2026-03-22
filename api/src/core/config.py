@@ -34,6 +34,24 @@ class Config:
     MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
 
     @classmethod
+    def _refresh_values(cls) -> None:
+        """Re-sync class attributes after .env reload (see env_manager.auto_reload)."""
+        cls.DATABASE_URL = env_manager.get("DATABASE_URL", "") or ""
+        cls.OPENAI_API_KEY = env_manager.get("OPENAI_API_KEY", "") or ""
+        cls.OPENAI_MODEL = env_manager.get("OPENAI_MODEL", "gpt-4.1") or "gpt-4.1"
+        cls.AZURE_OPENAI_ENDPOINT = env_manager.get("AZURE_OPENAI_ENDPOINT", "") or ""
+        cls.AZURE_OPENAI_API_KEY = env_manager.get("AZURE_OPENAI_API_KEY", "") or ""
+        cls.AZURE_OPENAI_DEPLOYMENT = env_manager.get("AZURE_OPENAI_DEPLOYMENT", "") or ""
+        cls.AZURE_OPENAI_MODEL = env_manager.get("AZURE_OPENAI_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
+        cls.AZURE_OPENAI_API_VERSION = (
+            env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview") or "2024-12-01-preview"
+        )
+        cls.LOG_LEVEL = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
+        cls.LISTINGS_TABLE_NAME = env_manager.get("LISTINGS_TABLE_NAME", None)
+        cls.LISTINGS_TABLE_SCHEMA = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
+        cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
+
+    @classmethod
     def get(cls, key: str, default: str | None = None) -> str | None:
         """Get any configuration value with automatic reload.
 

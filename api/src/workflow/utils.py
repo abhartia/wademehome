@@ -85,9 +85,13 @@ def get_engine():
     """Lazily create the workflow SQLAlchemy engine (avoids DB I/O at import time)."""
     global _workflow_engine
     if _workflow_engine is None:
-        database_url = Config.get("DATABASE_URL")
+        database_url = (Config.get("DATABASE_URL") or "").strip()
+        if not database_url:
+            raise ValueError(
+                "DATABASE_URL is empty or unset; configure it in App Service application settings."
+            )
         connect_args: dict = {}
-        if database_url and "postgresql" in database_url:
+        if "postgresql" in database_url:
             connect_args["connect_timeout"] = 5
         _workflow_engine = create_engine(
             database_url,
@@ -103,6 +107,10 @@ class _LazyEngine:
     __slots__ = ()
 
     def __getattr__(self, name: str):
+        # unittest.mock.patch inspects the patch target with hasattr(..., "__func__"); must not
+        # call get_engine() (needs DATABASE_URL) before the mock is installed.
+        if name in {"__func__", "__wrapped__", "__code__"}:
+            raise AttributeError(name)
         return getattr(get_engine(), name)
 
 
@@ -128,8 +136,10 @@ CHAT_TEXT_TO_SQL_PROMPT = PromptTemplate(
     prompt_type=PromptType.TEXT_TO_SQL,
 )
 
+# Fixed dialect — do not use engine.dialect at import time: create_engine("") raises and
+# kills the process before uvicorn binds (e.g. missing DATABASE_URL on a deployment slot).
 text2sql_prompt = CHAT_TEXT_TO_SQL_PROMPT.partial_format(
-    dialect=engine.dialect.name
+    dialect="postgresql",
 )
 
 def get_listing_table_info():

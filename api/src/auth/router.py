@@ -31,11 +31,10 @@ from db.models import MagicLinkTokens, UserProfiles, UserSessions, Users
 from db.session import get_session_local
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-SessionLocal = get_session_local()
 
 
 def get_db():
-    db = SessionLocal()
+    db = get_session_local()()
     try:
         yield db
     finally:
