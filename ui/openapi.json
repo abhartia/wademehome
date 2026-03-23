@@ -1089,62 +1089,6 @@
         }
       }
     },
-    "/portal/guarantors": {
-      "get": {
-        "tags": [
-          "portal"
-        ],
-        "summary": "Read Guarantors",
-        "operationId": "read_guarantors_portal_guarantors_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "portal"
-        ],
-        "summary": "Sync Guarantors",
-        "operationId": "sync_guarantors_portal_guarantors_put",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GuarantorStatePayload"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/portal/move-in": {
       "get": {
         "tags": [
@@ -1903,6 +1847,359 @@
         }
       }
     },
+    "/guarantors/requests/{request_id}/invite": {
+      "post": {
+        "tags": [
+          "guarantors"
+        ],
+        "summary": "Invite Guarantor Request Route",
+        "operationId": "invite_guarantor_request_route_guarantors_requests__request_id__invite_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuarantorInviteOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantors/requests/{request_id}/decision": {
+      "post": {
+        "tags": [
+          "guarantors"
+        ],
+        "summary": "Decision Guarantor Request Route",
+        "operationId": "decision_guarantor_request_route_guarantors_requests__request_id__decision_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuarantorDecisionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuarantorRequestOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantor-invite/{token}": {
+      "get": {
+        "tags": [
+          "guarantors-public"
+        ],
+        "summary": "Read Guarantor Invite",
+        "operationId": "read_guarantor_invite_guarantor_invite__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuarantorInviteContextOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantor-invite/{token}/open": {
+      "post": {
+        "tags": [
+          "guarantors-public"
+        ],
+        "summary": "Open Guarantor Invite",
+        "operationId": "open_guarantor_invite_guarantor_invite__token__open_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantor-invite/{token}/consent": {
+      "post": {
+        "tags": [
+          "guarantors-public"
+        ],
+        "summary": "Consent Guarantor Invite",
+        "operationId": "consent_guarantor_invite_guarantor_invite__token__consent_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuarantorInviteConsentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantor-invite/{token}/sign": {
+      "post": {
+        "tags": [
+          "guarantors-public"
+        ],
+        "summary": "Sign Guarantor Invite",
+        "operationId": "sign_guarantor_invite_guarantor_invite__token__sign_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuarantorInviteSignIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantor-invite/{token}/documents": {
+      "post": {
+        "tags": [
+          "guarantors-public"
+        ],
+        "summary": "Upload Guarantor Invite Documents",
+        "operationId": "upload_guarantor_invite_documents_guarantor_invite__token__documents_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuarantorInviteDocumentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guarantor-invite/{token}/decline": {
+      "post": {
+        "tags": [
+          "guarantors-public"
+        ],
+        "summary": "Decline Guarantor Invite",
+        "operationId": "decline_guarantor_invite_guarantor_invite__token__decline_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuarantorInviteDeclineIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/move-in/plan": {
       "get": {
         "tags": [
@@ -2440,7 +2737,6 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
               "title": "Connection Id"
             }
           }
@@ -2476,7 +2772,6 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
               "title": "Connection Id"
             }
           }
@@ -3097,6 +3392,197 @@
         ],
         "title": "GeocodeResponse"
       },
+      "GuarantorDecisionPatch": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "One of: verified, failed, declined, revoked"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "GuarantorDecisionPatch"
+      },
+      "GuarantorInviteConsentIn": {
+        "properties": {
+          "consent_text_version": {
+            "type": "string",
+            "title": "Consent Text Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "consent_text_version"
+        ],
+        "title": "GuarantorInviteConsentIn"
+      },
+      "GuarantorInviteContextOut": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "guarantor_name": {
+            "type": "string",
+            "title": "Guarantor Name"
+          },
+          "guarantor_email": {
+            "type": "string",
+            "title": "Guarantor Email"
+          },
+          "lease": {
+            "$ref": "#/components/schemas/LeasePayload"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "invite_expires_at": {
+            "type": "string",
+            "title": "Invite Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "guarantor_name",
+          "guarantor_email",
+          "lease",
+          "status",
+          "invite_expires_at"
+        ],
+        "title": "GuarantorInviteContextOut"
+      },
+      "GuarantorInviteDeclineIn": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "GuarantorInviteDeclineIn"
+      },
+      "GuarantorInviteDocumentIn": {
+        "properties": {
+          "document_type": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Document Type"
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename"
+          },
+          "content_type": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Content Type"
+          },
+          "byte_size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Byte Size"
+          },
+          "storage_key": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Storage Key"
+          },
+          "metadata_json": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata Json"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_type",
+          "filename",
+          "content_type",
+          "byte_size",
+          "storage_key"
+        ],
+        "title": "GuarantorInviteDocumentIn"
+      },
+      "GuarantorInviteOut": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "invite_expires_at": {
+            "type": "string",
+            "title": "Invite Expires At"
+          },
+          "invite_url": {
+            "type": "string",
+            "title": "Invite Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "status",
+          "invite_expires_at",
+          "invite_url"
+        ],
+        "title": "GuarantorInviteOut"
+      },
+      "GuarantorInviteSignIn": {
+        "properties": {
+          "signer_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Signer Name"
+          },
+          "signer_email": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Signer Email"
+          },
+          "signature_text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Signature Text"
+          },
+          "consent_text_version": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Consent Text Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signer_name",
+          "signer_email",
+          "signature_text",
+          "consent_text_version"
+        ],
+        "title": "GuarantorInviteSignIn"
+      },
       "GuarantorRequestCreate": {
         "properties": {
           "guarantor_id": {
@@ -3178,12 +3664,12 @@
             "type": "string",
             "title": "Expires At"
           },
-          "status_history": {
+          "signing_events": {
             "items": {
-              "$ref": "#/components/schemas/StatusHistoryOut"
+              "$ref": "#/components/schemas/SigningEventOut"
             },
             "type": "array",
-            "title": "Status History"
+            "title": "Signing Events"
           }
         },
         "type": "object",
@@ -3199,7 +3685,7 @@
           "viewed_at",
           "signed_at",
           "expires_at",
-          "status_history"
+          "signing_events"
         ],
         "title": "GuarantorRequestOut"
       },
@@ -3214,182 +3700,10 @@
                 "type": "null"
               }
             ]
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "verification_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Verification Status"
-          },
-          "sent_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sent At"
-          },
-          "viewed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Viewed At"
-          },
-          "signed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signed At"
-          },
-          "expires_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expires At"
-          },
-          "status_note": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status Note"
           }
         },
         "type": "object",
         "title": "GuarantorRequestPatch"
-      },
-      "GuarantorRequestPayload": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "guarantor_id": {
-            "type": "string",
-            "title": "Guarantor Id"
-          },
-          "guarantor_snapshot": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Guarantor Snapshot"
-          },
-          "lease": {
-            "$ref": "#/components/schemas/LeasePayload"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "verification_status": {
-            "type": "string",
-            "title": "Verification Status",
-            "default": "pending"
-          },
-          "created_at": {
-            "type": "string",
-            "title": "Created At",
-            "default": ""
-          },
-          "sent_at": {
-            "type": "string",
-            "title": "Sent At",
-            "default": ""
-          },
-          "viewed_at": {
-            "type": "string",
-            "title": "Viewed At",
-            "default": ""
-          },
-          "signed_at": {
-            "type": "string",
-            "title": "Signed At",
-            "default": ""
-          },
-          "expires_at": {
-            "type": "string",
-            "title": "Expires At",
-            "default": ""
-          },
-          "status_history": {
-            "items": {
-              "$ref": "#/components/schemas/StatusHistoryPayload"
-            },
-            "type": "array",
-            "title": "Status History"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "guarantor_id",
-          "lease",
-          "status"
-        ],
-        "title": "GuarantorRequestPayload"
-      },
-      "GuarantorStatePayload": {
-        "properties": {
-          "saved_guarantors": {
-            "items": {
-              "$ref": "#/components/schemas/SavedGuarantorPayload"
-            },
-            "type": "array",
-            "title": "Saved Guarantors"
-          },
-          "requests": {
-            "items": {
-              "$ref": "#/components/schemas/GuarantorRequestPayload"
-            },
-            "type": "array",
-            "title": "Requests"
-          }
-        },
-        "type": "object",
-        "title": "GuarantorStatePayload"
       },
       "HTTPValidationError": {
         "properties": {
@@ -3775,6 +4089,21 @@
       },
       "MyRoommateProfileOut": {
         "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "age": {
+            "type": "integer",
+            "title": "Age",
+            "default": 0
+          },
+          "occupation": {
+            "type": "string",
+            "title": "Occupation",
+            "default": ""
+          },
           "sleep_schedule": {
             "type": "string",
             "title": "Sleep Schedule",
@@ -3800,6 +4129,25 @@
             "title": "Smoking",
             "default": ""
           },
+          "languages_spoken": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages Spoken"
+          },
+          "preferred_languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Languages"
+          },
+          "must_have_preferred_languages": {
+            "type": "boolean",
+            "title": "Must Have Preferred Languages",
+            "default": false
+          },
           "interests": {
             "items": {
               "type": "string"
@@ -3823,6 +4171,39 @@
       },
       "MyRoommateProfilePatch": {
         "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "occupation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occupation"
+          },
           "sleep_schedule": {
             "anyOf": [
               {
@@ -3878,6 +4259,45 @@
             ],
             "title": "Smoking"
           },
+          "languages_spoken": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Languages Spoken"
+          },
+          "preferred_languages": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Languages"
+          },
+          "must_have_preferred_languages": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Must Have Preferred Languages"
+          },
           "interests": {
             "anyOf": [
               {
@@ -3920,6 +4340,21 @@
       },
       "MyRoommateProfilePayload": {
         "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "age": {
+            "type": "integer",
+            "title": "Age",
+            "default": 0
+          },
+          "occupation": {
+            "type": "string",
+            "title": "Occupation",
+            "default": ""
+          },
           "sleep_schedule": {
             "type": "string",
             "title": "Sleep Schedule",
@@ -3944,6 +4379,25 @@
             "type": "string",
             "title": "Smoking",
             "default": ""
+          },
+          "languages_spoken": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages Spoken"
+          },
+          "preferred_languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Languages"
+          },
+          "must_have_preferred_languages": {
+            "type": "boolean",
+            "title": "Must Have Preferred Languages",
+            "default": false
           },
           "interests": {
             "items": {
@@ -4876,6 +5330,13 @@
             "title": "Smoking",
             "default": ""
           },
+          "languages_spoken": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages Spoken"
+          },
           "target_city": {
             "type": "string",
             "title": "Target City",
@@ -5101,44 +5562,6 @@
         "type": "object",
         "title": "SavedGuarantorPatch"
       },
-      "SavedGuarantorPayload": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "email": {
-            "type": "string",
-            "title": "Email"
-          },
-          "phone": {
-            "type": "string",
-            "title": "Phone",
-            "default": ""
-          },
-          "relationship": {
-            "type": "string",
-            "title": "Relationship"
-          },
-          "created_at": {
-            "type": "string",
-            "title": "Created At",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "email",
-          "relationship"
-        ],
-        "title": "SavedGuarantorPayload"
-      },
       "ServerFileResponse": {
         "properties": {
           "id": {
@@ -5185,6 +5608,34 @@
         ],
         "title": "ServerFileResponse"
       },
+      "SigningEventOut": {
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "actor": {
+            "type": "string",
+            "title": "Actor"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "actor",
+          "timestamp"
+        ],
+        "title": "SigningEventOut"
+      },
       "SignupRequest": {
         "properties": {
           "email": {
@@ -5229,52 +5680,6 @@
           "email"
         ],
         "title": "SignupResponse"
-      },
-      "StatusHistoryOut": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "timestamp": {
-            "type": "string",
-            "title": "Timestamp"
-          },
-          "note": {
-            "type": "string",
-            "title": "Note",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "required": [
-          "status",
-          "timestamp"
-        ],
-        "title": "StatusHistoryOut"
-      },
-      "StatusHistoryPayload": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "timestamp": {
-            "type": "string",
-            "title": "Timestamp"
-          },
-          "note": {
-            "type": "string",
-            "title": "Note",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "required": [
-          "status",
-          "timestamp"
-        ],
-        "title": "StatusHistoryPayload"
       },
       "TourCreate": {
         "properties": {

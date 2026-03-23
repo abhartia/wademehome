@@ -3,13 +3,16 @@
 import { StatusHistoryEntry } from "@/lib/types/guarantor";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["draft", "sent", "viewed", "signed"] as const;
+const STEPS = ["draft", "invited", "opened", "consented", "signed", "submitted", "verified"] as const;
 
 const STEP_LABELS: Record<string, string> = {
   draft: "Created",
-  sent: "Sent",
-  viewed: "Viewed",
+  invited: "Invited",
+  opened: "Opened",
+  consented: "Consented",
   signed: "Signed",
+  submitted: "Submitted",
+  verified: "Verified",
 };
 
 function formatTimestamp(iso: string) {
@@ -29,7 +32,7 @@ interface StatusTimelineProps {
 }
 
 export function StatusTimeline({ history, currentStatus }: StatusTimelineProps) {
-  const reachedStatuses = new Set(history.map((h) => h.status));
+  const reachedStatuses = new Set(history.map((h) => h.eventType));
   const currentIdx = STEPS.indexOf(currentStatus as (typeof STEPS)[number]);
 
   return (
@@ -37,7 +40,7 @@ export function StatusTimeline({ history, currentStatus }: StatusTimelineProps) 
       {STEPS.map((step, i) => {
         const reached = reachedStatuses.has(step);
         const isCurrent = step === currentStatus;
-        const entry = history.find((h) => h.status === step);
+        const entry = history.find((h) => h.eventType === step);
         const isLast = i === STEPS.length - 1;
 
         return (
@@ -46,7 +49,7 @@ export function StatusTimeline({ history, currentStatus }: StatusTimelineProps) 
               <div
                 className={cn(
                   "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
-                  reached && step === "signed"
+                  reached && (step === "signed" || step === "verified")
                     ? "border-green-500 bg-green-500"
                     : reached
                       ? "border-primary bg-primary"

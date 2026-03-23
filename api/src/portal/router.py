@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
 from db.models import Users
 from portal.schemas import (
-    GuarantorStatePayload,
     MoveInStatePayload,
     ProfileOut,
     ProfilePatch,
@@ -13,13 +12,11 @@ from portal.schemas import (
 )
 from portal.lease_routes import router as lease_router
 from portal.service import (
-    get_guarantor_state,
     get_movein_state,
     get_profile,
     get_roommate_state,
     get_tours_state,
     patch_profile,
-    replace_guarantors,
     replace_movein,
     replace_roommates,
     replace_tours,
@@ -62,21 +59,6 @@ def sync_tours(
 ):
     replace_tours(db, user.id, body)
     return get_tours_state(db, user.id)
-
-
-@router.get("/guarantors")
-def read_guarantors(user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
-    return get_guarantor_state(db, user.id)
-
-
-@router.put("/guarantors")
-def sync_guarantors(
-    body: GuarantorStatePayload,
-    user: Users = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    replace_guarantors(db, user.id, body)
-    return get_guarantor_state(db, user.id)
 
 
 @router.get("/move-in")

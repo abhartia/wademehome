@@ -13,6 +13,12 @@ import {
 export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(guestHomeSiteOrigin());
   const title = "Wade Me Home: Rental search & renter tools";
+  const socialImage = {
+    url: "/opengraph-image.png?v=20260323-1",
+    width: 1200,
+    height: 630,
+    alt: "Wade Me Home rental search and renter tools",
+  };
   return {
     metadataBase,
     title,
@@ -26,11 +32,13 @@ export async function generateMetadata(): Promise<Metadata> {
       url: metadataBase.href,
       siteName: "Wade Me Home",
       type: "website",
+      images: [socialImage],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: GUEST_HOME_META_DESCRIPTION,
+      images: [socialImage.url],
     },
     robots: {
       index: true,

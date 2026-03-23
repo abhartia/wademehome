@@ -9,9 +9,9 @@ from sqlalchemy import asc, delete, select
 from sqlalchemy.orm import Session
 
 from db.models import (
-    GuarantorRequestHistory,
     GuarantorRequests,
     GuarantorRequestStatus,
+    GuarantorSigningEvents,
     GuarantorVerificationStatus,
     JourneyStage,
     RoommateConnections,
@@ -277,9 +277,9 @@ def get_guarantor_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
     requests_out: list[dict[str, Any]] = []
     for r in req_rows:
         hist = db.execute(
-            select(GuarantorRequestHistory)
-            .where(GuarantorRequestHistory.request_id == r.id)
-            .order_by(asc(GuarantorRequestHistory.created_at))
+            select(GuarantorSigningEvents)
+            .where(GuarantorSigningEvents.request_id == r.id)
+            .order_by(asc(GuarantorSigningEvents.created_at))
         ).scalars().all()
         requests_out.append(
             {
@@ -305,7 +305,7 @@ def get_guarantor_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
                 "expires_at": r.expires_at.isoformat() if r.expires_at else "",
                 "status_history": [
                     {
-                        "status": h.status.value,
+                        "status": h.event_type,
                         "timestamp": h.created_at.isoformat() if h.created_at else "",
                         "note": h.note or "",
                     }
@@ -321,7 +321,7 @@ def replace_guarantors(db: Session, user_id: uuid.UUID, payload: GuarantorStateP
         select(GuarantorRequests.id).where(GuarantorRequests.user_id == user_id)
     ).scalars().all()
     if req_ids:
-        db.execute(delete(GuarantorRequestHistory).where(GuarantorRequestHistory.request_id.in_(req_ids)))
+        db.execute(delete(GuarantorSigningEvents).where(GuarantorSigningEvents.request_id.in_(req_ids)))
     db.execute(delete(GuarantorRequests).where(GuarantorRequests.user_id == user_id))
     db.execute(delete(UserGuarantors).where(UserGuarantors.user_id == user_id))
     db.flush()
@@ -381,9 +381,10 @@ def replace_guarantors(db: Session, user_id: uuid.UUID, payload: GuarantorStateP
         db.flush()
         for h in r.status_history:
             db.add(
-                GuarantorRequestHistory(
+                GuarantorSigningEvents(
                     request_id=rid,
-                    status=_guarantor_req_status(h.status),
+                    event_type=h.status,
+                    actor="renter",
                     note=h.note or None,
                     created_at=_parse_dt(h.timestamp) or datetime.now(timezone.utc),
                 )

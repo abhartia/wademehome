@@ -9,11 +9,16 @@ export interface SavedGuarantor {
 
 export type GuarantorRequestStatus =
   | "draft"
-  | "sent"
-  | "viewed"
+  | "invited"
+  | "opened"
+  | "consented"
   | "signed"
+  | "submitted"
+  | "verified"
+  | "failed"
   | "expired"
-  | "declined";
+  | "declined"
+  | "revoked";
 
 export interface LeaseInfo {
   propertyName: string;
@@ -24,7 +29,8 @@ export interface LeaseInfo {
 }
 
 export interface StatusHistoryEntry {
-  status: string;
+  eventType: string;
+  actor: string;
   timestamp: string;
   note: string;
 }

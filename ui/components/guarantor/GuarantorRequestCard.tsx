@@ -9,8 +9,6 @@ import {
   Send,
   Trash2,
   Eye,
-  Play,
-  Copy,
   Building2,
 } from "lucide-react";
 
@@ -19,11 +17,16 @@ const statusConfig: Record<
   { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
 > = {
   draft: { label: "Draft", variant: "outline" },
-  sent: { label: "Sent", variant: "default" },
-  viewed: { label: "Viewed", variant: "secondary" },
+  invited: { label: "Invited", variant: "default" },
+  opened: { label: "Opened", variant: "secondary" },
+  consented: { label: "Consented", variant: "secondary" },
   signed: { label: "Signed", variant: "secondary" },
+  submitted: { label: "Submitted", variant: "secondary" },
+  verified: { label: "Verified", variant: "default" },
+  failed: { label: "Failed", variant: "destructive" },
   expired: { label: "Expired", variant: "destructive" },
   declined: { label: "Declined", variant: "destructive" },
+  revoked: { label: "Revoked", variant: "destructive" },
 };
 
 function timeAgo(iso: string) {
@@ -42,8 +45,6 @@ interface GuarantorRequestCardProps {
   onSend?: () => void;
   onDelete?: () => void;
   onViewDetails?: () => void;
-  onSimulate?: () => void;
-  onCopyVerification?: () => void;
 }
 
 export function GuarantorRequestCard({
@@ -51,12 +52,9 @@ export function GuarantorRequestCard({
   onSend,
   onDelete,
   onViewDetails,
-  onSimulate,
-  onCopyVerification,
 }: GuarantorRequestCardProps) {
   const cfg = statusConfig[request.status];
-  const latestTime =
-    request.signedAt || request.viewedAt || request.sentAt || request.createdAt;
+  const latestTime = request.signedAt || request.viewedAt || request.sentAt || request.createdAt;
 
   return (
     <Card className="overflow-hidden py-0">
@@ -70,7 +68,7 @@ export function GuarantorRequestCard({
               <Badge variant={cfg.variant} className="text-[10px] px-1.5 py-0">
                 {cfg.label}
               </Badge>
-              {request.status === "signed" &&
+              {request.status === "verified" &&
                 request.verificationStatus === "verified" && (
                   <Badge
                     variant="outline"
@@ -94,10 +92,10 @@ export function GuarantorRequestCard({
               <p className="text-[11px] text-muted-foreground">
                 {request.status === "signed"
                   ? "Signed"
-                  : request.status === "viewed"
-                    ? "Viewed"
-                    : request.status === "sent"
-                      ? "Sent"
+                  : request.status === "opened"
+                    ? "Opened"
+                    : request.status === "invited"
+                      ? "Invited"
                       : "Created"}{" "}
                 {timeAgo(latestTime)}
               </p>
@@ -128,7 +126,7 @@ export function GuarantorRequestCard({
               </Button>
             </>
           )}
-          {(request.status === "sent" || request.status === "viewed") && (
+          {(request.status === "invited" || request.status === "opened" || request.status === "consented") && (
             <>
               <Button
                 size="sm"
@@ -141,16 +139,16 @@ export function GuarantorRequestCard({
               </Button>
               <Button
                 size="sm"
-                variant="secondary"
-                onClick={onSimulate}
+                variant="default"
+                onClick={onSend}
                 className="h-7 gap-1 px-2.5 text-xs"
               >
-                <Play className="h-3 w-3" />
-                Simulate Response
+                <Send className="h-3 w-3" />
+                Resend Email
               </Button>
             </>
           )}
-          {request.status === "signed" && (
+          {(request.status === "signed" || request.status === "submitted" || request.status === "verified") && (
             <>
               <Button
                 size="sm"
@@ -161,18 +159,9 @@ export function GuarantorRequestCard({
                 <Eye className="h-3 w-3" />
                 View Details
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={onCopyVerification}
-                className="h-7 gap-1 px-2.5 text-xs"
-              >
-                <Copy className="h-3 w-3" />
-                Copy Verification
-              </Button>
             </>
           )}
-          {(request.status === "expired" || request.status === "declined") && (
+          {(request.status === "expired" || request.status === "declined" || request.status === "failed" || request.status === "revoked") && (
             <>
               <Button
                 size="sm"

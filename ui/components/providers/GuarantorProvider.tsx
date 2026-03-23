@@ -19,7 +19,6 @@ import {
   createSavedGuarantorRouteGuarantorsPostMutation,
   deleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteMutation,
   deleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteMutation,
-  patchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchMutation,
   patchSavedGuarantorRouteGuarantorsGuarantorIdPatchMutation,
   readGuarantorRequestsGuarantorsRequestsGetOptions,
   readGuarantorRequestsGuarantorsRequestsGetQueryKey,
@@ -38,9 +37,12 @@ interface GuarantorContextValue {
   requests: GuarantorRequest[];
   addRequest: (guarantorId: string, lease: LeaseInfo) => Promise<string>;
   sendRequest: (requestId: string) => Promise<void>;
-  updateRequest: (requestId: string, partial: Partial<GuarantorRequest>) => Promise<void>;
+  decideRequest: (
+    requestId: string,
+    status: "verified" | "failed" | "declined" | "revoked",
+    note?: string,
+  ) => Promise<void>;
   removeRequest: (requestId: string) => Promise<void>;
-  simulateGuarantorAction: (requestId: string) => Promise<void>;
 }
 
 const GuarantorContext = createContext<GuarantorContextValue | null>(null);
@@ -94,8 +96,9 @@ export function GuarantorProvider({ children }: { children: React.ReactNode }) {
         viewedAt: r.viewed_at ?? "",
         signedAt: r.signed_at ?? "",
         expiresAt: r.expires_at ?? "",
-        statusHistory: (r.status_history ?? []).map((h) => ({
-          status: h.status,
+        statusHistory: (r.signing_events ?? []).map((h) => ({
+          eventType: h.event_type,
+          actor: h.actor,
           timestamp: h.timestamp,
           note: h.note ?? "",
         })),
@@ -128,10 +131,6 @@ export function GuarantorProvider({ children }: { children: React.ReactNode }) {
   });
   const createRequestMut = useMutation({
     ...createGuarantorRequestRouteGuarantorsRequestsPostMutation(),
-    onSuccess: refresh,
-  });
-  const patchRequestMut = useMutation({
-    ...patchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchMutation(),
     onSuccess: refresh,
   });
   const deleteRequestMut = useMutation({
@@ -198,72 +197,57 @@ export function GuarantorProvider({ children }: { children: React.ReactNode }) {
 
   const sendRequest = useCallback(async (requestId: string) => {
     if (!user) return;
-    const now = new Date().toISOString();
-    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await patchRequestMut.mutateAsync({
-      path: { request_id: requestId },
-      body: {
-        status: "sent",
-        sent_at: now,
-        expires_at: expires,
-        status_note: "Sent to guarantor",
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL ??
+      process.env.NEXT_PUBLIC_CHAT_API_URL ??
+      "";
+    const response = await fetch(
+      `${baseUrl.replace(/\/$/, "")}/guarantors/requests/${requestId}/invite`,
+      {
+        method: "POST",
+        credentials: "include",
       },
-    });
-  }, [patchRequestMut, user]);
+    );
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new Error(payload?.detail || "Failed to send guarantor invite");
+    }
+    await refresh();
+  }, [refresh, user]);
 
-  const updateRequest = useCallback(
-    async (requestId: string, partial: Partial<GuarantorRequest>) => {
+  const decideRequest = useCallback(
+    async (
+      requestId: string,
+      status: "verified" | "failed" | "declined" | "revoked",
+      note = "",
+    ) => {
       if (!user) return;
-      await patchRequestMut.mutateAsync({
-        path: { request_id: requestId },
-        body: {
-          status: partial.status,
-          verification_status: partial.verificationStatus,
-          lease: partial.lease
-            ? {
-              property_name: partial.lease.propertyName,
-              property_address: partial.lease.propertyAddress,
-              monthly_rent: partial.lease.monthlyRent,
-              lease_start: partial.lease.leaseStart,
-              lease_term: partial.lease.leaseTerm,
-            }
-            : undefined,
-          status_note: "Updated by renter",
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ??
+        process.env.NEXT_PUBLIC_CHAT_API_URL ??
+        "";
+      const response = await fetch(
+        `${baseUrl.replace(/\/$/, "")}/guarantors/requests/${requestId}/decision`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, note }),
         },
-      });
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || "Failed to update guarantor decision");
+      }
+      await refresh();
     },
-    [patchRequestMut, user],
+    [refresh, user],
   );
 
   const removeRequest = useCallback(async (requestId: string) => {
     if (!user) return;
     await deleteRequestMut.mutateAsync({ path: { request_id: requestId } });
   }, [deleteRequestMut, user]);
-
-  const simulateGuarantorAction = useCallback(async (requestId: string) => {
-    if (!user) return;
-    const req = requests.find((r) => r.id === requestId);
-    if (!req) return;
-    const now = new Date().toISOString();
-    if (req.status === "sent") {
-      await patchRequestMut.mutateAsync({
-        path: { request_id: requestId },
-        body: { status: "viewed", viewed_at: now, status_note: "Opened by guarantor" },
-      });
-      return;
-    }
-    if (req.status === "viewed") {
-      await patchRequestMut.mutateAsync({
-        path: { request_id: requestId },
-        body: {
-          status: "signed",
-          verification_status: "verified",
-          signed_at: now,
-          status_note: "Agreement signed",
-        },
-      });
-    }
-  }, [patchRequestMut, requests, user]);
 
   return (
     <GuarantorContext.Provider
@@ -275,9 +259,8 @@ export function GuarantorProvider({ children }: { children: React.ReactNode }) {
         requests,
         addRequest,
         sendRequest,
-        updateRequest,
+        decideRequest,
         removeRequest,
-        simulateGuarantorAction,
       }}
     >
       {children}

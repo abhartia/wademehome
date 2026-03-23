@@ -39,7 +39,6 @@ export default function GuarantorPage() {
     requests,
     sendRequest,
     removeRequest,
-    simulateGuarantorAction,
   } = useGuarantor();
 
   const { journeyStage } = useUserProfile();
@@ -98,23 +97,16 @@ export default function GuarantorPage() {
 
   const activeRequests = requests.filter(
     (r) =>
-      r.status === "sent" || r.status === "viewed",
+      r.status === "invited" || r.status === "opened" || r.status === "consented" || r.status === "signed" || r.status === "submitted",
   );
   const completedRequests = requests.filter(
-    (r) => r.status === "signed",
+    (r) => r.status === "verified",
   );
   const draftRequests = requests.filter((r) => r.status === "draft");
   const otherRequests = requests.filter(
-    (r) => r.status === "expired" || r.status === "declined",
+    (r) => r.status === "expired" || r.status === "declined" || r.status === "failed" || r.status === "revoked",
   );
-
-  function handleCopyVerification(req: GuarantorRequest) {
-    navigator.clipboard.writeText(
-      `Guarantor verification: ${req.guarantorSnapshot.name} verified for ${req.lease.propertyName} — ID: ${req.id}`,
-    );
-  }
-
-  const hasSignedRequest = requests.some((r) => r.status === "signed");
+  const hasSignedRequest = requests.some((r) => r.status === "verified");
   const showStagePrompt =
     hasSignedRequest &&
     journeyStage !== "lease-signed" &&
@@ -412,7 +404,7 @@ export default function GuarantorPage() {
                   key={req.id}
                   request={req}
                   onViewDetails={() => setDetailRequest(req)}
-                  onSimulate={() => void simulateGuarantorAction(req.id)}
+                  onSend={() => void sendRequest(req.id)}
                 />
               ))}
             </div>
@@ -445,7 +437,6 @@ export default function GuarantorPage() {
                   key={req.id}
                   request={req}
                   onViewDetails={() => setDetailRequest(req)}
-                  onCopyVerification={() => handleCopyVerification(req)}
                 />
               ))}
             </div>

@@ -28,8 +28,9 @@ class SavedGuarantorPatch(BaseModel):
     relationship: str | None = None
 
 
-class StatusHistoryOut(BaseModel):
-    status: str
+class SigningEventOut(BaseModel):
+    event_type: str
+    actor: str
     timestamp: str
     note: str = ""
 
@@ -54,7 +55,7 @@ class GuarantorRequestOut(BaseModel):
     viewed_at: str
     signed_at: str
     expires_at: str
-    status_history: list[StatusHistoryOut]
+    signing_events: list[SigningEventOut]
 
 
 class GuarantorRequestCreate(BaseModel):
@@ -64,13 +65,51 @@ class GuarantorRequestCreate(BaseModel):
 
 class GuarantorRequestPatch(BaseModel):
     lease: LeasePayload | None = None
-    status: str | None = None
-    verification_status: str | None = None
-    sent_at: datetime | None = None
-    viewed_at: datetime | None = None
-    signed_at: datetime | None = None
-    expires_at: datetime | None = None
-    status_note: str | None = None
+
+
+class GuarantorInviteOut(BaseModel):
+    request_id: str
+    status: str
+    invite_expires_at: str
+    invite_url: str
+
+
+class GuarantorDecisionPatch(BaseModel):
+    status: str = Field(description="One of: verified, failed, declined, revoked")
+    note: str = ""
+
+
+class GuarantorInviteContextOut(BaseModel):
+    request_id: str
+    guarantor_name: str
+    guarantor_email: str
+    lease: LeasePayload
+    status: str
+    invite_expires_at: str
+
+
+class GuarantorInviteConsentIn(BaseModel):
+    consent_text_version: str
+
+
+class GuarantorInviteSignIn(BaseModel):
+    signer_name: str = Field(min_length=1, max_length=255)
+    signer_email: str = Field(min_length=3, max_length=255)
+    signature_text: str = Field(min_length=1, max_length=2000)
+    consent_text_version: str = Field(min_length=1, max_length=64)
+
+
+class GuarantorInviteDocumentIn(BaseModel):
+    document_type: str = Field(min_length=1, max_length=64)
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str = Field(min_length=1, max_length=128)
+    byte_size: int = Field(ge=1)
+    storage_key: str = Field(min_length=1, max_length=512)
+    metadata_json: dict = Field(default_factory=dict)
+
+
+class GuarantorInviteDeclineIn(BaseModel):
+    note: str = ""
 
 
 class SavedGuarantorListResponse(BaseModel):

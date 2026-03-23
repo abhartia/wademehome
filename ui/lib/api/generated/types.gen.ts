@@ -311,6 +311,144 @@ export type GeocodeResponse = {
 };
 
 /**
+ * GuarantorDecisionPatch
+ */
+export type GuarantorDecisionPatch = {
+    /**
+     * Status
+     * One of: verified, failed, declined, revoked
+     */
+    status: string;
+    /**
+     * Note
+     */
+    note?: string;
+};
+
+/**
+ * GuarantorInviteConsentIn
+ */
+export type GuarantorInviteConsentIn = {
+    /**
+     * Consent Text Version
+     */
+    consent_text_version: string;
+};
+
+/**
+ * GuarantorInviteContextOut
+ */
+export type GuarantorInviteContextOut = {
+    /**
+     * Request Id
+     */
+    request_id: string;
+    /**
+     * Guarantor Name
+     */
+    guarantor_name: string;
+    /**
+     * Guarantor Email
+     */
+    guarantor_email: string;
+    lease: LeasePayload;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Invite Expires At
+     */
+    invite_expires_at: string;
+};
+
+/**
+ * GuarantorInviteDeclineIn
+ */
+export type GuarantorInviteDeclineIn = {
+    /**
+     * Note
+     */
+    note?: string;
+};
+
+/**
+ * GuarantorInviteDocumentIn
+ */
+export type GuarantorInviteDocumentIn = {
+    /**
+     * Document Type
+     */
+    document_type: string;
+    /**
+     * Filename
+     */
+    filename: string;
+    /**
+     * Content Type
+     */
+    content_type: string;
+    /**
+     * Byte Size
+     */
+    byte_size: number;
+    /**
+     * Storage Key
+     */
+    storage_key: string;
+    /**
+     * Metadata Json
+     */
+    metadata_json?: {
+        [key: string]: unknown;
+    };
+};
+
+/**
+ * GuarantorInviteOut
+ */
+export type GuarantorInviteOut = {
+    /**
+     * Request Id
+     */
+    request_id: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Invite Expires At
+     */
+    invite_expires_at: string;
+    /**
+     * Invite Url
+     */
+    invite_url: string;
+};
+
+/**
+ * GuarantorInviteSignIn
+ */
+export type GuarantorInviteSignIn = {
+    /**
+     * Signer Name
+     */
+    signer_name: string;
+    /**
+     * Signer Email
+     */
+    signer_email: string;
+    /**
+     * Signature Text
+     */
+    signature_text: string;
+    /**
+     * Consent Text Version
+     */
+    consent_text_version: string;
+};
+
+/**
  * GuarantorRequestCreate
  */
 export type GuarantorRequestCreate = {
@@ -379,9 +517,9 @@ export type GuarantorRequestOut = {
      */
     expires_at: string;
     /**
-     * Status History
+     * Signing Events
      */
-    status_history: Array<StatusHistoryOut>;
+    signing_events: Array<SigningEventOut>;
 };
 
 /**
@@ -389,101 +527,6 @@ export type GuarantorRequestOut = {
  */
 export type GuarantorRequestPatch = {
     lease?: LeasePayload | null;
-    /**
-     * Status
-     */
-    status?: string | null;
-    /**
-     * Verification Status
-     */
-    verification_status?: string | null;
-    /**
-     * Sent At
-     */
-    sent_at?: string | null;
-    /**
-     * Viewed At
-     */
-    viewed_at?: string | null;
-    /**
-     * Signed At
-     */
-    signed_at?: string | null;
-    /**
-     * Expires At
-     */
-    expires_at?: string | null;
-    /**
-     * Status Note
-     */
-    status_note?: string | null;
-};
-
-/**
- * GuarantorRequestPayload
- */
-export type GuarantorRequestPayload = {
-    /**
-     * Id
-     */
-    id: string;
-    /**
-     * Guarantor Id
-     */
-    guarantor_id: string;
-    /**
-     * Guarantor Snapshot
-     */
-    guarantor_snapshot?: {
-        [key: string]: string;
-    };
-    lease: LeasePayload;
-    /**
-     * Status
-     */
-    status: string;
-    /**
-     * Verification Status
-     */
-    verification_status?: string;
-    /**
-     * Created At
-     */
-    created_at?: string;
-    /**
-     * Sent At
-     */
-    sent_at?: string;
-    /**
-     * Viewed At
-     */
-    viewed_at?: string;
-    /**
-     * Signed At
-     */
-    signed_at?: string;
-    /**
-     * Expires At
-     */
-    expires_at?: string;
-    /**
-     * Status History
-     */
-    status_history?: Array<StatusHistoryPayload>;
-};
-
-/**
- * GuarantorStatePayload
- */
-export type GuarantorStatePayload = {
-    /**
-     * Saved Guarantors
-     */
-    saved_guarantors?: Array<SavedGuarantorPayload>;
-    /**
-     * Requests
-     */
-    requests?: Array<GuarantorRequestPayload>;
 };
 
 /**
@@ -1549,36 +1592,6 @@ export type SavedGuarantorPatch = {
 };
 
 /**
- * SavedGuarantorPayload
- */
-export type SavedGuarantorPayload = {
-    /**
-     * Id
-     */
-    id: string;
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Email
-     */
-    email: string;
-    /**
-     * Phone
-     */
-    phone?: string;
-    /**
-     * Relationship
-     */
-    relationship: string;
-    /**
-     * Created At
-     */
-    created_at?: string;
-};
-
-/**
  * ServerFileResponse
  */
 export type ServerFileResponse = {
@@ -1598,6 +1611,28 @@ export type ServerFileResponse = {
      * Url
      */
     url?: string | null;
+};
+
+/**
+ * SigningEventOut
+ */
+export type SigningEventOut = {
+    /**
+     * Event Type
+     */
+    event_type: string;
+    /**
+     * Actor
+     */
+    actor: string;
+    /**
+     * Timestamp
+     */
+    timestamp: string;
+    /**
+     * Note
+     */
+    note?: string;
 };
 
 /**
@@ -1630,42 +1665,6 @@ export type SignupResponse = {
      * Message
      */
     message?: string;
-};
-
-/**
- * StatusHistoryOut
- */
-export type StatusHistoryOut = {
-    /**
-     * Status
-     */
-    status: string;
-    /**
-     * Timestamp
-     */
-    timestamp: string;
-    /**
-     * Note
-     */
-    note?: string;
-};
-
-/**
- * StatusHistoryPayload
- */
-export type StatusHistoryPayload = {
-    /**
-     * Status
-     */
-    status: string;
-    /**
-     * Timestamp
-     */
-    timestamp: string;
-    /**
-     * Note
-     */
-    note?: string;
 };
 
 /**
@@ -2997,43 +2996,6 @@ export type SyncToursPortalToursPutResponses = {
     200: unknown;
 };
 
-export type ReadGuarantorsPortalGuarantorsGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/portal/guarantors';
-};
-
-export type ReadGuarantorsPortalGuarantorsGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
-export type SyncGuarantorsPortalGuarantorsPutData = {
-    body: GuarantorStatePayload;
-    path?: never;
-    query?: never;
-    url: '/portal/guarantors';
-};
-
-export type SyncGuarantorsPortalGuarantorsPutErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type SyncGuarantorsPortalGuarantorsPutError = SyncGuarantorsPortalGuarantorsPutErrors[keyof SyncGuarantorsPortalGuarantorsPutErrors];
-
-export type SyncGuarantorsPortalGuarantorsPutResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
 export type ReadMoveInPortalMoveInGetData = {
     body?: never;
     path?: never;
@@ -3508,6 +3470,246 @@ export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponses 
 };
 
 export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponse = PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponses[keyof PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponses];
+
+export type InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostData = {
+    body?: never;
+    path: {
+        /**
+         * Request Id
+         */
+        request_id: string;
+    };
+    query?: never;
+    url: '/guarantors/requests/{request_id}/invite';
+};
+
+export type InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostError = InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostErrors[keyof InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostErrors];
+
+export type InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuarantorInviteOut;
+};
+
+export type InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostResponse = InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostResponses[keyof InviteGuarantorRequestRouteGuarantorsRequestsRequestIdInvitePostResponses];
+
+export type DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostData = {
+    body: GuarantorDecisionPatch;
+    path: {
+        /**
+         * Request Id
+         */
+        request_id: string;
+    };
+    query?: never;
+    url: '/guarantors/requests/{request_id}/decision';
+};
+
+export type DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostError = DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostErrors[keyof DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostErrors];
+
+export type DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuarantorRequestOut;
+};
+
+export type DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostResponse = DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostResponses[keyof DecisionGuarantorRequestRouteGuarantorsRequestsRequestIdDecisionPostResponses];
+
+export type ReadGuarantorInviteGuarantorInviteTokenGetData = {
+    body?: never;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/guarantor-invite/{token}';
+};
+
+export type ReadGuarantorInviteGuarantorInviteTokenGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadGuarantorInviteGuarantorInviteTokenGetError = ReadGuarantorInviteGuarantorInviteTokenGetErrors[keyof ReadGuarantorInviteGuarantorInviteTokenGetErrors];
+
+export type ReadGuarantorInviteGuarantorInviteTokenGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuarantorInviteContextOut;
+};
+
+export type ReadGuarantorInviteGuarantorInviteTokenGetResponse = ReadGuarantorInviteGuarantorInviteTokenGetResponses[keyof ReadGuarantorInviteGuarantorInviteTokenGetResponses];
+
+export type OpenGuarantorInviteGuarantorInviteTokenOpenPostData = {
+    body?: never;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/guarantor-invite/{token}/open';
+};
+
+export type OpenGuarantorInviteGuarantorInviteTokenOpenPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type OpenGuarantorInviteGuarantorInviteTokenOpenPostError = OpenGuarantorInviteGuarantorInviteTokenOpenPostErrors[keyof OpenGuarantorInviteGuarantorInviteTokenOpenPostErrors];
+
+export type OpenGuarantorInviteGuarantorInviteTokenOpenPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type OpenGuarantorInviteGuarantorInviteTokenOpenPostResponse = OpenGuarantorInviteGuarantorInviteTokenOpenPostResponses[keyof OpenGuarantorInviteGuarantorInviteTokenOpenPostResponses];
+
+export type ConsentGuarantorInviteGuarantorInviteTokenConsentPostData = {
+    body: GuarantorInviteConsentIn;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/guarantor-invite/{token}/consent';
+};
+
+export type ConsentGuarantorInviteGuarantorInviteTokenConsentPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ConsentGuarantorInviteGuarantorInviteTokenConsentPostError = ConsentGuarantorInviteGuarantorInviteTokenConsentPostErrors[keyof ConsentGuarantorInviteGuarantorInviteTokenConsentPostErrors];
+
+export type ConsentGuarantorInviteGuarantorInviteTokenConsentPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type ConsentGuarantorInviteGuarantorInviteTokenConsentPostResponse = ConsentGuarantorInviteGuarantorInviteTokenConsentPostResponses[keyof ConsentGuarantorInviteGuarantorInviteTokenConsentPostResponses];
+
+export type SignGuarantorInviteGuarantorInviteTokenSignPostData = {
+    body: GuarantorInviteSignIn;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/guarantor-invite/{token}/sign';
+};
+
+export type SignGuarantorInviteGuarantorInviteTokenSignPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SignGuarantorInviteGuarantorInviteTokenSignPostError = SignGuarantorInviteGuarantorInviteTokenSignPostErrors[keyof SignGuarantorInviteGuarantorInviteTokenSignPostErrors];
+
+export type SignGuarantorInviteGuarantorInviteTokenSignPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type SignGuarantorInviteGuarantorInviteTokenSignPostResponse = SignGuarantorInviteGuarantorInviteTokenSignPostResponses[keyof SignGuarantorInviteGuarantorInviteTokenSignPostResponses];
+
+export type UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostData = {
+    body: GuarantorInviteDocumentIn;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/guarantor-invite/{token}/documents';
+};
+
+export type UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostError = UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostErrors[keyof UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostErrors];
+
+export type UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostResponse = UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostResponses[keyof UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostResponses];
+
+export type DeclineGuarantorInviteGuarantorInviteTokenDeclinePostData = {
+    body: GuarantorInviteDeclineIn;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/guarantor-invite/{token}/decline';
+};
+
+export type DeclineGuarantorInviteGuarantorInviteTokenDeclinePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeclineGuarantorInviteGuarantorInviteTokenDeclinePostError = DeclineGuarantorInviteGuarantorInviteTokenDeclinePostErrors[keyof DeclineGuarantorInviteGuarantorInviteTokenDeclinePostErrors];
+
+export type DeclineGuarantorInviteGuarantorInviteTokenDeclinePostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeclineGuarantorInviteGuarantorInviteTokenDeclinePostResponse = DeclineGuarantorInviteGuarantorInviteTokenDeclinePostResponses[keyof DeclineGuarantorInviteGuarantorInviteTokenDeclinePostResponses];
 
 export type ReadMoveInPlanMoveInPlanGetData = {
     body?: never;

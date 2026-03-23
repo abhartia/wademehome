@@ -68,3 +68,35 @@ def send_verification_email(email: str, verify_link: str) -> None:
             "<p>If you did not create an account, you can ignore this message.</p>"
         ),
     )
+
+
+def send_guarantor_request_email(
+    *,
+    guarantor_email: str,
+    guarantor_name: str,
+    renter_email: str,
+    property_name: str,
+    property_address: str,
+    monthly_rent: str,
+    lease_start: str,
+    lease_term: str,
+    invite_url: str,
+) -> None:
+    greeting = guarantor_name.strip() or "there"
+    lease_start_line = lease_start.strip() or "Not provided"
+    lease_term_line = lease_term.strip() or "Not provided"
+    _post_resend(
+        to=[guarantor_email],
+        subject="Guarantor request from Wademehome",
+        html=(
+            f"<p>Hi {greeting},</p>"
+            "<p>You have been requested as a guarantor for a rental application.</p>"
+            f"<p><strong>Renter:</strong> {renter_email}<br/>"
+            f"<strong>Property:</strong> {property_name}<br/>"
+            f"<strong>Address:</strong> {property_address}<br/>"
+            f"<strong>Monthly rent:</strong> {monthly_rent}<br/>"
+            f"<strong>Lease start:</strong> {lease_start_line}<br/>"
+            f"<strong>Lease term:</strong> {lease_term_line}</p>"
+            f'<p>Please review and sign the guarantor request here: <a href="{invite_url}">{invite_url}</a></p>'
+        ),
+    )

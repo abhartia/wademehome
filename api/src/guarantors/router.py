@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from auth.router import get_current_user, get_db
 from db.models import Users
 from guarantors.schemas import (
+    GuarantorDecisionPatch,
+    GuarantorInviteOut,
     GuarantorRequestCreate,
     GuarantorRequestListResponse,
     GuarantorRequestOut,
@@ -18,7 +20,9 @@ from guarantors.schemas import (
     SavedGuarantorPatch,
 )
 from guarantors.service import (
+    apply_decision,
     create_request,
+    create_invite,
     create_saved_guarantor,
     delete_request,
     delete_saved_guarantor,
@@ -81,6 +85,23 @@ def patch_guarantor_request_route(
     db: Session = Depends(get_db),
 ):
     return patch_request(db, user.id, request_id, body)
+
+
+@router.post("/requests/{request_id}/invite", response_model=GuarantorInviteOut)
+def invite_guarantor_request_route(
+    request_id: uuid.UUID, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    return create_invite(db, user.id, request_id)
+
+
+@router.post("/requests/{request_id}/decision", response_model=GuarantorRequestOut)
+def decision_guarantor_request_route(
+    request_id: uuid.UUID,
+    body: GuarantorDecisionPatch,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return apply_decision(db, user.id, request_id, body)
 
 
 @router.delete("/requests/{request_id}", status_code=204)

@@ -48,11 +48,16 @@ class TourStatus(str, Enum):
 
 class GuarantorRequestStatus(str, Enum):
     draft = "draft"
-    sent = "sent"
-    viewed = "viewed"
+    invited = "invited"
+    opened = "opened"
+    consented = "consented"
     signed = "signed"
+    submitted = "submitted"
+    verified = "verified"
+    failed = "failed"
     expired = "expired"
     declined = "declined"
+    revoked = "revoked"
 
 
 class GuarantorVerificationStatus(str, Enum):
@@ -440,16 +445,26 @@ class GuarantorRequests(Base):
 
     user: Mapped["Users"] = relationship(back_populates="guarantor_requests")
     guarantor: Mapped["UserGuarantors"] = relationship(back_populates="requests")
-    history_entries: Mapped[list["GuarantorRequestHistory"]] = relationship(
-        back_populates="request"
+    signing_events: Mapped[list["GuarantorSigningEvents"]] = relationship(
+        back_populates="request", cascade="all, delete-orphan"
+    )
+    invite_tokens: Mapped[list["GuarantorInviteTokens"]] = relationship(
+        back_populates="request", cascade="all, delete-orphan"
+    )
+    signatures: Mapped[list["GuarantorSignatures"]] = relationship(
+        back_populates="request", cascade="all, delete-orphan"
+    )
+    documents: Mapped[list["GuarantorDocuments"]] = relationship(
+        back_populates="request", cascade="all, delete-orphan"
     )
 
 
-class GuarantorRequestHistory(Base):
-    __tablename__ = "guarantor_request_history"
+class GuarantorInviteTokens(Base):
+    __tablename__ = "guarantor_invite_tokens"
     __table_args__ = (
-        Index("ix_guarantor_request_history_request_id", "request_id"),
-        Index("ix_guarantor_request_history_created_at", "created_at"),
+        Index("ix_guarantor_invite_tokens_request_id", "request_id"),
+        Index("ix_guarantor_invite_tokens_expires_at", "expires_at"),
+        UniqueConstraint("token_hash", name="uq_guarantor_invite_tokens_token_hash"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -460,15 +475,100 @@ class GuarantorRequestHistory(Base):
         ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
         nullable=False,
     )
-    status: Mapped[GuarantorRequestStatus] = mapped_column(
-        SQLEnum(GuarantorRequestStatus, name="guarantor_request_status"), nullable=False
+    token_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+    request: Mapped["GuarantorRequests"] = relationship(back_populates="invite_tokens")
+
+
+class GuarantorSigningEvents(Base):
+    __tablename__ = "guarantor_signing_events"
+    __table_args__ = (
+        Index("ix_guarantor_signing_events_request_id", "request_id"),
+        Index("ix_guarantor_signing_events_created_at", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    request_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    actor: Mapped[str] = mapped_column(String(32), nullable=False)
+    actor_ref_id: Mapped[str | None] = mapped_column(String(128))
+    ip_address: Mapped[str | None] = mapped_column(String(64))
+    user_agent: Mapped[str | None] = mapped_column(String(512))
+    payload_json: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
-    request: Mapped["GuarantorRequests"] = relationship(back_populates="history_entries")
+    request: Mapped["GuarantorRequests"] = relationship(back_populates="signing_events")
+
+
+class GuarantorSignatures(Base):
+    __tablename__ = "guarantor_signatures"
+    __table_args__ = (
+        Index("ix_guarantor_signatures_request_id", "request_id"),
+        Index("ix_guarantor_signatures_signed_at", "signed_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    request_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    signer_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    signer_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    signature_text: Mapped[str] = mapped_column(Text, nullable=False)
+    consent_text_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    signed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    request: Mapped["GuarantorRequests"] = relationship(back_populates="signatures")
+
+
+class GuarantorDocuments(Base):
+    __tablename__ = "guarantor_documents"
+    __table_args__ = (
+        Index("ix_guarantor_documents_request_id", "request_id"),
+        Index("ix_guarantor_documents_uploaded_at", "uploaded_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    request_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    document_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    byte_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    metadata_json: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    request: Mapped["GuarantorRequests"] = relationship(back_populates="documents")
 
 
 class UserMoveinPlans(Base):

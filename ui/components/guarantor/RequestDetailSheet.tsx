@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   ShieldCheck,
-  Copy,
   Send,
   XCircle,
   User,
@@ -34,33 +33,17 @@ export function RequestDetailSheet({
   onOpenChange,
   request,
 }: RequestDetailSheetProps) {
-  const { sendRequest, updateRequest } = useGuarantor();
+  const { sendRequest, decideRequest } = useGuarantor();
 
   if (!request) return null;
 
   const canCancel =
-    request.status === "sent" || request.status === "viewed";
+    request.status === "invited" || request.status === "opened";
   const canResend =
-    request.status === "expired" || request.status === "declined";
-
-  function handleCopyVerification() {
-    navigator.clipboard.writeText(
-      `Guarantor verification: ${request!.guarantorSnapshot.name} verified for ${request!.lease.propertyName} — ID: ${request!.id}`,
-    );
-  }
+    request.status === "expired" || request.status === "declined" || request.status === "failed";
 
   async function handleCancel() {
-    await updateRequest(request!.id, {
-      status: "expired",
-      statusHistory: [
-        ...request!.statusHistory,
-        {
-          status: "expired",
-          timestamp: new Date().toISOString(),
-          note: "Cancelled by renter",
-        },
-      ],
-    });
+    await decideRequest(request!.id, "revoked", "Cancelled by renter");
   }
 
   async function handleResend() {
@@ -76,7 +59,7 @@ export function RequestDetailSheet({
 
         <div className="space-y-4 px-4 pb-6">
           {/* Verification */}
-          {request.status === "signed" &&
+          {request.status === "verified" &&
             request.verificationStatus === "verified" && (
               <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3">
                 <ShieldCheck className="h-5 w-5 text-green-600" />
@@ -88,15 +71,6 @@ export function RequestDetailSheet({
                     Agreement signed and verified
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 gap-1 border-green-300 px-2.5 text-xs text-green-700 hover:bg-green-100"
-                  onClick={handleCopyVerification}
-                >
-                  <Copy className="h-3 w-3" />
-                  Copy Link
-                </Button>
               </div>
             )}
 
@@ -198,15 +172,17 @@ export function RequestDetailSheet({
                 Resend
               </Button>
             )}
-            {request.status === "signed" && (
+            {request.status === "submitted" && (
               <Button
                 size="sm"
                 variant="outline"
                 className="gap-1.5"
-                onClick={handleCopyVerification}
+                onClick={() =>
+                  decideRequest(request.id, "verified", "Verified after review")
+                }
               >
-                <Copy className="h-3.5 w-3.5" />
-                Copy Verification
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Mark Verified
               </Button>
             )}
           </div>
