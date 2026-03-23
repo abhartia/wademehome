@@ -2,7 +2,7 @@
 
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { normalizePropertyDataItem } from "@/lib/properties/normalizePropertyDataItem";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { isApiConfigured } from "@/lib/api/isApiConfigured";
 import { getNearbyListingsListingsNearbyGetOptions } from "@/lib/api/generated/@tanstack/react-query.gen";
 import type { NearbyListingsResponse as ApiNearbyListingsResponse } from "@/lib/api/generated/types.gen";
@@ -58,6 +58,7 @@ export function useNearbyListings(options: {
     }),
     enabled: enabled && isApiConfigured() && coordsOk,
     select: normalizeNearby,
+    placeholderData: keepPreviousData,
     staleTime: 60_000,
   });
 }

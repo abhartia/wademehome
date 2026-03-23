@@ -72,17 +72,30 @@ function NearbyListingsHeaderLine({
     return <span className="text-muted-foreground">No nearby listings to show</span>;
   }
   const rm = Number.isInteger(d.radius_miles) ? String(d.radius_miles) : d.radius_miles.toFixed(1);
+  const isBackgroundRefreshing = nearbyQuery.isFetching && nearbyQuery.data !== undefined;
+  const updatingPrefix = isBackgroundRefreshing ? (
+    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
+  ) : null;
+
   if (d.used_global_nearest_fallback) {
     return (
-      <span className="text-muted-foreground">
-        None within {rm} mi of map center — showing {d.properties.length} closest (pins may be far away).
-      </span>
+      <>
+        {updatingPrefix}
+        <span className="text-muted-foreground">
+          None within {rm} mi of map center — showing {d.properties.length} closest (pins may be far away).
+          {isBackgroundRefreshing ? " Updating…" : ""}
+        </span>
+      </>
     );
   }
   return (
-    <span className="text-muted-foreground">
-      {d.properties.length} of {d.total_in_radius} within {rm} miles of map center
-    </span>
+    <>
+      {updatingPrefix}
+      <span className="text-muted-foreground">
+        {d.properties.length} of {d.total_in_radius} within {rm} miles of map center
+        {isBackgroundRefreshing ? " Updating…" : ""}
+      </span>
+    </>
   );
 }
 
