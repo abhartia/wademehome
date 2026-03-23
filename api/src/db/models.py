@@ -585,6 +585,9 @@ class RoommateProfiles(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    name: Mapped[str | None] = mapped_column(String(255))
+    age: Mapped[int | None] = mapped_column(Integer)
+    occupation: Mapped[str | None] = mapped_column(String(255))
     sleep_schedule: Mapped[str | None] = mapped_column(String(64))
     cleanliness_level: Mapped[str | None] = mapped_column(String(64))
     noise_level: Mapped[str | None] = mapped_column(String(64))
@@ -731,41 +734,6 @@ class VendorCatalogPlan(Base):
     )
 
     vendor: Mapped["VendorCatalog"] = relationship(back_populates="plans")
-
-
-class RoommateCandidateCatalog(Base):
-    __tablename__ = "roommate_candidate_catalog"
-    __table_args__ = (
-        Index("ix_roommate_candidate_catalog_target_city", "target_city"),
-        UniqueConstraint("candidate_key", name="uq_roommate_candidate_catalog_candidate_key"),
-    )
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    candidate_key: Mapped[str] = mapped_column(String(128), nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    age: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    occupation: Mapped[str] = mapped_column(String(255), nullable=False, default="")
-    bio: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    avatar_initials: Mapped[str] = mapped_column(String(16), nullable=False, default="")
-    sleep_schedule: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    cleanliness_level: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    noise_level: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    guest_policy: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    smoking: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    languages_spoken: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    target_city: Mapped[str] = mapped_column(String(128), nullable=False, default="")
-    max_budget: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    move_timeline: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    bedrooms_wanted: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    has_pets: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    pet_details: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    interests: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    university: Mapped[str | None] = mapped_column(String(255))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
 
 
 class UserLeaseDocuments(Base):

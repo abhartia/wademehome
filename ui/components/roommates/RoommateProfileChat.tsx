@@ -36,17 +36,44 @@ interface ConversationStep {
 
 const STEPS: ConversationStep[] = [
   {
-    id: "sleep",
+    id: "name",
     stage: 1,
     agentMessage:
-      "Let's set up your roommate profile so I can find you a great match.\n\nWhat's your sleep schedule like?",
+      "Let's set up your roommate profile so I can find you a great match.\n\nWhat name should we show to potential roommates?",
+    quickReplies: [],
+    quickReplyMode: "single",
+    profileKey: "name",
+  },
+  {
+    id: "age",
+    stage: 1,
+    agentMessage: "How old are you?",
+    quickReplies: [],
+    quickReplyMode: "single",
+    profileKey: "age",
+    toProfileValue: (raw) => ({
+      age: Number(raw),
+    }),
+  },
+  {
+    id: "occupation",
+    stage: 1,
+    agentMessage: "What do you do? (student, designer, engineer, etc.)",
+    quickReplies: [],
+    quickReplyMode: "single",
+    profileKey: "occupation",
+  },
+  {
+    id: "sleep",
+    stage: 2,
+    agentMessage: "What's your sleep schedule like?",
     quickReplies: ["Early bird", "Night owl", "Flexible"],
     quickReplyMode: "single",
     profileKey: "sleepSchedule",
   },
   {
     id: "cleanliness",
-    stage: 1,
+    stage: 2,
     agentMessage: "How tidy do you keep your space?",
     quickReplies: ["Very tidy", "Tidy", "Relaxed"],
     quickReplyMode: "single",
@@ -54,7 +81,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "noise",
-    stage: 2,
+    stage: 3,
     agentMessage: "How about noise and socialising at home?",
     quickReplies: [
       "Quiet -- I need focus time",
@@ -66,7 +93,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "guests",
-    stage: 2,
+    stage: 3,
     agentMessage: "How often do you have guests over?",
     quickReplies: ["Rarely", "Sometimes", "Often"],
     quickReplyMode: "single",
@@ -74,7 +101,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "smoking",
-    stage: 3,
+    stage: 4,
     agentMessage: "Any hard rules on smoking?",
     quickReplies: ["No smoking", "Outside only is fine", "No preference"],
     quickReplyMode: "single",
@@ -82,7 +109,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "languagesSpoken",
-    stage: 3,
+    stage: 4,
     agentMessage: "Which languages do you speak? Pick all that apply.",
     quickReplies: [
       "English",
@@ -106,7 +133,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "preferredLanguages",
-    stage: 4,
+    stage: 5,
     agentMessage:
       "Which languages do you want your roommate to speak? Pick all that matter to you.",
     quickReplies: [
@@ -131,7 +158,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "mustHavePreferredLanguages",
-    stage: 4,
+    stage: 5,
     agentMessage:
       "Should I only show matches with at least one of those preferred languages?",
     quickReplies: ["Yes, only those matches", "No, keep all matches"],
@@ -143,7 +170,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "interests",
-    stage: 5,
+    stage: 6,
     agentMessage:
       "What are you into? Pick a few so I can find someone you'd click with.",
     quickReplies: [
@@ -168,7 +195,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "bio",
-    stage: 5,
+    stage: 6,
     agentMessage:
       "Last thing -- write a short bio about yourself. Just a sentence or two so potential roommates know who you are.",
     quickReplies: [],
@@ -177,7 +204,7 @@ const STEPS: ConversationStep[] = [
   },
 ];
 
-const TOTAL_STAGES = 5;
+const TOTAL_STAGES = 6;
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -265,6 +292,9 @@ function SummaryCard({
   onReset: () => void;
 }) {
   const rows = [
+    { label: "Name", value: profile.name || "—" },
+    { label: "Age", value: profile.age > 0 ? String(profile.age) : "—" },
+    { label: "Occupation", value: profile.occupation || "—" },
     { label: "Sleep", value: profile.sleepSchedule || "—" },
     { label: "Tidiness", value: profile.cleanlinessLevel || "—" },
     { label: "Noise", value: profile.noiseLevel || "—" },
@@ -441,6 +471,13 @@ export function RoommateProfileChat({
     e.preventDefault();
     const text = inputValue.trim();
     if (!text || !currentStep || finished) return;
+    if (currentStep.id === "age") {
+      const parsed = Number(text);
+      if (!Number.isInteger(parsed) || parsed <= 0) {
+        addMessage("agent", "Please enter a valid age as a number.");
+        return;
+      }
+    }
     addMessage("user", text);
     applyAnswer(currentStep, text);
     setInputValue("");
@@ -459,6 +496,9 @@ export function RoommateProfileChat({
     setDraftProfile({
       ...myProfile,
       profileCompleted: false,
+      name: "",
+      age: 0,
+      occupation: "",
       sleepSchedule: "",
       cleanlinessLevel: "",
       noiseLevel: "",
@@ -542,7 +582,9 @@ export function RoommateProfileChat({
               placeholder={
                 currentStep?.id === "bio"
                   ? "e.g. Grad student at NYU, love cooking and hiking..."
-                  : "Or type your answer..."
+                  : currentStep?.id === "age"
+                    ? "e.g. 24"
+                    : "Or type your answer..."
               }
               className="flex-1 rounded-full border border-input bg-background px-4 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
             />

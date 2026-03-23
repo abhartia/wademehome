@@ -730,6 +730,18 @@ export type MoveInStatePayload = {
  */
 export type MyRoommateProfileOut = {
     /**
+     * Name
+     */
+    name?: string;
+    /**
+     * Age
+     */
+    age?: number;
+    /**
+     * Occupation
+     */
+    occupation?: string;
+    /**
      * Sleep Schedule
      */
     sleep_schedule?: string;
@@ -780,6 +792,18 @@ export type MyRoommateProfileOut = {
  */
 export type MyRoommateProfilePatch = {
     /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Age
+     */
+    age?: number | null;
+    /**
+     * Occupation
+     */
+    occupation?: string | null;
+    /**
      * Sleep Schedule
      */
     sleep_schedule?: string | null;
@@ -829,6 +853,18 @@ export type MyRoommateProfilePatch = {
  * MyRoommateProfilePayload
  */
 export type MyRoommateProfilePayload = {
+    /**
+     * Name
+     */
+    name?: string;
+    /**
+     * Age
+     */
+    age?: number;
+    /**
+     * Occupation
+     */
+    occupation?: string;
     /**
      * Sleep Schedule
      */

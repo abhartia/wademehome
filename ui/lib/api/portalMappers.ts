@@ -423,6 +423,9 @@ export function moveInToApiPayload(
 
 type RoommateApi = {
   my_profile?: {
+    name: string;
+    age: number;
+    occupation: string;
     sleep_schedule: string;
     cleanliness_level: string;
     noise_level: string;
@@ -500,6 +503,9 @@ export function roommatesFromApi(data: unknown): {
   const row = data as RoommateApi;
   const mp: MyRoommateProfilePayload = row.my_profile ?? {};
   const myProfile: MyRoommateProfile = {
+    name: String(mp.name ?? ""),
+    age: Number(mp.age ?? 0),
+    occupation: String(mp.occupation ?? ""),
     sleepSchedule: String(mp.sleep_schedule ?? ""),
     cleanlinessLevel: String(mp.cleanliness_level ?? ""),
     noiseLevel: String(mp.noise_level ?? ""),
@@ -532,6 +538,9 @@ export function roommatesToApiPayload(
 ) {
   return {
     my_profile: {
+      name: myProfile.name,
+      age: myProfile.age,
+      occupation: myProfile.occupation,
       sleep_schedule: myProfile.sleepSchedule,
       cleanliness_level: myProfile.cleanlinessLevel,
       noise_level: myProfile.noiseLevel,

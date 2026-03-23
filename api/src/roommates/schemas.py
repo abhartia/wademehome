@@ -29,6 +29,9 @@ class RoommateProfilePayload(BaseModel):
 
 
 class MyRoommateProfileOut(BaseModel):
+    name: str = ""
+    age: int = 0
+    occupation: str = ""
     sleep_schedule: str = ""
     cleanliness_level: str = ""
     noise_level: str = ""
@@ -43,6 +46,9 @@ class MyRoommateProfileOut(BaseModel):
 
 
 class MyRoommateProfilePatch(BaseModel):
+    name: str | None = None
+    age: int | None = None
+    occupation: str | None = None
     sleep_schedule: str | None = None
     cleanliness_level: str | None = None
     noise_level: str | None = None

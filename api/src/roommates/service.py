@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db.models import (
-    RoommateCandidateCatalog,
     RoommateConnectionStatus,
     RoommateConnections,
     RoommateMessages,
@@ -66,6 +65,9 @@ def read_my_profile(db: Session, user_id: uuid.UUID) -> MyRoommateProfileOut:
     if row is None:
         return MyRoommateProfileOut()
     return MyRoommateProfileOut(
+        name=row.name or "",
+        age=row.age or 0,
+        occupation=row.occupation or "",
         sleep_schedule=row.sleep_schedule or "",
         cleanliness_level=row.cleanliness_level or "",
         noise_level=row.noise_level or "",
@@ -221,12 +223,29 @@ def _budget_distance(a: str, b: str) -> int:
     return abs(ia - ib)
 
 
+def _avatar_initials(name: str) -> str:
+    parts = [part.strip() for part in name.split(" ") if part.strip()]
+    if not parts:
+        return "?"
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return f"{parts[0][0]}{parts[1][0]}".upper()
+
+
 def list_matches(db: Session, user_id: uuid.UUID) -> list[RoommateProfilePayload]:
     user_profile = db.execute(select(UserProfiles).where(UserProfiles.user_id == user_id)).scalar_one_or_none()
     my = db.execute(select(RoommateProfiles).where(RoommateProfiles.user_id == user_id)).scalar_one_or_none()
-    candidates = db.execute(select(RoommateCandidateCatalog)).scalars().all()
+    candidate_rows = db.execute(
+        select(RoommateProfiles, UserProfiles)
+        .join(UserProfiles, RoommateProfiles.user_id == UserProfiles.user_id)
+        .where(
+            RoommateProfiles.user_id != user_id,
+            UserProfiles.roommate_search_enabled.is_(True),
+            RoommateProfiles.profile_completed.is_(True),
+        )
+    ).all()
     out: list[RoommateProfilePayload] = []
-    for c in candidates:
+    for c, c_user in candidate_rows:
         score = 50
         reasons: list[str] = []
         candidate_languages = {lang.strip().lower() for lang in (c.languages_spoken or []) if lang.strip()}
@@ -235,11 +254,15 @@ def list_matches(db: Session, user_id: uuid.UUID) -> list[RoommateProfilePayload
             if candidate_languages.isdisjoint(preferred_languages):
                 continue
         preferred = list(user_profile.preferred_cities or []) if user_profile else []
-        if preferred and any(city.lower() == c.target_city.lower() for city in preferred):
+        candidate_city = (
+            (list(c_user.preferred_cities or [])[0] if list(c_user.preferred_cities or []) else "")
+            or (c_user.current_city or "")
+        )
+        if preferred and candidate_city and any(city.lower() == candidate_city.lower() for city in preferred):
             score += 15
-            reasons.append(f"Both looking in {c.target_city}")
+            reasons.append(f"Both looking in {candidate_city}")
         if user_profile and user_profile.max_monthly_rent:
-            dist = _budget_distance(user_profile.max_monthly_rent, c.max_budget)
+            dist = _budget_distance(user_profile.max_monthly_rent, c_user.max_monthly_rent or "")
             if dist == 0:
                 score += 10
             elif dist == 1:
@@ -259,26 +282,26 @@ def list_matches(db: Session, user_id: uuid.UUID) -> list[RoommateProfilePayload
         score = max(15, min(98, score))
         out.append(
             RoommateProfilePayload(
-                id=c.candidate_key,
-                name=c.name,
-                age=c.age,
-                occupation=c.occupation,
+                id=str(c.user_id),
+                name=c.name or "",
+                age=c.age or 0,
+                occupation=c.occupation or "",
                 bio=c.bio,
-                avatar_initials=c.avatar_initials,
+                avatar_initials=_avatar_initials(c.name or ""),
                 sleep_schedule=c.sleep_schedule,
                 cleanliness_level=c.cleanliness_level,
                 noise_level=c.noise_level,
                 guest_policy=c.guest_policy,
                 smoking=c.smoking,
                 languages_spoken=list(c.languages_spoken or []),
-                target_city=c.target_city,
-                max_budget=c.max_budget,
-                move_timeline=c.move_timeline,
-                bedrooms_wanted=c.bedrooms_wanted,
-                has_pets=c.has_pets,
-                pet_details=c.pet_details,
+                target_city=candidate_city,
+                max_budget=c_user.max_monthly_rent or "",
+                move_timeline=c_user.move_timeline or "",
+                bedrooms_wanted=c_user.bedrooms_needed or "",
+                has_pets=c_user.has_pets,
+                pet_details=c_user.pet_details or "",
                 interests=list(c.interests or []),
-                university=c.university,
+                university=None,
                 compatibility_score=score,
                 compatibility_reasons=reasons[:3],
             )

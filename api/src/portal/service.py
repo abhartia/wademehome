@@ -531,6 +531,9 @@ def get_roommate_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
         select(RoommateProfiles).where(RoommateProfiles.user_id == user_id)
     ).scalar_one_or_none()
     my_profile = {
+        "name": prof.name or "" if prof else "",
+        "age": prof.age or 0 if prof else 0,
+        "occupation": prof.occupation or "" if prof else "",
         "sleep_schedule": prof.sleep_schedule or "" if prof else "",
         "cleanliness_level": prof.cleanliness_level or "" if prof else "",
         "noise_level": prof.noise_level or "" if prof else "",
@@ -609,6 +612,9 @@ def replace_roommates(db: Session, user_id: uuid.UUID, payload: RoommateStatePay
     db.add(
         RoommateProfiles(
             user_id=user_id,
+            name=mp.name or None,
+            age=mp.age or None,
+            occupation=mp.occupation or None,
             sleep_schedule=mp.sleep_schedule or None,
             cleanliness_level=mp.cleanliness_level or None,
             noise_level=mp.noise_level or None,

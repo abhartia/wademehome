@@ -30,6 +30,9 @@ export interface RoommateMatch extends RoommateProfile {
 }
 
 export interface MyRoommateProfile {
+  name: string;
+  age: number;
+  occupation: string;
   sleepSchedule: string;
   cleanlinessLevel: string;
   noiseLevel: string;
@@ -44,6 +47,9 @@ export interface MyRoommateProfile {
 }
 
 export const defaultMyRoommateProfile: MyRoommateProfile = {
+  name: "",
+  age: 0,
+  occupation: "",
   sleepSchedule: "",
   cleanlinessLevel: "",
   noiseLevel: "",

@@ -164,6 +164,9 @@ class MoveInStatePayload(BaseModel):
 
 
 class MyRoommateProfilePayload(BaseModel):
+    name: str = ""
+    age: int = 0
+    occupation: str = ""
     sleep_schedule: str = ""
     cleanliness_level: str = ""
     noise_level: str = ""

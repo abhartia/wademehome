@@ -61,6 +61,9 @@ export function RoommateProvider({
 
   const myProfile = useMemo<MyRoommateProfile>(
     () => ({
+      name: profileData?.name ?? "",
+      age: profileData?.age ?? 0,
+      occupation: profileData?.occupation ?? "",
       sleepSchedule: profileData?.sleep_schedule ?? "",
       cleanlinessLevel: profileData?.cleanliness_level ?? "",
       noiseLevel: profileData?.noise_level ?? "",
@@ -147,6 +150,9 @@ export function RoommateProvider({
       patchProfileMut.mutate({
         body: {
           sleep_schedule: partial.sleepSchedule,
+          name: partial.name,
+          age: partial.age,
+          occupation: partial.occupation,
           cleanliness_level: partial.cleanlinessLevel,
           noise_level: partial.noiseLevel,
           guest_policy: partial.guestPolicy,
@@ -168,6 +174,9 @@ export function RoommateProvider({
     patchProfileMut.mutate({
       body: {
         sleep_schedule: defaultMyRoommateProfile.sleepSchedule,
+        name: defaultMyRoommateProfile.name,
+        age: defaultMyRoommateProfile.age,
+        occupation: defaultMyRoommateProfile.occupation,
         cleanliness_level: defaultMyRoommateProfile.cleanlinessLevel,
         noise_level: defaultMyRoommateProfile.noiseLevel,
         guest_policy: defaultMyRoommateProfile.guestPolicy,
