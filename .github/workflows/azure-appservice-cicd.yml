@@ -16,8 +16,8 @@ env:
   AZURE_WEBAPP_FRONTEND_SLOT: staging
   BACKEND_IMAGE_NAME: wademehome-backend
   FRONTEND_IMAGE_NAME: wademehome-frontend
-  NEXT_PUBLIC_API_BASE_URL: https://wademehome-backend.azurewebsites.net
-  NEXT_PUBLIC_CHAT_API_URL: https://wademehome-backend.azurewebsites.net
+  NEXT_PUBLIC_API_BASE_URL: https://api.wademehome.com
+  NEXT_PUBLIC_CHAT_API_URL: https://api.wademehome.com
   NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
   NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
 
@@ -50,6 +50,7 @@ jobs:
               - 'api/**'
             frontend:
               - 'ui/**'
+              - '.github/workflows/azure-appservice-cicd.yml'
           base: ${{ github.event.before }}
           ref: ${{ github.sha }}
 

@@ -43,6 +43,10 @@ def get_db():
 
 def _set_auth_cookie(response: Response, session_token: str) -> None:
     cookie_settings = build_cookie_settings()
+    domain = str(cookie_settings.get("domain") or "").strip()
+    cookie_kwargs: dict[str, object] = {}
+    if domain:
+        cookie_kwargs["domain"] = domain
     response.set_cookie(
         key=str(cookie_settings["key"]),
         value=session_token,
@@ -51,17 +55,23 @@ def _set_auth_cookie(response: Response, session_token: str) -> None:
         samesite=str(cookie_settings["samesite"]),
         path=str(cookie_settings["path"]),
         max_age=int(session_ttl().total_seconds()),
+        **cookie_kwargs,
     )
 
 
 def _delete_auth_cookie(response: Response) -> None:
     cookie_settings = build_cookie_settings()
+    domain = str(cookie_settings.get("domain") or "").strip()
+    cookie_kwargs: dict[str, object] = {}
+    if domain:
+        cookie_kwargs["domain"] = domain
     response.delete_cookie(
         key=str(cookie_settings["key"]),
         httponly=bool(cookie_settings["httponly"]),
         secure=bool(cookie_settings["secure"]),
         samesite=str(cookie_settings["samesite"]),
         path=str(cookie_settings["path"]),
+        **cookie_kwargs,
     )
 
 

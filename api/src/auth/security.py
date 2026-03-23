@@ -48,6 +48,7 @@ def build_cookie_settings() -> dict[str, object]:
     secure = (Config.get("AUTH_COOKIE_SECURE", "false") or "false").lower() == "true"
     raw = (Config.get("AUTH_COOKIE_SAMESITE", "lax") or "lax").strip().lower()
     same_site = raw if raw in ("lax", "strict", "none") else "lax"
+    domain = (Config.get("AUTH_COOKIE_DOMAIN", "") or "").strip()
     # Browser rule: SameSite=None requires Secure. Cross-origin UI (e.g. wademehome.com → api.azurewebsites.net)
     # needs none + secure or credentialed fetches will not send the session cookie.
     if same_site == "none" and not secure:
@@ -60,6 +61,7 @@ def build_cookie_settings() -> dict[str, object]:
         "httponly": True,
         "secure": secure,
         "samesite": same_site,
+        "domain": domain,
         "path": "/",
     }
 
