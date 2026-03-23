@@ -1,64 +1,70 @@
-import json
-from urllib import request
+import threading
+
+import resend
+from resend.exceptions import ResendError
 
 from core.config import Config
+from core.logger import get_logger
+
+logger = get_logger(__name__)
+
+# resend.api_key is global; guard concurrent sends (sync FastAPI runs handlers in a thread pool).
+_resend_lock = threading.Lock()
 
 
-def send_magic_link_email(email: str, magic_link: str) -> None:
-    api_key = Config.get("RESEND_API_KEY", "")
-    from_email = Config.get("RESEND_FROM_EMAIL", "")
+def _resend_credentials() -> tuple[str, str]:
+    raw_key = Config.get("RESEND_API_KEY", "") or ""
+    raw_from = Config.get("RESEND_FROM_EMAIL", "") or ""
+    return raw_key.strip(), raw_from.strip()
+
+
+def _post_resend(*, to: list[str], subject: str, html: str) -> None:
+    api_key, from_email = _resend_credentials()
     if not api_key or not from_email:
         raise ValueError("Resend is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL.")
 
-    payload = {
+    params: resend.Emails.SendParams = {
         "from": from_email,
-        "to": [email],
-        "subject": "Your Wademehome login link",
-        "html": (
+        "to": to,
+        "subject": subject,
+        "html": html,
+    }
+    try:
+        with _resend_lock:
+            resend.api_key = api_key
+            resend.Emails.send(params)
+    except ResendError as e:
+        logger.error(
+            "Resend API error code=%s type=%s message=%s",
+            e.code,
+            e.error_type,
+            e.message,
+        )
+        raise ValueError(
+            "Resend rejected the send (HTTP %s). Check API key, verified domain, and sender. %s"
+            % (e.code, e.message)
+        ) from e
+
+
+def send_magic_link_email(email: str, magic_link: str) -> None:
+    _post_resend(
+        to=[email],
+        subject="Your Wademehome login link",
+        html=(
             "<p>Use this secure link to sign in:</p>"
             f'<p><a href="{magic_link}">{magic_link}</a></p>'
             "<p>This link expires shortly and can only be used once.</p>"
         ),
-    }
-    req = request.Request(
-        url="https://api.resend.com/emails",
-        data=json.dumps(payload).encode("utf-8"),
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
     )
-    with request.urlopen(req) as response:
-        if response.status >= 300:
-            raise ValueError("Failed to send email via Resend")
 
 
 def send_verification_email(email: str, verify_link: str) -> None:
-    api_key = Config.get("RESEND_API_KEY", "")
-    from_email = Config.get("RESEND_FROM_EMAIL", "")
-    if not api_key or not from_email:
-        raise ValueError("Resend is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL.")
-
-    payload = {
-        "from": from_email,
-        "to": [email],
-        "subject": "Verify your Wademehome email",
-        "html": (
+    _post_resend(
+        to=[email],
+        subject="Verify your Wademehome email",
+        html=(
             "<p>Thanks for signing up. Confirm your email to activate your account:</p>"
             f'<p><a href="{verify_link}">{verify_link}</a></p>'
             "<p>If you did not create an account, you can ignore this message.</p>"
         ),
-    }
-    req = request.Request(
-        url="https://api.resend.com/emails",
-        data=json.dumps(payload).encode("utf-8"),
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
     )
-    with request.urlopen(req) as response:
-        if response.status >= 300:
-            raise ValueError("Failed to send email via Resend")

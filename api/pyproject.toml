@@ -23,6 +23,7 @@ dependencies = [
   "llama-index-server>=0.1.27",
   "openinference-instrumentation-llama-index>=4.3.5",
   "psycopg2-binary>=2.9.10",
+  "resend>=2.25.0",
   "pytest>=8.0.0",
   "pytest-asyncio>=0.24.0",
   "sqlalchemy>=2.0.43",
