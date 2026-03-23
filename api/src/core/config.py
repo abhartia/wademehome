@@ -36,6 +36,7 @@ class Config:
     # Resend (magic link + verification email). Read from env / Azure App Settings.
     RESEND_API_KEY: str = env_manager.get("RESEND_API_KEY", "") or ""
     RESEND_FROM_EMAIL: str = env_manager.get("RESEND_FROM_EMAIL", "") or ""
+    TOUR_REQUEST_OPS_EMAIL: str = env_manager.get("TOUR_REQUEST_OPS_EMAIL", "") or ""
 
     # Auth (cookies, session TTL, magic links). Must use env_manager so production env is honored.
     AUTH_UI_BASE_URL: str = env_manager.get("AUTH_UI_BASE_URL", "http://localhost:3000") or "http://localhost:3000"
@@ -66,6 +67,7 @@ class Config:
         cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
         cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""
         cls.RESEND_FROM_EMAIL = env_manager.get("RESEND_FROM_EMAIL", "") or ""
+        cls.TOUR_REQUEST_OPS_EMAIL = env_manager.get("TOUR_REQUEST_OPS_EMAIL", "") or ""
         cls.AUTH_UI_BASE_URL = (
             env_manager.get("AUTH_UI_BASE_URL", "http://localhost:3000") or "http://localhost:3000"
         )
