@@ -30,6 +30,7 @@ class ResendVerificationRequest(BaseModel):
 class UserResponse(BaseModel):
     id: str
     email: EmailStr
+    role: str = "user"
     email_verified: bool = False
     onboarding_completed: bool = False
 

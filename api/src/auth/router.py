@@ -94,6 +94,7 @@ def _user_response(db: Session, user: Users) -> UserResponse:
     return UserResponse(
         id=str(user.id),
         email=user.email,
+        role=user.role.value,
         email_verified=user.email_verified_at is not None,
         onboarding_completed=bool(profile and profile.onboarding_completed),
     )

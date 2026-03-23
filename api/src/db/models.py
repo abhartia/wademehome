@@ -28,6 +28,7 @@ from db.base import Base
 class UserRole(str, Enum):
     user = "user"
     admin = "admin"
+    landlord = "landlord"
 
 
 class JourneyStage(str, Enum):
@@ -80,6 +81,57 @@ class RoommateConnectionStatus(str, Enum):
     archived = "archived"
 
 
+class LandlordVerificationStatus(str, Enum):
+    pending = "pending"
+    verified = "verified"
+    rejected = "rejected"
+
+
+class LandlordPublishStatus(str, Enum):
+    draft = "draft"
+    published = "published"
+    archived = "archived"
+
+
+class LandlordLeadStatus(str, Enum):
+    new = "new"
+    contacted = "contacted"
+    toured = "toured"
+    applied = "applied"
+    leased = "leased"
+    closed = "closed"
+
+
+class LandlordTourBookingStatus(str, Enum):
+    requested = "requested"
+    confirmed = "confirmed"
+    cancelled = "cancelled"
+    completed = "completed"
+
+
+class LandlordApplicationStatus(str, Enum):
+    submitted = "submitted"
+    under_review = "under_review"
+    approved = "approved"
+    denied = "denied"
+    withdrawn = "withdrawn"
+
+
+class LandlordLeaseOfferStatus(str, Enum):
+    draft = "draft"
+    sent = "sent"
+    countered = "countered"
+    accepted = "accepted"
+    declined = "declined"
+    expired = "expired"
+
+
+class LandlordSignatureStatus(str, Enum):
+    pending = "pending"
+    signed = "signed"
+    declined = "declined"
+
+
 class Users(Base):
     __tablename__ = "users"
     __table_args__ = (
@@ -130,6 +182,12 @@ class Users(Base):
     property_notes: Mapped[list["PropertyNotes"]] = relationship(back_populates="user")
     lease_document: Mapped["UserLeaseDocuments | None"] = relationship(
         back_populates="user", uselist=False
+    )
+    landlord_profile: Mapped["LandlordProfiles | None"] = relationship(
+        back_populates="user", uselist=False
+    )
+    landlord_properties: Mapped[list["LandlordProperties"]] = relationship(
+        back_populates="owner"
     )
 
 
@@ -864,3 +922,419 @@ class UserLeaseDocuments(Base):
     )
 
     user: Mapped["Users"] = relationship(back_populates="lease_document")
+
+
+class LandlordProfiles(Base):
+    __tablename__ = "landlord_profiles"
+    __table_args__ = (
+        Index("ix_landlord_profiles_user_id", "user_id"),
+        UniqueConstraint("user_id", name="uq_landlord_profiles_user_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    display_name: Mapped[str | None] = mapped_column(String(255))
+    company_name: Mapped[str | None] = mapped_column(String(255))
+    phone_number: Mapped[str | None] = mapped_column(String(64))
+    verification_status: Mapped[LandlordVerificationStatus] = mapped_column(
+        SQLEnum(LandlordVerificationStatus, name="landlord_verification_status"),
+        nullable=False,
+        default=LandlordVerificationStatus.pending,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    user: Mapped["Users"] = relationship(back_populates="landlord_profile")
+
+
+class LandlordProperties(Base):
+    __tablename__ = "landlord_properties"
+    __table_args__ = (
+        Index("ix_landlord_properties_owner_user_id", "owner_user_id"),
+        Index("ix_landlord_properties_owner_status", "owner_user_id", "publish_status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    street_line1: Mapped[str] = mapped_column(String(255), nullable=False)
+    street_line2: Mapped[str | None] = mapped_column(String(255))
+    city: Mapped[str] = mapped_column(String(128), nullable=False)
+    state: Mapped[str] = mapped_column(String(64), nullable=False)
+    postal_code: Mapped[str] = mapped_column(String(32), nullable=False)
+    country: Mapped[str] = mapped_column(String(64), nullable=False, default="US")
+    amenities_json: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    publish_status: Mapped[LandlordPublishStatus] = mapped_column(
+        SQLEnum(LandlordPublishStatus, name="landlord_publish_status"),
+        nullable=False,
+        default=LandlordPublishStatus.draft,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    owner: Mapped["Users"] = relationship(back_populates="landlord_properties")
+    media_items: Mapped[list["LandlordPropertyMedia"]] = relationship(
+        back_populates="property", cascade="all, delete-orphan"
+    )
+    units: Mapped[list["LandlordUnits"]] = relationship(
+        back_populates="property", cascade="all, delete-orphan"
+    )
+
+
+class LandlordPropertyMedia(Base):
+    __tablename__ = "landlord_property_media"
+    __table_args__ = (
+        Index("ix_landlord_property_media_property_id", "property_id"),
+        Index("ix_landlord_property_media_property_sort_order", "property_id", "sort_order"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_properties.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    media_url: Mapped[str] = mapped_column(Text, nullable=False)
+    media_type: Mapped[str] = mapped_column(String(32), nullable=False, default="image")
+    caption: Mapped[str | None] = mapped_column(String(255))
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    property: Mapped["LandlordProperties"] = relationship(back_populates="media_items")
+
+
+class LandlordUnits(Base):
+    __tablename__ = "landlord_units"
+    __table_args__ = (
+        Index("ix_landlord_units_property_id", "property_id"),
+        Index("ix_landlord_units_property_available", "property_id", "is_available"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_properties.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    label: Mapped[str] = mapped_column(String(128), nullable=False)
+    bedrooms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    bathrooms: Mapped[Decimal] = mapped_column(Numeric(4, 1), nullable=False, default=Decimal("1.0"))
+    square_feet: Mapped[int | None] = mapped_column(Integer)
+    monthly_rent: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    security_deposit: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    lease_term_months: Mapped[int | None] = mapped_column(Integer)
+    available_on: Mapped[date | None] = mapped_column(Date)
+    is_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    property: Mapped["LandlordProperties"] = relationship(back_populates="units")
+    leads: Mapped[list["LandlordLeads"]] = relationship(back_populates="unit")
+    tour_slots: Mapped[list["LandlordTourSlots"]] = relationship(back_populates="unit")
+    applications: Mapped[list["LandlordApplications"]] = relationship(back_populates="unit")
+    lease_offers: Mapped[list["LandlordLeaseOffers"]] = relationship(back_populates="unit")
+
+
+class LandlordLeads(Base):
+    __tablename__ = "landlord_leads"
+    __table_args__ = (
+        Index("ix_landlord_leads_owner_user_id", "owner_user_id"),
+        Index("ix_landlord_leads_owner_status_created", "owner_user_id", "status", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_properties.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    unit_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_units.id", ondelete="SET NULL")
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone: Mapped[str | None] = mapped_column(String(64))
+    message: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(64), nullable=False, default="platform")
+    status: Mapped[LandlordLeadStatus] = mapped_column(
+        SQLEnum(LandlordLeadStatus, name="landlord_lead_status"),
+        nullable=False,
+        default=LandlordLeadStatus.new,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    unit: Mapped["LandlordUnits | None"] = relationship(back_populates="leads")
+
+
+class LandlordTourSlots(Base):
+    __tablename__ = "landlord_tour_slots"
+    __table_args__ = (
+        Index("ix_landlord_tour_slots_owner_user_id", "owner_user_id"),
+        Index("ix_landlord_tour_slots_unit_start_time", "unit_id", "start_time"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_properties.id", ondelete="CASCADE"), nullable=False
+    )
+    unit_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_units.id", ondelete="CASCADE"), nullable=False
+    )
+    start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    unit: Mapped["LandlordUnits"] = relationship(back_populates="tour_slots")
+    bookings: Mapped[list["LandlordTourBookings"]] = relationship(
+        back_populates="slot", cascade="all, delete-orphan"
+    )
+
+
+class LandlordTourBookings(Base):
+    __tablename__ = "landlord_tour_bookings"
+    __table_args__ = (
+        Index("ix_landlord_tour_bookings_owner_user_id", "owner_user_id"),
+        Index("ix_landlord_tour_bookings_slot_id", "slot_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    slot_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_tour_slots.id", ondelete="CASCADE"), nullable=False
+    )
+    lead_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_leads.id", ondelete="SET NULL")
+    )
+    guest_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    guest_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[LandlordTourBookingStatus] = mapped_column(
+        SQLEnum(LandlordTourBookingStatus, name="landlord_tour_booking_status"),
+        nullable=False,
+        default=LandlordTourBookingStatus.requested,
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    slot: Mapped["LandlordTourSlots"] = relationship(back_populates="bookings")
+
+
+class LandlordApplications(Base):
+    __tablename__ = "landlord_applications"
+    __table_args__ = (
+        Index("ix_landlord_applications_owner_user_id", "owner_user_id"),
+        Index("ix_landlord_applications_owner_status_created", "owner_user_id", "status", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_properties.id", ondelete="CASCADE"), nullable=False
+    )
+    unit_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_units.id", ondelete="SET NULL")
+    )
+    lead_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_leads.id", ondelete="SET NULL")
+    )
+    applicant_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    applicant_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    annual_income: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    credit_score: Mapped[int | None] = mapped_column(Integer)
+    notes: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[LandlordApplicationStatus] = mapped_column(
+        SQLEnum(LandlordApplicationStatus, name="landlord_application_status"),
+        nullable=False,
+        default=LandlordApplicationStatus.submitted,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    unit: Mapped["LandlordUnits | None"] = relationship(back_populates="applications")
+    documents: Mapped[list["LandlordApplicationDocuments"]] = relationship(
+        back_populates="application", cascade="all, delete-orphan"
+    )
+    lease_offers: Mapped[list["LandlordLeaseOffers"]] = relationship(back_populates="application")
+
+
+class LandlordApplicationDocuments(Base):
+    __tablename__ = "landlord_application_documents"
+    __table_args__ = (
+        Index("ix_landlord_application_documents_application_id", "application_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    application_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_applications.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_url: Mapped[str] = mapped_column(Text, nullable=False)
+    file_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    application: Mapped["LandlordApplications"] = relationship(back_populates="documents")
+
+
+class LandlordLeaseOffers(Base):
+    __tablename__ = "landlord_lease_offers"
+    __table_args__ = (
+        Index("ix_landlord_lease_offers_owner_user_id", "owner_user_id"),
+        Index("ix_landlord_lease_offers_owner_status_created", "owner_user_id", "status", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_properties.id", ondelete="CASCADE"), nullable=False
+    )
+    unit_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_units.id", ondelete="SET NULL")
+    )
+    application_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("landlord_applications.id", ondelete="SET NULL")
+    )
+    tenant_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    tenant_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    monthly_rent: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    lease_start: Mapped[date] = mapped_column(Date, nullable=False)
+    lease_end: Mapped[date] = mapped_column(Date, nullable=False)
+    terms_text: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[LandlordLeaseOfferStatus] = mapped_column(
+        SQLEnum(LandlordLeaseOfferStatus, name="landlord_lease_offer_status"),
+        nullable=False,
+        default=LandlordLeaseOfferStatus.draft,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    unit: Mapped["LandlordUnits | None"] = relationship(back_populates="lease_offers")
+    application: Mapped["LandlordApplications | None"] = relationship(back_populates="lease_offers")
+    signatures: Mapped[list["LandlordLeaseSignatures"]] = relationship(
+        back_populates="lease_offer", cascade="all, delete-orphan"
+    )
+
+
+class LandlordLeaseSignatures(Base):
+    __tablename__ = "landlord_lease_signatures"
+    __table_args__ = (
+        Index("ix_landlord_lease_signatures_lease_offer_id", "lease_offer_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    lease_offer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_lease_offers.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    signer_role: Mapped[str] = mapped_column(String(32), nullable=False)
+    signer_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    signer_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[LandlordSignatureStatus] = mapped_column(
+        SQLEnum(LandlordSignatureStatus, name="landlord_signature_status"),
+        nullable=False,
+        default=LandlordSignatureStatus.pending,
+    )
+    signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    lease_offer: Mapped["LandlordLeaseOffers"] = relationship(back_populates="signatures")

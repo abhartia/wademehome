@@ -16,6 +16,7 @@ import {
   useNearbyListings,
 } from "@/lib/listings/useNearbyListings";
 import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
+import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
 import { GuestHomeListingChatRuntime } from "@/app/(marketing)/GuestHomeListingChatRuntime";
 import type {
   ListingSearchPhase,
@@ -132,6 +133,12 @@ type AppSearchInnerProps = {
   assistantExpanded: boolean;
   setAssistantExpanded: (v: boolean) => void;
   submitSearchNow: () => void;
+  hoveredProperty: PropertyDataItem | null;
+  onHoveredPropertyChange: (property: PropertyDataItem | null) => void;
+  onMapMarkerClick: (property: PropertyDataItem) => void;
+  mapFocusProperty: PropertyDataItem | null;
+  mapFocusVersion: number;
+  listScrollProperty: PropertyDataItem | null;
 };
 
 function AppSearchInner({
@@ -150,6 +157,12 @@ function AppSearchInner({
   assistantExpanded,
   setAssistantExpanded,
   submitSearchNow,
+  hoveredProperty,
+  onHoveredPropertyChange,
+  onMapMarkerClick,
+  mapFocusProperty,
+  mapFocusVersion,
+  listScrollProperty,
 }: AppSearchInnerProps) {
   const messages = useMemo(() => listingChat?.messages ?? [], [listingChat]);
   const phase = listingChat?.phase ?? "idle";
@@ -356,6 +369,10 @@ function AppSearchInner({
               onBrowseCenterChange={listingSessionActive ? undefined : onBrowseMapCenterChange}
               globalNearestFallback={Boolean(nearbyQuery.data?.used_global_nearest_fallback)}
               openPropertySheetOnMarkerClick={false}
+              onMarkerClick={onMapMarkerClick}
+              highlightedProperty={hoveredProperty}
+              focusedProperty={mapFocusProperty}
+              focusRequestVersion={mapFocusVersion}
             />
           </div>
         </div>
@@ -404,6 +421,8 @@ function AppSearchInner({
               properties={visibleListings}
               selectedProperty={selectedProperty}
               onSelectProperty={handleSelectProperty}
+              onHoverProperty={onHoveredPropertyChange}
+              scrollToProperty={listScrollProperty}
             />
           </div>
         </div>
@@ -431,6 +450,10 @@ export function AppSearchClient() {
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
   const [browseMapZoom, setBrowseMapZoom] = useState(11);
+  const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
+  const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
+  const [mapFocusVersion, setMapFocusVersion] = useState(0);
+  const [listScrollProperty, setListScrollProperty] = useState<PropertyDataItem | null>(null);
   const latestMemoryAppliedVersionRef = useRef(0);
   const didAutoBootstrapSearchRef = useRef(false);
   const didSetInitialBrowseCenterRef = useRef(false);
@@ -502,6 +525,24 @@ export function AppSearchClient() {
     setListingFireVersion((v) => v + 1);
   }, [query]);
 
+  const onMapMarkerClick = useCallback((property: PropertyDataItem) => {
+    setListScrollProperty((prev) =>
+      isSamePropertyListing(prev, property) ? { ...property } : property,
+    );
+    setSelectedProperty(property);
+  }, []);
+
+  const onListSelectProperty = useCallback((property: PropertyDataItem | null) => {
+    if (!property) {
+      setSelectedProperty(null);
+      return;
+    }
+    setMapFocusProperty(property);
+    setMapFocusVersion((v) => v + 1);
+    setSelectedProperty(property);
+    setIsPropertyDetailOpen(true);
+  }, []);
+
   const handleMemoryUpdate = useCallback(
     (memoryUpdate: ProfileMemoryUpdateState | null, updateVersion: number) => {
       if (!memoryUpdate || memoryUpdate.updated_fields.length === 0) return;
@@ -527,6 +568,12 @@ export function AppSearchClient() {
     assistantExpanded,
     setAssistantExpanded,
     submitSearchNow,
+    hoveredProperty,
+    onHoveredPropertyChange: setHoveredProperty,
+    onMapMarkerClick,
+    mapFocusProperty,
+    mapFocusVersion,
+    listScrollProperty,
   };
 
   const RuntimeInner = ({ chat }: { chat: ListingSearchStreamApi }) => {
@@ -534,7 +581,13 @@ export function AppSearchClient() {
       handleMemoryUpdate(chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion);
       // handleMemoryUpdate is stable for this render scope and does not need to be a dependency.
     }, [chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion]);
-    return <AppSearchInner {...innerProps} listingChat={chat} />;
+    return (
+      <AppSearchInner
+        {...innerProps}
+        listingChat={chat}
+        setSelectedProperty={onListSelectProperty}
+      />
+    );
   };
 
   return (
@@ -548,7 +601,11 @@ export function AppSearchClient() {
           {(chat) => <RuntimeInner chat={chat} />}
         </GuestHomeListingChatRuntime>
       ) : (
-        <AppSearchInner {...innerProps} listingChat={null} />
+        <AppSearchInner
+          {...innerProps}
+          listingChat={null}
+          setSelectedProperty={onListSelectProperty}
+        />
       )}
     </div>
   );

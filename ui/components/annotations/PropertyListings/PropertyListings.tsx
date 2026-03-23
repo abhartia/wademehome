@@ -2,9 +2,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { groupPropertiesByBuilding } from "@/lib/properties/groupPropertiesByBuilding";
+import { buildingGroupKey } from "@/lib/properties/groupPropertiesByBuilding";
 import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
 import { PropertyDataItem, UIPropertyListingAnnotation } from "../UIEventsTypes";
 import { cn } from "@/lib/utils";
@@ -42,10 +43,12 @@ const PropertyCard = ({
   property,
   isSelected,
   onSelectProperty,
+  onHoverProperty,
 }: {
   property: PropertyDataItem;
   isSelected: boolean;
   onSelectProperty?: (property: PropertyDataItem) => void;
+  onHoverProperty?: (property: PropertyDataItem | null) => void;
 }) => {
   const imageUrl = property.images_urls?.[0];
   const photoCount = property.images_urls?.filter(Boolean).length ?? 0;
@@ -55,11 +58,13 @@ const PropertyCard = ({
     <button
       type="button"
       onClick={() => onSelectProperty?.(property)}
+      onMouseEnter={() => onHoverProperty?.(property)}
+      onMouseLeave={() => onHoverProperty?.(null)}
       className="w-full text-left"
     >
       <Card
         className={cn(
-          "flex w-full flex-row gap-3 py-0 transition-colors",
+          "flex w-full flex-row gap-3 overflow-hidden py-0 transition-colors",
           isSelected ? "ring-2 ring-primary" : "hover:bg-muted/30",
         )}
       >
@@ -112,19 +117,24 @@ const BuildingGroupCard = ({
   units,
   selectedProperty,
   onSelectProperty,
+  onHoverProperty,
+  registerGroupRef,
 }: {
   representative: PropertyDataItem;
   units: PropertyDataItem[];
   selectedProperty?: PropertyDataItem | null;
   onSelectProperty?: (property: PropertyDataItem) => void;
+  onHoverProperty?: (property: PropertyDataItem | null) => void;
+  registerGroupRef?: (el: HTMLDivElement | null) => void;
 }) => {
   const imageUrl = representative.images_urls?.[0];
   const photoCount = representative.images_urls?.filter(Boolean).length ?? 0;
   const extraPhotos = photoCount > 1 ? photoCount - 1 : 0;
 
   return (
-    <Card className="overflow-hidden py-0">
-      <div className="flex flex-row gap-3 border-b border-border/60">
+    <div ref={registerGroupRef}>
+      <Card className="overflow-hidden py-0">
+        <div className="flex flex-row gap-3 border-b border-border/60">
         <div className="relative min-h-40 w-28 shrink-0 self-stretch overflow-hidden bg-muted md:min-h-44 md:w-32">
           <ListingImage src={imageUrl} alt={representative.name} />
           {extraPhotos > 0 ? (
@@ -157,31 +167,34 @@ const BuildingGroupCard = ({
             </div>
           </div>
         </div>
-      </div>
-      <div className="flex flex-col p-1">
-        {units.map((unit, index) => (
-          <Button
-            key={`${unit.rent_range}-${unit.bedroom_range}-${index}`}
-            type="button"
-            variant="ghost"
-            className={cn(
-              "h-auto w-full justify-between gap-3 px-3 py-2.5 text-left font-normal",
-              isSamePropertyListing(selectedProperty, unit)
-                ? "bg-muted/50 ring-2 ring-inset ring-primary"
-                : "hover:bg-muted/40",
-            )}
-            onClick={() => onSelectProperty?.(unit)}
-          >
-            <span className="text-sm text-foreground">
-              {formatPropertyRangeLabel(unit.bedroom_range)}
-            </span>
-            <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-              {formatPropertyRangeLabel(unit.rent_range)}
-            </span>
-          </Button>
-        ))}
-      </div>
-    </Card>
+        </div>
+        <div className="flex flex-col p-1">
+          {units.map((unit, index) => (
+            <Button
+              key={`${unit.rent_range}-${unit.bedroom_range}-${index}`}
+              type="button"
+              variant="ghost"
+              className={cn(
+                "h-auto w-full justify-between gap-3 px-3 py-2.5 text-left font-normal",
+                isSamePropertyListing(selectedProperty, unit)
+                  ? "bg-muted/50 ring-2 ring-inset ring-primary"
+                  : "hover:bg-muted/40",
+              )}
+              onClick={() => onSelectProperty?.(unit)}
+              onMouseEnter={() => onHoverProperty?.(unit)}
+              onMouseLeave={() => onHoverProperty?.(null)}
+            >
+              <span className="text-sm text-foreground">
+                {formatPropertyRangeLabel(unit.bedroom_range)}
+              </span>
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                {formatPropertyRangeLabel(unit.rent_range)}
+              </span>
+            </Button>
+          ))}
+        </div>
+      </Card>
+    </div>
   );
 };
 
@@ -189,27 +202,50 @@ export const PropertyList = ({
   properties,
   selectedProperty,
   onSelectProperty,
+  onHoverProperty,
+  scrollToProperty,
 }: {
   properties: PropertyDataItem[];
   selectedProperty?: PropertyDataItem | null;
   onSelectProperty?: (property: PropertyDataItem) => void;
+  onHoverProperty?: (property: PropertyDataItem | null) => void;
+  scrollToProperty?: PropertyDataItem | null;
 }) => {
   const groups = useMemo(() => groupPropertiesByBuilding(properties), [properties]);
+  const cardRefsRef = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  useEffect(() => {
+    if (!scrollToProperty) return;
+    const key = buildingGroupKey(scrollToProperty);
+    const node = cardRefsRef.current.get(key);
+    node?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [scrollToProperty]);
 
   if (!properties || properties.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 px-0.5">
       {groups.map((group) => {
         const [primary] = group.units;
         if (group.units.length === 1) {
           return (
-            <PropertyCard
+            <div
               key={group.key}
-              property={primary}
-              isSelected={isSamePropertyListing(selectedProperty, primary)}
-              onSelectProperty={onSelectProperty}
-            />
+              ref={(el) => {
+                if (el) {
+                  cardRefsRef.current.set(group.key, el);
+                } else {
+                  cardRefsRef.current.delete(group.key);
+                }
+              }}
+            >
+              <PropertyCard
+                property={primary}
+                isSelected={isSamePropertyListing(selectedProperty, primary)}
+                onSelectProperty={onSelectProperty}
+                onHoverProperty={onHoverProperty}
+              />
+            </div>
           );
         }
         return (
@@ -219,6 +255,14 @@ export const PropertyList = ({
             units={group.units}
             selectedProperty={selectedProperty}
             onSelectProperty={onSelectProperty}
+            onHoverProperty={onHoverProperty}
+            registerGroupRef={(el) => {
+              if (el) {
+                cardRefsRef.current.set(group.key, el);
+              } else {
+                cardRefsRef.current.delete(group.key);
+              }
+            }}
           />
         );
       })}

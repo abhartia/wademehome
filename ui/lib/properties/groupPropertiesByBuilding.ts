@@ -7,7 +7,7 @@ export type BuildingPropertyGroup = {
   units: PropertyDataItem[];
 };
 
-function buildingGroupKey(property: PropertyDataItem): string {
+export function buildingGroupKey(property: PropertyDataItem): string {
   if (typeof property.latitude === "number" && typeof property.longitude === "number") {
     return `geo:${property.latitude.toFixed(5)},${property.longitude.toFixed(5)}`;
   }

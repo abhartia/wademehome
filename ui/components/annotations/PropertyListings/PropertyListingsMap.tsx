@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { groupPropertiesByBuilding } from "@/lib/properties/groupPropertiesByBuilding";
+import { buildingGroupKey } from "@/lib/properties/groupPropertiesByBuilding";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
 import type { PropertyDataItem } from "../UIEventsTypes";
@@ -58,12 +59,12 @@ function applyMarkerSeenVisual(markerRoot: HTMLButtonElement, seen: boolean) {
   pill.style.opacity = seen ? "0.72" : "1";
   pill.style.filter = seen ? "saturate(0.55)" : "none";
 
-  const countEl = pill.firstElementChild as HTMLElement | null;
+  const countEl = pill.querySelector("[data-marker-count]") as HTMLElement | null;
   if (countEl) {
     countEl.style.background = seen ? "#94a3b8" : "#22c55e";
   }
 
-  const textCol = pill.children[1] as HTMLElement | undefined;
+  const textCol = pill.querySelector("[data-marker-text]") as HTMLElement | null;
   if (textCol) {
     const bed = textCol.children[0] as HTMLElement | undefined;
     const rent = textCol.children[1] as HTMLElement | undefined;
@@ -98,6 +99,10 @@ interface PropertyListingsMapProps {
   /** API returned nearest inventory rows because nothing matched the search radius. */
   globalNearestFallback?: boolean;
   onSelectProperty?: (property: PropertyDataItem) => void;
+  onMarkerClick?: (property: PropertyDataItem) => void;
+  highlightedProperty?: PropertyDataItem | null;
+  focusedProperty?: PropertyDataItem | null;
+  focusRequestVersion?: number;
   /**
    * When true (default), marker click also invokes `onSelectProperty` (e.g. sheet).
    * When false, only the map popup opens; use listing links inside the popup for details.
@@ -114,6 +119,10 @@ export function PropertyListingsMap({
   onBrowseCenterChange,
   globalNearestFallback = false,
   onSelectProperty,
+  onMarkerClick,
+  highlightedProperty = null,
+  focusedProperty = null,
+  focusRequestVersion = 0,
   openPropertySheetOnMarkerClick = true,
 }: PropertyListingsMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -133,11 +142,24 @@ export function PropertyListingsMap({
   onSelectRef.current = onSelectProperty;
   const openSheetOnMarkerRef = useRef(openPropertySheetOnMarkerClick);
   openSheetOnMarkerRef.current = openPropertySheetOnMarkerClick;
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
+  const markerByGroupKeyRef = useRef<
+    Map<string, { marker: mapboxgl.Marker; markerEl: HTMLButtonElement; seen: boolean; coords: [number, number] }>
+  >(new Map());
 
   /** Mutated on marker click; do not tie to React state or marker rebuilds will cancel popup open. */
   const seenBuildingKeysRef = useRef<Set<string>>(new Set());
 
   const [mapReady, setMapReady] = useState(false);
+  const highlightedGroupKey = useMemo(
+    () => (highlightedProperty ? buildingGroupKey(highlightedProperty) : null),
+    [highlightedProperty],
+  );
+  const focusedGroupKey = useMemo(
+    () => (focusedProperty ? buildingGroupKey(focusedProperty) : null),
+    [focusedProperty],
+  );
 
   useLayoutEffect(() => {
     seenBuildingKeysRef.current = loadSeenBuildingKeys();
@@ -236,6 +258,7 @@ export function PropertyListingsMap({
       setMapReady(false);
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
+      markerByGroupKeyRef.current.clear();
       mapInstance?.remove();
       mapRef.current = null;
       mapboxRef.current = null;
@@ -284,6 +307,34 @@ export function PropertyListingsMap({
   }, [mapReady, followDataCamera, onBrowseCenterChange]);
 
   useEffect(() => {
+    if (!mapReady) return;
+    const markers = markerByGroupKeyRef.current;
+    for (const [groupKey, meta] of markers.entries()) {
+      const isHighlighted = highlightedGroupKey === groupKey;
+      applyMarkerSeenVisual(meta.markerEl, meta.seen);
+      const pill = meta.markerEl.firstElementChild as HTMLElement | null;
+      if (!pill) continue;
+      pill.style.outline = isHighlighted ? "2px solid #38bdf8" : "none";
+      pill.style.transform = isHighlighted ? "scale(1.06)" : "scale(1)";
+      pill.style.transition = "transform 0.18s ease, outline-color 0.18s ease";
+      pill.style.opacity = isHighlighted ? "1" : pill.style.opacity;
+    }
+  }, [mapReady, highlightedGroupKey]);
+
+  useEffect(() => {
+    if (!mapReady || !focusedGroupKey) return;
+    const map = mapRef.current;
+    const meta = markerByGroupKeyRef.current.get(focusedGroupKey);
+    if (!map || !meta) return;
+    map.flyTo({
+      center: meta.coords,
+      zoom: Math.max(map.getZoom(), 13),
+      duration: 450,
+      essential: true,
+    });
+  }, [mapReady, focusedGroupKey, focusRequestVersion]);
+
+  useEffect(() => {
     if (!mapReady || followDataCamera || !onBrowseCenterChange) return;
     const map = mapRef.current;
     if (!map) return;
@@ -310,6 +361,7 @@ export function PropertyListingsMap({
 
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+    markerByGroupKeyRef.current.clear();
 
     for (const group of groupedProperties) {
       const primary = group.units[0];
@@ -437,12 +489,19 @@ export function PropertyListingsMap({
       const countBg = seen ? "#94a3b8" : "#22c55e";
       const labelMuted = seen ? "#cbd5e1" : "#e5e7eb";
       const rentColor = seen ? "#fcd34d" : "#fbbf24";
+      const showUnitCount = group.units.length > 1;
+      const markerGap = showUnitCount ? "6px" : "0";
+      const countPillHtml = showUnitCount
+        ? `<div data-marker-count="1" style="display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${countBg};color:white;font-size:10px;font-weight:600;">
+              ${group.units.length}
+            </div>`
+        : "";
 
       markerEl.innerHTML = `
           <div style="
             display:inline-flex;
             align-items:center;
-            gap:6px;
+            gap:${markerGap};
             padding:4px 10px;
             border-radius:999px;
             background:${pillBg};
@@ -451,10 +510,8 @@ export function PropertyListingsMap({
             filter:${seen ? "saturate(0.55)" : "none"};
             transition:opacity 0.2s ease, filter 0.2s ease, background 0.2s ease;
           ">
-            <div style="display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${countBg};color:white;font-size:10px;font-weight:600;">
-              ${group.units.length}
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-start;">
+            ${countPillHtml}
+            <div data-marker-text="1" style="display:flex;flex-direction:column;align-items:flex-start;">
               <span style="font-size:10px;font-weight:600;color:${labelMuted};max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                 ${escapeHtml(formatPropertyRangeLabel(primary.bedroom_range))}
               </span>
@@ -471,7 +528,10 @@ export function PropertyListingsMap({
           seenBuildingKeysRef.current = next;
           persistSeenBuildingKeys(next);
           applyMarkerSeenVisual(markerEl, true);
+          const markerMeta = markerByGroupKeyRef.current.get(group.key);
+          if (markerMeta) markerMeta.seen = true;
         }
+        onMarkerClickRef.current?.(primary);
         if (openSheetOnMarkerRef.current) {
           onSelectRef.current?.(primary);
         }
@@ -483,6 +543,12 @@ export function PropertyListingsMap({
         .addTo(mapInstance as mapboxgl.Map);
 
       markersRef.current.push(marker);
+      markerByGroupKeyRef.current.set(group.key, {
+        marker,
+        markerEl,
+        seen,
+        coords: [longitude, latitude],
+      });
     }
   }, [mapReady, groupedProperties]);
 

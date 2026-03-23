@@ -23,6 +23,7 @@ import type {
   ListingSearchStreamApi,
 } from "@/lib/listings/useListingSearchStream";
 import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
+import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2, Search, X } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
@@ -117,6 +118,12 @@ type GuestHomeSearchInnerProps = {
   assistantExpanded: boolean;
   setAssistantExpanded: (v: boolean) => void;
   submitSearchNow: () => void;
+  hoveredProperty: PropertyDataItem | null;
+  onHoveredPropertyChange: (property: PropertyDataItem | null) => void;
+  onMapMarkerClick: (property: PropertyDataItem) => void;
+  mapFocusProperty: PropertyDataItem | null;
+  mapFocusVersion: number;
+  listScrollProperty: PropertyDataItem | null;
 };
 
 function GuestHomeSearchInner({
@@ -137,6 +144,12 @@ function GuestHomeSearchInner({
   assistantExpanded,
   setAssistantExpanded,
   submitSearchNow,
+  hoveredProperty,
+  onHoveredPropertyChange,
+  onMapMarkerClick,
+  mapFocusProperty,
+  mapFocusVersion,
+  listScrollProperty,
 }: GuestHomeSearchInnerProps) {
   const messages = useMemo(() => listingChat?.messages ?? [], [listingChat]);
   const phase = listingChat?.phase ?? "idle";
@@ -398,6 +411,10 @@ function GuestHomeSearchInner({
               }
               globalNearestFallback={Boolean(nearbyQuery.data?.used_global_nearest_fallback)}
               openPropertySheetOnMarkerClick={false}
+              onMarkerClick={onMapMarkerClick}
+              highlightedProperty={hoveredProperty}
+              focusedProperty={mapFocusProperty}
+              focusRequestVersion={mapFocusVersion}
             />
           </div>
         </div>
@@ -462,7 +479,11 @@ function GuestHomeSearchInner({
           <PropertyList
             properties={nearbyListings}
             selectedProperty={selectedProperty}
-            onSelectProperty={handleSelectProperty}
+            onSelectProperty={(property) => {
+              handleSelectProperty(property);
+            }}
+            onHoverProperty={onHoveredPropertyChange}
+            scrollToProperty={listScrollProperty}
           />
         </div>
       </div>
@@ -490,6 +511,10 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
   const [browseMapZoom, setBrowseMapZoom] = useState(11);
+  const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
+  const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
+  const [mapFocusVersion, setMapFocusVersion] = useState(0);
+  const [listScrollProperty, setListScrollProperty] = useState<PropertyDataItem | null>(null);
 
   const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number; zoom: number }) => {
     setBrowseMapZoom((prev) => (Math.abs(prev - c.zoom) < 1e-3 ? prev : c.zoom));
@@ -541,6 +566,24 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
     setListingFireVersion((v) => v + 1);
   }, [query]);
 
+  const onMapMarkerClick = useCallback((property: PropertyDataItem) => {
+    setListScrollProperty((prev) =>
+      isSamePropertyListing(prev, property) ? { ...property } : property,
+    );
+    setSelectedProperty(property);
+  }, []);
+
+  const onListSelectProperty = useCallback((property: PropertyDataItem | null) => {
+    if (!property) {
+      setSelectedProperty(null);
+      return;
+    }
+    setMapFocusProperty(property);
+    setMapFocusVersion((v) => v + 1);
+    setSelectedProperty(property);
+    setIsPropertyDetailOpen(true);
+  }, []);
+
   useEffect(() => {
     setAccountHintDismissed(false);
   }, [trimmedQuery]);
@@ -562,6 +605,12 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
     assistantExpanded,
     setAssistantExpanded,
     submitSearchNow,
+    hoveredProperty,
+    onHoveredPropertyChange: setHoveredProperty,
+    onMapMarkerClick,
+    mapFocusProperty,
+    mapFocusVersion,
+    listScrollProperty,
   };
 
   return (
@@ -594,10 +643,20 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
           getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
           onPhaseChange={setListingPhase}
         >
-          {(chat) => <GuestHomeSearchInner {...innerProps} listingChat={chat} />}
+          {(chat) => (
+            <GuestHomeSearchInner
+              {...innerProps}
+              listingChat={chat}
+              setSelectedProperty={onListSelectProperty}
+            />
+          )}
         </GuestHomeListingChatRuntime>
       ) : (
-        <GuestHomeSearchInner {...innerProps} listingChat={null} />
+        <GuestHomeSearchInner
+          {...innerProps}
+          listingChat={null}
+          setSelectedProperty={onListSelectProperty}
+        />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import { AnalyticsConsentProvider } from "@/components/providers/AnalyticsConsen
 import { AnalyticsBootstrap } from "@/components/analytics/AnalyticsBootstrap";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { LandlordProvider } from "@/components/providers/LandlordProvider";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -55,7 +56,9 @@ gtag('consent', 'default', { analytics_storage: 'denied' });`}
                 <RoommateProvider>
                   <ToursProvider>
                     <GuarantorProvider>
-                      <MoveInProvider>{children}</MoveInProvider>
+                      <MoveInProvider>
+                        <LandlordProvider>{children}</LandlordProvider>
+                      </MoveInProvider>
                     </GuarantorProvider>
                   </ToursProvider>
                 </RoommateProvider>
