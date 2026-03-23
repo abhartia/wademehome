@@ -66,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <TooltipProvider>
-      <SidebarProvider>
+      <SidebarProvider className="min-h-0">
         <AppSidebar />
         <SidebarInset>
           <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {pageTitle}
             </span>
           </header>
-          <main className="flex-1 overflow-hidden">{children}</main>
+          <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

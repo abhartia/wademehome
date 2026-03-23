@@ -14,6 +14,8 @@ from core.logger import get_logger
 from workflow.events import (
     DBDataRequiredEvent,
     GeneratedResponseEvent,
+    ProfileMemoryUpdateEventData,
+    ProfileMemoryUpdateData,
     PropertyDataList,
     ResponseStreamEvent,
     SearchHintData,
@@ -27,6 +29,7 @@ from workflow.events import (
 from workflow.utils import (
     CHECK_QUERY_LAST_MESSAGE,
     CHECK_QUERY_OUTPUT_PARSER,
+    PROFILE_MEMORY_UPDATE_SYSTEM,
     SEARCH_HINT_SYSTEM,
     SEARCH_SUMMARY_SYSTEM,
     WRONG_SQL_OUTPUT_PARSER,
@@ -147,6 +150,31 @@ def _parse_search_summary_from_chat_response(
     return default
 
 
+def _parse_profile_memory_update_from_chat_response(
+    resp: ChatResponse | None,
+) -> ProfileMemoryUpdateData:
+    default = ProfileMemoryUpdateData()
+    if not resp or not resp.message:
+        return default
+    content = resp.message.content
+    if content is None:
+        return default
+    if isinstance(content, dict):
+        try:
+            return ProfileMemoryUpdateData.model_validate(content)
+        except Exception:
+            return default
+    if isinstance(content, str):
+        try:
+            return ProfileMemoryUpdateData.model_validate_json(content.strip())
+        except Exception:
+            try:
+                return ProfileMemoryUpdateData.model_validate_json(content)
+            except Exception:
+                return default
+    return default
+
+
 class ListingFetcherWorkflow(Workflow):
     def __init__(
         self,
@@ -257,6 +285,70 @@ class ListingFetcherWorkflow(Workflow):
             summary = SearchSummaryData(headline="Property search", bullets=[])
         ctx.write_event_to_stream(UIEvent(type="search_summary", data=summary))
 
+    async def _emit_profile_memory_update(
+        self,
+        ctx: Context,
+        *,
+        user_msg: str,
+        prior_messages: list[ChatMessage] | None,
+    ) -> None:
+        """Extract profile-worthy preferences and emit a UI event for frontend profile sync."""
+        update = ProfileMemoryUpdateData()
+        try:
+            hist_text = self._format_recent_messages_for_hint(prior_messages or [])
+            sllm = self.llm.as_structured_llm(ProfileMemoryUpdateData)
+            resp = await asyncio.wait_for(
+                sllm.achat(
+                    messages=[
+                        ChatMessage(role="system", content=PROFILE_MEMORY_UPDATE_SYSTEM),
+                        ChatMessage(
+                            role="user",
+                            content=(
+                                "Extract durable renter preference updates from this search turn.\n\n"
+                                f"Prior conversation (recent):\n{hist_text or '(no prior turns)'}\n\n"
+                                f"Latest user message:\n{user_msg}"
+                            ),
+                        ),
+                    ]
+                ),
+                timeout=8.0,
+            )
+            update = _parse_profile_memory_update_from_chat_response(resp)
+        except asyncio.TimeoutError:
+            logger.warning("profile_memory_update extraction timed out")
+        except Exception:
+            logger.exception("profile_memory_update extraction failed")
+
+        patch: dict[str, object] = {}
+        if update.preferredCities:
+            patch["preferredCities"] = [c.strip() for c in update.preferredCities if c and c.strip()]
+        if update.maxMonthlyRent and update.maxMonthlyRent.strip():
+            patch["maxMonthlyRent"] = update.maxMonthlyRent.strip()
+        if update.bedroomsNeeded and update.bedroomsNeeded.strip():
+            patch["bedroomsNeeded"] = update.bedroomsNeeded.strip()
+        if update.dealbreakers:
+            patch["dealbreakers"] = [d.strip() for d in update.dealbreakers if d and d.strip()]
+        if update.neighbourhoodPriorities:
+            patch["neighbourhoodPriorities"] = [
+                n.strip() for n in update.neighbourhoodPriorities if n and n.strip()
+            ]
+        if update.moveTimeline and update.moveTimeline.strip():
+            patch["moveTimeline"] = update.moveTimeline.strip()
+
+        updated_fields = [f for f in update.updated_fields if f in patch]
+        if not updated_fields:
+            updated_fields = list(patch.keys())
+
+        ctx.write_event_to_stream(
+            UIEvent(
+                type="profile_memory_update",
+                data=ProfileMemoryUpdateEventData(
+                    patch=patch,
+                    updated_fields=updated_fields,
+                ),
+            )
+        )
+
     def _run_retrieval_gate_sync(
         self, ev: UserInputEvent
     ) -> tuple[dict, list[ChatMessage]]:
@@ -290,13 +382,21 @@ class ListingFetcherWorkflow(Workflow):
         hint_task = asyncio.create_task(
             self._emit_search_hint(ctx, ev.user_msg, ev.chat_history)
         )
+        memory_task = asyncio.create_task(
+            self._emit_profile_memory_update(
+                ctx,
+                user_msg=ev.user_msg,
+                prior_messages=ev.chat_history,
+            )
+        )
         check_task = asyncio.create_task(
             asyncio.to_thread(self._run_retrieval_gate_sync, ev)
         )
         try:
-            await asyncio.gather(hint_task, check_task)
+            await asyncio.gather(hint_task, memory_task, check_task)
         except BaseException:
             hint_task.cancel()
+            memory_task.cancel()
             check_task.cancel()
             raise
         parsedResponse, chat_history_with_previous_responses = check_task.result()

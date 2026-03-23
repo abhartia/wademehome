@@ -160,3 +160,20 @@ class SearchSummaryData(BaseModel):
             if len(out) >= 6:
                 break
         return out[:5]
+
+
+class ProfileMemoryUpdateData(BaseModel):
+    """Structured profile-memory patch extracted from search conversation."""
+
+    preferredCities: List[str] = Field(default_factory=list)
+    maxMonthlyRent: str | None = None
+    bedroomsNeeded: str | None = None
+    dealbreakers: List[str] = Field(default_factory=list)
+    neighbourhoodPriorities: List[str] = Field(default_factory=list)
+    moveTimeline: str | None = None
+    updated_fields: List[str] = Field(default_factory=list)
+
+
+class ProfileMemoryUpdateEventData(BaseModel):
+    patch: dict[str, object] = Field(default_factory=dict)
+    updated_fields: List[str] = Field(default_factory=list)

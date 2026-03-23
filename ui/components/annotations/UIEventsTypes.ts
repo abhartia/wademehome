@@ -9,6 +9,7 @@ export enum UIEventsTypesEnum {
   SEARCH_HINT = "search_hint",
   SEARCH_SUMMARY = "search_summary",
   SEARCH_STATS = "search_stats",
+  PROFILE_MEMORY_UPDATE = "profile_memory_update",
 }
 
 export type UIEventTypes = UIEventsTypesEnum;
@@ -64,8 +65,17 @@ export interface UISearchStatsAnnotation {
   };
 }
 
+export interface UIProfileMemoryUpdateAnnotation {
+  type: UIEventsTypesEnum.PROFILE_MEMORY_UPDATE;
+  data: {
+    patch: Record<string, unknown>;
+    updated_fields: string[];
+  };
+}
+
 export type UIEventsAnnotations =
   | UIPropertyListingAnnotation
   | UISearchHintAnnotation
   | UISearchSummaryAnnotation
-  | UISearchStatsAnnotation;
+  | UISearchStatsAnnotation
+  | UIProfileMemoryUpdateAnnotation;

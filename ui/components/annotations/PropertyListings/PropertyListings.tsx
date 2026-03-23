@@ -63,7 +63,7 @@ const PropertyCard = ({
           isSelected ? "ring-2 ring-primary" : "hover:bg-muted/30",
         )}
       >
-      <div className="relative h-48 w-32 shrink-0 overflow-hidden rounded-l-md bg-muted">
+      <div className="relative min-h-48 w-32 shrink-0 self-stretch overflow-hidden rounded-l-md bg-muted">
         <ListingImage src={imageUrl} alt={property.name} />
         {extraPhotos > 0 ? (
           <Badge
@@ -125,7 +125,7 @@ const BuildingGroupCard = ({
   return (
     <Card className="overflow-hidden py-0">
       <div className="flex flex-row gap-3 border-b border-border/60">
-        <div className="relative h-40 w-28 shrink-0 overflow-hidden bg-muted md:h-44 md:w-32">
+        <div className="relative min-h-40 w-28 shrink-0 self-stretch overflow-hidden bg-muted md:min-h-44 md:w-32">
           <ListingImage src={imageUrl} alt={representative.name} />
           {extraPhotos > 0 ? (
             <Badge

@@ -258,6 +258,18 @@ export function PropertyListingsMap({
 
   useEffect(() => {
     if (!mapReady) return;
+    const map = mapRef.current;
+    const container = mapContainerRef.current;
+    if (!map || !container) return;
+    const observer = new ResizeObserver(() => {
+      map.resize();
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [mapReady]);
+
+  useEffect(() => {
+    if (!mapReady) return;
     const prev = prevFollowDataCameraRef.current;
     prevFollowDataCameraRef.current = followDataCamera;
     if (

@@ -181,6 +181,8 @@ SEARCH_HINT_SYSTEM = load_app_prompt("search_hint")
 
 SEARCH_SUMMARY_SYSTEM = load_app_prompt("search_summary")
 
+PROFILE_MEMORY_UPDATE_SYSTEM = load_app_prompt("profile_memory_update")
+
 ##
 # Wrong SQL prompt mounting
 ##
