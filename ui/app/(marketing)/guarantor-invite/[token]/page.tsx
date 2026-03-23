@@ -118,7 +118,7 @@ export default function GuarantorInvitePage() {
 
   const status = context.status;
   const isTerminal = TERMINAL_STATUSES.has(status);
-  const canOpen = status === "invited";
+  const canOpen = status === "invited" || status === "opened" || status === "consented";
   const canConsent = status === "invited" || status === "opened";
   const canSign = status === "opened" || status === "consented";
   const canUpload = status === "signed" || status === "submitted";
@@ -170,16 +170,21 @@ export default function GuarantorInvitePage() {
           <p className="text-xs text-muted-foreground">
             Confirm you have reviewed the request details.
           </p>
+          {status !== "invited" ? (
+            <p className="text-xs text-green-700">
+              Already acknowledged.
+            </p>
+          ) : null}
           <Button
             onClick={() =>
               void runAction(
                 () => openMut.mutateAsync({ path: { token } }),
-                "Invite acknowledged.",
+                status === "invited" ? "Invite acknowledged." : "Invite already acknowledged.",
               )
             }
             disabled={!canOpen || isMutating}
           >
-            Acknowledge and continue
+            {status === "invited" ? "Acknowledge and continue" : "Acknowledged"}
           </Button>
         </CardContent>
       </Card>

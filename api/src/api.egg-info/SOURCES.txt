@@ -32,6 +32,7 @@ src/guarantors/public_router.py
 src/guarantors/router.py
 src/guarantors/schemas.py
 src/guarantors/service.py
+src/guarantors/storage.py
 src/listings/__init__.py
 src/listings/location_columns.py
 src/listings/mapbox_client.py

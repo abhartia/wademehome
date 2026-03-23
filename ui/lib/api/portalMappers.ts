@@ -241,7 +241,13 @@ type GuarantorStateApi = {
     viewed_at: string;
     signed_at: string;
     expires_at: string;
-    status_history: { status: string; timestamp: string; note: string }[];
+    status_history?: { status: string; timestamp: string; note: string }[];
+    signing_events?: {
+      event_type: string;
+      actor: string;
+      timestamp: string;
+      note: string;
+    }[];
   }[];
 };
 
@@ -276,11 +282,19 @@ export function guarantorStateFromApi(data: unknown): {
     viewedAt: r.viewed_at,
     signedAt: r.signed_at,
     expiresAt: r.expires_at,
-    statusHistory: (r.status_history ?? []).map((h) => ({
-      status: h.status,
-      timestamp: h.timestamp,
-      note: h.note,
-    })),
+    statusHistory: (r.signing_events ?? []).length
+      ? (r.signing_events ?? []).map((h) => ({
+          eventType: h.event_type,
+          actor: h.actor,
+          timestamp: h.timestamp,
+          note: h.note,
+        }))
+      : (r.status_history ?? []).map((h) => ({
+          eventType: h.status,
+          actor: "system",
+          timestamp: h.timestamp,
+          note: h.note,
+        })),
   }));
   return { savedGuarantors, requests };
 }
@@ -317,7 +331,7 @@ export function guarantorStateToApiPayload(
       signed_at: r.signedAt,
       expires_at: r.expiresAt,
       status_history: r.statusHistory.map((h) => ({
-        status: h.status,
+        status: h.eventType,
         timestamp: h.timestamp,
         note: h.note,
       })),
