@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 
 from auth.router import get_current_user, get_db
-from db.models import PropertyFavorites, PropertyNotes, TourStatus, UserTours, Users
+from db.models import PropertyFavorites, PropertyNotes, Users
 from properties.schemas import (
     FavoriteListResponse,
     FavoriteResponse,
@@ -16,6 +16,7 @@ from properties.schemas import (
     TourRequestCreate,
     TourRequestCreateResponse,
 )
+from tours.service import create_saved_tour_for_property
 
 router = APIRouter(prefix="/properties", tags=["properties"])
 
@@ -126,18 +127,17 @@ def create_tour_request(
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    tour = UserTours(
-        user_id=user.id,
-        property_ref_id=payload.property_key,
+    tour = create_saved_tour_for_property(
+        db,
+        user.id,
+        property_key=payload.property_key,
         property_name=payload.property_name,
         property_address=payload.property_address,
         property_image=payload.property_image,
         property_price=payload.property_price,
         property_beds=payload.property_beds,
         property_tags=payload.property_tags,
-        status=TourStatus.saved,
+        requested_date=payload.requested_date,
+        requested_time=payload.requested_time,
     )
-    db.add(tour)
-    db.commit()
-    db.refresh(tour)
-    return TourRequestCreateResponse(id=str(tour.id))
+    return TourRequestCreateResponse(id=tour.id)

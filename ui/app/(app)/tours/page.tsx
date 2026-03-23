@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 
 export default function ToursPage() {
-  const { tours, updateTour, removeTour } = useTours();
+  const { tours, isReadOnly, updateTour, removeTour } = useTours();
   const { journeyStage } = useUserProfile();
 
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -78,6 +78,11 @@ export default function ToursPage() {
         </div>
       )}
       <Tabs defaultValue="upcoming" className="flex h-full flex-col">
+        {isReadOnly && (
+          <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+            Sign in to create and manage tours.
+          </div>
+        )}
         <div className="shrink-0 border-b px-4 pt-3 pb-0">
           <TabsList>
             <TabsTrigger value="upcoming" className="gap-1.5">
@@ -130,6 +135,7 @@ export default function ToursPage() {
                 size="sm"
                 className="h-8 gap-1.5 text-xs"
                 onClick={() => openSchedule()}
+                disabled={isReadOnly}
               >
                 <CalendarPlus className="h-3.5 w-3.5" />
                 Schedule a Tour
@@ -147,6 +153,7 @@ export default function ToursPage() {
                     variant="outline"
                     className="h-8 gap-1.5 text-xs"
                     onClick={() => openSchedule()}
+                    disabled={isReadOnly}
                   >
                     <CalendarPlus className="h-3.5 w-3.5" />
                     Schedule a Tour

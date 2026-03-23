@@ -237,6 +237,7 @@ class UserTours(Base):
     __table_args__ = (
         Index("ix_user_tours_user_id", "user_id"),
         Index("ix_user_tours_user_status_date", "user_id", "status", "tour_date"),
+        Index("ix_user_tours_user_created_at", "user_id", "created_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -327,7 +328,10 @@ class PropertyNotes(Base):
 
 class TourNotes(Base):
     __tablename__ = "tour_notes"
-    __table_args__ = (Index("ix_tour_notes_tour_id", "tour_id"),)
+    __table_args__ = (
+        Index("ix_tour_notes_tour_id", "tour_id"),
+        UniqueConstraint("tour_id", name="uq_tour_notes_tour_id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

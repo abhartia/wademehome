@@ -4,30 +4,24 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useRef,
-  useState,
+  useMemo,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tour, TourNote, TourProperty, TourStatus } from "@/lib/types/tours";
-import { SEED_TOURS } from "@/lib/mock/tours";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
-  readToursPortalToursGetOptions,
-  readToursPortalToursGetQueryKey,
-  syncToursPortalToursPutMutation,
+  createTourRouteToursPostMutation,
+  deleteTourRouteToursTourIdDeleteMutation,
+  readToursToursGetOptions,
+  readToursToursGetQueryKey,
+  updateTourRouteToursTourIdPatchMutation,
+  upsertTourNoteRouteToursTourIdNotePutMutation,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
-import type { ToursStatePayload } from "@/lib/api/generated/types.gen";
-import { toursFromApi, toursToApiPayload } from "@/lib/api/portalMappers";
-
-const STORAGE_KEY = "wademehome_tours";
-
-function toursSyncFingerprint(list: Tour[]): string {
-  return JSON.stringify(toursToApiPayload(list));
-}
+import { toursFromApi } from "@/lib/api/portalMappers";
 
 interface ToursContextValue {
   tours: Tour[];
+  isReadOnly: boolean;
   addTour: (
     property: TourProperty,
     status: TourStatus,
@@ -45,82 +39,43 @@ const ToursContext = createContext<ToursContextValue | null>(null);
 export function ToursProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [tours, setTours] = useState<Tour[]>([]);
-  const [hydrated, setHydrated] = useState(false);
-  const skipSave = useRef(false);
-  const debounceRef = useRef<number | undefined>(undefined);
-  const toursRef = useRef(tours);
-  toursRef.current = tours;
-  const lastSyncedToursJson = useRef<string | null>(null);
-  const syncMutateRef = useRef<
-    (opts: { body: ToursStatePayload }) => void
-  >(() => {});
-
-  const syncMutation = useMutation({
-    ...syncToursPortalToursPutMutation(),
-    onSuccess: (data) => {
-      skipSave.current = true;
-      const next = toursFromApi(data);
-      setTours(next);
-      lastSyncedToursJson.current = toursSyncFingerprint(next);
-      queryClient.setQueryData(readToursPortalToursGetQueryKey({}), data);
-    },
-  });
-  syncMutateRef.current = syncMutation.mutate;
 
   const { data: serverTours } = useQuery({
-    ...readToursPortalToursGetOptions({}),
+    ...readToursToursGetOptions({
+      query: { limit: 200, offset: 0, sort: "created_at_desc" },
+    }),
     enabled: Boolean(user),
-    queryKey: readToursPortalToursGetQueryKey({}),
+    queryKey: readToursToursGetQueryKey({
+      query: { limit: 200, offset: 0, sort: "created_at_desc" },
+    }),
   });
+  const tours = useMemo(() => (user ? toursFromApi(serverTours) : []), [serverTours, user]);
+  const isReadOnly = !user;
 
-  useEffect(() => {
-    if (user) {
-      setHydrated(true);
-      return;
-    }
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setTours(JSON.parse(stored) as Tour[]);
-      } else {
-        setTours(SEED_TOURS);
-      }
-    } catch {
-      setTours(SEED_TOURS);
-    }
-    setHydrated(true);
-  }, [user]);
+  const refreshTours = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      queryKey: readToursToursGetQueryKey({
+        query: { limit: 200, offset: 0, sort: "created_at_desc" },
+      }),
+    });
+  }, [queryClient]);
 
-  useEffect(() => {
-    if (!user || serverTours === undefined) return;
-    skipSave.current = true;
-    const next = toursFromApi(serverTours);
-    setTours(next);
-    lastSyncedToursJson.current = toursSyncFingerprint(next);
-  }, [user, serverTours]);
-
-  useEffect(() => {
-    if (!hydrated || user) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tours));
-  }, [tours, hydrated, user]);
-
-  useEffect(() => {
-    if (!user || !hydrated) return;
-    if (skipSave.current) {
-      skipSave.current = false;
-      return;
-    }
-    window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(() => {
-      const list = toursRef.current;
-      const body = toursToApiPayload(list) as unknown as ToursStatePayload;
-      const fp = JSON.stringify(body);
-      if (fp === lastSyncedToursJson.current) return;
-      syncMutateRef.current({ body });
-    }, 600);
-    return () => window.clearTimeout(debounceRef.current);
-  }, [tours, user, hydrated]);
+  const createTourMutation = useMutation({
+    ...createTourRouteToursPostMutation(),
+    onSuccess: refreshTours,
+  });
+  const updateTourMutation = useMutation({
+    ...updateTourRouteToursTourIdPatchMutation(),
+    onSuccess: refreshTours,
+  });
+  const deleteTourMutation = useMutation({
+    ...deleteTourRouteToursTourIdDeleteMutation(),
+    onSuccess: refreshTours,
+  });
+  const upsertNoteMutation = useMutation({
+    ...upsertTourNoteRouteToursTourIdNotePutMutation(),
+    onSuccess: refreshTours,
+  });
 
   const addTour = useCallback(
     (
@@ -129,55 +84,99 @@ export function ToursProvider({ children }: { children: React.ReactNode }) {
       date?: string,
       time?: string,
     ) => {
-      const newTour: Tour = {
-        id: typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `tour-${Date.now()}`,
-        property,
-        status,
-        scheduledDate: date ?? "",
-        scheduledTime: time ?? "",
-        note: null,
-        createdAt: new Date().toISOString(),
-      };
-      setTours((prev) => [newTour, ...prev]);
+      if (!user) return;
+      createTourMutation.mutate({
+        body: {
+          property: {
+            id: property.id,
+            name: property.name,
+            address: property.address,
+            rent: property.rent,
+            beds: property.beds,
+            image: property.image,
+            tags: property.tags,
+          },
+          status,
+          scheduled_date: date ?? "",
+          scheduled_time: time ?? "",
+          note: null,
+        },
+      });
     },
-    [],
+    [createTourMutation, user],
   );
 
   const updateTour = useCallback(
     (tourId: string, partial: Partial<Tour>) => {
-      setTours((prev) =>
-        prev.map((t) => (t.id === tourId ? { ...t, ...partial } : t)),
-      );
+      if (!user) return;
+      updateTourMutation.mutate({
+        path: { tour_id: tourId },
+        body: {
+          status: partial.status,
+          scheduled_date: partial.scheduledDate,
+          scheduled_time: partial.scheduledTime,
+          property: partial.property
+            ? {
+              id: partial.property.id,
+              name: partial.property.name,
+              address: partial.property.address,
+              rent: partial.property.rent,
+              beds: partial.property.beds,
+              image: partial.property.image,
+              tags: partial.property.tags,
+            }
+            : undefined,
+        },
+      });
     },
-    [],
+    [updateTourMutation, user],
   );
 
   const updateNote = useCallback((tourId: string, note: TourNote) => {
-    setTours((prev) =>
-      prev.map((t) =>
-        t.id === tourId
-          ? { ...t, note: { ...note, updatedAt: new Date().toISOString() } }
-          : t,
-      ),
-    );
-  }, []);
+    if (!user) return;
+    upsertNoteMutation.mutate({
+      path: { tour_id: tourId },
+      body: {
+        note: {
+          ratings: {
+            overall: note.ratings.overall,
+            cleanliness: note.ratings.cleanliness,
+            naturalLight: note.ratings.naturalLight,
+            noiseLevel: note.ratings.noiseLevel,
+            condition: note.ratings.condition,
+          },
+          pros: note.pros,
+          cons: note.cons,
+          general_notes: note.generalNotes,
+          would_apply: note.wouldApply,
+          photo_checklist: note.photoChecklist,
+          updated_at: note.updatedAt,
+        },
+      },
+    });
+  }, [upsertNoteMutation, user]);
 
   const removeTour = useCallback((tourId: string) => {
-    setTours((prev) => prev.filter((t) => t.id !== tourId));
-  }, []);
+    if (!user) return;
+    deleteTourMutation.mutate({ path: { tour_id: tourId } });
+  }, [deleteTourMutation, user]);
 
   const getTourByPropertyId = useCallback(
     (propertyId: string) => tours.find((t) => t.property.id === propertyId),
     [tours],
   );
 
-  if (!hydrated) return null;
-
   return (
     <ToursContext.Provider
-      value={{ tours, addTour, updateTour, updateNote, removeTour, getTourByPropertyId }}
+      value={{
+        tours,
+        isReadOnly,
+        addTour,
+        updateTour,
+        updateNote,
+        removeTour,
+        getTourByPropertyId,
+      }}
     >
       {children}
     </ToursContext.Provider>

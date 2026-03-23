@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useTours } from "@/components/providers/ToursProvider";
-import { MOCK_PROPERTIES } from "@/lib/mock/tours";
+import { usePropertyFavorites } from "@/lib/properties/api";
 import { TourProperty } from "@/lib/types/tours";
 import { CalendarPlus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,8 @@ export function ScheduleTourSheet({
   preSelectedProperty,
   tourId,
 }: ScheduleTourSheetProps) {
-  const { addTour, updateTour, getTourByPropertyId } = useTours();
+  const { tours, isReadOnly, addTour, updateTour, getTourByPropertyId } = useTours();
+  const favoritesQuery = usePropertyFavorites({ enabled: !isReadOnly });
   const [selectedProperty, setSelectedProperty] = useState<TourProperty | null>(
     preSelectedProperty ?? null,
   );
@@ -59,7 +60,7 @@ export function ScheduleTourSheet({
   };
 
   const handleSubmit = () => {
-    if (!selectedProperty || !date) return;
+    if (isReadOnly || !selectedProperty || !date) return;
 
     if (tourId) {
       updateTour(tourId, {
@@ -83,6 +84,25 @@ export function ScheduleTourSheet({
     onOpenChange(false);
   };
 
+  const availableProperties = useMemo(() => {
+    const map = new Map<string, TourProperty>();
+    for (const tour of tours) {
+      map.set(tour.property.id, tour.property);
+    }
+    for (const favorite of favoritesQuery.data?.favorites ?? []) {
+      map.set(favorite.property_key, {
+        id: favorite.property_key,
+        name: favorite.property_name,
+        address: favorite.property_address,
+        rent: "",
+        beds: "",
+        image: "",
+        tags: [],
+      });
+    }
+    return Array.from(map.values());
+  }, [favoritesQuery.data?.favorites, tours]);
+
   const isValid = selectedProperty && date.trim().length > 0;
 
   return (
@@ -102,7 +122,7 @@ export function ScheduleTourSheet({
                 Select Property
               </label>
               <div className="grid max-h-56 gap-1.5 overflow-y-auto">
-                {MOCK_PROPERTIES.map((p) => (
+                {availableProperties.map((p) => (
                   <button
                     key={p.id}
                     type="button"
@@ -122,7 +142,7 @@ export function ScheduleTourSheet({
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{p.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {p.rent} · {p.beds}
+                        {[p.rent, p.beds].filter(Boolean).join(" · ") || p.address}
                       </p>
                     </div>
                     {selectedProperty?.id === p.id && (
@@ -186,7 +206,7 @@ export function ScheduleTourSheet({
           <Button
             className="w-full gap-1.5"
             size="sm"
-            disabled={!isValid}
+            disabled={!isValid || isReadOnly}
             onClick={handleSubmit}
           >
             <CalendarPlus className="h-3.5 w-3.5" />

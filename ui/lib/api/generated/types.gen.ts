@@ -1156,6 +1156,26 @@ export type StatusHistoryPayload = {
 };
 
 /**
+ * TourCreate
+ */
+export type TourCreate = {
+    property: ToursSchemasTourPropertyPayload;
+    /**
+     * Status
+     */
+    status?: string;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string;
+    /**
+     * Scheduled Time
+     */
+    scheduled_time?: string;
+    note?: TourNotePayload | null;
+};
+
+/**
  * TourNotePayload
  */
 export type TourNotePayload = {
@@ -1192,14 +1212,49 @@ export type TourNotePayload = {
 };
 
 /**
+ * TourNoteUpsert
+ */
+export type TourNoteUpsert = {
+    note: TourNotePayload;
+};
+
+/**
  * TourPayload
  */
-export type TourPayload = {
+export type TourPayloadInput = {
     /**
      * Id
      */
     id: string;
-    property: TourPropertyPayload;
+    property: PortalSchemasTourPropertyPayload;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string;
+    /**
+     * Scheduled Time
+     */
+    scheduled_time?: string;
+    note?: TourNotePayload | null;
+    /**
+     * Created At
+     */
+    created_at?: string;
+};
+
+/**
+ * TourPayload
+ */
+export type TourPayloadOutput = {
+    /**
+     * Id
+     */
+    id: string;
+    property: TourPropertyPayloadOutput;
     /**
      * Status
      */
@@ -1222,11 +1277,11 @@ export type TourPayload = {
 /**
  * TourPropertyPayload
  */
-export type TourPropertyPayload = {
+export type TourPropertyPayloadOutput = {
     /**
      * Id
      */
-    id: string;
+    id?: string;
     /**
      * Name
      */
@@ -1306,13 +1361,53 @@ export type TourRequestCreateResponse = {
 };
 
 /**
+ * TourResponse
+ */
+export type TourResponse = {
+    tour: TourPayloadOutput;
+};
+
+/**
+ * TourUpdate
+ */
+export type TourUpdate = {
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+    /**
+     * Scheduled Time
+     */
+    scheduled_time?: string | null;
+    property?: ToursSchemasTourPropertyPayload | null;
+};
+
+/**
+ * ToursListResponse
+ */
+export type ToursListResponse = {
+    /**
+     * Tours
+     */
+    tours?: Array<TourPayloadOutput>;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
  * ToursStatePayload
  */
 export type ToursStatePayload = {
     /**
      * Tours
      */
-    tours?: Array<TourPayload>;
+    tours?: Array<TourPayloadInput>;
 };
 
 /**
@@ -1417,6 +1512,74 @@ export type VerifyEmailRequest = {
      * Token
      */
     token: string;
+};
+
+/**
+ * TourPropertyPayload
+ */
+export type PortalSchemasTourPropertyPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Address
+     */
+    address: string;
+    /**
+     * Rent
+     */
+    rent?: string;
+    /**
+     * Beds
+     */
+    beds?: string;
+    /**
+     * Image
+     */
+    image?: string;
+    /**
+     * Tags
+     */
+    tags?: Array<string>;
+};
+
+/**
+ * TourPropertyPayload
+ */
+export type ToursSchemasTourPropertyPayload = {
+    /**
+     * Id
+     */
+    id?: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Address
+     */
+    address: string;
+    /**
+     * Rent
+     */
+    rent?: string;
+    /**
+     * Beds
+     */
+    beds?: string;
+    /**
+     * Image
+     */
+    image?: string;
+    /**
+     * Tags
+     */
+    tags?: Array<string>;
 };
 
 export type SignupAuthSignupPostData = {
@@ -2189,6 +2352,205 @@ export type SyncRoommatesPortalRoommatesPutResponses = {
      */
     200: unknown;
 };
+
+export type ReadToursToursGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Status
+         */
+        status?: string | null;
+        /**
+         * From Date
+         */
+        from_date?: string | null;
+        /**
+         * To Date
+         */
+        to_date?: string | null;
+        /**
+         * Q
+         */
+        q?: string | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+        /**
+         * Sort
+         */
+        sort?: string;
+    };
+    url: '/tours';
+};
+
+export type ReadToursToursGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadToursToursGetError = ReadToursToursGetErrors[keyof ReadToursToursGetErrors];
+
+export type ReadToursToursGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToursListResponse;
+};
+
+export type ReadToursToursGetResponse = ReadToursToursGetResponses[keyof ReadToursToursGetResponses];
+
+export type CreateTourRouteToursPostData = {
+    body: TourCreate;
+    path?: never;
+    query?: never;
+    url: '/tours';
+};
+
+export type CreateTourRouteToursPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTourRouteToursPostError = CreateTourRouteToursPostErrors[keyof CreateTourRouteToursPostErrors];
+
+export type CreateTourRouteToursPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: TourResponse;
+};
+
+export type CreateTourRouteToursPostResponse = CreateTourRouteToursPostResponses[keyof CreateTourRouteToursPostResponses];
+
+export type DeleteTourRouteToursTourIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Tour Id
+         */
+        tour_id: string;
+    };
+    query?: never;
+    url: '/tours/{tour_id}';
+};
+
+export type DeleteTourRouteToursTourIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTourRouteToursTourIdDeleteError = DeleteTourRouteToursTourIdDeleteErrors[keyof DeleteTourRouteToursTourIdDeleteErrors];
+
+export type DeleteTourRouteToursTourIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteTourRouteToursTourIdDeleteResponse = DeleteTourRouteToursTourIdDeleteResponses[keyof DeleteTourRouteToursTourIdDeleteResponses];
+
+export type ReadTourToursTourIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Tour Id
+         */
+        tour_id: string;
+    };
+    query?: never;
+    url: '/tours/{tour_id}';
+};
+
+export type ReadTourToursTourIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadTourToursTourIdGetError = ReadTourToursTourIdGetErrors[keyof ReadTourToursTourIdGetErrors];
+
+export type ReadTourToursTourIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: TourResponse;
+};
+
+export type ReadTourToursTourIdGetResponse = ReadTourToursTourIdGetResponses[keyof ReadTourToursTourIdGetResponses];
+
+export type UpdateTourRouteToursTourIdPatchData = {
+    body: TourUpdate;
+    path: {
+        /**
+         * Tour Id
+         */
+        tour_id: string;
+    };
+    query?: never;
+    url: '/tours/{tour_id}';
+};
+
+export type UpdateTourRouteToursTourIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTourRouteToursTourIdPatchError = UpdateTourRouteToursTourIdPatchErrors[keyof UpdateTourRouteToursTourIdPatchErrors];
+
+export type UpdateTourRouteToursTourIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: TourResponse;
+};
+
+export type UpdateTourRouteToursTourIdPatchResponse = UpdateTourRouteToursTourIdPatchResponses[keyof UpdateTourRouteToursTourIdPatchResponses];
+
+export type UpsertTourNoteRouteToursTourIdNotePutData = {
+    body: TourNoteUpsert;
+    path: {
+        /**
+         * Tour Id
+         */
+        tour_id: string;
+    };
+    query?: never;
+    url: '/tours/{tour_id}/note';
+};
+
+export type UpsertTourNoteRouteToursTourIdNotePutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpsertTourNoteRouteToursTourIdNotePutError = UpsertTourNoteRouteToursTourIdNotePutErrors[keyof UpsertTourNoteRouteToursTourIdNotePutErrors];
+
+export type UpsertTourNoteRouteToursTourIdNotePutResponses = {
+    /**
+     * Successful Response
+     */
+    200: TourResponse;
+};
+
+export type UpsertTourNoteRouteToursTourIdNotePutResponse = UpsertTourNoteRouteToursTourIdNotePutResponses[keyof UpsertTourNoteRouteToursTourIdNotePutResponses];
 
 export type ListingChatListingsChatPostData = {
     body: ChatRequest;

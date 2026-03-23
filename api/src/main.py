@@ -31,6 +31,7 @@ from auth.router import router as auth_router
 from listings.router import router as listings_router
 from properties.router import router as properties_router
 from portal.router import router as portal_router
+from tours.router import router as tours_router
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -52,6 +53,7 @@ app.include_router(auth_router)
 app.include_router(listings_router)
 app.include_router(properties_router)
 app.include_router(portal_router)
+app.include_router(tours_router)
 
 def get_event_generator(
     handler: WorkflowHandler,

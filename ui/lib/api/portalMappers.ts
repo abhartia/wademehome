@@ -167,7 +167,7 @@ function tourNoteToApi(n: TourNote): TourNoteApi {
 }
 
 export function toursFromApi(payload: unknown): Tour[] {
-  const row = payload as { tours?: TourApi[] };
+  const row = (payload ?? {}) as { tours?: TourApi[] };
   return (row.tours ?? []).map((t) => {
     const property: TourProperty = {
       id: t.property.id,

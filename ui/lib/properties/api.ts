@@ -8,6 +8,7 @@ import {
   getPropertyNotePropertiesNotesPropertyKeyGetQueryKey,
   listFavoritesPropertiesFavoritesGetOptions,
   listFavoritesPropertiesFavoritesGetQueryKey,
+  readToursToursGetQueryKey,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
 import {
   createTourRequestPropertiesTourRequestsPost,
@@ -92,6 +93,7 @@ export function useUpsertPropertyNote(propertyKey: string) {
 }
 
 export function useCreateTourRequest() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async (
       payload: TourRequestCreate,
@@ -101,6 +103,13 @@ export function useCreateTourRequest() {
         throwOnError: true,
       });
       return data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({
+        queryKey: readToursToursGetQueryKey({
+          query: { limit: 200, offset: 0, sort: "created_at_desc" },
+        }),
+      });
     },
   });
 }

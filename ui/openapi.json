@@ -1257,6 +1257,358 @@
         }
       }
     },
+    "/tours": {
+      "get": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Read Tours",
+        "operationId": "read_tours_tours_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From Date"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To Date"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "created_at_desc",
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToursListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Create Tour Route",
+        "operationId": "create_tour_route_tours_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TourCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tours/{tour_id}": {
+      "get": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Read Tour",
+        "operationId": "read_tour_tours__tour_id__get",
+        "parameters": [
+          {
+            "name": "tour_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tour Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Update Tour Route",
+        "operationId": "update_tour_route_tours__tour_id__patch",
+        "parameters": [
+          {
+            "name": "tour_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tour Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TourUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Delete Tour Route",
+        "operationId": "delete_tour_route_tours__tour_id__delete",
+        "parameters": [
+          {
+            "name": "tour_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tour Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tours/{tour_id}/note": {
+      "put": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Upsert Tour Note Route",
+        "operationId": "upsert_tour_note_route_tours__tour_id__note_put",
+        "parameters": [
+          {
+            "name": "tour_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tour Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TourNoteUpsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/listings/chat": {
       "post": {
         "summary": "Listing Chat",
@@ -3260,6 +3612,43 @@
         ],
         "title": "StatusHistoryPayload"
       },
+      "TourCreate": {
+        "properties": {
+          "property": {
+            "$ref": "#/components/schemas/tours__schemas__TourPropertyPayload"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "saved"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "title": "Scheduled Date",
+            "default": ""
+          },
+          "scheduled_time": {
+            "type": "string",
+            "title": "Scheduled Time",
+            "default": ""
+          },
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TourNotePayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "property"
+        ],
+        "title": "TourCreate"
+      },
       "TourNotePayload": {
         "properties": {
           "ratings": {
@@ -3309,14 +3698,26 @@
         "type": "object",
         "title": "TourNotePayload"
       },
-      "TourPayload": {
+      "TourNoteUpsert": {
+        "properties": {
+          "note": {
+            "$ref": "#/components/schemas/TourNotePayload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "note"
+        ],
+        "title": "TourNoteUpsert"
+      },
+      "TourPayload-Input": {
         "properties": {
           "id": {
             "type": "string",
             "title": "Id"
           },
           "property": {
-            "$ref": "#/components/schemas/TourPropertyPayload"
+            "$ref": "#/components/schemas/portal__schemas__TourPropertyPayload"
           },
           "status": {
             "type": "string",
@@ -3356,11 +3757,59 @@
         ],
         "title": "TourPayload"
       },
-      "TourPropertyPayload": {
+      "TourPayload-Output": {
         "properties": {
           "id": {
             "type": "string",
             "title": "Id"
+          },
+          "property": {
+            "$ref": "#/components/schemas/TourPropertyPayload-Output"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "title": "Scheduled Date",
+            "default": ""
+          },
+          "scheduled_time": {
+            "type": "string",
+            "title": "Scheduled Time",
+            "default": ""
+          },
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TourNotePayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "property",
+          "status"
+        ],
+        "title": "TourPayload"
+      },
+      "TourPropertyPayload-Output": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "default": ""
           },
           "name": {
             "type": "string",
@@ -3395,7 +3844,6 @@
         },
         "type": "object",
         "required": [
-          "id",
           "name",
           "address"
         ],
@@ -3505,11 +3953,92 @@
         ],
         "title": "TourRequestCreateResponse"
       },
+      "TourResponse": {
+        "properties": {
+          "tour": {
+            "$ref": "#/components/schemas/TourPayload-Output"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tour"
+        ],
+        "title": "TourResponse"
+      },
+      "TourUpdate": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "scheduled_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Date"
+          },
+          "scheduled_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Time"
+          },
+          "property": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/tours__schemas__TourPropertyPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "TourUpdate"
+      },
+      "ToursListResponse": {
+        "properties": {
+          "tours": {
+            "items": {
+              "$ref": "#/components/schemas/TourPayload-Output"
+            },
+            "type": "array",
+            "title": "Tours"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total"
+        ],
+        "title": "ToursListResponse"
+      },
       "ToursStatePayload": {
         "properties": {
           "tours": {
             "items": {
-              "$ref": "#/components/schemas/TourPayload"
+              "$ref": "#/components/schemas/TourPayload-Input"
             },
             "type": "array",
             "title": "Tours"
@@ -3660,6 +4189,96 @@
           "token"
         ],
         "title": "VerifyEmailRequest"
+      },
+      "portal__schemas__TourPropertyPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "rent": {
+            "type": "string",
+            "title": "Rent",
+            "default": ""
+          },
+          "beds": {
+            "type": "string",
+            "title": "Beds",
+            "default": ""
+          },
+          "image": {
+            "type": "string",
+            "title": "Image",
+            "default": ""
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "address"
+        ],
+        "title": "TourPropertyPayload"
+      },
+      "tours__schemas__TourPropertyPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "default": ""
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "rent": {
+            "type": "string",
+            "title": "Rent",
+            "default": ""
+          },
+          "beds": {
+            "type": "string",
+            "title": "Beds",
+            "default": ""
+          },
+          "image": {
+            "type": "string",
+            "title": "Image",
+            "default": ""
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "address"
+        ],
+        "title": "TourPropertyPayload"
       }
     }
   }
