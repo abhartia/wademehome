@@ -63,6 +63,64 @@ export type ChatRequest = {
 };
 
 /**
+ * ChecklistItemCreate
+ */
+export type ChecklistItemCreate = {
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Completed
+     */
+    completed?: boolean;
+};
+
+/**
+ * ChecklistItemOut
+ */
+export type ChecklistItemOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Completed
+     */
+    completed: boolean;
+};
+
+/**
+ * ChecklistItemPatch
+ */
+export type ChecklistItemPatch = {
+    /**
+     * Category
+     */
+    category?: string | null;
+    /**
+     * Label
+     */
+    label?: string | null;
+    /**
+     * Completed
+     */
+    completed?: boolean | null;
+};
+
+/**
  * ChecklistItemPayload
  */
 export type ChecklistItemPayload = {
@@ -82,6 +140,16 @@ export type ChecklistItemPayload = {
      * Completed
      */
     completed?: boolean;
+};
+
+/**
+ * ChecklistListResponse
+ */
+export type ChecklistListResponse = {
+    /**
+     * Checklist
+     */
+    checklist?: Array<ChecklistItemOut>;
 };
 
 /**
@@ -240,6 +308,115 @@ export type GeocodeResponse = {
      * Longitude
      */
     longitude: number;
+};
+
+/**
+ * GuarantorRequestCreate
+ */
+export type GuarantorRequestCreate = {
+    /**
+     * Guarantor Id
+     */
+    guarantor_id: string;
+    lease: LeasePayload;
+};
+
+/**
+ * GuarantorRequestListResponse
+ */
+export type GuarantorRequestListResponse = {
+    /**
+     * Requests
+     */
+    requests: Array<GuarantorRequestOut>;
+};
+
+/**
+ * GuarantorRequestOut
+ */
+export type GuarantorRequestOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Guarantor Id
+     */
+    guarantor_id: string;
+    /**
+     * Guarantor Snapshot
+     */
+    guarantor_snapshot: {
+        [key: string]: string;
+    };
+    lease: LeasePayload;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Verification Status
+     */
+    verification_status: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Sent At
+     */
+    sent_at: string;
+    /**
+     * Viewed At
+     */
+    viewed_at: string;
+    /**
+     * Signed At
+     */
+    signed_at: string;
+    /**
+     * Expires At
+     */
+    expires_at: string;
+    /**
+     * Status History
+     */
+    status_history: Array<StatusHistoryOut>;
+};
+
+/**
+ * GuarantorRequestPatch
+ */
+export type GuarantorRequestPatch = {
+    lease?: LeasePayload | null;
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Verification Status
+     */
+    verification_status?: string | null;
+    /**
+     * Sent At
+     */
+    sent_at?: string | null;
+    /**
+     * Viewed At
+     */
+    viewed_at?: string | null;
+    /**
+     * Signed At
+     */
+    signed_at?: string | null;
+    /**
+     * Expires At
+     */
+    expires_at?: string | null;
+    /**
+     * Status Note
+     */
+    status_note?: string | null;
 };
 
 /**
@@ -480,6 +657,42 @@ export type MarketSnapshotResponse = {
 export type MessageRole = 'system' | 'developer' | 'user' | 'assistant' | 'function' | 'tool' | 'chatbot' | 'model';
 
 /**
+ * MoveInPlanOut
+ */
+export type MoveInPlanOut = {
+    /**
+     * Target Address
+     */
+    target_address?: string;
+    /**
+     * Move Date
+     */
+    move_date?: string;
+    /**
+     * Move From Address
+     */
+    move_from_address?: string;
+};
+
+/**
+ * MoveInPlanPatch
+ */
+export type MoveInPlanPatch = {
+    /**
+     * Target Address
+     */
+    target_address?: string | null;
+    /**
+     * Move Date
+     */
+    move_date?: string | null;
+    /**
+     * Move From Address
+     */
+    move_from_address?: string | null;
+};
+
+/**
  * MoveInPlanPayload
  */
 export type MoveInPlanPayload = {
@@ -513,6 +726,106 @@ export type MoveInStatePayload = {
 };
 
 /**
+ * MyRoommateProfileOut
+ */
+export type MyRoommateProfileOut = {
+    /**
+     * Sleep Schedule
+     */
+    sleep_schedule?: string;
+    /**
+     * Cleanliness Level
+     */
+    cleanliness_level?: string;
+    /**
+     * Noise Level
+     */
+    noise_level?: string;
+    /**
+     * Guest Policy
+     */
+    guest_policy?: string;
+    /**
+     * Smoking
+     */
+    smoking?: string;
+    /**
+     * Languages Spoken
+     */
+    languages_spoken?: Array<string>;
+    /**
+     * Preferred Languages
+     */
+    preferred_languages?: Array<string>;
+    /**
+     * Must Have Preferred Languages
+     */
+    must_have_preferred_languages?: boolean;
+    /**
+     * Interests
+     */
+    interests?: Array<string>;
+    /**
+     * Bio
+     */
+    bio?: string;
+    /**
+     * Profile Completed
+     */
+    profile_completed?: boolean;
+};
+
+/**
+ * MyRoommateProfilePatch
+ */
+export type MyRoommateProfilePatch = {
+    /**
+     * Sleep Schedule
+     */
+    sleep_schedule?: string | null;
+    /**
+     * Cleanliness Level
+     */
+    cleanliness_level?: string | null;
+    /**
+     * Noise Level
+     */
+    noise_level?: string | null;
+    /**
+     * Guest Policy
+     */
+    guest_policy?: string | null;
+    /**
+     * Smoking
+     */
+    smoking?: string | null;
+    /**
+     * Languages Spoken
+     */
+    languages_spoken?: Array<string> | null;
+    /**
+     * Preferred Languages
+     */
+    preferred_languages?: Array<string> | null;
+    /**
+     * Must Have Preferred Languages
+     */
+    must_have_preferred_languages?: boolean | null;
+    /**
+     * Interests
+     */
+    interests?: Array<string> | null;
+    /**
+     * Bio
+     */
+    bio?: string | null;
+    /**
+     * Profile Completed
+     */
+    profile_completed?: boolean | null;
+};
+
+/**
  * MyRoommateProfilePayload
  */
 export type MyRoommateProfilePayload = {
@@ -536,6 +849,18 @@ export type MyRoommateProfilePayload = {
      * Smoking
      */
     smoking?: string;
+    /**
+     * Languages Spoken
+     */
+    languages_spoken?: Array<string>;
+    /**
+     * Preferred Languages
+     */
+    preferred_languages?: Array<string>;
+    /**
+     * Must Have Preferred Languages
+     */
+    must_have_preferred_languages?: boolean;
     /**
      * Interests
      */
@@ -920,6 +1245,42 @@ export type ResendVerificationRequest = {
 };
 
 /**
+ * RoommateConnectionCreate
+ */
+export type RoommateConnectionCreate = {
+    roommate: RoommateProfilePayload;
+};
+
+/**
+ * RoommateConnectionListResponse
+ */
+export type RoommateConnectionListResponse = {
+    /**
+     * Connections
+     */
+    connections?: Array<RoommateConnectionOut>;
+};
+
+/**
+ * RoommateConnectionOut
+ */
+export type RoommateConnectionOut = {
+    /**
+     * Id
+     */
+    id: string;
+    roommate: RoommateProfilePayload;
+    /**
+     * Connected At
+     */
+    connected_at?: string;
+    /**
+     * Messages
+     */
+    messages?: Array<RoommateMessagePayload>;
+};
+
+/**
  * RoommateConnectionPayload
  */
 export type RoommateConnectionPayload = {
@@ -932,6 +1293,16 @@ export type RoommateConnectionPayload = {
      * Messages
      */
     messages?: Array<RoommateMessagePayload>;
+};
+
+/**
+ * RoommateMatchesListResponse
+ */
+export type RoommateMatchesListResponse = {
+    /**
+     * Matches
+     */
+    matches?: Array<RoommateProfilePayload>;
 };
 
 /**
@@ -1001,6 +1372,10 @@ export type RoommateProfilePayload = {
      */
     smoking?: string;
     /**
+     * Languages Spoken
+     */
+    languages_spoken?: Array<string>;
+    /**
      * Target City
      */
     target_city?: string;
@@ -1051,6 +1426,90 @@ export type RoommateStatePayload = {
      * Connections
      */
     connections?: Array<RoommateConnectionPayload>;
+};
+
+/**
+ * SavedGuarantorCreate
+ */
+export type SavedGuarantorCreate = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Phone
+     */
+    phone?: string;
+    /**
+     * Relationship
+     */
+    relationship?: string;
+};
+
+/**
+ * SavedGuarantorListResponse
+ */
+export type SavedGuarantorListResponse = {
+    /**
+     * Saved Guarantors
+     */
+    saved_guarantors: Array<SavedGuarantorOut>;
+};
+
+/**
+ * SavedGuarantorOut
+ */
+export type SavedGuarantorOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Phone
+     */
+    phone: string;
+    /**
+     * Relationship
+     */
+    relationship: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * SavedGuarantorPatch
+ */
+export type SavedGuarantorPatch = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Phone
+     */
+    phone?: string | null;
+    /**
+     * Relationship
+     */
+    relationship?: string | null;
 };
 
 /**
@@ -1135,6 +1594,24 @@ export type SignupResponse = {
      * Message
      */
     message?: string;
+};
+
+/**
+ * StatusHistoryOut
+ */
+export type StatusHistoryOut = {
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Timestamp
+     */
+    timestamp: string;
+    /**
+     * Note
+     */
+    note?: string;
 };
 
 /**
@@ -1451,6 +1928,218 @@ export type ValidationError = {
 };
 
 /**
+ * VendorCatalogListResponse
+ */
+export type VendorCatalogListResponse = {
+    /**
+     * Vendors
+     */
+    vendors?: Array<VendorCatalogOut>;
+};
+
+/**
+ * VendorCatalogOut
+ */
+export type VendorCatalogOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Initials
+     */
+    initials: string;
+    /**
+     * Rating
+     */
+    rating: number;
+    /**
+     * Review Count
+     */
+    review_count: number;
+    /**
+     * Phone
+     */
+    phone?: string;
+    /**
+     * Website
+     */
+    website?: string;
+    /**
+     * Coverage Area
+     */
+    coverage_area?: string;
+    /**
+     * Plans
+     */
+    plans?: Array<VendorPlanOut>;
+};
+
+/**
+ * VendorOrderCreate
+ */
+export type VendorOrderCreate = {
+    /**
+     * Vendor Id
+     */
+    vendor_id?: string;
+    /**
+     * Vendor Name
+     */
+    vendor_name?: string;
+    /**
+     * Plan Id
+     */
+    plan_id?: string;
+    /**
+     * Plan Name
+     */
+    plan_name?: string;
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Status
+     */
+    status?: string;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string;
+    /**
+     * Account Number
+     */
+    account_number?: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Monthly Cost
+     */
+    monthly_cost?: string;
+};
+
+/**
+ * VendorOrderListResponse
+ */
+export type VendorOrderListResponse = {
+    /**
+     * Orders
+     */
+    orders?: Array<VendorOrderOut>;
+};
+
+/**
+ * VendorOrderOut
+ */
+export type VendorOrderOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Vendor Id
+     */
+    vendor_id?: string;
+    /**
+     * Vendor Name
+     */
+    vendor_name?: string;
+    /**
+     * Plan Id
+     */
+    plan_id?: string;
+    /**
+     * Plan Name
+     */
+    plan_name?: string;
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string;
+    /**
+     * Account Number
+     */
+    account_number?: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Monthly Cost
+     */
+    monthly_cost?: string;
+    /**
+     * Created At
+     */
+    created_at?: string;
+};
+
+/**
+ * VendorOrderPatch
+ */
+export type VendorOrderPatch = {
+    /**
+     * Vendor Id
+     */
+    vendor_id?: string | null;
+    /**
+     * Vendor Name
+     */
+    vendor_name?: string | null;
+    /**
+     * Plan Id
+     */
+    plan_id?: string | null;
+    /**
+     * Plan Name
+     */
+    plan_name?: string | null;
+    /**
+     * Category
+     */
+    category?: string | null;
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Scheduled Date
+     */
+    scheduled_date?: string | null;
+    /**
+     * Account Number
+     */
+    account_number?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Monthly Cost
+     */
+    monthly_cost?: string | null;
+};
+
+/**
  * VendorOrderPayload
  */
 export type VendorOrderPayload = {
@@ -1502,6 +2191,36 @@ export type VendorOrderPayload = {
      * Created At
      */
     created_at?: string;
+};
+
+/**
+ * VendorPlanOut
+ */
+export type VendorPlanOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Price
+     */
+    price: string;
+    /**
+     * Price Unit
+     */
+    price_unit: string;
+    /**
+     * Features
+     */
+    features?: Array<string>;
+    /**
+     * Popular
+     */
+    popular?: boolean;
 };
 
 /**
@@ -2551,6 +3270,639 @@ export type UpsertTourNoteRouteToursTourIdNotePutResponses = {
 };
 
 export type UpsertTourNoteRouteToursTourIdNotePutResponse = UpsertTourNoteRouteToursTourIdNotePutResponses[keyof UpsertTourNoteRouteToursTourIdNotePutResponses];
+
+export type ReadSavedGuarantorsGuarantorsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/guarantors';
+};
+
+export type ReadSavedGuarantorsGuarantorsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: SavedGuarantorListResponse;
+};
+
+export type ReadSavedGuarantorsGuarantorsGetResponse = ReadSavedGuarantorsGuarantorsGetResponses[keyof ReadSavedGuarantorsGuarantorsGetResponses];
+
+export type CreateSavedGuarantorRouteGuarantorsPostData = {
+    body: SavedGuarantorCreate;
+    path?: never;
+    query?: never;
+    url: '/guarantors';
+};
+
+export type CreateSavedGuarantorRouteGuarantorsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSavedGuarantorRouteGuarantorsPostError = CreateSavedGuarantorRouteGuarantorsPostErrors[keyof CreateSavedGuarantorRouteGuarantorsPostErrors];
+
+export type CreateSavedGuarantorRouteGuarantorsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: SavedGuarantorOut;
+};
+
+export type CreateSavedGuarantorRouteGuarantorsPostResponse = CreateSavedGuarantorRouteGuarantorsPostResponses[keyof CreateSavedGuarantorRouteGuarantorsPostResponses];
+
+export type DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Guarantor Id
+         */
+        guarantor_id: string;
+    };
+    query?: never;
+    url: '/guarantors/{guarantor_id}';
+};
+
+export type DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteError = DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteErrors[keyof DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteErrors];
+
+export type DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteResponse = DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteResponses[keyof DeleteSavedGuarantorRouteGuarantorsGuarantorIdDeleteResponses];
+
+export type PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchData = {
+    body: SavedGuarantorPatch;
+    path: {
+        /**
+         * Guarantor Id
+         */
+        guarantor_id: string;
+    };
+    query?: never;
+    url: '/guarantors/{guarantor_id}';
+};
+
+export type PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchError = PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchErrors[keyof PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchErrors];
+
+export type PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: SavedGuarantorOut;
+};
+
+export type PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchResponse = PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchResponses[keyof PatchSavedGuarantorRouteGuarantorsGuarantorIdPatchResponses];
+
+export type ReadGuarantorRequestsGuarantorsRequestsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/guarantors/requests';
+};
+
+export type ReadGuarantorRequestsGuarantorsRequestsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuarantorRequestListResponse;
+};
+
+export type ReadGuarantorRequestsGuarantorsRequestsGetResponse = ReadGuarantorRequestsGuarantorsRequestsGetResponses[keyof ReadGuarantorRequestsGuarantorsRequestsGetResponses];
+
+export type CreateGuarantorRequestRouteGuarantorsRequestsPostData = {
+    body: GuarantorRequestCreate;
+    path?: never;
+    query?: never;
+    url: '/guarantors/requests';
+};
+
+export type CreateGuarantorRequestRouteGuarantorsRequestsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateGuarantorRequestRouteGuarantorsRequestsPostError = CreateGuarantorRequestRouteGuarantorsRequestsPostErrors[keyof CreateGuarantorRequestRouteGuarantorsRequestsPostErrors];
+
+export type CreateGuarantorRequestRouteGuarantorsRequestsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuarantorRequestOut;
+};
+
+export type CreateGuarantorRequestRouteGuarantorsRequestsPostResponse = CreateGuarantorRequestRouteGuarantorsRequestsPostResponses[keyof CreateGuarantorRequestRouteGuarantorsRequestsPostResponses];
+
+export type DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Request Id
+         */
+        request_id: string;
+    };
+    query?: never;
+    url: '/guarantors/requests/{request_id}';
+};
+
+export type DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteError = DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteErrors[keyof DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteErrors];
+
+export type DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteResponse = DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteResponses[keyof DeleteGuarantorRequestRouteGuarantorsRequestsRequestIdDeleteResponses];
+
+export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchData = {
+    body: GuarantorRequestPatch;
+    path: {
+        /**
+         * Request Id
+         */
+        request_id: string;
+    };
+    query?: never;
+    url: '/guarantors/requests/{request_id}';
+};
+
+export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchError = PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchErrors[keyof PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchErrors];
+
+export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuarantorRequestOut;
+};
+
+export type PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponse = PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponses[keyof PatchGuarantorRequestRouteGuarantorsRequestsRequestIdPatchResponses];
+
+export type ReadMoveInPlanMoveInPlanGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/move-in/plan';
+};
+
+export type ReadMoveInPlanMoveInPlanGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: MoveInPlanOut;
+};
+
+export type ReadMoveInPlanMoveInPlanGetResponse = ReadMoveInPlanMoveInPlanGetResponses[keyof ReadMoveInPlanMoveInPlanGetResponses];
+
+export type PatchMoveInPlanMoveInPlanPatchData = {
+    body: MoveInPlanPatch;
+    path?: never;
+    query?: never;
+    url: '/move-in/plan';
+};
+
+export type PatchMoveInPlanMoveInPlanPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchMoveInPlanMoveInPlanPatchError = PatchMoveInPlanMoveInPlanPatchErrors[keyof PatchMoveInPlanMoveInPlanPatchErrors];
+
+export type PatchMoveInPlanMoveInPlanPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: MoveInPlanOut;
+};
+
+export type PatchMoveInPlanMoveInPlanPatchResponse = PatchMoveInPlanMoveInPlanPatchResponses[keyof PatchMoveInPlanMoveInPlanPatchResponses];
+
+export type ReadMoveInOrdersMoveInOrdersGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/move-in/orders';
+};
+
+export type ReadMoveInOrdersMoveInOrdersGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: VendorOrderListResponse;
+};
+
+export type ReadMoveInOrdersMoveInOrdersGetResponse = ReadMoveInOrdersMoveInOrdersGetResponses[keyof ReadMoveInOrdersMoveInOrdersGetResponses];
+
+export type CreateMoveInOrderMoveInOrdersPostData = {
+    body: VendorOrderCreate;
+    path?: never;
+    query?: never;
+    url: '/move-in/orders';
+};
+
+export type CreateMoveInOrderMoveInOrdersPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMoveInOrderMoveInOrdersPostError = CreateMoveInOrderMoveInOrdersPostErrors[keyof CreateMoveInOrderMoveInOrdersPostErrors];
+
+export type CreateMoveInOrderMoveInOrdersPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: VendorOrderOut;
+};
+
+export type CreateMoveInOrderMoveInOrdersPostResponse = CreateMoveInOrderMoveInOrdersPostResponses[keyof CreateMoveInOrderMoveInOrdersPostResponses];
+
+export type DeleteMoveInOrderMoveInOrdersOrderIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Order Id
+         */
+        order_id: string;
+    };
+    query?: never;
+    url: '/move-in/orders/{order_id}';
+};
+
+export type DeleteMoveInOrderMoveInOrdersOrderIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMoveInOrderMoveInOrdersOrderIdDeleteError = DeleteMoveInOrderMoveInOrdersOrderIdDeleteErrors[keyof DeleteMoveInOrderMoveInOrdersOrderIdDeleteErrors];
+
+export type DeleteMoveInOrderMoveInOrdersOrderIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMoveInOrderMoveInOrdersOrderIdDeleteResponse = DeleteMoveInOrderMoveInOrdersOrderIdDeleteResponses[keyof DeleteMoveInOrderMoveInOrdersOrderIdDeleteResponses];
+
+export type PatchMoveInOrderMoveInOrdersOrderIdPatchData = {
+    body: VendorOrderPatch;
+    path: {
+        /**
+         * Order Id
+         */
+        order_id: string;
+    };
+    query?: never;
+    url: '/move-in/orders/{order_id}';
+};
+
+export type PatchMoveInOrderMoveInOrdersOrderIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchMoveInOrderMoveInOrdersOrderIdPatchError = PatchMoveInOrderMoveInOrdersOrderIdPatchErrors[keyof PatchMoveInOrderMoveInOrdersOrderIdPatchErrors];
+
+export type PatchMoveInOrderMoveInOrdersOrderIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: VendorOrderOut;
+};
+
+export type PatchMoveInOrderMoveInOrdersOrderIdPatchResponse = PatchMoveInOrderMoveInOrdersOrderIdPatchResponses[keyof PatchMoveInOrderMoveInOrdersOrderIdPatchResponses];
+
+export type ReadMoveInChecklistMoveInChecklistGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/move-in/checklist';
+};
+
+export type ReadMoveInChecklistMoveInChecklistGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ChecklistListResponse;
+};
+
+export type ReadMoveInChecklistMoveInChecklistGetResponse = ReadMoveInChecklistMoveInChecklistGetResponses[keyof ReadMoveInChecklistMoveInChecklistGetResponses];
+
+export type CreateMoveInChecklistItemMoveInChecklistPostData = {
+    body: ChecklistItemCreate;
+    path?: never;
+    query?: never;
+    url: '/move-in/checklist';
+};
+
+export type CreateMoveInChecklistItemMoveInChecklistPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMoveInChecklistItemMoveInChecklistPostError = CreateMoveInChecklistItemMoveInChecklistPostErrors[keyof CreateMoveInChecklistItemMoveInChecklistPostErrors];
+
+export type CreateMoveInChecklistItemMoveInChecklistPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ChecklistItemOut;
+};
+
+export type CreateMoveInChecklistItemMoveInChecklistPostResponse = CreateMoveInChecklistItemMoveInChecklistPostResponses[keyof CreateMoveInChecklistItemMoveInChecklistPostResponses];
+
+export type DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Item Id
+         */
+        item_id: string;
+    };
+    query?: never;
+    url: '/move-in/checklist/{item_id}';
+};
+
+export type DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteError = DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteErrors[keyof DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteErrors];
+
+export type DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteResponse = DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteResponses[keyof DeleteMoveInChecklistItemMoveInChecklistItemIdDeleteResponses];
+
+export type PatchMoveInChecklistItemMoveInChecklistItemIdPatchData = {
+    body: ChecklistItemPatch;
+    path: {
+        /**
+         * Item Id
+         */
+        item_id: string;
+    };
+    query?: never;
+    url: '/move-in/checklist/{item_id}';
+};
+
+export type PatchMoveInChecklistItemMoveInChecklistItemIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchMoveInChecklistItemMoveInChecklistItemIdPatchError = PatchMoveInChecklistItemMoveInChecklistItemIdPatchErrors[keyof PatchMoveInChecklistItemMoveInChecklistItemIdPatchErrors];
+
+export type PatchMoveInChecklistItemMoveInChecklistItemIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: ChecklistItemOut;
+};
+
+export type PatchMoveInChecklistItemMoveInChecklistItemIdPatchResponse = PatchMoveInChecklistItemMoveInChecklistItemIdPatchResponses[keyof PatchMoveInChecklistItemMoveInChecklistItemIdPatchResponses];
+
+export type ReadVendorCatalogMoveInVendorsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Category
+         */
+        category?: string | null;
+    };
+    url: '/move-in/vendors';
+};
+
+export type ReadVendorCatalogMoveInVendorsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadVendorCatalogMoveInVendorsGetError = ReadVendorCatalogMoveInVendorsGetErrors[keyof ReadVendorCatalogMoveInVendorsGetErrors];
+
+export type ReadVendorCatalogMoveInVendorsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: VendorCatalogListResponse;
+};
+
+export type ReadVendorCatalogMoveInVendorsGetResponse = ReadVendorCatalogMoveInVendorsGetResponses[keyof ReadVendorCatalogMoveInVendorsGetResponses];
+
+export type ReadMyRoommateProfileRoommatesProfileGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/roommates/profile';
+};
+
+export type ReadMyRoommateProfileRoommatesProfileGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: MyRoommateProfileOut;
+};
+
+export type ReadMyRoommateProfileRoommatesProfileGetResponse = ReadMyRoommateProfileRoommatesProfileGetResponses[keyof ReadMyRoommateProfileRoommatesProfileGetResponses];
+
+export type PatchMyRoommateProfileRoommatesProfilePatchData = {
+    body: MyRoommateProfilePatch;
+    path?: never;
+    query?: never;
+    url: '/roommates/profile';
+};
+
+export type PatchMyRoommateProfileRoommatesProfilePatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchMyRoommateProfileRoommatesProfilePatchError = PatchMyRoommateProfileRoommatesProfilePatchErrors[keyof PatchMyRoommateProfileRoommatesProfilePatchErrors];
+
+export type PatchMyRoommateProfileRoommatesProfilePatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: MyRoommateProfileOut;
+};
+
+export type PatchMyRoommateProfileRoommatesProfilePatchResponse = PatchMyRoommateProfileRoommatesProfilePatchResponses[keyof PatchMyRoommateProfileRoommatesProfilePatchResponses];
+
+export type ReadRoommateConnectionsRoommatesConnectionsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/roommates/connections';
+};
+
+export type ReadRoommateConnectionsRoommatesConnectionsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoommateConnectionListResponse;
+};
+
+export type ReadRoommateConnectionsRoommatesConnectionsGetResponse = ReadRoommateConnectionsRoommatesConnectionsGetResponses[keyof ReadRoommateConnectionsRoommatesConnectionsGetResponses];
+
+export type CreateRoommateConnectionRoommatesConnectionsPostData = {
+    body: RoommateConnectionCreate;
+    path?: never;
+    query?: never;
+    url: '/roommates/connections';
+};
+
+export type CreateRoommateConnectionRoommatesConnectionsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateRoommateConnectionRoommatesConnectionsPostError = CreateRoommateConnectionRoommatesConnectionsPostErrors[keyof CreateRoommateConnectionRoommatesConnectionsPostErrors];
+
+export type CreateRoommateConnectionRoommatesConnectionsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoommateConnectionOut;
+};
+
+export type CreateRoommateConnectionRoommatesConnectionsPostResponse = CreateRoommateConnectionRoommatesConnectionsPostResponses[keyof CreateRoommateConnectionRoommatesConnectionsPostResponses];
+
+export type DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Connection Id
+         */
+        connection_id: string;
+    };
+    query?: never;
+    url: '/roommates/connections/{connection_id}';
+};
+
+export type DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteError = DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteErrors[keyof DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteErrors];
+
+export type DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteResponse = DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteResponses[keyof DeleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteResponses];
+
+export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostData = {
+    body: RoommateMessagePayload;
+    path: {
+        /**
+         * Connection Id
+         */
+        connection_id: string;
+    };
+    query?: never;
+    url: '/roommates/connections/{connection_id}/messages';
+};
+
+export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostError = CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostErrors[keyof CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostErrors];
+
+export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoommateMessagePayload;
+};
+
+export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponse = CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponses[keyof CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponses];
+
+export type ReadRoommateMatchesRoommatesMatchesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/roommates/matches';
+};
+
+export type ReadRoommateMatchesRoommatesMatchesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoommateMatchesListResponse;
+};
+
+export type ReadRoommateMatchesRoommatesMatchesGetResponse = ReadRoommateMatchesRoommatesMatchesGetResponses[keyof ReadRoommateMatchesRoommatesMatchesGetResponses];
 
 export type ListingChatListingsChatPostData = {
     body: ChatRequest;

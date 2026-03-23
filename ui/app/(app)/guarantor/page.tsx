@@ -70,9 +70,9 @@ export default function GuarantorPage() {
     setEditRelationship(g.relationship);
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     if (!editingId) return;
-    updateGuarantor(editingId, {
+    await updateGuarantor(editingId, {
       name: editName.trim(),
       email: editEmail.trim(),
       phone: editPhone.trim(),
@@ -81,9 +81,9 @@ export default function GuarantorPage() {
     setEditingId(null);
   }
 
-  function handleAddGuarantor() {
+  async function handleAddGuarantor() {
     if (!addName.trim() || !addEmail.trim()) return;
-    addGuarantor({
+    await addGuarantor({
       name: addName.trim(),
       email: addEmail.trim(),
       phone: addPhone.trim(),
@@ -291,7 +291,7 @@ export default function GuarantorPage() {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive"
-                        onClick={() => removeGuarantor(g.id)}
+                        onClick={() => void removeGuarantor(g.id)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -412,7 +412,7 @@ export default function GuarantorPage() {
                   key={req.id}
                   request={req}
                   onViewDetails={() => setDetailRequest(req)}
-                  onSimulate={() => simulateGuarantorAction(req.id)}
+                  onSimulate={() => void simulateGuarantorAction(req.id)}
                 />
               ))}
             </div>
@@ -427,8 +427,8 @@ export default function GuarantorPage() {
                 <GuarantorRequestCard
                   key={req.id}
                   request={req}
-                  onSend={() => sendRequest(req.id)}
-                  onDelete={() => removeRequest(req.id)}
+                  onSend={() => void sendRequest(req.id)}
+                  onDelete={() => void removeRequest(req.id)}
                   onViewDetails={() => setDetailRequest(req)}
                 />
               ))}
@@ -460,8 +460,8 @@ export default function GuarantorPage() {
                 <GuarantorRequestCard
                   key={req.id}
                   request={req}
-                  onSend={() => sendRequest(req.id)}
-                  onDelete={() => removeRequest(req.id)}
+                  onSend={() => void sendRequest(req.id)}
+                  onDelete={() => void removeRequest(req.id)}
                   onViewDetails={() => setDetailRequest(req)}
                 />
               ))}

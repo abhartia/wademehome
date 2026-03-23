@@ -94,10 +94,10 @@ export function NewRequestSheet({ open, onOpenChange }: NewRequestSheetProps) {
     });
   }
 
-  function resolveGuarantorId(): string | null {
+  async function resolveGuarantorId(): Promise<string | null> {
     if (selectedGuarantorId) return selectedGuarantorId;
     if (showNewGuarantor && newName.trim() && newEmail.trim()) {
-      return addGuarantor({
+      return await addGuarantor({
         name: newName.trim(),
         email: newEmail.trim(),
         phone: newPhone.trim(),
@@ -116,19 +116,19 @@ export function NewRequestSheet({ open, onOpenChange }: NewRequestSheetProps) {
     return hasGuarantor && hasProperty;
   }
 
-  function handleSend() {
-    const gId = resolveGuarantorId();
+  async function handleSend() {
+    const gId = await resolveGuarantorId();
     if (!gId) return;
-    const requestId = addRequest(gId, lease);
-    sendRequest(requestId);
+    const requestId = await addRequest(gId, lease);
+    await sendRequest(requestId);
     reset();
     onOpenChange(false);
   }
 
-  function handleDraft() {
-    const gId = resolveGuarantorId();
+  async function handleDraft() {
+    const gId = await resolveGuarantorId();
     if (!gId) return;
-    addRequest(gId, lease);
+    await addRequest(gId, lease);
     reset();
     onOpenChange(false);
   }

@@ -4,9 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useMemo,
   useRef,
-  useState,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,14 +17,15 @@ import {
 } from "@/lib/types/roommate";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
-  readRoommatesPortalRoommatesGetOptions,
-  readRoommatesPortalRoommatesGetQueryKey,
-  syncRoommatesPortalRoommatesPutMutation,
+  createRoommateConnectionRoommatesConnectionsPostMutation,
+  createRoommateMessageRoommatesConnectionsConnectionIdMessagesPostMutation,
+  deleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteMutation,
+  patchMyRoommateProfileRoommatesProfilePatchMutation,
+  readMyRoommateProfileRoommatesProfileGetOptions,
+  readMyRoommateProfileRoommatesProfileGetQueryKey,
+  readRoommateConnectionsRoommatesConnectionsGetOptions,
+  readRoommateConnectionsRoommatesConnectionsGetQueryKey,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
-import type { RoommateStatePayload } from "@/lib/api/generated/types.gen";
-import { roommatesFromApi, roommatesToApiPayload } from "@/lib/api/portalMappers";
-
-const STORAGE_KEY = "wademehome_roommate_profile";
 
 interface RoommateContextValue {
   myProfile: MyRoommateProfile;
@@ -40,11 +40,6 @@ interface RoommateContextValue {
 
 const RoommateContext = createContext<RoommateContextValue | null>(null);
 
-interface PersistedState {
-  myProfile: MyRoommateProfile;
-  connections: RoommateConnection[];
-}
-
 export function RoommateProvider({
   children,
 }: {
@@ -52,152 +47,229 @@ export function RoommateProvider({
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [myProfile, setMyProfile] = useState<MyRoommateProfile>(
-    defaultMyRoommateProfile,
-  );
-  const [connections, setConnections] = useState<RoommateConnection[]>([]);
-  const [hydrated, setHydrated] = useState(false);
-  const skipSave = useRef(false);
-  const debounceRef = useRef<number | undefined>(undefined);
-  const syncMutateRef = useRef<(opts: { body: RoommateStatePayload }) => void>(
-    () => {},
-  );
-
-  const syncMutation = useMutation({
-    ...syncRoommatesPortalRoommatesPutMutation(),
-    onSuccess: (data) => {
-      skipSave.current = true;
-      const parsed = roommatesFromApi(data);
-      setMyProfile(parsed.myProfile);
-      setConnections(parsed.connections);
-      queryClient.setQueryData(readRoommatesPortalRoommatesGetQueryKey({}), data);
-    },
-  });
-  syncMutateRef.current = syncMutation.mutate;
-
-  const { data: serverState } = useQuery({
-    ...readRoommatesPortalRoommatesGetOptions({}),
+  const autoReplyTimeouts = useRef<Record<string, number>>({});
+  const { data: profileData } = useQuery({
+    ...readMyRoommateProfileRoommatesProfileGetOptions({}),
     enabled: Boolean(user),
-    queryKey: readRoommatesPortalRoommatesGetQueryKey({}),
+    queryKey: readMyRoommateProfileRoommatesProfileGetQueryKey({}),
+  });
+  const { data: connectionsData } = useQuery({
+    ...readRoommateConnectionsRoommatesConnectionsGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readRoommateConnectionsRoommatesConnectionsGetQueryKey({}),
   });
 
-  useEffect(() => {
-    if (user) {
-      setHydrated(true);
-      return;
-    }
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: PersistedState = JSON.parse(stored);
-        if (parsed.myProfile)
-          setMyProfile({ ...defaultMyRoommateProfile, ...parsed.myProfile });
-        if (parsed.connections) setConnections(parsed.connections);
-      }
-    } catch {
-      // ignore
-    }
-    setHydrated(true);
-  }, [user]);
+  const myProfile = useMemo<MyRoommateProfile>(
+    () => ({
+      sleepSchedule: profileData?.sleep_schedule ?? "",
+      cleanlinessLevel: profileData?.cleanliness_level ?? "",
+      noiseLevel: profileData?.noise_level ?? "",
+      guestPolicy: profileData?.guest_policy ?? "",
+      smoking: profileData?.smoking ?? "",
+      languagesSpoken: profileData?.languages_spoken ?? [],
+      preferredLanguages: profileData?.preferred_languages ?? [],
+      mustHavePreferredLanguages:
+        profileData?.must_have_preferred_languages ?? false,
+      interests: profileData?.interests ?? [],
+      bio: profileData?.bio ?? "",
+      profileCompleted: profileData?.profile_completed ?? false,
+    }),
+    [profileData],
+  );
+  const connections = useMemo<RoommateConnection[]>(
+    () =>
+      (connectionsData?.connections ?? []).map((c) => ({
+        roommate: {
+          id: c.roommate.id,
+          name: c.roommate.name ?? "",
+          age: c.roommate.age ?? 0,
+          occupation: c.roommate.occupation ?? "",
+          bio: c.roommate.bio ?? "",
+          avatarInitials: c.roommate.avatar_initials ?? "",
+          sleepSchedule: c.roommate.sleep_schedule as RoommateProfile["sleepSchedule"],
+          cleanlinessLevel: c.roommate.cleanliness_level as RoommateProfile["cleanlinessLevel"],
+          noiseLevel: c.roommate.noise_level as RoommateProfile["noiseLevel"],
+          guestPolicy: c.roommate.guest_policy as RoommateProfile["guestPolicy"],
+          smoking: c.roommate.smoking as RoommateProfile["smoking"],
+          languagesSpoken: c.roommate.languages_spoken ?? [],
+          targetCity: c.roommate.target_city ?? "",
+          maxBudget: c.roommate.max_budget ?? "",
+          moveTimeline: c.roommate.move_timeline ?? "",
+          bedroomsWanted: c.roommate.bedrooms_wanted ?? "",
+          hasPets: c.roommate.has_pets ?? false,
+          petDetails: c.roommate.pet_details ?? "",
+          interests: c.roommate.interests ?? [],
+          university: c.roommate.university ?? undefined,
+          compatibilityScore: c.roommate.compatibility_score ?? undefined,
+          compatibilityReasons: c.roommate.compatibility_reasons ?? [],
+        },
+        connectedAt: c.connected_at ?? "",
+        messages: (c.messages ?? []).map((m) => ({
+          role: m.role as RoommateMessage["role"],
+          content: m.content ?? "",
+          time: m.time ?? "",
+        })),
+      })),
+    [connectionsData],
+  );
 
-  useEffect(() => {
-    if (!user || serverState === undefined) return;
-    skipSave.current = true;
-    const parsed = roommatesFromApi(serverState);
-    setMyProfile(parsed.myProfile);
-    setConnections(parsed.connections);
-  }, [user, serverState]);
+  const refresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: readMyRoommateProfileRoommatesProfileGetQueryKey({}),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: readRoommateConnectionsRoommatesConnectionsGetQueryKey({}),
+      }),
+    ]);
+  }, [queryClient]);
 
-  useEffect(() => {
-    if (!hydrated || user) return;
-    const state: PersistedState = { myProfile, connections };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [myProfile, connections, hydrated, user]);
-
-  useEffect(() => {
-    if (!user || !hydrated) return;
-    if (skipSave.current) {
-      skipSave.current = false;
-      return;
-    }
-    window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(() => {
-      const body = roommatesToApiPayload(
-        myProfile,
-        connections,
-      ) as unknown as RoommateStatePayload;
-      syncMutateRef.current({ body });
-    }, 600);
-    return () => window.clearTimeout(debounceRef.current);
-  }, [myProfile, connections, user, hydrated]);
+  const patchProfileMut = useMutation({
+    ...patchMyRoommateProfileRoommatesProfilePatchMutation(),
+    onSuccess: refresh,
+  });
+  const createConnMut = useMutation({
+    ...createRoommateConnectionRoommatesConnectionsPostMutation(),
+    onSuccess: refresh,
+  });
+  const deleteConnMut = useMutation({
+    ...deleteRoommateConnectionRoommatesConnectionsConnectionIdDeleteMutation(),
+    onSuccess: refresh,
+  });
+  const addMessageMut = useMutation({
+    ...createRoommateMessageRoommatesConnectionsConnectionIdMessagesPostMutation(),
+    onSuccess: refresh,
+  });
 
   const updateMyProfile = useCallback(
     (partial: Partial<MyRoommateProfile>) => {
-      setMyProfile((prev) => ({ ...prev, ...partial }));
+      if (!user) return;
+      patchProfileMut.mutate({
+        body: {
+          sleep_schedule: partial.sleepSchedule,
+          cleanliness_level: partial.cleanlinessLevel,
+          noise_level: partial.noiseLevel,
+          guest_policy: partial.guestPolicy,
+          smoking: partial.smoking,
+          languages_spoken: partial.languagesSpoken,
+          preferred_languages: partial.preferredLanguages,
+          must_have_preferred_languages: partial.mustHavePreferredLanguages,
+          interests: partial.interests,
+          bio: partial.bio,
+          profile_completed: partial.profileCompleted,
+        },
+      });
     },
-    [],
+    [patchProfileMut, user],
   );
 
   const resetMyProfile = useCallback(() => {
-    setMyProfile(defaultMyRoommateProfile);
-    setConnections([]);
-    localStorage.removeItem(STORAGE_KEY);
-    if (user) {
-      skipSave.current = true;
-      const body = roommatesToApiPayload(
-        defaultMyRoommateProfile,
-        [],
-      ) as unknown as RoommateStatePayload;
-      syncMutateRef.current({ body });
-    }
-  }, [user]);
-
-  const addConnection = useCallback(
-    (roommate: RoommateProfile) => {
-      setConnections((prev) => {
-        if (prev.some((c) => c.roommate.id === roommate.id)) return prev;
-        return [
-          ...prev,
-          {
-            roommate,
-            connectedAt: new Date().toISOString(),
-            messages: [
-              {
-                role: "them" as const,
-                content: `Hey! I saw we matched on wademehome. Nice to meet you!`,
-                time: new Date().toISOString(),
-              },
-            ],
-          },
-        ];
-      });
-    },
-    [],
-  );
-
-  const removeConnection = useCallback((roommateId: string) => {
-    setConnections((prev) => prev.filter((c) => c.roommate.id !== roommateId));
-  }, []);
-
-  const addMessage = useCallback(
-    (roommateId: string, message: RoommateMessage) => {
-      setConnections((prev) =>
-        prev.map((c) =>
-          c.roommate.id === roommateId
-            ? { ...c, messages: [...c.messages, message] }
-            : c,
-        ),
-      );
-    },
-    [],
-  );
+    if (!user) return;
+    patchProfileMut.mutate({
+      body: {
+        sleep_schedule: defaultMyRoommateProfile.sleepSchedule,
+        cleanliness_level: defaultMyRoommateProfile.cleanlinessLevel,
+        noise_level: defaultMyRoommateProfile.noiseLevel,
+        guest_policy: defaultMyRoommateProfile.guestPolicy,
+        smoking: defaultMyRoommateProfile.smoking,
+        languages_spoken: defaultMyRoommateProfile.languagesSpoken,
+        preferred_languages: defaultMyRoommateProfile.preferredLanguages,
+        must_have_preferred_languages:
+          defaultMyRoommateProfile.mustHavePreferredLanguages,
+        interests: defaultMyRoommateProfile.interests,
+        bio: defaultMyRoommateProfile.bio,
+        profile_completed: defaultMyRoommateProfile.profileCompleted,
+      },
+    });
+    connections.forEach((c) => {
+      deleteConnMut.mutate({ path: { connection_id: c.roommate.id } });
+    });
+  }, [connections, deleteConnMut, patchProfileMut, user]);
 
   const isConnected = useCallback(
     (roommateId: string) => connections.some((c) => c.roommate.id === roommateId),
     [connections],
   );
 
-  if (!hydrated) return null;
+  const addConnection = useCallback(
+    (roommate: RoommateProfile) => {
+      if (!user || isConnected(roommate.id)) return;
+      createConnMut.mutate({
+        body: {
+          roommate: {
+            id: roommate.id,
+            name: roommate.name,
+            age: roommate.age,
+            occupation: roommate.occupation,
+            bio: roommate.bio,
+            avatar_initials: roommate.avatarInitials,
+            sleep_schedule: roommate.sleepSchedule,
+            cleanliness_level: roommate.cleanlinessLevel,
+            noise_level: roommate.noiseLevel,
+            guest_policy: roommate.guestPolicy,
+            smoking: roommate.smoking,
+            languages_spoken: roommate.languagesSpoken,
+            target_city: roommate.targetCity,
+            max_budget: roommate.maxBudget,
+            move_timeline: roommate.moveTimeline,
+            bedrooms_wanted: roommate.bedroomsWanted,
+            has_pets: roommate.hasPets,
+            pet_details: roommate.petDetails,
+            interests: roommate.interests,
+            university: roommate.university,
+            compatibility_score: roommate.compatibilityScore ?? null,
+            compatibility_reasons: roommate.compatibilityReasons ?? [],
+          },
+        },
+      });
+    },
+    [createConnMut, isConnected, user],
+  );
+
+  const removeConnection = useCallback((roommateId: string) => {
+    if (!user) return;
+    const conn = connections.find((c) => c.roommate.id === roommateId);
+    if (!conn) return;
+    deleteConnMut.mutate({ path: { connection_id: conn.roommate.id } });
+  }, [connections, deleteConnMut, user]);
+
+  const addMessage = useCallback(
+    (roommateId: string, message: RoommateMessage) => {
+      if (!user) return;
+      const conn = connections.find((c) => c.roommate.id === roommateId);
+      if (!conn) return;
+      addMessageMut.mutate({
+        path: { connection_id: conn.roommate.id },
+        body: {
+          role: message.role,
+          content: message.content,
+          time: message.time,
+        },
+      });
+      if (message.role === "user") {
+        window.clearTimeout(autoReplyTimeouts.current[roommateId]);
+        autoReplyTimeouts.current[roommateId] = window.setTimeout(() => {
+          const replies = [
+            "That sounds great! When works for you to check out some places?",
+            "Nice, I'm on the same page. Let's figure out a budget that works for both of us.",
+            "Awesome! I think we'd be a solid match. Want to set up a time to video chat?",
+            "Cool, I'm flexible on that. What neighbourhood are you leaning towards?",
+            "Sounds good to me! I'll send over some listings I've been looking at.",
+          ];
+          const reply = replies[Math.floor(Math.random() * replies.length)];
+          addMessageMut.mutate({
+            path: { connection_id: conn.roommate.id },
+            body: {
+              role: "them",
+              content: reply,
+              time: new Date().toISOString(),
+            },
+          });
+        }, 1200);
+      }
+    },
+    [addMessageMut, connections, user],
+  );
 
   return (
     <RoommateContext.Provider

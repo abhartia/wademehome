@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import { useMoveIn } from "@/components/providers/MoveInProvider";
 import { VendorCategory, Vendor, VendorPlan } from "@/lib/types/movein";
-import { MOCK_VENDORS } from "@/lib/mock/movein";
+import { useQuery } from "@tanstack/react-query";
+import { readVendorCatalogMoveInVendorsGetOptions } from "@/lib/api/generated/@tanstack/react-query.gen";
 
 interface VendorCategorySheetProps {
   open: boolean;
@@ -47,7 +48,30 @@ export function VendorCategorySheet({
     useMoveIn();
   const [expandedVendor, setExpandedVendor] = useState<string | null>(null);
 
-  const vendors = MOCK_VENDORS.filter((v) => v.category === category);
+  const { data } = useQuery(
+    readVendorCatalogMoveInVendorsGetOptions({
+      query: { category },
+    }),
+  );
+  const vendors: Vendor[] = (data?.vendors ?? []).map((v) => ({
+    id: v.id,
+    name: v.name,
+    category: v.category as VendorCategory,
+    initials: v.initials,
+    rating: v.rating,
+    reviewCount: v.review_count,
+    phone: v.phone ?? "",
+    website: v.website ?? "",
+    coverageArea: v.coverage_area ?? "",
+    plans: (v.plans ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      priceUnit: p.price_unit,
+      features: p.features ?? [],
+      popular: p.popular ?? false,
+    })),
+  }));
   const currentOrder = getOrderByCategory(category);
 
   function handleSelectPlan(vendor: Vendor, plan: VendorPlan) {

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRoommate } from "@/components/providers/RoommateProvider";
 import { RoommateConnection } from "@/lib/types/roommate";
-import { avatarColor } from "@/lib/mock/roommates";
+import { avatarColor } from "@/lib/roommates/avatarColor";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal, Users2, ArrowLeft } from "lucide-react";
 
@@ -187,22 +187,6 @@ export function RoommateConnections() {
       content: text,
       time: new Date().toISOString(),
     });
-    // Mock auto-reply after short delay
-    setTimeout(() => {
-      const replies = [
-        "That sounds great! When works for you to check out some places?",
-        "Nice, I'm on the same page. Let's figure out a budget that works for both of us.",
-        "Awesome! I think we'd be a solid match. Want to set up a time to video chat?",
-        "Cool, I'm flexible on that. What neighbourhood are you leaning towards?",
-        "Sounds good to me! I'll send over some listings I've been looking at.",
-      ];
-      const reply = replies[Math.floor(Math.random() * replies.length)];
-      addMessage(selectedId, {
-        role: "them",
-        content: reply,
-        time: new Date().toISOString(),
-      });
-    }, 1200);
   };
 
   return (

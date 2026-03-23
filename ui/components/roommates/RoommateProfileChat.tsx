@@ -81,8 +81,69 @@ const STEPS: ConversationStep[] = [
     profileKey: "smoking",
   },
   {
-    id: "interests",
+    id: "languagesSpoken",
+    stage: 3,
+    agentMessage: "Which languages do you speak? Pick all that apply.",
+    quickReplies: [
+      "English",
+      "Spanish",
+      "Hindi",
+      "Mandarin",
+      "Arabic",
+      "French",
+      "Portuguese",
+      "Bengali",
+      "Urdu",
+      "Korean",
+      "Japanese",
+      "Russian",
+    ],
+    quickReplyMode: "multi",
+    profileKey: "languagesSpoken",
+    toProfileValue: (raw) => ({
+      languagesSpoken: typeof raw === "string" ? [raw] : raw,
+    }),
+  },
+  {
+    id: "preferredLanguages",
     stage: 4,
+    agentMessage:
+      "Which languages do you want your roommate to speak? Pick all that matter to you.",
+    quickReplies: [
+      "English",
+      "Spanish",
+      "Hindi",
+      "Mandarin",
+      "Arabic",
+      "French",
+      "Portuguese",
+      "Bengali",
+      "Urdu",
+      "Korean",
+      "Japanese",
+      "Russian",
+    ],
+    quickReplyMode: "multi",
+    profileKey: "preferredLanguages",
+    toProfileValue: (raw) => ({
+      preferredLanguages: typeof raw === "string" ? [raw] : raw,
+    }),
+  },
+  {
+    id: "mustHavePreferredLanguages",
+    stage: 4,
+    agentMessage:
+      "Should I only show matches with at least one of those preferred languages?",
+    quickReplies: ["Yes, only those matches", "No, keep all matches"],
+    quickReplyMode: "single",
+    profileKey: "mustHavePreferredLanguages",
+    toProfileValue: (raw) => ({
+      mustHavePreferredLanguages: raw === "Yes, only those matches",
+    }),
+  },
+  {
+    id: "interests",
+    stage: 5,
     agentMessage:
       "What are you into? Pick a few so I can find someone you'd click with.",
     quickReplies: [
@@ -107,7 +168,7 @@ const STEPS: ConversationStep[] = [
   },
   {
     id: "bio",
-    stage: 4,
+    stage: 5,
     agentMessage:
       "Last thing -- write a short bio about yourself. Just a sentence or two so potential roommates know who you are.",
     quickReplies: [],
@@ -116,7 +177,7 @@ const STEPS: ConversationStep[] = [
   },
 ];
 
-const TOTAL_STAGES = 4;
+const TOTAL_STAGES = 5;
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -195,25 +256,43 @@ function QuickReplyChips({
 }
 
 function SummaryCard({
+  profile,
   onConfirm,
   onReset,
 }: {
+  profile: MyRoommateProfile;
   onConfirm: () => void;
   onReset: () => void;
 }) {
-  const { myProfile } = useRoommate();
-
   const rows = [
-    { label: "Sleep", value: myProfile.sleepSchedule || "—" },
-    { label: "Tidiness", value: myProfile.cleanlinessLevel || "—" },
-    { label: "Noise", value: myProfile.noiseLevel || "—" },
-    { label: "Guests", value: myProfile.guestPolicy || "—" },
-    { label: "Smoking", value: myProfile.smoking || "—" },
+    { label: "Sleep", value: profile.sleepSchedule || "—" },
+    { label: "Tidiness", value: profile.cleanlinessLevel || "—" },
+    { label: "Noise", value: profile.noiseLevel || "—" },
+    { label: "Guests", value: profile.guestPolicy || "—" },
+    { label: "Smoking", value: profile.smoking || "—" },
+    {
+      label: "Speak",
+      value:
+        profile.languagesSpoken.length > 0
+          ? profile.languagesSpoken.join(", ")
+          : "—",
+    },
+    {
+      label: "Prefer",
+      value:
+        profile.preferredLanguages.length > 0
+          ? profile.preferredLanguages.join(", ")
+          : "—",
+    },
+    {
+      label: "Language filter",
+      value: profile.mustHavePreferredLanguages ? "Strict" : "Flexible",
+    },
     {
       label: "Interests",
-      value: myProfile.interests.length > 0 ? myProfile.interests.join(", ") : "—",
+      value: profile.interests.length > 0 ? profile.interests.join(", ") : "—",
     },
-    { label: "Bio", value: myProfile.bio || "—" },
+    { label: "Bio", value: profile.bio || "—" },
   ];
 
   return (
@@ -256,6 +335,7 @@ export function RoommateProfileChat({
   const [inputValue, setInputValue] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [draftProfile, setDraftProfile] = useState<MyRoommateProfile>(myProfile);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasInitialised = useRef(false);
@@ -281,13 +361,14 @@ export function RoommateProfileChat({
     hasInitialised.current = true;
 
     if (myProfile.profileCompleted) {
+      setDraftProfile(myProfile);
       setShowSummary(true);
       setFinished(true);
       addMessage("agent", "Welcome back! Here's your roommate profile.");
     } else {
       addMessage("agent", STEPS[0].agentMessage);
     }
-  }, [addMessage, myProfile.profileCompleted]);
+  }, [addMessage, myProfile, myProfile.profileCompleted]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -318,13 +399,16 @@ export function RoommateProfileChat({
 
   const applyAnswer = useCallback(
     (step: ConversationStep, answer: string | string[]) => {
+      let nextPartial: Partial<MyRoommateProfile> = {};
       if (step.toProfileValue) {
-        updateMyProfile(step.toProfileValue(answer));
+        nextPartial = step.toProfileValue(answer);
       } else if (step.profileKey) {
-        updateMyProfile({
+        nextPartial = {
           [step.profileKey]: answer,
-        } as Partial<MyRoommateProfile>);
+        } as Partial<MyRoommateProfile>;
       }
+      updateMyProfile(nextPartial);
+      setDraftProfile((prev) => ({ ...prev, ...nextPartial }));
     },
     [updateMyProfile],
   );
@@ -372,6 +456,20 @@ export function RoommateProfileChat({
 
   const handleReset = () => {
     resetMyProfile();
+    setDraftProfile({
+      ...myProfile,
+      profileCompleted: false,
+      sleepSchedule: "",
+      cleanlinessLevel: "",
+      noiseLevel: "",
+      guestPolicy: "",
+      smoking: "",
+      languagesSpoken: [],
+      preferredLanguages: [],
+      mustHavePreferredLanguages: false,
+      interests: [],
+      bio: "",
+    });
     setMessages([]);
     setCurrentStepIdx(0);
     setSelectedReplies([]);
@@ -416,10 +514,18 @@ export function RoommateProfileChat({
           )}
 
           {showSummary && !finished && (
-            <SummaryCard onConfirm={handleConfirmProfile} onReset={handleReset} />
+            <SummaryCard
+              profile={draftProfile}
+              onConfirm={handleConfirmProfile}
+              onReset={handleReset}
+            />
           )}
           {showSummary && finished && (
-            <SummaryCard onConfirm={() => onComplete?.()} onReset={handleReset} />
+            <SummaryCard
+              profile={draftProfile}
+              onConfirm={() => onComplete?.()}
+              onReset={handleReset}
+            />
           )}
         </div>
       </div>

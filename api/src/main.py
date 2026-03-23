@@ -32,6 +32,9 @@ from listings.router import router as listings_router
 from properties.router import router as properties_router
 from portal.router import router as portal_router
 from tours.router import router as tours_router
+from guarantors.router import router as guarantors_router
+from movein.router import router as movein_router
+from roommates.router import router as roommates_router
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -54,6 +57,9 @@ app.include_router(listings_router)
 app.include_router(properties_router)
 app.include_router(portal_router)
 app.include_router(tours_router)
+app.include_router(guarantors_router)
+app.include_router(movein_router)
+app.include_router(roommates_router)
 
 def get_event_generator(
     handler: WorkflowHandler,

@@ -10,6 +10,7 @@ export interface RoommateProfile {
   noiseLevel: "quiet" | "moderate" | "social";
   guestPolicy: "rarely" | "sometimes" | "often";
   smoking: "no" | "outside-only" | "yes";
+  languagesSpoken: string[];
   targetCity: string;
   maxBudget: string;
   moveTimeline: string;
@@ -34,6 +35,9 @@ export interface MyRoommateProfile {
   noiseLevel: string;
   guestPolicy: string;
   smoking: string;
+  languagesSpoken: string[];
+  preferredLanguages: string[];
+  mustHavePreferredLanguages: boolean;
   interests: string[];
   bio: string;
   profileCompleted: boolean;
@@ -45,6 +49,9 @@ export const defaultMyRoommateProfile: MyRoommateProfile = {
   noiseLevel: "",
   guestPolicy: "",
   smoking: "",
+  languagesSpoken: [],
+  preferredLanguages: [],
+  mustHavePreferredLanguages: false,
   interests: [],
   bio: "",
   profileCompleted: false,

@@ -169,6 +169,9 @@ class MyRoommateProfilePayload(BaseModel):
     noise_level: str = ""
     guest_policy: str = ""
     smoking: str = ""
+    languages_spoken: list[str] = Field(default_factory=list)
+    preferred_languages: list[str] = Field(default_factory=list)
+    must_have_preferred_languages: bool = False
     interests: list[str] = Field(default_factory=list)
     bio: str = ""
     profile_completed: bool = False
@@ -192,6 +195,7 @@ class RoommateProfilePayload(BaseModel):
     noise_level: str = ""
     guest_policy: str = ""
     smoking: str = ""
+    languages_spoken: list[str] = Field(default_factory=list)
     target_city: str = ""
     max_budget: str = ""
     move_timeline: str = ""

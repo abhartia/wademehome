@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { StarRating } from "./StarRating";
 import { useTours } from "@/components/providers/ToursProvider";
 import { Tour, TourNote, TourRatings, defaultNote } from "@/lib/types/tours";
-import { PHOTO_CHECKLIST_ITEMS } from "@/lib/mock/tours";
+import { PHOTO_CHECKLIST_ITEMS } from "@/lib/tours/checklists";
 import { FileText, Camera, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PropertyImage } from "@/components/ui/property-image";

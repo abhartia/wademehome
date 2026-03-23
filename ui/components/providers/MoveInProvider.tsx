@@ -4,10 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
-  useState,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -16,35 +13,21 @@ import {
   VendorCategory,
   VendorOrder,
 } from "@/lib/types/movein";
-import {
-  SEED_PLAN,
-  SEED_ORDERS,
-  SEED_CHECKLIST,
-} from "@/lib/mock/movein";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
-  readMoveInPortalMoveInGetOptions,
-  readMoveInPortalMoveInGetQueryKey,
-  syncMoveInPortalMoveInPutMutation,
+  createMoveInChecklistItemMoveInChecklistPostMutation,
+  createMoveInOrderMoveInOrdersPostMutation,
+  deleteMoveInOrderMoveInOrdersOrderIdDeleteMutation,
+  patchMoveInChecklistItemMoveInChecklistItemIdPatchMutation,
+  patchMoveInOrderMoveInOrdersOrderIdPatchMutation,
+  patchMoveInPlanMoveInPlanPatchMutation,
+  readMoveInChecklistMoveInChecklistGetOptions,
+  readMoveInChecklistMoveInChecklistGetQueryKey,
+  readMoveInOrdersMoveInOrdersGetOptions,
+  readMoveInOrdersMoveInOrdersGetQueryKey,
+  readMoveInPlanMoveInPlanGetOptions,
+  readMoveInPlanMoveInPlanGetQueryKey,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
-import type { MoveInStatePayload } from "@/lib/api/generated/types.gen";
-import { moveInFromApi, moveInToApiPayload } from "@/lib/api/portalMappers";
-
-const STORAGE_KEY = "wademehome_movein";
-
-function moveInSyncFingerprint(
-  plan: MoveInPlan,
-  orders: VendorOrder[],
-  checklist: ChecklistItem[],
-): string {
-  return JSON.stringify(moveInToApiPayload(plan, orders, checklist));
-}
-
-interface PersistedState {
-  plan: MoveInPlan;
-  orders: VendorOrder[];
-  checklist: ChecklistItem[];
-}
 
 interface MoveInProgress {
   checklistDone: number;
@@ -75,146 +58,151 @@ const MoveInContext = createContext<MoveInContextValue | null>(null);
 export function MoveInProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [plan, setPlan] = useState<MoveInPlan>(SEED_PLAN);
-  const [orders, setOrders] = useState<VendorOrder[]>([]);
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
-  const [hydrated, setHydrated] = useState(false);
-  const skipSave = useRef(false);
-  const debounceRef = useRef<number | undefined>(undefined);
-  const lastSyncedMoveInJson = useRef<string | null>(null);
-  const planRef = useRef(plan);
-  const ordersRef = useRef(orders);
-  const checklistRef = useRef(checklist);
-  planRef.current = plan;
-  ordersRef.current = orders;
-  checklistRef.current = checklist;
-  const syncMutateRef = useRef<(opts: { body: MoveInStatePayload }) => void>(
-    () => {},
+  const { data: planData } = useQuery({
+    ...readMoveInPlanMoveInPlanGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readMoveInPlanMoveInPlanGetQueryKey({}),
+  });
+  const { data: ordersData } = useQuery({
+    ...readMoveInOrdersMoveInOrdersGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readMoveInOrdersMoveInOrdersGetQueryKey({}),
+  });
+  const { data: checklistData } = useQuery({
+    ...readMoveInChecklistMoveInChecklistGetOptions({}),
+    enabled: Boolean(user),
+    queryKey: readMoveInChecklistMoveInChecklistGetQueryKey({}),
+  });
+
+  const plan = useMemo<MoveInPlan>(
+    () => ({
+      targetAddress: planData?.target_address ?? "",
+      moveDate: planData?.move_date ?? "",
+      moveFromAddress: planData?.move_from_address ?? "",
+    }),
+    [planData],
+  );
+  const orders = useMemo<VendorOrder[]>(
+    () =>
+      (ordersData?.orders ?? []).map((o) => ({
+        id: o.id,
+        vendorId: o.vendor_id ?? "",
+        vendorName: o.vendor_name ?? "",
+        planId: o.plan_id ?? "",
+        planName: o.plan_name ?? "",
+        category: o.category as VendorOrder["category"],
+        status: o.status as VendorOrder["status"],
+        scheduledDate: o.scheduled_date ?? "",
+        accountNumber: o.account_number ?? "",
+        notes: o.notes ?? "",
+        monthlyCost: o.monthly_cost ?? "",
+        createdAt: o.created_at ?? "",
+      })),
+    [ordersData],
+  );
+  const checklist = useMemo<ChecklistItem[]>(
+    () =>
+      (checklistData?.checklist ?? []).map((c) => ({
+        id: c.id,
+        category: c.category as ChecklistItem["category"],
+        label: c.label,
+        completed: c.completed,
+      })),
+    [checklistData],
   );
 
-  const syncMutation = useMutation({
-    ...syncMoveInPortalMoveInPutMutation(),
-    onSuccess: (data) => {
-      skipSave.current = true;
-      const parsed = moveInFromApi(data);
-      lastSyncedMoveInJson.current = moveInSyncFingerprint(
-        parsed.plan,
-        parsed.orders,
-        parsed.checklist,
-      );
-      setPlan(parsed.plan);
-      setOrders(parsed.orders);
-      setChecklist(parsed.checklist);
-      queryClient.setQueryData(readMoveInPortalMoveInGetQueryKey({}), data);
-    },
+  const refresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: readMoveInPlanMoveInPlanGetQueryKey({}) }),
+      queryClient.invalidateQueries({ queryKey: readMoveInOrdersMoveInOrdersGetQueryKey({}) }),
+      queryClient.invalidateQueries({ queryKey: readMoveInChecklistMoveInChecklistGetQueryKey({}) }),
+    ]);
+  }, [queryClient]);
+
+  const patchPlanMut = useMutation({
+    ...patchMoveInPlanMoveInPlanPatchMutation(),
+    onSuccess: refresh,
   });
-  syncMutateRef.current = syncMutation.mutate;
-
-  const { data: serverState } = useQuery({
-    ...readMoveInPortalMoveInGetOptions({}),
-    enabled: Boolean(user),
-    queryKey: readMoveInPortalMoveInGetQueryKey({}),
+  const createOrderMut = useMutation({
+    ...createMoveInOrderMoveInOrdersPostMutation(),
+    onSuccess: refresh,
   });
-
-  useEffect(() => {
-    if (user) {
-      setHydrated(true);
-      return;
-    }
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: PersistedState = JSON.parse(stored);
-        setPlan(parsed.plan ?? SEED_PLAN);
-        setOrders(parsed.orders ?? []);
-        setChecklist(parsed.checklist ?? SEED_CHECKLIST);
-      } else {
-        setPlan(SEED_PLAN);
-        setOrders(SEED_ORDERS);
-        setChecklist(SEED_CHECKLIST);
-      }
-    } catch {
-      setPlan(SEED_PLAN);
-      setOrders(SEED_ORDERS);
-      setChecklist(SEED_CHECKLIST);
-    }
-    setHydrated(true);
-  }, [user]);
-
-  useEffect(() => {
-    if (!user || serverState === undefined) return;
-    skipSave.current = true;
-    const parsed = moveInFromApi(serverState);
-    lastSyncedMoveInJson.current = moveInSyncFingerprint(
-      parsed.plan,
-      parsed.orders,
-      parsed.checklist,
-    );
-    setPlan(parsed.plan);
-    setOrders(parsed.orders);
-    setChecklist(parsed.checklist);
-  }, [user, serverState]);
-
-  useEffect(() => {
-    if (!hydrated || user) return;
-    const state: PersistedState = { plan, orders, checklist };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [plan, orders, checklist, hydrated, user]);
-
-  useEffect(() => {
-    if (!user || !hydrated) return;
-    if (skipSave.current) {
-      skipSave.current = false;
-      return;
-    }
-    window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(() => {
-      const p = planRef.current;
-      const o = ordersRef.current;
-      const c = checklistRef.current;
-      const body = moveInToApiPayload(p, o, c) as unknown as MoveInStatePayload;
-      const fp = JSON.stringify(body);
-      if (fp === lastSyncedMoveInJson.current) return;
-      syncMutateRef.current({ body });
-    }, 600);
-    return () => window.clearTimeout(debounceRef.current);
-  }, [plan, orders, checklist, user, hydrated]);
+  const patchOrderMut = useMutation({
+    ...patchMoveInOrderMoveInOrdersOrderIdPatchMutation(),
+    onSuccess: refresh,
+  });
+  const deleteOrderMut = useMutation({
+    ...deleteMoveInOrderMoveInOrdersOrderIdDeleteMutation(),
+    onSuccess: refresh,
+  });
+  const createChecklistMut = useMutation({
+    ...createMoveInChecklistItemMoveInChecklistPostMutation(),
+    onSuccess: refresh,
+  });
+  const patchChecklistMut = useMutation({
+    ...patchMoveInChecklistItemMoveInChecklistItemIdPatchMutation(),
+    onSuccess: refresh,
+  });
 
   const updatePlan = useCallback((partial: Partial<MoveInPlan>) => {
-    setPlan((prev) => ({ ...prev, ...partial }));
-  }, []);
+    if (!user) return;
+    patchPlanMut.mutate({
+      body: {
+        target_address: partial.targetAddress,
+        move_date: partial.moveDate,
+        move_from_address: partial.moveFromAddress,
+      },
+    });
+  }, [patchPlanMut, user]);
 
   const addOrder = useCallback(
     (order: Omit<VendorOrder, "id" | "createdAt">): string => {
-      const id = `ord-${Date.now()}`;
-      const newOrder: VendorOrder = {
-        ...order,
-        id,
-        createdAt: new Date().toISOString(),
-      };
-      setOrders((prev) => {
-        const filtered = prev.filter(
-          (o) => o.category !== order.category || o.status === "cancelled",
-        );
-        return [newOrder, ...filtered];
+      if (!user) return "";
+      createOrderMut.mutate({
+        body: {
+          vendor_id: order.vendorId,
+          vendor_name: order.vendorName,
+          plan_id: order.planId,
+          plan_name: order.planName,
+          category: order.category,
+          status: order.status,
+          scheduled_date: order.scheduledDate,
+          account_number: order.accountNumber,
+          notes: order.notes,
+          monthly_cost: order.monthlyCost,
+        },
       });
-      return id;
+      return crypto.randomUUID?.() ?? `ord-${Date.now()}`;
     },
-    [],
+    [createOrderMut, user],
   );
 
   const updateOrder = useCallback(
     (id: string, partial: Partial<VendorOrder>) => {
-      setOrders((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, ...partial } : o)),
-      );
+      if (!user) return;
+      patchOrderMut.mutate({
+        path: { order_id: id },
+        body: {
+          vendor_id: partial.vendorId,
+          vendor_name: partial.vendorName,
+          plan_id: partial.planId,
+          plan_name: partial.planName,
+          category: partial.category,
+          status: partial.status,
+          scheduled_date: partial.scheduledDate,
+          account_number: partial.accountNumber,
+          notes: partial.notes,
+          monthly_cost: partial.monthlyCost,
+        },
+      });
     },
-    [],
+    [patchOrderMut, user],
   );
 
   const removeOrder = useCallback((id: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
-  }, []);
+    if (!user) return;
+    deleteOrderMut.mutate({ path: { order_id: id } });
+  }, [deleteOrderMut, user]);
 
   const getOrderByCategory = useCallback(
     (cat: VendorCategory) =>
@@ -223,16 +211,31 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
   );
 
   const toggleChecklistItem = useCallback((id: string) => {
-    setChecklist((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item,
-      ),
-    );
-  }, []);
+    if (!user) return;
+    const item = checklist.find((c) => c.id === id);
+    if (!item) return;
+    patchChecklistMut.mutate({
+      path: { item_id: id },
+      body: { completed: !item.completed },
+    });
+  }, [checklist, patchChecklistMut, user]);
 
   const resetChecklist = useCallback(() => {
-    setChecklist(SEED_CHECKLIST.map((i) => ({ ...i, completed: false })));
-  }, []);
+    if (!user) return;
+    checklist.forEach((item) => {
+      if (item.completed) {
+        patchChecklistMut.mutate({
+          path: { item_id: item.id },
+          body: { completed: false },
+        });
+      }
+    });
+    if (checklist.length === 0) {
+      createChecklistMut.mutate({
+        body: { category: "pre-move", label: "Set up electricity", completed: false },
+      });
+    }
+  }, [checklist, createChecklistMut, patchChecklistMut, user]);
 
   const progress = useMemo<MoveInProgress>(() => {
     const checklistDone = checklist.filter((c) => c.completed).length;
@@ -257,8 +260,6 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
       vendorsTotal: 4,
     };
   }, [checklist, orders]);
-
-  if (!hydrated) return null;
 
   return (
     <MoveInContext.Provider

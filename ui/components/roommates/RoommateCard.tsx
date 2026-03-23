@@ -1,7 +1,7 @@
 "use client";
 
 import { RoommateMatch } from "@/lib/types/roommate";
-import { avatarColor } from "@/lib/mock/roommates";
+import { avatarColor } from "@/lib/roommates/avatarColor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,11 @@ export function RoommateCard({
 
         {/* Interests */}
         <div className="flex flex-wrap gap-1">
+          {match.languagesSpoken.slice(0, 2).map((language) => (
+            <Badge key={language} variant="secondary" className="text-[10px]">
+              {language}
+            </Badge>
+          ))}
           {match.interests.slice(0, 4).map((i) => (
             <Badge key={i} variant="outline" className="text-[10px]">
               {i}

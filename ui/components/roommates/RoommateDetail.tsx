@@ -1,7 +1,7 @@
 "use client";
 
 import { RoommateMatch } from "@/lib/types/roommate";
-import { avatarColor } from "@/lib/mock/roommates";
+import { avatarColor } from "@/lib/roommates/avatarColor";
 import {
   Sheet,
   SheetContent,
@@ -23,6 +23,7 @@ import {
   PawPrint,
   UserPlus,
   BedDouble,
+  Languages,
 } from "lucide-react";
 
 function ScoreBadge({ score }: { score: number }) {
@@ -48,6 +49,11 @@ const lifestyleItems = (match: RoommateMatch) => [
   { icon: Volume2, label: "Noise", value: match.noiseLevel },
   { icon: Users, label: "Guests", value: match.guestPolicy },
   { icon: Cigarette, label: "Smoking", value: match.smoking },
+  {
+    icon: Languages,
+    label: "Languages",
+    value: match.languagesSpoken.join(", ") || "Not specified",
+  },
   { icon: PawPrint, label: "Pets", value: match.hasPets ? match.petDetails : "None" },
   { icon: BedDouble, label: "Bedrooms", value: match.bedroomsWanted },
 ];

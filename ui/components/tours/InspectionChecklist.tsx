@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { INSPECTION_CHECKLIST_ITEMS } from "@/lib/mock/tours";
+import { INSPECTION_CHECKLIST_ITEMS } from "@/lib/tours/checklists";
 import { ChevronDown, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 

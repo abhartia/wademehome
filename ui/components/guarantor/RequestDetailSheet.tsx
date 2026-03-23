@@ -49,8 +49,8 @@ export function RequestDetailSheet({
     );
   }
 
-  function handleCancel() {
-    updateRequest(request!.id, {
+  async function handleCancel() {
+    await updateRequest(request!.id, {
       status: "expired",
       statusHistory: [
         ...request!.statusHistory,
@@ -63,8 +63,8 @@ export function RequestDetailSheet({
     });
   }
 
-  function handleResend() {
-    sendRequest(request!.id);
+  async function handleResend() {
+    await sendRequest(request!.id);
   }
 
   return (

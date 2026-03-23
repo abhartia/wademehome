@@ -590,6 +590,11 @@ class RoommateProfiles(Base):
     noise_level: Mapped[str | None] = mapped_column(String(64))
     guest_policy: Mapped[str | None] = mapped_column(String(64))
     smoking: Mapped[str | None] = mapped_column(String(64))
+    languages_spoken: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    preferred_languages: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    must_have_preferred_languages: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     interests: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     bio: Mapped[str | None] = mapped_column(Text)
     profile_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -664,6 +669,103 @@ class RoommateMessages(Base):
     )
 
     connection: Mapped["RoommateConnections"] = relationship(back_populates="messages")
+
+
+class VendorCatalog(Base):
+    __tablename__ = "vendor_catalog"
+    __table_args__ = (
+        Index("ix_vendor_catalog_category", "category"),
+        UniqueConstraint("vendor_key", name="uq_vendor_catalog_vendor_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    vendor_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[str] = mapped_column(String(64), nullable=False)
+    initials: Mapped[str] = mapped_column(String(8), nullable=False)
+    rating: Mapped[Decimal] = mapped_column(Numeric(3, 1), nullable=False, default=Decimal("0.0"))
+    review_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    phone: Mapped[str | None] = mapped_column(String(64))
+    website: Mapped[str | None] = mapped_column(String(255))
+    coverage_area: Mapped[str | None] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    plans: Mapped[list["VendorCatalogPlan"]] = relationship(
+        back_populates="vendor", cascade="all, delete-orphan"
+    )
+
+
+class VendorCatalogPlan(Base):
+    __tablename__ = "vendor_catalog_plans"
+    __table_args__ = (
+        Index("ix_vendor_catalog_plans_vendor_id", "vendor_id"),
+        UniqueConstraint("plan_key", name="uq_vendor_catalog_plans_plan_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    vendor_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("vendor_catalog.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    plan_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    price: Mapped[str] = mapped_column(String(64), nullable=False)
+    price_unit: Mapped[str] = mapped_column(String(32), nullable=False)
+    features: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    popular: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    vendor: Mapped["VendorCatalog"] = relationship(back_populates="plans")
+
+
+class RoommateCandidateCatalog(Base):
+    __tablename__ = "roommate_candidate_catalog"
+    __table_args__ = (
+        Index("ix_roommate_candidate_catalog_target_city", "target_city"),
+        UniqueConstraint("candidate_key", name="uq_roommate_candidate_catalog_candidate_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    candidate_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    age: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    occupation: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    bio: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    avatar_initials: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    sleep_schedule: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    cleanliness_level: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    noise_level: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    guest_policy: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    smoking: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    languages_spoken: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    target_city: Mapped[str] = mapped_column(String(128), nullable=False, default="")
+    max_budget: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    move_timeline: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    bedrooms_wanted: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    has_pets: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    pet_details: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    interests: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    university: Mapped[str | None] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
 
 class UserLeaseDocuments(Base):
