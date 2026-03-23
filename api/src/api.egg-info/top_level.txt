@@ -1,8 +1,12 @@
 auth
 core
 db
+guarantors
 listings
+movein
 portal
 prompts
 properties
+roommates
+tours
 workflow

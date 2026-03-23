@@ -99,15 +99,6 @@ class GuarantorInviteSignIn(BaseModel):
     consent_text_version: str = Field(min_length=1, max_length=64)
 
 
-class GuarantorInviteDocumentIn(BaseModel):
-    document_type: str = Field(min_length=1, max_length=64)
-    filename: str = Field(min_length=1, max_length=255)
-    content_type: str = Field(min_length=1, max_length=128)
-    byte_size: int = Field(ge=1)
-    storage_key: str = Field(min_length=1, max_length=512)
-    metadata_json: dict = Field(default_factory=dict)
-
-
 class GuarantorInviteDeclineIn(BaseModel):
     note: str = ""
 

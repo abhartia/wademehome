@@ -1,138 +1,241 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-
-type InviteContext = {
-  request_id: string;
-  guarantor_name: string;
-  guarantor_email: string;
-  status: string;
-  invite_expires_at: string;
-  lease: {
-    property_name: string;
-    property_address: string;
-    monthly_rent: string;
-    lease_start: string;
-    lease_term: string;
-  };
-};
+import {
+  consentGuarantorInviteGuarantorInviteTokenConsentPostMutation,
+  declineGuarantorInviteGuarantorInviteTokenDeclinePostMutation,
+  openGuarantorInviteGuarantorInviteTokenOpenPostMutation,
+  readGuarantorInviteGuarantorInviteTokenGetOptions,
+  readGuarantorInviteGuarantorInviteTokenGetQueryKey,
+  signGuarantorInviteGuarantorInviteTokenSignPostMutation,
+  uploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
 
 const CONSENT_VERSION = "v1";
+const TERMINAL_STATUSES = new Set(["verified", "failed", "declined", "expired", "revoked"]);
+const STATUS_LABELS: Record<string, string> = {
+  invited: "Invite sent",
+  opened: "Invite opened",
+  consented: "Consent accepted",
+  signed: "Signed",
+  submitted: "Documents submitted",
+  verified: "Verified",
+  failed: "Verification failed",
+  declined: "Declined",
+  expired: "Expired",
+  revoked: "Revoked",
+};
 
 export default function GuarantorInvitePage() {
   const params = useParams<{ token: string }>();
   const token = params?.token ?? "";
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_CHAT_API_URL ??
-    "";
-
-  const [context, setContext] = useState<InviteContext | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState("");
+  const [actionSuccess, setActionSuccess] = useState("");
   const [signatureName, setSignatureName] = useState("");
   const [signatureEmail, setSignatureEmail] = useState("");
   const [signatureText, setSignatureText] = useState("");
   const [documentType, setDocumentType] = useState("income-proof");
-  const [filename, setFilename] = useState("");
-  const [storageKey, setStorageKey] = useState("");
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [declineNote, setDeclineNote] = useState("");
 
-  const api = useMemo(
-    () => `${baseUrl.replace(/\/$/, "")}/guarantor-invite/${token}`,
-    [baseUrl, token],
+  const contextOptions = useMemo(
+    () =>
+      readGuarantorInviteGuarantorInviteTokenGetOptions({
+        path: { token },
+      }),
+    [token],
+  );
+  const contextQuery = useQuery({
+    ...contextOptions,
+    enabled: Boolean(token),
+  });
+  const context = contextQuery.data;
+
+  const openMut = useMutation(
+    openGuarantorInviteGuarantorInviteTokenOpenPostMutation(),
+  );
+  const consentMut = useMutation(
+    consentGuarantorInviteGuarantorInviteTokenConsentPostMutation(),
+  );
+  const signMut = useMutation(
+    signGuarantorInviteGuarantorInviteTokenSignPostMutation(),
+  );
+  const uploadMut = useMutation(
+    uploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostMutation(),
+  );
+  const declineMut = useMutation(
+    declineGuarantorInviteGuarantorInviteTokenDeclinePostMutation(),
   );
 
-  const refreshContext = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    const response = await fetch(api, { credentials: "include" });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      setError(payload?.detail || "Unable to load invite");
-      setLoading(false);
-      return;
-    }
-    setContext(await response.json());
-    setLoading(false);
-  }, [api]);
+  const isMutating =
+    openMut.isPending ||
+    consentMut.isPending ||
+    signMut.isPending ||
+    uploadMut.isPending ||
+    declineMut.isPending;
 
-  const post = useCallback(async (path: string, body?: unknown) => {
-    setError("");
-    const response = await fetch(`${api}/${path}`, {
-      method: "POST",
-      credentials: "include",
-      headers: body ? { "Content-Type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
+  async function refreshContext() {
+    await queryClient.invalidateQueries({
+      queryKey: readGuarantorInviteGuarantorInviteTokenGetQueryKey({
+        path: { token },
+      }),
     });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      setError(payload?.detail || "Request failed");
-      return false;
+  }
+
+  async function runAction(
+    action: () => Promise<unknown>,
+    successMessage: string,
+  ) {
+    setActionError("");
+    setActionSuccess("");
+    try {
+      await action();
+      await refreshContext();
+      setActionSuccess(successMessage);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Request failed");
     }
-    await refreshContext();
-    return true;
-  }, [api, refreshContext]);
+  }
 
-  useEffect(() => {
-    if (!token) return;
-    void refreshContext();
-  }, [token, refreshContext]);
+  if (contextQuery.isLoading) {
+    return <div className="mx-auto max-w-2xl p-6 text-sm">Loading invite...</div>;
+  }
+  if (contextQuery.isError || !context) {
+    return (
+      <div className="mx-auto max-w-2xl p-6 text-sm text-destructive">
+        Unable to load invite. This link may be invalid or expired.
+      </div>
+    );
+  }
 
-  if (loading) return <div className="mx-auto max-w-2xl p-6 text-sm">Loading invite...</div>;
-  if (error) return <div className="mx-auto max-w-2xl p-6 text-sm text-destructive">{error}</div>;
-  if (!context) return null;
+  const status = context.status;
+  const isTerminal = TERMINAL_STATUSES.has(status);
+  const canOpen = status === "invited";
+  const canConsent = status === "invited" || status === "opened";
+  const canSign = status === "opened" || status === "consented";
+  const canUpload = status === "signed" || status === "submitted";
+  const canDecline = !isTerminal;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Guarantor E-Sign Request</CardTitle>
+          <CardTitle>Guarantor Verification</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="space-y-3 text-sm">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">{context.status}</Badge>
+            <Badge variant="secondary">{STATUS_LABELS[status] ?? status}</Badge>
             <span className="text-muted-foreground">
               Expires {new Date(context.invite_expires_at).toLocaleString()}
             </span>
           </div>
-          <p><strong>Guarantor:</strong> {context.guarantor_name} ({context.guarantor_email})</p>
+          <p>
+            <strong>Guarantor:</strong> {context.guarantor_name} ({context.guarantor_email})
+          </p>
           <p><strong>Property:</strong> {context.lease.property_name}</p>
           <p><strong>Address:</strong> {context.lease.property_address}</p>
-          <p><strong>Rent:</strong> {context.lease.monthly_rent}</p>
-          <div className="flex gap-2 pt-2">
-            <Button onClick={() => void post("open")}>Acknowledge & Open</Button>
-            <Button variant="outline" onClick={() => void post("consent", { consent_text_version: CONSENT_VERSION })}>
-              Accept E-Sign Consent
-            </Button>
+          <p><strong>Monthly rent:</strong> {context.lease.monthly_rent}</p>
+          <div className="rounded-md border p-3 text-xs">
+            <p className="font-medium">What to do next</p>
+            <p className="mt-1 text-muted-foreground">
+              1) Acknowledge request 2) Accept consent 3) Sign 4) Upload one supporting document.
+            </p>
           </div>
+          {actionSuccess ? (
+            <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800">
+              {actionSuccess}
+            </div>
+          ) : null}
+          {actionError ? (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+              {actionError}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Signature</CardTitle>
+          <CardTitle>Step 1: Acknowledge</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Confirm you have reviewed the request details.
+          </p>
+          <Button
+            onClick={() =>
+              void runAction(
+                () => openMut.mutateAsync({ path: { token } }),
+                "Invite acknowledged.",
+              )
+            }
+            disabled={!canOpen || isMutating}
+          >
+            Acknowledge and continue
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Step 2: E-sign consent</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            You consent to electronically sign this guarantor request (version {CONSENT_VERSION}).
+          </p>
+          <Button
+            variant="outline"
+            onClick={() =>
+              void runAction(
+                () =>
+                  consentMut.mutateAsync({
+                    path: { token },
+                    body: { consent_text_version: CONSENT_VERSION },
+                  }),
+                "Consent accepted.",
+              )
+            }
+            disabled={!canConsent || isMutating}
+          >
+            Accept e-sign consent
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Step 3: Signature</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <Input placeholder="Signer full name" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} />
           <Input placeholder="Signer email" type="email" value={signatureEmail} onChange={(e) => setSignatureEmail(e.target.value)} />
-          <Textarea placeholder="Type your legal signature" value={signatureText} onChange={(e) => setSignatureText(e.target.value)} />
+          <Textarea placeholder="Type your legal signature exactly as your name" value={signatureText} onChange={(e) => setSignatureText(e.target.value)} />
           <Button
             onClick={() =>
-              void post("sign", {
-                signer_name: signatureName,
-                signer_email: signatureEmail,
-                signature_text: signatureText,
-                consent_text_version: CONSENT_VERSION,
-              })
+              void runAction(
+                () =>
+                  signMut.mutateAsync({
+                    path: { token },
+                    body: {
+                      signer_name: signatureName,
+                      signer_email: signatureEmail,
+                      signature_text: signatureText,
+                      consent_text_version: CONSENT_VERSION,
+                    },
+                  }),
+                "Signature submitted.",
+              )
             }
-            disabled={!signatureName.trim() || !signatureEmail.trim() || !signatureText.trim()}
+            disabled={!canSign || isMutating || !signatureName.trim() || !signatureEmail.trim() || !signatureText.trim()}
           >
             Submit Signature
           </Button>
@@ -141,38 +244,56 @@ export default function GuarantorInvitePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Supporting Document</CardTitle>
+          <CardTitle>Step 4: Supporting document</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Upload one supporting document, such as proof of income.
+          </p>
           <Input placeholder="Document type (e.g. income-proof)" value={documentType} onChange={(e) => setDocumentType(e.target.value)} />
-          <Input placeholder="Filename" value={filename} onChange={(e) => setFilename(e.target.value)} />
-          <Input placeholder="Storage key (uploaded object path)" value={storageKey} onChange={(e) => setStorageKey(e.target.value)} />
+          <Input type="file" onChange={(e) => setDocumentFile(e.target.files?.[0] ?? null)} />
           <Button
             variant="outline"
             onClick={() =>
-              void post("documents", {
-                document_type: documentType,
-                filename,
-                content_type: "application/octet-stream",
-                byte_size: 1,
-                storage_key: storageKey,
-                metadata_json: {},
-              })
+              void runAction(
+                () =>
+                  uploadMut.mutateAsync({
+                    path: { token },
+                    body: {
+                      document_type: documentType,
+                      file: documentFile as File,
+                    },
+                  }),
+                "Document uploaded and request submitted.",
+              )
             }
-            disabled={!documentType.trim() || !filename.trim() || !storageKey.trim()}
+            disabled={!canUpload || isMutating || !documentType.trim() || !documentFile}
           >
-            Submit Document Metadata
+            Upload Document
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Decline Request</CardTitle>
+          <CardTitle>Decline request</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <Textarea placeholder="Reason for decline (optional)" value={declineNote} onChange={(e) => setDeclineNote(e.target.value)} />
-          <Button variant="destructive" onClick={() => void post("decline", { note: declineNote })}>
+          <Button
+            variant="destructive"
+            onClick={() =>
+              void runAction(
+                () =>
+                  declineMut.mutateAsync({
+                    path: { token },
+                    body: { note: declineNote },
+                  }),
+                "Invite declined.",
+              )
+            }
+            disabled={!canDecline || isMutating}
+          >
             Decline Invite
           </Button>
         </CardContent>

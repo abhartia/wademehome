@@ -5,7 +5,7 @@ import secrets
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlalchemy import asc, select
 from sqlalchemy.orm import Session
 
@@ -29,7 +29,6 @@ from guarantors.schemas import (
     GuarantorInviteConsentIn,
     GuarantorInviteContextOut,
     GuarantorInviteDeclineIn,
-    GuarantorInviteDocumentIn,
     GuarantorInviteOut,
     GuarantorInviteSignIn,
     GuarantorRequestCreate,
@@ -41,6 +40,7 @@ from guarantors.schemas import (
     SavedGuarantorPatch,
     SigningEventOut,
 )
+from guarantors.storage import upload_guarantor_document_to_blob
 
 
 def _parse_date(raw: str) -> date | None:
@@ -438,23 +438,36 @@ def submit_signature(
 def upload_document(
     db: Session,
     token: str,
-    body: GuarantorInviteDocumentIn,
     *,
+    document_type: str,
+    file: UploadFile,
     ip_address: str | None,
     user_agent: str | None,
 ) -> None:
     _, request = _resolve_invite(db, token)
     if request.status not in {GuarantorRequestStatus.signed, GuarantorRequestStatus.submitted}:
         raise HTTPException(status_code=409, detail="Document upload not allowed in current status")
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Missing filename")
+    payload = file.file.read()
+    if not payload:
+        raise HTTPException(status_code=400, detail="Uploaded document is empty")
+    content_type = (file.content_type or "application/octet-stream").strip()
+    storage_key = upload_guarantor_document_to_blob(
+        request_id=request.id,
+        filename=file.filename,
+        content_type=content_type,
+        data=payload,
+    )
     db.add(
         GuarantorDocuments(
             request_id=request.id,
-            document_type=body.document_type,
-            filename=body.filename,
-            content_type=body.content_type,
-            byte_size=body.byte_size,
-            storage_key=body.storage_key,
-            metadata_json=dict(body.metadata_json or {}),
+            document_type=document_type,
+            filename=file.filename,
+            content_type=content_type,
+            byte_size=len(payload),
+            storage_key=storage_key,
+            metadata_json={},
             uploaded_at=_now(),
         )
     )
@@ -466,7 +479,7 @@ def upload_document(
             actor="guarantor",
             ip_address=ip_address,
             user_agent=user_agent,
-            payload_json={"document_type": body.document_type, "filename": body.filename},
+            payload_json={"document_type": document_type, "filename": file.filename},
             note="Guarantor uploaded supporting document",
             created_at=_now(),
         )

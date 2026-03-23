@@ -95,8 +95,9 @@ export function NewRequestSheet({ open, onOpenChange }: NewRequestSheetProps) {
   }
 
   async function resolveGuarantorId(): Promise<string | null> {
+    const usingInlineGuarantor = showNewGuarantor || savedGuarantors.length === 0;
     if (selectedGuarantorId) return selectedGuarantorId;
-    if (showNewGuarantor && newName.trim() && newEmail.trim()) {
+    if (usingInlineGuarantor && newName.trim() && newEmail.trim()) {
       return await addGuarantor({
         name: newName.trim(),
         email: newEmail.trim(),
@@ -108,9 +109,10 @@ export function NewRequestSheet({ open, onOpenChange }: NewRequestSheetProps) {
   }
 
   function canSubmit() {
+    const usingInlineGuarantor = showNewGuarantor || savedGuarantors.length === 0;
     const hasGuarantor =
       !!selectedGuarantorId ||
-      (showNewGuarantor && newName.trim() && newEmail.trim());
+      (usingInlineGuarantor && newName.trim() && newEmail.trim());
     const hasProperty =
       lease.propertyName.trim() && lease.monthlyRent.trim();
     return hasGuarantor && hasProperty;

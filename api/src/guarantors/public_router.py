@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from auth.router import get_db
@@ -6,7 +6,6 @@ from guarantors.schemas import (
     GuarantorInviteConsentIn,
     GuarantorInviteContextOut,
     GuarantorInviteDeclineIn,
-    GuarantorInviteDocumentIn,
     GuarantorInviteSignIn,
 )
 from guarantors.service import (
@@ -56,10 +55,19 @@ def sign_guarantor_invite(token: str, body: GuarantorInviteSignIn, request: Requ
 
 @router.post("/{token}/documents", status_code=204)
 def upload_guarantor_invite_documents(
-    token: str, body: GuarantorInviteDocumentIn, request: Request, db: Session = Depends(get_db)
+    token: str,
+    request: Request,
+    document_type: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
 ):
     upload_document(
-        db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent")
+        db,
+        token,
+        document_type=document_type,
+        file=file,
+        ip_address=_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
     )
     return None
 

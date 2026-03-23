@@ -645,10 +645,11 @@ export const signGuarantorInviteGuarantorInviteTokenSignPost = <ThrowOnError ext
  */
 export const uploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPost = <ThrowOnError extends boolean = false>(options: Options<UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostResponses, UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostErrors, ThrowOnError>({
+        ...formDataBodySerializer,
         url: '/guarantor-invite/{token}/documents',
         ...options,
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': null,
             ...options.headers
         }
     });

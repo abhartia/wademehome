@@ -8,6 +8,20 @@ export type AuthResponse = {
 };
 
 /**
+ * Body_upload_guarantor_invite_documents_guarantor_invite__token__documents_post
+ */
+export type BodyUploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPost = {
+    /**
+     * Document Type
+     */
+    document_type: string;
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * Body_upload_lease_document_portal_lease_upload_post
  */
 export type BodyUploadLeaseDocumentPortalLeaseUploadPost = {
@@ -370,38 +384,6 @@ export type GuarantorInviteDeclineIn = {
      * Note
      */
     note?: string;
-};
-
-/**
- * GuarantorInviteDocumentIn
- */
-export type GuarantorInviteDocumentIn = {
-    /**
-     * Document Type
-     */
-    document_type: string;
-    /**
-     * Filename
-     */
-    filename: string;
-    /**
-     * Content Type
-     */
-    content_type: string;
-    /**
-     * Byte Size
-     */
-    byte_size: number;
-    /**
-     * Storage Key
-     */
-    storage_key: string;
-    /**
-     * Metadata Json
-     */
-    metadata_json?: {
-        [key: string]: unknown;
-    };
 };
 
 /**
@@ -3652,7 +3634,7 @@ export type SignGuarantorInviteGuarantorInviteTokenSignPostResponses = {
 export type SignGuarantorInviteGuarantorInviteTokenSignPostResponse = SignGuarantorInviteGuarantorInviteTokenSignPostResponses[keyof SignGuarantorInviteGuarantorInviteTokenSignPostResponses];
 
 export type UploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPostData = {
-    body: GuarantorInviteDocumentIn;
+    body: BodyUploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPost;
     path: {
         /**
          * Token
