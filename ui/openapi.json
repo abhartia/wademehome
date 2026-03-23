@@ -2831,6 +2831,1575 @@
         }
       }
     },
+    "/landlord/profile": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Profile",
+        "operationId": "read_profile_landlord_profile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Profile",
+        "operationId": "patch_profile_landlord_profile_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Properties",
+        "operationId": "read_properties_landlord_properties_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Property Route",
+        "operationId": "create_property_route_landlord_properties_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordPropertyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordPropertyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Property",
+        "operationId": "read_property_landlord_properties__property_id__get",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordPropertyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Property",
+        "operationId": "patch_property_landlord_properties__property_id__patch",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordPropertyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordPropertyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Remove Property",
+        "operationId": "remove_property_landlord_properties__property_id__delete",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}/publish": {
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Publish Property",
+        "operationId": "publish_property_landlord_properties__property_id__publish_post",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordPropertyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}/unpublish": {
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Unpublish Property",
+        "operationId": "unpublish_property_landlord_properties__property_id__unpublish_post",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordPropertyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}/media": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Media",
+        "operationId": "read_media_landlord_properties__property_id__media_get",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordMediaResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Media Route",
+        "operationId": "create_media_route_landlord_properties__property_id__media_post",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordMediaCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordMediaResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}/media/{media_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Media",
+        "operationId": "patch_media_landlord_properties__property_id__media__media_id__patch",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          },
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordMediaUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordMediaResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Remove Media",
+        "operationId": "remove_media_landlord_properties__property_id__media__media_id__delete",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          },
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordMediaResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}/units": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Units",
+        "operationId": "read_units_landlord_properties__property_id__units_get",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordUnitsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Unit Route",
+        "operationId": "create_unit_route_landlord_properties__property_id__units_post",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordUnitCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordUnitsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/properties/{property_id}/units/{unit_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Unit",
+        "operationId": "patch_unit_landlord_properties__property_id__units__unit_id__patch",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          },
+          {
+            "name": "unit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Unit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordUnitUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordUnitsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Remove Unit",
+        "operationId": "remove_unit_landlord_properties__property_id__units__unit_id__delete",
+        "parameters": [
+          {
+            "name": "property_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Property Id"
+            }
+          },
+          {
+            "name": "unit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Unit Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordUnitsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/leads": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Leads",
+        "operationId": "read_leads_landlord_leads_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeadsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Lead Route",
+        "operationId": "create_lead_route_landlord_leads_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordLeadCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeadsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/leads/{lead_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Lead",
+        "operationId": "patch_lead_landlord_leads__lead_id__patch",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordLeadUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeadsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/tours/slots": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Tour Slots",
+        "operationId": "read_tour_slots_landlord_tours_slots_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourSlotsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Tour Slot Route",
+        "operationId": "create_tour_slot_route_landlord_tours_slots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordTourSlotCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourSlotsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/tours/slots/{slot_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Tour Slot",
+        "operationId": "patch_tour_slot_landlord_tours_slots__slot_id__patch",
+        "parameters": [
+          {
+            "name": "slot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slot Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordTourSlotUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourSlotsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Remove Tour Slot",
+        "operationId": "remove_tour_slot_landlord_tours_slots__slot_id__delete",
+        "parameters": [
+          {
+            "name": "slot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourSlotsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/tours/bookings": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Tour Bookings",
+        "operationId": "read_tour_bookings_landlord_tours_bookings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourBookingsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Tour Booking Route",
+        "operationId": "create_tour_booking_route_landlord_tours_bookings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordTourBookingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourBookingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/tours/bookings/{booking_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Tour Booking",
+        "operationId": "patch_tour_booking_landlord_tours_bookings__booking_id__patch",
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordTourBookingUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordTourBookingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/applications": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Applications",
+        "operationId": "read_applications_landlord_applications_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordApplicationsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Application Route",
+        "operationId": "create_application_route_landlord_applications_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordApplicationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordApplicationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/applications/{application_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Application",
+        "operationId": "patch_application_landlord_applications__application_id__patch",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Application Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordApplicationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordApplicationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/applications/{application_id}/documents": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Application Documents",
+        "operationId": "read_application_documents_landlord_applications__application_id__documents_get",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Application Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordApplicationDocumentsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Application Document Route",
+        "operationId": "create_application_document_route_landlord_applications__application_id__documents_post",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Application Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordApplicationDocumentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordApplicationDocumentsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/lease-offers": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Lease Offers",
+        "operationId": "read_lease_offers_landlord_lease_offers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeaseOffersResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Lease Offer Route",
+        "operationId": "create_lease_offer_route_landlord_lease_offers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordLeaseOfferCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeaseOffersResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/lease-offers/{lease_offer_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Lease Offer Action",
+        "operationId": "patch_lease_offer_action_landlord_lease_offers__lease_offer_id__patch",
+        "parameters": [
+          {
+            "name": "lease_offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lease Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordLeaseOfferAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeaseOffersResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/lease-offers/{lease_offer_id}/signatures": {
+      "get": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Read Lease Signatures",
+        "operationId": "read_lease_signatures_landlord_lease_offers__lease_offer_id__signatures_get",
+        "parameters": [
+          {
+            "name": "lease_offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lease Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeaseSignaturesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Create Lease Signature Route",
+        "operationId": "create_lease_signature_route_landlord_lease_offers__lease_offer_id__signatures_post",
+        "parameters": [
+          {
+            "name": "lease_offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lease Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordLeaseSignatureCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeaseSignaturesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/landlord/lease-signatures/{signature_id}": {
+      "patch": {
+        "tags": [
+          "landlord"
+        ],
+        "summary": "Patch Lease Signature",
+        "operationId": "patch_lease_signature_landlord_lease_signatures__signature_id__patch",
+        "parameters": [
+          {
+            "name": "signature_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Signature Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandlordLeaseSignatureUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandlordLeaseSignaturesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/listings/chat": {
       "post": {
         "summary": "Listing Chat",
@@ -3689,6 +5258,1760 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "LandlordApplicationCreate": {
+        "properties": {
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Id"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "applicant_name": {
+            "type": "string",
+            "title": "Applicant Name"
+          },
+          "applicant_email": {
+            "type": "string",
+            "title": "Applicant Email"
+          },
+          "annual_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annual Income"
+          },
+          "credit_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Score"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_id",
+          "applicant_name",
+          "applicant_email"
+        ],
+        "title": "LandlordApplicationCreate"
+      },
+      "LandlordApplicationDocumentCreate": {
+        "properties": {
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "file_url": {
+            "type": "string",
+            "title": "File Url"
+          },
+          "file_type": {
+            "type": "string",
+            "title": "File Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_name",
+          "file_url",
+          "file_type"
+        ],
+        "title": "LandlordApplicationDocumentCreate"
+      },
+      "LandlordApplicationDocumentPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "application_id": {
+            "type": "string",
+            "title": "Application Id"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "file_url": {
+            "type": "string",
+            "title": "File Url"
+          },
+          "file_type": {
+            "type": "string",
+            "title": "File Type"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "application_id",
+          "file_name",
+          "file_url",
+          "file_type",
+          "created_at"
+        ],
+        "title": "LandlordApplicationDocumentPayload"
+      },
+      "LandlordApplicationDocumentsResponse": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordApplicationDocumentPayload"
+            },
+            "type": "array",
+            "title": "Documents"
+          }
+        },
+        "type": "object",
+        "title": "LandlordApplicationDocumentsResponse"
+      },
+      "LandlordApplicationPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Id"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "applicant_name": {
+            "type": "string",
+            "title": "Applicant Name"
+          },
+          "applicant_email": {
+            "type": "string",
+            "title": "Applicant Email"
+          },
+          "annual_income": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annual Income"
+          },
+          "credit_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Score"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "property_id",
+          "applicant_name",
+          "applicant_email",
+          "status",
+          "created_at"
+        ],
+        "title": "LandlordApplicationPayload"
+      },
+      "LandlordApplicationUpdate": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "LandlordApplicationUpdate"
+      },
+      "LandlordApplicationsResponse": {
+        "properties": {
+          "applications": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordApplicationPayload"
+            },
+            "type": "array",
+            "title": "Applications"
+          }
+        },
+        "type": "object",
+        "title": "LandlordApplicationsResponse"
+      },
+      "LandlordLeadCreate": {
+        "properties": {
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": ""
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "platform"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_id",
+          "name",
+          "email"
+        ],
+        "title": "LandlordLeadCreate"
+      },
+      "LandlordLeadPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "default": ""
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "platform"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "property_id",
+          "name",
+          "email",
+          "status",
+          "created_at"
+        ],
+        "title": "LandlordLeadPayload"
+      },
+      "LandlordLeadUpdate": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "LandlordLeadUpdate"
+      },
+      "LandlordLeadsResponse": {
+        "properties": {
+          "leads": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordLeadPayload"
+            },
+            "type": "array",
+            "title": "Leads"
+          }
+        },
+        "type": "object",
+        "title": "LandlordLeadsResponse"
+      },
+      "LandlordLeaseOfferAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "send",
+              "counter",
+              "accept",
+              "decline"
+            ],
+            "title": "Action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "LandlordLeaseOfferAction"
+      },
+      "LandlordLeaseOfferCreate": {
+        "properties": {
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Id"
+          },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id"
+          },
+          "tenant_name": {
+            "type": "string",
+            "title": "Tenant Name"
+          },
+          "tenant_email": {
+            "type": "string",
+            "title": "Tenant Email"
+          },
+          "monthly_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Monthly Rent"
+          },
+          "lease_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Lease Start"
+          },
+          "lease_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Lease End"
+          },
+          "terms_text": {
+            "type": "string",
+            "title": "Terms Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_id",
+          "tenant_name",
+          "tenant_email",
+          "monthly_rent",
+          "lease_start",
+          "lease_end",
+          "terms_text"
+        ],
+        "title": "LandlordLeaseOfferCreate"
+      },
+      "LandlordLeaseOfferPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Id"
+          },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id"
+          },
+          "tenant_name": {
+            "type": "string",
+            "title": "Tenant Name"
+          },
+          "tenant_email": {
+            "type": "string",
+            "title": "Tenant Email"
+          },
+          "monthly_rent": {
+            "type": "string",
+            "title": "Monthly Rent"
+          },
+          "lease_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Lease Start"
+          },
+          "lease_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Lease End"
+          },
+          "terms_text": {
+            "type": "string",
+            "title": "Terms Text"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "property_id",
+          "tenant_name",
+          "tenant_email",
+          "monthly_rent",
+          "lease_start",
+          "lease_end",
+          "terms_text",
+          "status",
+          "created_at"
+        ],
+        "title": "LandlordLeaseOfferPayload"
+      },
+      "LandlordLeaseOffersResponse": {
+        "properties": {
+          "lease_offers": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordLeaseOfferPayload"
+            },
+            "type": "array",
+            "title": "Lease Offers"
+          }
+        },
+        "type": "object",
+        "title": "LandlordLeaseOffersResponse"
+      },
+      "LandlordLeaseSignatureCreate": {
+        "properties": {
+          "signer_role": {
+            "type": "string",
+            "title": "Signer Role"
+          },
+          "signer_name": {
+            "type": "string",
+            "title": "Signer Name"
+          },
+          "signer_email": {
+            "type": "string",
+            "title": "Signer Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signer_role",
+          "signer_name",
+          "signer_email"
+        ],
+        "title": "LandlordLeaseSignatureCreate"
+      },
+      "LandlordLeaseSignaturePayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "lease_offer_id": {
+            "type": "string",
+            "title": "Lease Offer Id"
+          },
+          "signer_role": {
+            "type": "string",
+            "title": "Signer Role"
+          },
+          "signer_name": {
+            "type": "string",
+            "title": "Signer Name"
+          },
+          "signer_email": {
+            "type": "string",
+            "title": "Signer Email"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lease_offer_id",
+          "signer_role",
+          "signer_name",
+          "signer_email",
+          "status"
+        ],
+        "title": "LandlordLeaseSignaturePayload"
+      },
+      "LandlordLeaseSignatureUpdate": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "title": "LandlordLeaseSignatureUpdate"
+      },
+      "LandlordLeaseSignaturesResponse": {
+        "properties": {
+          "signatures": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordLeaseSignaturePayload"
+            },
+            "type": "array",
+            "title": "Signatures"
+          }
+        },
+        "type": "object",
+        "title": "LandlordLeaseSignaturesResponse"
+      },
+      "LandlordMediaCreate": {
+        "properties": {
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type",
+            "default": "image"
+          },
+          "caption": {
+            "type": "string",
+            "title": "Caption",
+            "default": ""
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "media_url"
+        ],
+        "title": "LandlordMediaCreate"
+      },
+      "LandlordMediaPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "caption": {
+            "type": "string",
+            "title": "Caption",
+            "default": ""
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "media_url",
+          "media_type",
+          "sort_order"
+        ],
+        "title": "LandlordMediaPayload"
+      },
+      "LandlordMediaResponse": {
+        "properties": {
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordMediaPayload"
+            },
+            "type": "array",
+            "title": "Media"
+          }
+        },
+        "type": "object",
+        "title": "LandlordMediaResponse"
+      },
+      "LandlordMediaUpdate": {
+        "properties": {
+          "media_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Url"
+          },
+          "media_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          }
+        },
+        "type": "object",
+        "title": "LandlordMediaUpdate"
+      },
+      "LandlordProfilePayload": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": ""
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name",
+            "default": ""
+          },
+          "phone_number": {
+            "type": "string",
+            "title": "Phone Number",
+            "default": ""
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status",
+            "default": "pending"
+          }
+        },
+        "type": "object",
+        "title": "LandlordProfilePayload"
+      },
+      "LandlordProfileResponse": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/LandlordProfilePayload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile"
+        ],
+        "title": "LandlordProfileResponse"
+      },
+      "LandlordProfileUpdate": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          }
+        },
+        "type": "object",
+        "title": "LandlordProfileUpdate"
+      },
+      "LandlordPropertiesResponse": {
+        "properties": {
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordPropertyPayload"
+            },
+            "type": "array",
+            "title": "Properties"
+          }
+        },
+        "type": "object",
+        "title": "LandlordPropertiesResponse"
+      },
+      "LandlordPropertyCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "street_line1": {
+            "type": "string",
+            "title": "Street Line1"
+          },
+          "street_line2": {
+            "type": "string",
+            "title": "Street Line2",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "postal_code": {
+            "type": "string",
+            "title": "Postal Code"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country",
+            "default": "US"
+          },
+          "amenities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Amenities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "street_line1",
+          "city",
+          "state",
+          "postal_code"
+        ],
+        "title": "LandlordPropertyCreate"
+      },
+      "LandlordPropertyPayload": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "street_line1": {
+            "type": "string",
+            "title": "Street Line1"
+          },
+          "street_line2": {
+            "type": "string",
+            "title": "Street Line2",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "postal_code": {
+            "type": "string",
+            "title": "Postal Code"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country",
+            "default": "US"
+          },
+          "amenities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Amenities"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "publish_status": {
+            "type": "string",
+            "title": "Publish Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "street_line1",
+          "city",
+          "state",
+          "postal_code",
+          "id",
+          "publish_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LandlordPropertyPayload"
+      },
+      "LandlordPropertyResponse": {
+        "properties": {
+          "property": {
+            "$ref": "#/components/schemas/LandlordPropertyPayload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property"
+        ],
+        "title": "LandlordPropertyResponse"
+      },
+      "LandlordPropertyUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "street_line1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street Line1"
+          },
+          "street_line2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street Line2"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postal Code"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "amenities": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amenities"
+          }
+        },
+        "type": "object",
+        "title": "LandlordPropertyUpdate"
+      },
+      "LandlordTourBookingCreate": {
+        "properties": {
+          "slot_id": {
+            "type": "string",
+            "title": "Slot Id"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "guest_name": {
+            "type": "string",
+            "title": "Guest Name"
+          },
+          "guest_email": {
+            "type": "string",
+            "title": "Guest Email"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "slot_id",
+          "guest_name",
+          "guest_email"
+        ],
+        "title": "LandlordTourBookingCreate"
+      },
+      "LandlordTourBookingPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slot_id": {
+            "type": "string",
+            "title": "Slot Id"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "guest_name": {
+            "type": "string",
+            "title": "Guest Name"
+          },
+          "guest_email": {
+            "type": "string",
+            "title": "Guest Email"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slot_id",
+          "guest_name",
+          "guest_email",
+          "status",
+          "created_at"
+        ],
+        "title": "LandlordTourBookingPayload"
+      },
+      "LandlordTourBookingUpdate": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "LandlordTourBookingUpdate"
+      },
+      "LandlordTourBookingsResponse": {
+        "properties": {
+          "bookings": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordTourBookingPayload"
+            },
+            "type": "array",
+            "title": "Bookings"
+          }
+        },
+        "type": "object",
+        "title": "LandlordTourBookingsResponse"
+      },
+      "LandlordTourSlotCreate": {
+        "properties": {
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "type": "string",
+            "title": "Unit Id"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End Time"
+          },
+          "is_blocked": {
+            "type": "boolean",
+            "title": "Is Blocked",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_id",
+          "unit_id",
+          "start_time",
+          "end_time"
+        ],
+        "title": "LandlordTourSlotCreate"
+      },
+      "LandlordTourSlotPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "unit_id": {
+            "type": "string",
+            "title": "Unit Id"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End Time"
+          },
+          "is_blocked": {
+            "type": "boolean",
+            "title": "Is Blocked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "property_id",
+          "unit_id",
+          "start_time",
+          "end_time",
+          "is_blocked"
+        ],
+        "title": "LandlordTourSlotPayload"
+      },
+      "LandlordTourSlotUpdate": {
+        "properties": {
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "is_blocked": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Blocked"
+          }
+        },
+        "type": "object",
+        "title": "LandlordTourSlotUpdate"
+      },
+      "LandlordTourSlotsResponse": {
+        "properties": {
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordTourSlotPayload"
+            },
+            "type": "array",
+            "title": "Slots"
+          }
+        },
+        "type": "object",
+        "title": "LandlordTourSlotsResponse"
+      },
+      "LandlordUnitCreate": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "bedrooms": {
+            "type": "integer",
+            "title": "Bedrooms",
+            "default": 0
+          },
+          "bathrooms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Bathrooms",
+            "default": "1.0"
+          },
+          "square_feet": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Square Feet"
+          },
+          "monthly_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Monthly Rent"
+          },
+          "security_deposit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Security Deposit"
+          },
+          "lease_term_months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Term Months"
+          },
+          "available_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available On"
+          },
+          "is_available": {
+            "type": "boolean",
+            "title": "Is Available",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "monthly_rent"
+        ],
+        "title": "LandlordUnitCreate"
+      },
+      "LandlordUnitPayload": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "bedrooms": {
+            "type": "integer",
+            "title": "Bedrooms",
+            "default": 0
+          },
+          "bathrooms": {
+            "type": "string",
+            "title": "Bathrooms",
+            "default": "1.0"
+          },
+          "square_feet": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Square Feet"
+          },
+          "monthly_rent": {
+            "type": "string",
+            "title": "Monthly Rent"
+          },
+          "security_deposit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Security Deposit"
+          },
+          "lease_term_months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Term Months"
+          },
+          "available_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available On"
+          },
+          "is_available": {
+            "type": "boolean",
+            "title": "Is Available",
+            "default": true
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "monthly_rent",
+          "id"
+        ],
+        "title": "LandlordUnitPayload"
+      },
+      "LandlordUnitUpdate": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "bedrooms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bedrooms"
+          },
+          "bathrooms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathrooms"
+          },
+          "square_feet": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Square Feet"
+          },
+          "monthly_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Rent"
+          },
+          "security_deposit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Security Deposit"
+          },
+          "lease_term_months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Term Months"
+          },
+          "available_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available On"
+          },
+          "is_available": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Available"
+          }
+        },
+        "type": "object",
+        "title": "LandlordUnitUpdate"
+      },
+      "LandlordUnitsResponse": {
+        "properties": {
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/LandlordUnitPayload"
+            },
+            "type": "array",
+            "title": "Units"
+          }
+        },
+        "type": "object",
+        "title": "LandlordUnitsResponse"
       },
       "LatLngIn": {
         "properties": {
@@ -5971,6 +9294,18 @@
               }
             ],
             "title": "Requested Time"
+          },
+          "request_message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Message"
           }
         },
         "type": "object",
@@ -6098,6 +9433,11 @@
             "type": "string",
             "format": "email",
             "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "user"
           },
           "email_verified": {
             "type": "boolean",

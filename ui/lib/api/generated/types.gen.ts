@@ -522,6 +522,1066 @@ export type HttpValidationError = {
 };
 
 /**
+ * LandlordApplicationCreate
+ */
+export type LandlordApplicationCreate = {
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id?: string | null;
+    /**
+     * Lead Id
+     */
+    lead_id?: string | null;
+    /**
+     * Applicant Name
+     */
+    applicant_name: string;
+    /**
+     * Applicant Email
+     */
+    applicant_email: string;
+    /**
+     * Annual Income
+     */
+    annual_income?: number | string | null;
+    /**
+     * Credit Score
+     */
+    credit_score?: number | null;
+    /**
+     * Notes
+     */
+    notes?: string;
+};
+
+/**
+ * LandlordApplicationDocumentCreate
+ */
+export type LandlordApplicationDocumentCreate = {
+    /**
+     * File Name
+     */
+    file_name: string;
+    /**
+     * File Url
+     */
+    file_url: string;
+    /**
+     * File Type
+     */
+    file_type: string;
+};
+
+/**
+ * LandlordApplicationDocumentPayload
+ */
+export type LandlordApplicationDocumentPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Application Id
+     */
+    application_id: string;
+    /**
+     * File Name
+     */
+    file_name: string;
+    /**
+     * File Url
+     */
+    file_url: string;
+    /**
+     * File Type
+     */
+    file_type: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * LandlordApplicationDocumentsResponse
+ */
+export type LandlordApplicationDocumentsResponse = {
+    /**
+     * Documents
+     */
+    documents?: Array<LandlordApplicationDocumentPayload>;
+};
+
+/**
+ * LandlordApplicationPayload
+ */
+export type LandlordApplicationPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id?: string | null;
+    /**
+     * Lead Id
+     */
+    lead_id?: string | null;
+    /**
+     * Applicant Name
+     */
+    applicant_name: string;
+    /**
+     * Applicant Email
+     */
+    applicant_email: string;
+    /**
+     * Annual Income
+     */
+    annual_income?: string | null;
+    /**
+     * Credit Score
+     */
+    credit_score?: number | null;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * LandlordApplicationUpdate
+ */
+export type LandlordApplicationUpdate = {
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * LandlordApplicationsResponse
+ */
+export type LandlordApplicationsResponse = {
+    /**
+     * Applications
+     */
+    applications?: Array<LandlordApplicationPayload>;
+};
+
+/**
+ * LandlordLeadCreate
+ */
+export type LandlordLeadCreate = {
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id?: string | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Phone
+     */
+    phone?: string;
+    /**
+     * Message
+     */
+    message?: string;
+    /**
+     * Source
+     */
+    source?: string;
+};
+
+/**
+ * LandlordLeadPayload
+ */
+export type LandlordLeadPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id?: string | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Phone
+     */
+    phone?: string;
+    /**
+     * Message
+     */
+    message?: string;
+    /**
+     * Source
+     */
+    source?: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * LandlordLeadUpdate
+ */
+export type LandlordLeadUpdate = {
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Message
+     */
+    message?: string | null;
+};
+
+/**
+ * LandlordLeadsResponse
+ */
+export type LandlordLeadsResponse = {
+    /**
+     * Leads
+     */
+    leads?: Array<LandlordLeadPayload>;
+};
+
+/**
+ * LandlordLeaseOfferAction
+ */
+export type LandlordLeaseOfferAction = {
+    /**
+     * Action
+     */
+    action: 'send' | 'counter' | 'accept' | 'decline';
+};
+
+/**
+ * LandlordLeaseOfferCreate
+ */
+export type LandlordLeaseOfferCreate = {
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id?: string | null;
+    /**
+     * Application Id
+     */
+    application_id?: string | null;
+    /**
+     * Tenant Name
+     */
+    tenant_name: string;
+    /**
+     * Tenant Email
+     */
+    tenant_email: string;
+    /**
+     * Monthly Rent
+     */
+    monthly_rent: number | string;
+    /**
+     * Lease Start
+     */
+    lease_start: string;
+    /**
+     * Lease End
+     */
+    lease_end: string;
+    /**
+     * Terms Text
+     */
+    terms_text: string;
+};
+
+/**
+ * LandlordLeaseOfferPayload
+ */
+export type LandlordLeaseOfferPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id?: string | null;
+    /**
+     * Application Id
+     */
+    application_id?: string | null;
+    /**
+     * Tenant Name
+     */
+    tenant_name: string;
+    /**
+     * Tenant Email
+     */
+    tenant_email: string;
+    /**
+     * Monthly Rent
+     */
+    monthly_rent: string;
+    /**
+     * Lease Start
+     */
+    lease_start: string;
+    /**
+     * Lease End
+     */
+    lease_end: string;
+    /**
+     * Terms Text
+     */
+    terms_text: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * LandlordLeaseOffersResponse
+ */
+export type LandlordLeaseOffersResponse = {
+    /**
+     * Lease Offers
+     */
+    lease_offers?: Array<LandlordLeaseOfferPayload>;
+};
+
+/**
+ * LandlordLeaseSignatureCreate
+ */
+export type LandlordLeaseSignatureCreate = {
+    /**
+     * Signer Role
+     */
+    signer_role: string;
+    /**
+     * Signer Name
+     */
+    signer_name: string;
+    /**
+     * Signer Email
+     */
+    signer_email: string;
+};
+
+/**
+ * LandlordLeaseSignaturePayload
+ */
+export type LandlordLeaseSignaturePayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Lease Offer Id
+     */
+    lease_offer_id: string;
+    /**
+     * Signer Role
+     */
+    signer_role: string;
+    /**
+     * Signer Name
+     */
+    signer_name: string;
+    /**
+     * Signer Email
+     */
+    signer_email: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Signed At
+     */
+    signed_at?: string | null;
+};
+
+/**
+ * LandlordLeaseSignatureUpdate
+ */
+export type LandlordLeaseSignatureUpdate = {
+    /**
+     * Status
+     */
+    status?: string | null;
+};
+
+/**
+ * LandlordLeaseSignaturesResponse
+ */
+export type LandlordLeaseSignaturesResponse = {
+    /**
+     * Signatures
+     */
+    signatures?: Array<LandlordLeaseSignaturePayload>;
+};
+
+/**
+ * LandlordMediaCreate
+ */
+export type LandlordMediaCreate = {
+    /**
+     * Media Url
+     */
+    media_url: string;
+    /**
+     * Media Type
+     */
+    media_type?: string;
+    /**
+     * Caption
+     */
+    caption?: string;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+};
+
+/**
+ * LandlordMediaPayload
+ */
+export type LandlordMediaPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Media Url
+     */
+    media_url: string;
+    /**
+     * Media Type
+     */
+    media_type: string;
+    /**
+     * Caption
+     */
+    caption?: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+};
+
+/**
+ * LandlordMediaResponse
+ */
+export type LandlordMediaResponse = {
+    /**
+     * Media
+     */
+    media?: Array<LandlordMediaPayload>;
+};
+
+/**
+ * LandlordMediaUpdate
+ */
+export type LandlordMediaUpdate = {
+    /**
+     * Media Url
+     */
+    media_url?: string | null;
+    /**
+     * Media Type
+     */
+    media_type?: string | null;
+    /**
+     * Caption
+     */
+    caption?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
+};
+
+/**
+ * LandlordProfilePayload
+ */
+export type LandlordProfilePayload = {
+    /**
+     * Display Name
+     */
+    display_name?: string;
+    /**
+     * Company Name
+     */
+    company_name?: string;
+    /**
+     * Phone Number
+     */
+    phone_number?: string;
+    /**
+     * Verification Status
+     */
+    verification_status?: string;
+};
+
+/**
+ * LandlordProfileResponse
+ */
+export type LandlordProfileResponse = {
+    profile: LandlordProfilePayload;
+};
+
+/**
+ * LandlordProfileUpdate
+ */
+export type LandlordProfileUpdate = {
+    /**
+     * Display Name
+     */
+    display_name?: string | null;
+    /**
+     * Company Name
+     */
+    company_name?: string | null;
+    /**
+     * Phone Number
+     */
+    phone_number?: string | null;
+};
+
+/**
+ * LandlordPropertiesResponse
+ */
+export type LandlordPropertiesResponse = {
+    /**
+     * Properties
+     */
+    properties?: Array<LandlordPropertyPayload>;
+};
+
+/**
+ * LandlordPropertyCreate
+ */
+export type LandlordPropertyCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Street Line1
+     */
+    street_line1: string;
+    /**
+     * Street Line2
+     */
+    street_line2?: string;
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * State
+     */
+    state: string;
+    /**
+     * Postal Code
+     */
+    postal_code: string;
+    /**
+     * Country
+     */
+    country?: string;
+    /**
+     * Amenities
+     */
+    amenities?: Array<string>;
+};
+
+/**
+ * LandlordPropertyPayload
+ */
+export type LandlordPropertyPayload = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Street Line1
+     */
+    street_line1: string;
+    /**
+     * Street Line2
+     */
+    street_line2?: string;
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * State
+     */
+    state: string;
+    /**
+     * Postal Code
+     */
+    postal_code: string;
+    /**
+     * Country
+     */
+    country?: string;
+    /**
+     * Amenities
+     */
+    amenities?: Array<string>;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Publish Status
+     */
+    publish_status: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * LandlordPropertyResponse
+ */
+export type LandlordPropertyResponse = {
+    property: LandlordPropertyPayload;
+};
+
+/**
+ * LandlordPropertyUpdate
+ */
+export type LandlordPropertyUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Street Line1
+     */
+    street_line1?: string | null;
+    /**
+     * Street Line2
+     */
+    street_line2?: string | null;
+    /**
+     * City
+     */
+    city?: string | null;
+    /**
+     * State
+     */
+    state?: string | null;
+    /**
+     * Postal Code
+     */
+    postal_code?: string | null;
+    /**
+     * Country
+     */
+    country?: string | null;
+    /**
+     * Amenities
+     */
+    amenities?: Array<string> | null;
+};
+
+/**
+ * LandlordTourBookingCreate
+ */
+export type LandlordTourBookingCreate = {
+    /**
+     * Slot Id
+     */
+    slot_id: string;
+    /**
+     * Lead Id
+     */
+    lead_id?: string | null;
+    /**
+     * Guest Name
+     */
+    guest_name: string;
+    /**
+     * Guest Email
+     */
+    guest_email: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+};
+
+/**
+ * LandlordTourBookingPayload
+ */
+export type LandlordTourBookingPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Slot Id
+     */
+    slot_id: string;
+    /**
+     * Lead Id
+     */
+    lead_id?: string | null;
+    /**
+     * Guest Name
+     */
+    guest_name: string;
+    /**
+     * Guest Email
+     */
+    guest_email: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * LandlordTourBookingUpdate
+ */
+export type LandlordTourBookingUpdate = {
+    /**
+     * Status
+     */
+    status?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * LandlordTourBookingsResponse
+ */
+export type LandlordTourBookingsResponse = {
+    /**
+     * Bookings
+     */
+    bookings?: Array<LandlordTourBookingPayload>;
+};
+
+/**
+ * LandlordTourSlotCreate
+ */
+export type LandlordTourSlotCreate = {
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id: string;
+    /**
+     * Start Time
+     */
+    start_time: string;
+    /**
+     * End Time
+     */
+    end_time: string;
+    /**
+     * Is Blocked
+     */
+    is_blocked?: boolean;
+};
+
+/**
+ * LandlordTourSlotPayload
+ */
+export type LandlordTourSlotPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Unit Id
+     */
+    unit_id: string;
+    /**
+     * Start Time
+     */
+    start_time: string;
+    /**
+     * End Time
+     */
+    end_time: string;
+    /**
+     * Is Blocked
+     */
+    is_blocked: boolean;
+};
+
+/**
+ * LandlordTourSlotUpdate
+ */
+export type LandlordTourSlotUpdate = {
+    /**
+     * Start Time
+     */
+    start_time?: string | null;
+    /**
+     * End Time
+     */
+    end_time?: string | null;
+    /**
+     * Is Blocked
+     */
+    is_blocked?: boolean | null;
+};
+
+/**
+ * LandlordTourSlotsResponse
+ */
+export type LandlordTourSlotsResponse = {
+    /**
+     * Slots
+     */
+    slots?: Array<LandlordTourSlotPayload>;
+};
+
+/**
+ * LandlordUnitCreate
+ */
+export type LandlordUnitCreate = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Bedrooms
+     */
+    bedrooms?: number;
+    /**
+     * Bathrooms
+     */
+    bathrooms?: number | string;
+    /**
+     * Square Feet
+     */
+    square_feet?: number | null;
+    /**
+     * Monthly Rent
+     */
+    monthly_rent: number | string;
+    /**
+     * Security Deposit
+     */
+    security_deposit?: number | string | null;
+    /**
+     * Lease Term Months
+     */
+    lease_term_months?: number | null;
+    /**
+     * Available On
+     */
+    available_on?: string | null;
+    /**
+     * Is Available
+     */
+    is_available?: boolean;
+};
+
+/**
+ * LandlordUnitPayload
+ */
+export type LandlordUnitPayload = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Bedrooms
+     */
+    bedrooms?: number;
+    /**
+     * Bathrooms
+     */
+    bathrooms?: string;
+    /**
+     * Square Feet
+     */
+    square_feet?: number | null;
+    /**
+     * Monthly Rent
+     */
+    monthly_rent: string;
+    /**
+     * Security Deposit
+     */
+    security_deposit?: string | null;
+    /**
+     * Lease Term Months
+     */
+    lease_term_months?: number | null;
+    /**
+     * Available On
+     */
+    available_on?: string | null;
+    /**
+     * Is Available
+     */
+    is_available?: boolean;
+    /**
+     * Id
+     */
+    id: string;
+};
+
+/**
+ * LandlordUnitUpdate
+ */
+export type LandlordUnitUpdate = {
+    /**
+     * Label
+     */
+    label?: string | null;
+    /**
+     * Bedrooms
+     */
+    bedrooms?: number | null;
+    /**
+     * Bathrooms
+     */
+    bathrooms?: number | string | null;
+    /**
+     * Square Feet
+     */
+    square_feet?: number | null;
+    /**
+     * Monthly Rent
+     */
+    monthly_rent?: number | string | null;
+    /**
+     * Security Deposit
+     */
+    security_deposit?: number | string | null;
+    /**
+     * Lease Term Months
+     */
+    lease_term_months?: number | null;
+    /**
+     * Available On
+     */
+    available_on?: string | null;
+    /**
+     * Is Available
+     */
+    is_available?: boolean | null;
+};
+
+/**
+ * LandlordUnitsResponse
+ */
+export type LandlordUnitsResponse = {
+    /**
+     * Units
+     */
+    units?: Array<LandlordUnitPayload>;
+};
+
+/**
  * LatLngIn
  */
 export type LatLngIn = {
@@ -1920,6 +2980,10 @@ export type UserResponse = {
      * Email
      */
     email: string;
+    /**
+     * Role
+     */
+    role?: string;
     /**
      * Email Verified
      */
@@ -4127,6 +5191,1029 @@ export type ReadRoommateMatchesRoommatesMatchesGetResponses = {
 };
 
 export type ReadRoommateMatchesRoommatesMatchesGetResponse = ReadRoommateMatchesRoommatesMatchesGetResponses[keyof ReadRoommateMatchesRoommatesMatchesGetResponses];
+
+export type ReadProfileLandlordProfileGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/profile';
+};
+
+export type ReadProfileLandlordProfileGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordProfileResponse;
+};
+
+export type ReadProfileLandlordProfileGetResponse = ReadProfileLandlordProfileGetResponses[keyof ReadProfileLandlordProfileGetResponses];
+
+export type PatchProfileLandlordProfilePatchData = {
+    body: LandlordProfileUpdate;
+    path?: never;
+    query?: never;
+    url: '/landlord/profile';
+};
+
+export type PatchProfileLandlordProfilePatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchProfileLandlordProfilePatchError = PatchProfileLandlordProfilePatchErrors[keyof PatchProfileLandlordProfilePatchErrors];
+
+export type PatchProfileLandlordProfilePatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordProfileResponse;
+};
+
+export type PatchProfileLandlordProfilePatchResponse = PatchProfileLandlordProfilePatchResponses[keyof PatchProfileLandlordProfilePatchResponses];
+
+export type ReadPropertiesLandlordPropertiesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/properties';
+};
+
+export type ReadPropertiesLandlordPropertiesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPropertiesResponse;
+};
+
+export type ReadPropertiesLandlordPropertiesGetResponse = ReadPropertiesLandlordPropertiesGetResponses[keyof ReadPropertiesLandlordPropertiesGetResponses];
+
+export type CreatePropertyRouteLandlordPropertiesPostData = {
+    body: LandlordPropertyCreate;
+    path?: never;
+    query?: never;
+    url: '/landlord/properties';
+};
+
+export type CreatePropertyRouteLandlordPropertiesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreatePropertyRouteLandlordPropertiesPostError = CreatePropertyRouteLandlordPropertiesPostErrors[keyof CreatePropertyRouteLandlordPropertiesPostErrors];
+
+export type CreatePropertyRouteLandlordPropertiesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPropertyResponse;
+};
+
+export type CreatePropertyRouteLandlordPropertiesPostResponse = CreatePropertyRouteLandlordPropertiesPostResponses[keyof CreatePropertyRouteLandlordPropertiesPostResponses];
+
+export type RemovePropertyLandlordPropertiesPropertyIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}';
+};
+
+export type RemovePropertyLandlordPropertiesPropertyIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemovePropertyLandlordPropertiesPropertyIdDeleteError = RemovePropertyLandlordPropertiesPropertyIdDeleteErrors[keyof RemovePropertyLandlordPropertiesPropertyIdDeleteErrors];
+
+export type RemovePropertyLandlordPropertiesPropertyIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RemovePropertyLandlordPropertiesPropertyIdDeleteResponse = RemovePropertyLandlordPropertiesPropertyIdDeleteResponses[keyof RemovePropertyLandlordPropertiesPropertyIdDeleteResponses];
+
+export type ReadPropertyLandlordPropertiesPropertyIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}';
+};
+
+export type ReadPropertyLandlordPropertiesPropertyIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadPropertyLandlordPropertiesPropertyIdGetError = ReadPropertyLandlordPropertiesPropertyIdGetErrors[keyof ReadPropertyLandlordPropertiesPropertyIdGetErrors];
+
+export type ReadPropertyLandlordPropertiesPropertyIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPropertyResponse;
+};
+
+export type ReadPropertyLandlordPropertiesPropertyIdGetResponse = ReadPropertyLandlordPropertiesPropertyIdGetResponses[keyof ReadPropertyLandlordPropertiesPropertyIdGetResponses];
+
+export type PatchPropertyLandlordPropertiesPropertyIdPatchData = {
+    body: LandlordPropertyUpdate;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}';
+};
+
+export type PatchPropertyLandlordPropertiesPropertyIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchPropertyLandlordPropertiesPropertyIdPatchError = PatchPropertyLandlordPropertiesPropertyIdPatchErrors[keyof PatchPropertyLandlordPropertiesPropertyIdPatchErrors];
+
+export type PatchPropertyLandlordPropertiesPropertyIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPropertyResponse;
+};
+
+export type PatchPropertyLandlordPropertiesPropertyIdPatchResponse = PatchPropertyLandlordPropertiesPropertyIdPatchResponses[keyof PatchPropertyLandlordPropertiesPropertyIdPatchResponses];
+
+export type PublishPropertyLandlordPropertiesPropertyIdPublishPostData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/publish';
+};
+
+export type PublishPropertyLandlordPropertiesPropertyIdPublishPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PublishPropertyLandlordPropertiesPropertyIdPublishPostError = PublishPropertyLandlordPropertiesPropertyIdPublishPostErrors[keyof PublishPropertyLandlordPropertiesPropertyIdPublishPostErrors];
+
+export type PublishPropertyLandlordPropertiesPropertyIdPublishPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPropertyResponse;
+};
+
+export type PublishPropertyLandlordPropertiesPropertyIdPublishPostResponse = PublishPropertyLandlordPropertiesPropertyIdPublishPostResponses[keyof PublishPropertyLandlordPropertiesPropertyIdPublishPostResponses];
+
+export type UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/unpublish';
+};
+
+export type UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostError = UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostErrors[keyof UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostErrors];
+
+export type UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPropertyResponse;
+};
+
+export type UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostResponse = UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostResponses[keyof UnpublishPropertyLandlordPropertiesPropertyIdUnpublishPostResponses];
+
+export type ReadMediaLandlordPropertiesPropertyIdMediaGetData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/media';
+};
+
+export type ReadMediaLandlordPropertiesPropertyIdMediaGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadMediaLandlordPropertiesPropertyIdMediaGetError = ReadMediaLandlordPropertiesPropertyIdMediaGetErrors[keyof ReadMediaLandlordPropertiesPropertyIdMediaGetErrors];
+
+export type ReadMediaLandlordPropertiesPropertyIdMediaGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordMediaResponse;
+};
+
+export type ReadMediaLandlordPropertiesPropertyIdMediaGetResponse = ReadMediaLandlordPropertiesPropertyIdMediaGetResponses[keyof ReadMediaLandlordPropertiesPropertyIdMediaGetResponses];
+
+export type CreateMediaRouteLandlordPropertiesPropertyIdMediaPostData = {
+    body: LandlordMediaCreate;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/media';
+};
+
+export type CreateMediaRouteLandlordPropertiesPropertyIdMediaPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateMediaRouteLandlordPropertiesPropertyIdMediaPostError = CreateMediaRouteLandlordPropertiesPropertyIdMediaPostErrors[keyof CreateMediaRouteLandlordPropertiesPropertyIdMediaPostErrors];
+
+export type CreateMediaRouteLandlordPropertiesPropertyIdMediaPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordMediaResponse;
+};
+
+export type CreateMediaRouteLandlordPropertiesPropertyIdMediaPostResponse = CreateMediaRouteLandlordPropertiesPropertyIdMediaPostResponses[keyof CreateMediaRouteLandlordPropertiesPropertyIdMediaPostResponses];
+
+export type RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+        /**
+         * Media Id
+         */
+        media_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/media/{media_id}';
+};
+
+export type RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteError = RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteErrors[keyof RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteErrors];
+
+export type RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordMediaResponse;
+};
+
+export type RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteResponse = RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteResponses[keyof RemoveMediaLandlordPropertiesPropertyIdMediaMediaIdDeleteResponses];
+
+export type PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchData = {
+    body: LandlordMediaUpdate;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+        /**
+         * Media Id
+         */
+        media_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/media/{media_id}';
+};
+
+export type PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchError = PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchErrors[keyof PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchErrors];
+
+export type PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordMediaResponse;
+};
+
+export type PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchResponse = PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchResponses[keyof PatchMediaLandlordPropertiesPropertyIdMediaMediaIdPatchResponses];
+
+export type ReadUnitsLandlordPropertiesPropertyIdUnitsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/units';
+};
+
+export type ReadUnitsLandlordPropertiesPropertyIdUnitsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadUnitsLandlordPropertiesPropertyIdUnitsGetError = ReadUnitsLandlordPropertiesPropertyIdUnitsGetErrors[keyof ReadUnitsLandlordPropertiesPropertyIdUnitsGetErrors];
+
+export type ReadUnitsLandlordPropertiesPropertyIdUnitsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordUnitsResponse;
+};
+
+export type ReadUnitsLandlordPropertiesPropertyIdUnitsGetResponse = ReadUnitsLandlordPropertiesPropertyIdUnitsGetResponses[keyof ReadUnitsLandlordPropertiesPropertyIdUnitsGetResponses];
+
+export type CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostData = {
+    body: LandlordUnitCreate;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/units';
+};
+
+export type CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostError = CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostErrors[keyof CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostErrors];
+
+export type CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordUnitsResponse;
+};
+
+export type CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostResponse = CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostResponses[keyof CreateUnitRouteLandlordPropertiesPropertyIdUnitsPostResponses];
+
+export type RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+        /**
+         * Unit Id
+         */
+        unit_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/units/{unit_id}';
+};
+
+export type RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteError = RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteErrors[keyof RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteErrors];
+
+export type RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordUnitsResponse;
+};
+
+export type RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteResponse = RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteResponses[keyof RemoveUnitLandlordPropertiesPropertyIdUnitsUnitIdDeleteResponses];
+
+export type PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchData = {
+    body: LandlordUnitUpdate;
+    path: {
+        /**
+         * Property Id
+         */
+        property_id: string;
+        /**
+         * Unit Id
+         */
+        unit_id: string;
+    };
+    query?: never;
+    url: '/landlord/properties/{property_id}/units/{unit_id}';
+};
+
+export type PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchError = PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchErrors[keyof PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchErrors];
+
+export type PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordUnitsResponse;
+};
+
+export type PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchResponse = PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchResponses[keyof PatchUnitLandlordPropertiesPropertyIdUnitsUnitIdPatchResponses];
+
+export type ReadLeadsLandlordLeadsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/leads';
+};
+
+export type ReadLeadsLandlordLeadsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeadsResponse;
+};
+
+export type ReadLeadsLandlordLeadsGetResponse = ReadLeadsLandlordLeadsGetResponses[keyof ReadLeadsLandlordLeadsGetResponses];
+
+export type CreateLeadRouteLandlordLeadsPostData = {
+    body: LandlordLeadCreate;
+    path?: never;
+    query?: never;
+    url: '/landlord/leads';
+};
+
+export type CreateLeadRouteLandlordLeadsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateLeadRouteLandlordLeadsPostError = CreateLeadRouteLandlordLeadsPostErrors[keyof CreateLeadRouteLandlordLeadsPostErrors];
+
+export type CreateLeadRouteLandlordLeadsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeadsResponse;
+};
+
+export type CreateLeadRouteLandlordLeadsPostResponse = CreateLeadRouteLandlordLeadsPostResponses[keyof CreateLeadRouteLandlordLeadsPostResponses];
+
+export type PatchLeadLandlordLeadsLeadIdPatchData = {
+    body: LandlordLeadUpdate;
+    path: {
+        /**
+         * Lead Id
+         */
+        lead_id: string;
+    };
+    query?: never;
+    url: '/landlord/leads/{lead_id}';
+};
+
+export type PatchLeadLandlordLeadsLeadIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchLeadLandlordLeadsLeadIdPatchError = PatchLeadLandlordLeadsLeadIdPatchErrors[keyof PatchLeadLandlordLeadsLeadIdPatchErrors];
+
+export type PatchLeadLandlordLeadsLeadIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeadsResponse;
+};
+
+export type PatchLeadLandlordLeadsLeadIdPatchResponse = PatchLeadLandlordLeadsLeadIdPatchResponses[keyof PatchLeadLandlordLeadsLeadIdPatchResponses];
+
+export type ReadTourSlotsLandlordToursSlotsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/tours/slots';
+};
+
+export type ReadTourSlotsLandlordToursSlotsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourSlotsResponse;
+};
+
+export type ReadTourSlotsLandlordToursSlotsGetResponse = ReadTourSlotsLandlordToursSlotsGetResponses[keyof ReadTourSlotsLandlordToursSlotsGetResponses];
+
+export type CreateTourSlotRouteLandlordToursSlotsPostData = {
+    body: LandlordTourSlotCreate;
+    path?: never;
+    query?: never;
+    url: '/landlord/tours/slots';
+};
+
+export type CreateTourSlotRouteLandlordToursSlotsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTourSlotRouteLandlordToursSlotsPostError = CreateTourSlotRouteLandlordToursSlotsPostErrors[keyof CreateTourSlotRouteLandlordToursSlotsPostErrors];
+
+export type CreateTourSlotRouteLandlordToursSlotsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourSlotsResponse;
+};
+
+export type CreateTourSlotRouteLandlordToursSlotsPostResponse = CreateTourSlotRouteLandlordToursSlotsPostResponses[keyof CreateTourSlotRouteLandlordToursSlotsPostResponses];
+
+export type RemoveTourSlotLandlordToursSlotsSlotIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Slot Id
+         */
+        slot_id: string;
+    };
+    query?: never;
+    url: '/landlord/tours/slots/{slot_id}';
+};
+
+export type RemoveTourSlotLandlordToursSlotsSlotIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemoveTourSlotLandlordToursSlotsSlotIdDeleteError = RemoveTourSlotLandlordToursSlotsSlotIdDeleteErrors[keyof RemoveTourSlotLandlordToursSlotsSlotIdDeleteErrors];
+
+export type RemoveTourSlotLandlordToursSlotsSlotIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourSlotsResponse;
+};
+
+export type RemoveTourSlotLandlordToursSlotsSlotIdDeleteResponse = RemoveTourSlotLandlordToursSlotsSlotIdDeleteResponses[keyof RemoveTourSlotLandlordToursSlotsSlotIdDeleteResponses];
+
+export type PatchTourSlotLandlordToursSlotsSlotIdPatchData = {
+    body: LandlordTourSlotUpdate;
+    path: {
+        /**
+         * Slot Id
+         */
+        slot_id: string;
+    };
+    query?: never;
+    url: '/landlord/tours/slots/{slot_id}';
+};
+
+export type PatchTourSlotLandlordToursSlotsSlotIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchTourSlotLandlordToursSlotsSlotIdPatchError = PatchTourSlotLandlordToursSlotsSlotIdPatchErrors[keyof PatchTourSlotLandlordToursSlotsSlotIdPatchErrors];
+
+export type PatchTourSlotLandlordToursSlotsSlotIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourSlotsResponse;
+};
+
+export type PatchTourSlotLandlordToursSlotsSlotIdPatchResponse = PatchTourSlotLandlordToursSlotsSlotIdPatchResponses[keyof PatchTourSlotLandlordToursSlotsSlotIdPatchResponses];
+
+export type ReadTourBookingsLandlordToursBookingsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/tours/bookings';
+};
+
+export type ReadTourBookingsLandlordToursBookingsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourBookingsResponse;
+};
+
+export type ReadTourBookingsLandlordToursBookingsGetResponse = ReadTourBookingsLandlordToursBookingsGetResponses[keyof ReadTourBookingsLandlordToursBookingsGetResponses];
+
+export type CreateTourBookingRouteLandlordToursBookingsPostData = {
+    body: LandlordTourBookingCreate;
+    path?: never;
+    query?: never;
+    url: '/landlord/tours/bookings';
+};
+
+export type CreateTourBookingRouteLandlordToursBookingsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTourBookingRouteLandlordToursBookingsPostError = CreateTourBookingRouteLandlordToursBookingsPostErrors[keyof CreateTourBookingRouteLandlordToursBookingsPostErrors];
+
+export type CreateTourBookingRouteLandlordToursBookingsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourBookingsResponse;
+};
+
+export type CreateTourBookingRouteLandlordToursBookingsPostResponse = CreateTourBookingRouteLandlordToursBookingsPostResponses[keyof CreateTourBookingRouteLandlordToursBookingsPostResponses];
+
+export type PatchTourBookingLandlordToursBookingsBookingIdPatchData = {
+    body: LandlordTourBookingUpdate;
+    path: {
+        /**
+         * Booking Id
+         */
+        booking_id: string;
+    };
+    query?: never;
+    url: '/landlord/tours/bookings/{booking_id}';
+};
+
+export type PatchTourBookingLandlordToursBookingsBookingIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchTourBookingLandlordToursBookingsBookingIdPatchError = PatchTourBookingLandlordToursBookingsBookingIdPatchErrors[keyof PatchTourBookingLandlordToursBookingsBookingIdPatchErrors];
+
+export type PatchTourBookingLandlordToursBookingsBookingIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordTourBookingsResponse;
+};
+
+export type PatchTourBookingLandlordToursBookingsBookingIdPatchResponse = PatchTourBookingLandlordToursBookingsBookingIdPatchResponses[keyof PatchTourBookingLandlordToursBookingsBookingIdPatchResponses];
+
+export type ReadApplicationsLandlordApplicationsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/applications';
+};
+
+export type ReadApplicationsLandlordApplicationsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordApplicationsResponse;
+};
+
+export type ReadApplicationsLandlordApplicationsGetResponse = ReadApplicationsLandlordApplicationsGetResponses[keyof ReadApplicationsLandlordApplicationsGetResponses];
+
+export type CreateApplicationRouteLandlordApplicationsPostData = {
+    body: LandlordApplicationCreate;
+    path?: never;
+    query?: never;
+    url: '/landlord/applications';
+};
+
+export type CreateApplicationRouteLandlordApplicationsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateApplicationRouteLandlordApplicationsPostError = CreateApplicationRouteLandlordApplicationsPostErrors[keyof CreateApplicationRouteLandlordApplicationsPostErrors];
+
+export type CreateApplicationRouteLandlordApplicationsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordApplicationsResponse;
+};
+
+export type CreateApplicationRouteLandlordApplicationsPostResponse = CreateApplicationRouteLandlordApplicationsPostResponses[keyof CreateApplicationRouteLandlordApplicationsPostResponses];
+
+export type PatchApplicationLandlordApplicationsApplicationIdPatchData = {
+    body: LandlordApplicationUpdate;
+    path: {
+        /**
+         * Application Id
+         */
+        application_id: string;
+    };
+    query?: never;
+    url: '/landlord/applications/{application_id}';
+};
+
+export type PatchApplicationLandlordApplicationsApplicationIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchApplicationLandlordApplicationsApplicationIdPatchError = PatchApplicationLandlordApplicationsApplicationIdPatchErrors[keyof PatchApplicationLandlordApplicationsApplicationIdPatchErrors];
+
+export type PatchApplicationLandlordApplicationsApplicationIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordApplicationsResponse;
+};
+
+export type PatchApplicationLandlordApplicationsApplicationIdPatchResponse = PatchApplicationLandlordApplicationsApplicationIdPatchResponses[keyof PatchApplicationLandlordApplicationsApplicationIdPatchResponses];
+
+export type ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Application Id
+         */
+        application_id: string;
+    };
+    query?: never;
+    url: '/landlord/applications/{application_id}/documents';
+};
+
+export type ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetError = ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetErrors[keyof ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetErrors];
+
+export type ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordApplicationDocumentsResponse;
+};
+
+export type ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetResponse = ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetResponses[keyof ReadApplicationDocumentsLandlordApplicationsApplicationIdDocumentsGetResponses];
+
+export type CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostData = {
+    body: LandlordApplicationDocumentCreate;
+    path: {
+        /**
+         * Application Id
+         */
+        application_id: string;
+    };
+    query?: never;
+    url: '/landlord/applications/{application_id}/documents';
+};
+
+export type CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostError = CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostErrors[keyof CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostErrors];
+
+export type CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordApplicationDocumentsResponse;
+};
+
+export type CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostResponse = CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostResponses[keyof CreateApplicationDocumentRouteLandlordApplicationsApplicationIdDocumentsPostResponses];
+
+export type ReadLeaseOffersLandlordLeaseOffersGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/landlord/lease-offers';
+};
+
+export type ReadLeaseOffersLandlordLeaseOffersGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeaseOffersResponse;
+};
+
+export type ReadLeaseOffersLandlordLeaseOffersGetResponse = ReadLeaseOffersLandlordLeaseOffersGetResponses[keyof ReadLeaseOffersLandlordLeaseOffersGetResponses];
+
+export type CreateLeaseOfferRouteLandlordLeaseOffersPostData = {
+    body: LandlordLeaseOfferCreate;
+    path?: never;
+    query?: never;
+    url: '/landlord/lease-offers';
+};
+
+export type CreateLeaseOfferRouteLandlordLeaseOffersPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateLeaseOfferRouteLandlordLeaseOffersPostError = CreateLeaseOfferRouteLandlordLeaseOffersPostErrors[keyof CreateLeaseOfferRouteLandlordLeaseOffersPostErrors];
+
+export type CreateLeaseOfferRouteLandlordLeaseOffersPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeaseOffersResponse;
+};
+
+export type CreateLeaseOfferRouteLandlordLeaseOffersPostResponse = CreateLeaseOfferRouteLandlordLeaseOffersPostResponses[keyof CreateLeaseOfferRouteLandlordLeaseOffersPostResponses];
+
+export type PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchData = {
+    body: LandlordLeaseOfferAction;
+    path: {
+        /**
+         * Lease Offer Id
+         */
+        lease_offer_id: string;
+    };
+    query?: never;
+    url: '/landlord/lease-offers/{lease_offer_id}';
+};
+
+export type PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchError = PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchErrors[keyof PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchErrors];
+
+export type PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeaseOffersResponse;
+};
+
+export type PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchResponse = PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchResponses[keyof PatchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchResponses];
+
+export type ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetData = {
+    body?: never;
+    path: {
+        /**
+         * Lease Offer Id
+         */
+        lease_offer_id: string;
+    };
+    query?: never;
+    url: '/landlord/lease-offers/{lease_offer_id}/signatures';
+};
+
+export type ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetError = ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetErrors[keyof ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetErrors];
+
+export type ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeaseSignaturesResponse;
+};
+
+export type ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetResponse = ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetResponses[keyof ReadLeaseSignaturesLandlordLeaseOffersLeaseOfferIdSignaturesGetResponses];
+
+export type CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostData = {
+    body: LandlordLeaseSignatureCreate;
+    path: {
+        /**
+         * Lease Offer Id
+         */
+        lease_offer_id: string;
+    };
+    query?: never;
+    url: '/landlord/lease-offers/{lease_offer_id}/signatures';
+};
+
+export type CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostError = CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostErrors[keyof CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostErrors];
+
+export type CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeaseSignaturesResponse;
+};
+
+export type CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostResponse = CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostResponses[keyof CreateLeaseSignatureRouteLandlordLeaseOffersLeaseOfferIdSignaturesPostResponses];
+
+export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchData = {
+    body: LandlordLeaseSignatureUpdate;
+    path: {
+        /**
+         * Signature Id
+         */
+        signature_id: string;
+    };
+    query?: never;
+    url: '/landlord/lease-signatures/{signature_id}';
+};
+
+export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchError = PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchErrors[keyof PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchErrors];
+
+export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordLeaseSignaturesResponse;
+};
+
+export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponse = PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses[keyof PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses];
 
 export type ListingChatListingsChatPostData = {
     body: ChatRequest;

@@ -14,9 +14,10 @@ export default function LandlordLeasesPage() {
   const onCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const unitId = String(data.get("unit_id") ?? "").trim();
     await createLeaseOffer({
       property_id: String(data.get("property_id") ?? ""),
-      unit_id: String(data.get("unit_id") ?? ""),
+      unit_id: unitId ? unitId : null,
       application_id: String(data.get("application_id") ?? "") || null,
       tenant_name: String(data.get("tenant_name") ?? ""),
       tenant_email: String(data.get("tenant_email") ?? ""),

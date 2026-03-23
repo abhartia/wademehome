@@ -2,7 +2,44 @@
 
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { landlordRequest } from "@/lib/api/landlordClient";
+import { useAuth } from "@/components/providers/AuthProvider";
+import type {
+  LandlordApplicationCreate,
+  LandlordApplicationUpdate,
+  LandlordLeaseOfferAction,
+  LandlordLeaseOfferCreate,
+  LandlordLeadCreate,
+  LandlordLeadUpdate,
+  LandlordPropertyCreate,
+  LandlordPropertyUpdate,
+  LandlordTourBookingCreate,
+  LandlordTourBookingUpdate,
+  LandlordTourSlotCreate,
+  LandlordUnitCreate,
+} from "@/lib/api/generated/types.gen";
+import {
+  createApplicationRouteLandlordApplicationsPostMutation,
+  createLeadRouteLandlordLeadsPostMutation,
+  createLeaseOfferRouteLandlordLeaseOffersPostMutation,
+  createPropertyRouteLandlordPropertiesPostMutation,
+  createTourBookingRouteLandlordToursBookingsPostMutation,
+  createTourSlotRouteLandlordToursSlotsPostMutation,
+  createUnitRouteLandlordPropertiesPropertyIdUnitsPostMutation,
+  patchApplicationLandlordApplicationsApplicationIdPatchMutation,
+  patchLeadLandlordLeadsLeadIdPatchMutation,
+  patchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchMutation,
+  patchPropertyLandlordPropertiesPropertyIdPatchMutation,
+  patchTourBookingLandlordToursBookingsBookingIdPatchMutation,
+  publishPropertyLandlordPropertiesPropertyIdPublishPostMutation,
+  readApplicationsLandlordApplicationsGetOptions,
+  readLeaseOffersLandlordLeaseOffersGetOptions,
+  readLeadsLandlordLeadsGetOptions,
+  readProfileLandlordProfileGetOptions,
+  readPropertiesLandlordPropertiesGetOptions,
+  readTourBookingsLandlordToursBookingsGetOptions,
+  readTourSlotsLandlordToursSlotsGetOptions,
+  unpublishPropertyLandlordPropertiesPropertyIdUnpublishPostMutation,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
 import type {
   LandlordApplication,
   LandlordLead,
@@ -22,185 +59,124 @@ type LandlordContextValue = {
   applications: LandlordApplication[];
   leaseOffers: LandlordLeaseOffer[];
   refreshAll: () => Promise<void>;
-  createProperty: (payload: Record<string, unknown>) => Promise<void>;
-  updateProperty: (propertyId: string, payload: Record<string, unknown>) => Promise<void>;
+  createProperty: (payload: LandlordPropertyCreate) => Promise<void>;
+  updateProperty: (propertyId: string, payload: LandlordPropertyUpdate) => Promise<void>;
   publishProperty: (propertyId: string, publish: boolean) => Promise<void>;
-  createUnit: (propertyId: string, payload: Record<string, unknown>) => Promise<void>;
-  createLead: (payload: Record<string, unknown>) => Promise<void>;
-  updateLead: (leadId: string, payload: Record<string, unknown>) => Promise<void>;
-  createSlot: (payload: Record<string, unknown>) => Promise<void>;
-  createBooking: (payload: Record<string, unknown>) => Promise<void>;
-  updateBooking: (bookingId: string, payload: Record<string, unknown>) => Promise<void>;
-  createApplication: (payload: Record<string, unknown>) => Promise<void>;
-  updateApplication: (applicationId: string, payload: Record<string, unknown>) => Promise<void>;
-  createLeaseOffer: (payload: Record<string, unknown>) => Promise<void>;
-  leaseOfferAction: (leaseOfferId: string, action: string) => Promise<void>;
+  createUnit: (propertyId: string, payload: LandlordUnitCreate) => Promise<void>;
+  createLead: (payload: LandlordLeadCreate) => Promise<void>;
+  updateLead: (leadId: string, payload: LandlordLeadUpdate) => Promise<void>;
+  createSlot: (payload: LandlordTourSlotCreate) => Promise<void>;
+  createBooking: (payload: LandlordTourBookingCreate) => Promise<void>;
+  updateBooking: (bookingId: string, payload: LandlordTourBookingUpdate) => Promise<void>;
+  createApplication: (payload: LandlordApplicationCreate) => Promise<void>;
+  updateApplication: (applicationId: string, payload: LandlordApplicationUpdate) => Promise<void>;
+  createLeaseOffer: (payload: LandlordLeaseOfferCreate) => Promise<void>;
+  leaseOfferAction: (leaseOfferId: string, action: LandlordLeaseOfferAction["action"]) => Promise<void>;
 };
 
 const LandlordContext = createContext<LandlordContextValue | null>(null);
 
-const keys = {
-  profile: ["landlord", "profile"] as const,
-  properties: ["landlord", "properties"] as const,
-  leads: ["landlord", "leads"] as const,
-  slots: ["landlord", "tour-slots"] as const,
-  bookings: ["landlord", "tour-bookings"] as const,
-  applications: ["landlord", "applications"] as const,
-  leaseOffers: ["landlord", "lease-offers"] as const,
-};
+function isLandlordQueryKey(queryKey: readonly unknown[]): boolean {
+  const head = queryKey[0];
+  if (!head || typeof head !== "object") return false;
+  const id = (head as { _id?: string })._id;
+  return typeof id === "string" && id.includes("Landlord");
+}
 
 export function LandlordProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const enabled = Boolean(user);
 
   const { data: profileResponse } = useQuery({
-    queryKey: keys.profile,
-    queryFn: () => landlordRequest<{ profile: LandlordProfile }>("/landlord/profile"),
+    ...readProfileLandlordProfileGetOptions({}),
+    enabled,
   });
   const { data: propertiesResponse } = useQuery({
-    queryKey: keys.properties,
-    queryFn: () =>
-      landlordRequest<{ properties: LandlordProperty[] }>("/landlord/properties"),
+    ...readPropertiesLandlordPropertiesGetOptions({}),
+    enabled,
   });
   const { data: leadsResponse } = useQuery({
-    queryKey: keys.leads,
-    queryFn: () => landlordRequest<{ leads: LandlordLead[] }>("/landlord/leads"),
+    ...readLeadsLandlordLeadsGetOptions({}),
+    enabled,
   });
   const { data: slotsResponse } = useQuery({
-    queryKey: keys.slots,
-    queryFn: () => landlordRequest<{ slots: LandlordTourSlot[] }>("/landlord/tours/slots"),
+    ...readTourSlotsLandlordToursSlotsGetOptions({}),
+    enabled,
   });
   const { data: bookingsResponse } = useQuery({
-    queryKey: keys.bookings,
-    queryFn: () =>
-      landlordRequest<{ bookings: LandlordTourBooking[] }>("/landlord/tours/bookings"),
+    ...readTourBookingsLandlordToursBookingsGetOptions({}),
+    enabled,
   });
   const { data: applicationsResponse } = useQuery({
-    queryKey: keys.applications,
-    queryFn: () =>
-      landlordRequest<{ applications: LandlordApplication[] }>("/landlord/applications"),
+    ...readApplicationsLandlordApplicationsGetOptions({}),
+    enabled,
   });
   const { data: leaseOffersResponse } = useQuery({
-    queryKey: keys.leaseOffers,
-    queryFn: () =>
-      landlordRequest<{ lease_offers: LandlordLeaseOffer[] }>("/landlord/lease-offers"),
+    ...readLeaseOffersLandlordLeaseOffersGetOptions({}),
+    enabled,
   });
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: keys.profile }),
-      queryClient.invalidateQueries({ queryKey: keys.properties }),
-      queryClient.invalidateQueries({ queryKey: keys.leads }),
-      queryClient.invalidateQueries({ queryKey: keys.slots }),
-      queryClient.invalidateQueries({ queryKey: keys.bookings }),
-      queryClient.invalidateQueries({ queryKey: keys.applications }),
-      queryClient.invalidateQueries({ queryKey: keys.leaseOffers }),
-    ]);
+    await queryClient.invalidateQueries({
+      predicate: (q) => isLandlordQueryKey(q.queryKey),
+    });
   }, [queryClient]);
 
   const createPropertyMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      landlordRequest("/landlord/properties", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    ...createPropertyRouteLandlordPropertiesPostMutation(),
     onSuccess: refreshAll,
   });
   const updatePropertyMutation = useMutation({
-    mutationFn: ({ propertyId, payload }: { propertyId: string; payload: Record<string, unknown> }) =>
-      landlordRequest(`/landlord/properties/${propertyId}`, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      }),
+    ...patchPropertyLandlordPropertiesPropertyIdPatchMutation(),
     onSuccess: refreshAll,
   });
   const publishPropertyMutation = useMutation({
-    mutationFn: ({ propertyId, publish }: { propertyId: string; publish: boolean }) =>
-      landlordRequest(`/landlord/properties/${propertyId}/${publish ? "publish" : "unpublish"}`, {
-        method: "POST",
-      }),
+    ...publishPropertyLandlordPropertiesPropertyIdPublishPostMutation(),
+    onSuccess: refreshAll,
+  });
+  const unpublishPropertyMutation = useMutation({
+    ...unpublishPropertyLandlordPropertiesPropertyIdUnpublishPostMutation(),
     onSuccess: refreshAll,
   });
   const createUnitMutation = useMutation({
-    mutationFn: ({ propertyId, payload }: { propertyId: string; payload: Record<string, unknown> }) =>
-      landlordRequest(`/landlord/properties/${propertyId}/units`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    ...createUnitRouteLandlordPropertiesPropertyIdUnitsPostMutation(),
     onSuccess: refreshAll,
   });
   const createLeadMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      landlordRequest("/landlord/leads", { method: "POST", body: JSON.stringify(payload) }),
+    ...createLeadRouteLandlordLeadsPostMutation(),
     onSuccess: refreshAll,
   });
   const updateLeadMutation = useMutation({
-    mutationFn: ({ leadId, payload }: { leadId: string; payload: Record<string, unknown> }) =>
-      landlordRequest(`/landlord/leads/${leadId}`, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      }),
+    ...patchLeadLandlordLeadsLeadIdPatchMutation(),
     onSuccess: refreshAll,
   });
   const createSlotMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      landlordRequest("/landlord/tours/slots", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    ...createTourSlotRouteLandlordToursSlotsPostMutation(),
     onSuccess: refreshAll,
   });
   const createBookingMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      landlordRequest("/landlord/tours/bookings", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    ...createTourBookingRouteLandlordToursBookingsPostMutation(),
     onSuccess: refreshAll,
   });
   const updateBookingMutation = useMutation({
-    mutationFn: ({ bookingId, payload }: { bookingId: string; payload: Record<string, unknown> }) =>
-      landlordRequest(`/landlord/tours/bookings/${bookingId}`, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      }),
+    ...patchTourBookingLandlordToursBookingsBookingIdPatchMutation(),
     onSuccess: refreshAll,
   });
   const createApplicationMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      landlordRequest("/landlord/applications", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    ...createApplicationRouteLandlordApplicationsPostMutation(),
     onSuccess: refreshAll,
   });
   const updateApplicationMutation = useMutation({
-    mutationFn: ({
-      applicationId,
-      payload,
-    }: {
-      applicationId: string;
-      payload: Record<string, unknown>;
-    }) =>
-      landlordRequest(`/landlord/applications/${applicationId}`, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      }),
+    ...patchApplicationLandlordApplicationsApplicationIdPatchMutation(),
     onSuccess: refreshAll,
   });
   const createLeaseOfferMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      landlordRequest("/landlord/lease-offers", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    ...createLeaseOfferRouteLandlordLeaseOffersPostMutation(),
     onSuccess: refreshAll,
   });
   const leaseOfferActionMutation = useMutation({
-    mutationFn: ({ leaseOfferId, action }: { leaseOfferId: string; action: string }) =>
-      landlordRequest(`/landlord/lease-offers/${leaseOfferId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ action }),
-      }),
+    ...patchLeaseOfferActionLandlordLeaseOffersLeaseOfferIdPatchMutation(),
     onSuccess: refreshAll,
   });
 
@@ -214,24 +190,55 @@ export function LandlordProvider({ children }: { children: React.ReactNode }) {
       applications: applicationsResponse?.applications ?? [],
       leaseOffers: leaseOffersResponse?.lease_offers ?? [],
       refreshAll,
-      createProperty: async (payload) => createPropertyMutation.mutateAsync(payload),
-      updateProperty: async (propertyId, payload) =>
-        updatePropertyMutation.mutateAsync({ propertyId, payload }),
-      publishProperty: async (propertyId, publish) =>
-        publishPropertyMutation.mutateAsync({ propertyId, publish }),
-      createUnit: async (propertyId, payload) => createUnitMutation.mutateAsync({ propertyId, payload }),
-      createLead: async (payload) => createLeadMutation.mutateAsync(payload),
-      updateLead: async (leadId, payload) => updateLeadMutation.mutateAsync({ leadId, payload }),
-      createSlot: async (payload) => createSlotMutation.mutateAsync(payload),
-      createBooking: async (payload) => createBookingMutation.mutateAsync(payload),
-      updateBooking: async (bookingId, payload) =>
-        updateBookingMutation.mutateAsync({ bookingId, payload }),
-      createApplication: async (payload) => createApplicationMutation.mutateAsync(payload),
-      updateApplication: async (applicationId, payload) =>
-        updateApplicationMutation.mutateAsync({ applicationId, payload }),
-      createLeaseOffer: async (payload) => createLeaseOfferMutation.mutateAsync(payload),
-      leaseOfferAction: async (leaseOfferId, action) =>
-        leaseOfferActionMutation.mutateAsync({ leaseOfferId, action }),
+      createProperty: async (body) => {
+        await createPropertyMutation.mutateAsync({ body });
+      },
+      updateProperty: async (propertyId, body) => {
+        await updatePropertyMutation.mutateAsync({ path: { property_id: propertyId }, body });
+      },
+      publishProperty: async (propertyId, publish) => {
+        if (publish) {
+          await publishPropertyMutation.mutateAsync({ path: { property_id: propertyId } });
+        } else {
+          await unpublishPropertyMutation.mutateAsync({ path: { property_id: propertyId } });
+        }
+      },
+      createUnit: async (propertyId, body) => {
+        await createUnitMutation.mutateAsync({ path: { property_id: propertyId }, body });
+      },
+      createLead: async (body) => {
+        await createLeadMutation.mutateAsync({ body });
+      },
+      updateLead: async (leadId, body) => {
+        await updateLeadMutation.mutateAsync({ path: { lead_id: leadId }, body });
+      },
+      createSlot: async (body) => {
+        await createSlotMutation.mutateAsync({ body });
+      },
+      createBooking: async (body) => {
+        await createBookingMutation.mutateAsync({ body });
+      },
+      updateBooking: async (bookingId, body) => {
+        await updateBookingMutation.mutateAsync({ path: { booking_id: bookingId }, body });
+      },
+      createApplication: async (body) => {
+        await createApplicationMutation.mutateAsync({ body });
+      },
+      updateApplication: async (applicationId, body) => {
+        await updateApplicationMutation.mutateAsync({
+          path: { application_id: applicationId },
+          body,
+        });
+      },
+      createLeaseOffer: async (body) => {
+        await createLeaseOfferMutation.mutateAsync({ body });
+      },
+      leaseOfferAction: async (leaseOfferId, action) => {
+        await leaseOfferActionMutation.mutateAsync({
+          path: { lease_offer_id: leaseOfferId },
+          body: { action },
+        });
+      },
     }),
     [
       applicationsResponse?.applications,
@@ -247,10 +254,11 @@ export function LandlordProvider({ children }: { children: React.ReactNode }) {
       leaseOffersResponse?.lease_offers,
       leadsResponse?.leads,
       profileResponse?.profile,
-      publishPropertyMutation,
       propertiesResponse?.properties,
+      publishPropertyMutation,
       refreshAll,
       slotsResponse?.slots,
+      unpublishPropertyMutation,
       updateApplicationMutation,
       updateBookingMutation,
       updateLeadMutation,
