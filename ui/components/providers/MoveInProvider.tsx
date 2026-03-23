@@ -32,6 +32,14 @@ import { moveInFromApi, moveInToApiPayload } from "@/lib/api/portalMappers";
 
 const STORAGE_KEY = "wademehome_movein";
 
+function moveInSyncFingerprint(
+  plan: MoveInPlan,
+  orders: VendorOrder[],
+  checklist: ChecklistItem[],
+): string {
+  return JSON.stringify(moveInToApiPayload(plan, orders, checklist));
+}
+
 interface PersistedState {
   plan: MoveInPlan;
   orders: VendorOrder[];
@@ -73,6 +81,13 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const skipSave = useRef(false);
   const debounceRef = useRef<number | undefined>(undefined);
+  const lastSyncedMoveInJson = useRef<string | null>(null);
+  const planRef = useRef(plan);
+  const ordersRef = useRef(orders);
+  const checklistRef = useRef(checklist);
+  planRef.current = plan;
+  ordersRef.current = orders;
+  checklistRef.current = checklist;
   const syncMutateRef = useRef<(opts: { body: MoveInStatePayload }) => void>(
     () => {},
   );
@@ -82,6 +97,11 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
     onSuccess: (data) => {
       skipSave.current = true;
       const parsed = moveInFromApi(data);
+      lastSyncedMoveInJson.current = moveInSyncFingerprint(
+        parsed.plan,
+        parsed.orders,
+        parsed.checklist,
+      );
       setPlan(parsed.plan);
       setOrders(parsed.orders);
       setChecklist(parsed.checklist);
@@ -125,6 +145,11 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
     if (!user || serverState === undefined) return;
     skipSave.current = true;
     const parsed = moveInFromApi(serverState);
+    lastSyncedMoveInJson.current = moveInSyncFingerprint(
+      parsed.plan,
+      parsed.orders,
+      parsed.checklist,
+    );
     setPlan(parsed.plan);
     setOrders(parsed.orders);
     setChecklist(parsed.checklist);
@@ -144,7 +169,12 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
     }
     window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(() => {
-      const body = moveInToApiPayload(plan, orders, checklist) as unknown as MoveInStatePayload;
+      const p = planRef.current;
+      const o = ordersRef.current;
+      const c = checklistRef.current;
+      const body = moveInToApiPayload(p, o, c) as unknown as MoveInStatePayload;
+      const fp = JSON.stringify(body);
+      if (fp === lastSyncedMoveInJson.current) return;
       syncMutateRef.current({ body });
     }, 600);
     return () => window.clearTimeout(debounceRef.current);

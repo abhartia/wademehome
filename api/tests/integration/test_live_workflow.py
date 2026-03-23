@@ -32,7 +32,7 @@ async def test_live_workflow_emits_property_listings() -> None:
 
     # Delay heavy imports (DB + LLM wiring) until after the live-env guard,
     # so unit tests can run in environments without DB connectivity.
-    from main import get_llm
+    from core.llm_factory import get_llm
     from workflow.workflow import ListingFetcherWorkflow
 
     llm = get_llm()
@@ -86,7 +86,7 @@ async def test_live_workflow_emits_property_listings_for_35757() -> None:
         messages=[ChatAPIMessage(role=MessageRole.USER, content=query)],
     )
 
-    from main import get_llm
+    from core.llm_factory import get_llm
     from workflow.workflow import ListingFetcherWorkflow
 
     llm = get_llm()

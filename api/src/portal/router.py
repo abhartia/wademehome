@@ -11,6 +11,7 @@ from portal.schemas import (
     RoommateStatePayload,
     ToursStatePayload,
 )
+from portal.lease_routes import router as lease_router
 from portal.service import (
     get_guarantor_state,
     get_movein_state,
@@ -25,6 +26,7 @@ from portal.service import (
 )
 
 router = APIRouter(prefix="/portal", tags=["portal"])
+router.include_router(lease_router)
 
 
 @router.get("/profile", response_model=ProfileOut)

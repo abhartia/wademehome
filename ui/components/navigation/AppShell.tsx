@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   "/onboarding": "Get Started",
   "/guarantor": "Guarantor Signing",
   "/move-in": "Move-in Hub",
+  "/lease": "My lease",
 };
 
 export function AppShell({ children }: { children: React.ReactNode }) {

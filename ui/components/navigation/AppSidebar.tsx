@@ -11,6 +11,7 @@ import {
   CalendarCheck,
   Package,
   Shield,
+  FileText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -61,6 +62,10 @@ export function AppSidebar() {
     ? [{ title: "Move-in", href: "/move-in", icon: Package }]
     : [];
 
+  const leaseItem = profile.hasCurrentLease
+    ? [{ title: "My lease", href: "/lease", icon: FileText }]
+    : [];
+
   const bottomItems = [
     ...(showRoommates
       ? [{ title: "Roommates", href: "/roommates", icon: Users2 }]
@@ -68,7 +73,7 @@ export function AppSidebar() {
     { title: "Profile", href: "/profile", icon: UserCircle },
   ];
 
-  const navItems = [...coreItems, ...moveInItem, ...bottomItems];
+  const navItems = [...coreItems, ...moveInItem, ...leaseItem, ...bottomItems];
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">

@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class ProfileOut(BaseModel):
+    has_current_lease: bool = False
     search_trigger: str | None = None
     trigger_reason: str | None = None
     move_timeline: str | None = None
@@ -30,6 +31,7 @@ class ProfileOut(BaseModel):
 
 
 class ProfilePatch(BaseModel):
+    has_current_lease: bool | None = None
     search_trigger: str | None = None
     trigger_reason: str | None = None
     move_timeline: str | None = None
@@ -211,3 +213,9 @@ class RoommateConnectionPayload(BaseModel):
 class RoommateStatePayload(BaseModel):
     my_profile: MyRoommateProfilePayload = Field(default_factory=MyRoommateProfilePayload)
     connections: list[RoommateConnectionPayload] = Field(default_factory=list)
+
+
+class LeaseDocumentOut(BaseModel):
+    has_document: bool = False
+    original_filename: str | None = None
+    updated_at: datetime | None = None

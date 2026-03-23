@@ -24,6 +24,7 @@ import type {
 
 export function profileFromApi(row: ProfileOut): UserProfile {
   return {
+    hasCurrentLease: row.has_current_lease ?? false,
     searchTrigger: (row.search_trigger as UserProfile["searchTrigger"]) ?? null,
     triggerReason: row.trigger_reason ?? "",
     moveTimeline: row.move_timeline ?? "",
@@ -48,6 +49,8 @@ export function profileFromApi(row: ProfileOut): UserProfile {
 
 export function partialUserProfileToPatch(partial: Partial<UserProfile>): ProfilePatch {
   const body: ProfilePatch = {};
+  if (partial.hasCurrentLease !== undefined)
+    body.has_current_lease = partial.hasCurrentLease;
   if (partial.searchTrigger !== undefined) body.search_trigger = partial.searchTrigger;
   if (partial.triggerReason !== undefined) body.trigger_reason = partial.triggerReason;
   if (partial.moveTimeline !== undefined) body.move_timeline = partial.moveTimeline;
@@ -75,6 +78,7 @@ export function partialUserProfileToPatch(partial: Partial<UserProfile>): Profil
 
 export function userProfileToProfilePatch(p: UserProfile): ProfilePatch {
   return {
+    has_current_lease: p.hasCurrentLease,
     search_trigger: p.searchTrigger,
     trigger_reason: p.triggerReason || null,
     move_timeline: p.moveTimeline || null,

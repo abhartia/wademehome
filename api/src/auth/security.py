@@ -5,6 +5,9 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from core.config import Config
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def utc_now() -> datetime:
@@ -43,7 +46,15 @@ def hash_token(token: str) -> str:
 
 def build_cookie_settings() -> dict[str, object]:
     secure = (Config.get("AUTH_COOKIE_SECURE", "false") or "false").lower() == "true"
-    same_site = Config.get("AUTH_COOKIE_SAMESITE", "lax") or "lax"
+    raw = (Config.get("AUTH_COOKIE_SAMESITE", "lax") or "lax").strip().lower()
+    same_site = raw if raw in ("lax", "strict", "none") else "lax"
+    # Browser rule: SameSite=None requires Secure. Cross-origin UI (e.g. wademehome.com → api.azurewebsites.net)
+    # needs none + secure or credentialed fetches will not send the session cookie.
+    if same_site == "none" and not secure:
+        secure = True
+        logger.warning(
+            "AUTH_COOKIE_SAMESITE=none requires Secure cookies; treating session cookie as secure=True"
+        )
     return {
         "key": Config.get("AUTH_COOKIE_NAME", "wmh_session") or "wmh_session",
         "httponly": True,

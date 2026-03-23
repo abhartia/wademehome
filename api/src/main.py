@@ -14,13 +14,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from llama_index.core.workflow import StopEvent
 from llama_index.core.workflow.handler import WorkflowHandler
-from llama_index.llms.openai import OpenAI
-from llama_index.llms.azure_openai import AzureOpenAI
-from llama_index.core.llms import LLM
 from llama_index.server.models.chat import ChatRequest
 from llama_index.server.models.ui import UIEvent
 
-from core.config import Config
 from workflow.workflow import ListingFetcherWorkflow
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 
@@ -29,6 +25,7 @@ from core.cors_middleware import CORSMiddleware
 from workflow.events import ResponseStreamEvent
 
 from core.logger import get_logger
+from core.llm_factory import get_llm
 from core.sse import stop_event_result_to_sse_chunk
 from auth.router import router as auth_router
 from listings.router import router as listings_router
@@ -101,22 +98,6 @@ def get_event_generator(
 
     return event_generator
 
-
-def get_llm() -> LLM:
-    """Return Azure OpenAI LLM if configured, otherwise OpenAI."""
-    endpoint = Config.get("AZURE_OPENAI_ENDPOINT", "")
-    if endpoint and Config.get("AZURE_OPENAI_API_KEY") and Config.get("AZURE_OPENAI_DEPLOYMENT"):
-        return AzureOpenAI(
-            azure_endpoint=endpoint.strip().rstrip("/"),
-            api_key=Config.get("AZURE_OPENAI_API_KEY"),
-            engine=Config.get("AZURE_OPENAI_DEPLOYMENT"),
-            model=Config.get("AZURE_OPENAI_MODEL", "gpt-4o-mini"),
-            api_version=Config.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
-        )
-    return OpenAI(
-        api_key=Config.get("OPENAI_API_KEY"),
-        model=Config.get("OPENAI_MODEL", "gpt-4.1"),
-    )
 
 # Listing endpoints
 @app.post("/listings/chat")

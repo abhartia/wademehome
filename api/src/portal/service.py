@@ -128,6 +128,7 @@ def get_profile(db: Session, user_id: uuid.UUID) -> ProfileOut | None:
         return None
     override = row.journey_stage_override.value if row.journey_stage_override else None
     return ProfileOut(
+        has_current_lease=row.has_current_lease,
         search_trigger=row.search_trigger,
         trigger_reason=row.trigger_reason,
         move_timeline=row.move_timeline,

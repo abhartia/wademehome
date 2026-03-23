@@ -53,8 +53,9 @@ class ASGIAuthMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Only check authentication for API endpoints
-        if not path.startswith("/markets") and not path.startswith("/listing"):
+        # Only protect expensive / workflow routes. /listings/nearby and other browse endpoints are public;
+        # prefix "/listing" matched "/listings/*" and broke guest prod when API_TOKENS is set.
+        if not path.startswith("/markets") and not path.startswith("/listings/chat"):
             await self.app(scope, receive, send)
             return
 

@@ -8,6 +8,16 @@ export type AuthResponse = {
 };
 
 /**
+ * Body_upload_lease_document_portal_lease_upload_post
+ */
+export type BodyUploadLeaseDocumentPortalLeaseUploadPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * ChatAPIMessage
  */
 export type ChatApiMessage = {
@@ -324,6 +334,24 @@ export type LatLngIn = {
 };
 
 /**
+ * LeaseDocumentOut
+ */
+export type LeaseDocumentOut = {
+    /**
+     * Has Document
+     */
+    has_document?: boolean;
+    /**
+     * Original Filename
+     */
+    original_filename?: string | null;
+    /**
+     * Updated At
+     */
+    updated_at?: string | null;
+};
+
+/**
  * LeasePayload
  */
 export type LeasePayload = {
@@ -603,6 +631,10 @@ export type PoiNearbyResponse = {
  */
 export type ProfileOut = {
     /**
+     * Has Current Lease
+     */
+    has_current_lease?: boolean;
+    /**
      * Search Trigger
      */
     search_trigger?: string | null;
@@ -684,6 +716,10 @@ export type ProfileOut = {
  * ProfilePatch
  */
 export type ProfilePatch = {
+    /**
+     * Has Current Lease
+     */
+    has_current_lease?: boolean | null;
     /**
      * Search Trigger
      */
@@ -1884,6 +1920,86 @@ export type CreateTourRequestPropertiesTourRequestsPostResponses = {
 };
 
 export type CreateTourRequestPropertiesTourRequestsPostResponse = CreateTourRequestPropertiesTourRequestsPostResponses[keyof CreateTourRequestPropertiesTourRequestsPostResponses];
+
+export type DeleteLeaseDocumentPortalLeaseDeleteData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/portal/lease';
+};
+
+export type DeleteLeaseDocumentPortalLeaseDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: LeaseDocumentOut;
+};
+
+export type DeleteLeaseDocumentPortalLeaseDeleteResponse = DeleteLeaseDocumentPortalLeaseDeleteResponses[keyof DeleteLeaseDocumentPortalLeaseDeleteResponses];
+
+export type ReadLeaseDocumentPortalLeaseGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/portal/lease';
+};
+
+export type ReadLeaseDocumentPortalLeaseGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LeaseDocumentOut;
+};
+
+export type ReadLeaseDocumentPortalLeaseGetResponse = ReadLeaseDocumentPortalLeaseGetResponses[keyof ReadLeaseDocumentPortalLeaseGetResponses];
+
+export type UploadLeaseDocumentPortalLeaseUploadPostData = {
+    body: BodyUploadLeaseDocumentPortalLeaseUploadPost;
+    path?: never;
+    query?: never;
+    url: '/portal/lease/upload';
+};
+
+export type UploadLeaseDocumentPortalLeaseUploadPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadLeaseDocumentPortalLeaseUploadPostError = UploadLeaseDocumentPortalLeaseUploadPostErrors[keyof UploadLeaseDocumentPortalLeaseUploadPostErrors];
+
+export type UploadLeaseDocumentPortalLeaseUploadPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LeaseDocumentOut;
+};
+
+export type UploadLeaseDocumentPortalLeaseUploadPostResponse = UploadLeaseDocumentPortalLeaseUploadPostResponses[keyof UploadLeaseDocumentPortalLeaseUploadPostResponses];
+
+export type LeaseChatPortalLeaseChatPostData = {
+    body: ChatRequest;
+    path?: never;
+    query?: never;
+    url: '/portal/lease/chat';
+};
+
+export type LeaseChatPortalLeaseChatPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LeaseChatPortalLeaseChatPostError = LeaseChatPortalLeaseChatPostErrors[keyof LeaseChatPortalLeaseChatPostErrors];
+
+export type LeaseChatPortalLeaseChatPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type ReadProfilePortalProfileGetData = {
     body?: never;

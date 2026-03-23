@@ -10,7 +10,7 @@ type BrandLogoProps = {
 export function BrandLogo({ className, title = "Wade Me Home logo" }: BrandLogoProps) {
   return (
     <svg
-      viewBox="118 90 177 150"
+      viewBox="105 90 190 150"
       preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label={title}

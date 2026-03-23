@@ -80,6 +80,19 @@ const STEPS: ConversationStep[] = [
     profileKey: "moveTimeline",
   },
   {
+    id: "currentLease",
+    stage: 1,
+    agentMessage:
+      "Do you currently have an active lease for where you're living now? (You can upload it later to ask questions about your lease.)",
+    quickReplies: ["Yes", "No"],
+    quickReplyMode: "single",
+    profileKey: "hasCurrentLease",
+    toProfileValue: (raw) => {
+      const val = typeof raw === "string" ? raw : raw[0];
+      return { hasCurrentLease: val === "Yes" };
+    },
+  },
+  {
     id: "city",
     stage: 2,
     agentMessage:
@@ -336,6 +349,10 @@ function SummaryCard({ onConfirm, onReset }: { onConfirm: () => void; onReset: (
   const rows: { label: string; value: string }[] = [
     { label: "Reason", value: profile.triggerReason || "—" },
     { label: "Timeline", value: profile.moveTimeline || "—" },
+    {
+      label: "Current lease",
+      value: profile.hasCurrentLease ? "Yes — My lease in sidebar" : "No",
+    },
     {
       label: "Target cities",
       value: profile.preferredCities.join(", ") || "—",

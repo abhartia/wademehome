@@ -16,6 +16,8 @@ export const JOURNEY_STAGES: { value: JourneyStage; label: string }[] = [
 ];
 
 export interface UserProfile {
+  /** Shown in sidebar as "My lease" when true; set in onboarding or Profile. */
+  hasCurrentLease: boolean;
   // Stage 1: Search trigger
   searchTrigger: "reactive" | "proactive" | null;
   triggerReason: string;
@@ -46,6 +48,7 @@ export interface UserProfile {
 }
 
 export const defaultProfile: UserProfile = {
+  hasCurrentLease: false,
   searchTrigger: null,
   triggerReason: "",
   moveTimeline: "",

@@ -123,6 +123,9 @@ class Users(Base):
         back_populates="user"
     )
     property_notes: Mapped[list["PropertyNotes"]] = relationship(back_populates="user")
+    lease_document: Mapped["UserLeaseDocuments | None"] = relationship(
+        back_populates="user", uselist=False
+    )
 
 
 class UserSessions(Base):
@@ -198,6 +201,9 @@ class UserProfiles(Base):
     credit_score_range: Mapped[str | None] = mapped_column(String(64))
     living_arrangement: Mapped[str | None] = mapped_column(String(32))
     roommate_search_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    has_current_lease: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
     bedrooms_needed: Mapped[str | None] = mapped_column(String(32))
@@ -654,3 +660,33 @@ class RoommateMessages(Base):
     )
 
     connection: Mapped["RoommateConnections"] = relationship(back_populates="messages")
+
+
+class UserLeaseDocuments(Base):
+    __tablename__ = "user_lease_documents"
+    __table_args__ = (
+        Index("ix_user_lease_documents_user_id", "user_id"),
+        UniqueConstraint("user_id", name="uq_user_lease_documents_user_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    original_filename: Mapped[str] = mapped_column(String(512), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    byte_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    extracted_text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    user: Mapped["Users"] = relationship(back_populates="lease_document")

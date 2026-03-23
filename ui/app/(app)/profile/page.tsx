@@ -19,6 +19,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Package,
+  FileText,
 } from "lucide-react";
 import { JourneyStageSelector } from "@/components/journey/JourneyStageSelector";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -171,6 +172,34 @@ export default function ProfilePage() {
               />
               <span className="text-sm font-medium leading-snug">
                 Show roommate tools in the app
+              </span>
+            </label>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4" />
+              My lease assistant
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              If you have an active lease, turn this on to show{" "}
+              <strong>My lease</strong> in the sidebar. You can upload your lease
+              PDF and ask questions about it.
+            </p>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+              <Checkbox
+                checked={profile.hasCurrentLease}
+                onCheckedChange={(v) =>
+                  updateProfile({ hasCurrentLease: v === true })
+                }
+                className="mt-0.5"
+              />
+              <span className="text-sm font-medium leading-snug">
+                I currently have an active lease
               </span>
             </label>
           </CardContent>
