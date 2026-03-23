@@ -15,7 +15,7 @@ import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { GuestHomeListingChatRuntime } from "./GuestHomeListingChatRuntime";
 import {
   DEFAULT_NEARBY_LIMIT,
-  DEFAULT_NEARBY_RADIUS_MILES,
+  radiusMilesForBrowseZoom,
   useNearbyListings,
 } from "@/lib/listings/useNearbyListings";
 import type {
@@ -106,7 +106,7 @@ type GuestHomeSearchInnerProps = {
   query: string;
   setQuery: (value: string) => void;
   browseMapCenter: { latitude: number; longitude: number };
-  onBrowseMapCenterChange: (c: { latitude: number; longitude: number }) => void;
+  onBrowseMapCenterChange: (c: { latitude: number; longitude: number; zoom: number }) => void;
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
   selectedProperty: PropertyDataItem | null;
   setSelectedProperty: (p: PropertyDataItem | null) => void;
@@ -438,8 +438,7 @@ function GuestHomeSearchInner({
             <div className="mb-3 space-y-2 border-l-2 border-primary/35 pl-3">
               <p className="text-[11px] leading-snug text-muted-foreground">
                 Pins show listings near the <span className="font-medium text-foreground">map center</span>{" "}
-                (fast SQL)—pan or zoom the map to load a new area. This is not tied to your browser
-                location. Type at least{" "}
+                —pan or zoom the map to load a new area. This is not tied to your location. Type at least{" "}
                 <span className="font-medium text-foreground">{MIN_QUERY_CHARS}</span> characters,
                 then press <span className="font-medium text-foreground">Enter</span> or{" "}
                 <span className="font-medium text-foreground">Search</span> to run an AI-assisted
@@ -490,8 +489,10 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
+  const [browseMapZoom, setBrowseMapZoom] = useState(11);
 
-  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number }) => {
+  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number; zoom: number }) => {
+    setBrowseMapZoom((prev) => (Math.abs(prev - c.zoom) < 1e-3 ? prev : c.zoom));
     setBrowseMapCenter((prev) => {
       if (
         Math.abs(prev.latitude - c.latitude) < 1e-6 &&
@@ -506,7 +507,7 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const nearbyQuery = useNearbyListings({
     latitude: browseMapCenter.latitude,
     longitude: browseMapCenter.longitude,
-    radiusMiles: DEFAULT_NEARBY_RADIUS_MILES,
+    radiusMiles: radiusMilesForBrowseZoom(browseMapZoom),
     limit: DEFAULT_NEARBY_LIMIT,
     enabled: !listingSessionActive,
   });

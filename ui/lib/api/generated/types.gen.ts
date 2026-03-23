@@ -1842,6 +1842,10 @@ export type TourRequestCreate = {
      * Requested Time
      */
     requested_time?: string | null;
+    /**
+     * Request Message
+     */
+    request_message?: string | null;
 };
 
 /**

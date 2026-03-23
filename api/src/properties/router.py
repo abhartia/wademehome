@@ -1,9 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from auth.router import get_current_user, get_db
+from auth.emailer import send_tour_request_email
+from core.config import Config
 from db.models import PropertyFavorites, PropertyNotes, Users
 from properties.schemas import (
     FavoriteListResponse,
@@ -140,4 +142,22 @@ def create_tour_request(
         requested_date=payload.requested_date,
         requested_time=payload.requested_time,
     )
+    ops_email = (Config.get("TOUR_REQUEST_OPS_EMAIL", "") or "").strip()
+    if not ops_email:
+        raise HTTPException(
+            status_code=503,
+            detail="Tour request email is unavailable. Missing TOUR_REQUEST_OPS_EMAIL configuration.",
+        )
+    try:
+        send_tour_request_email(
+            to_email=ops_email,
+            renter_email=user.email,
+            property_name=payload.property_name,
+            property_address=payload.property_address,
+            requested_date=payload.requested_date,
+            requested_time=payload.requested_time,
+            request_message=payload.request_message,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
     return TourRequestCreateResponse(id=tour.id)

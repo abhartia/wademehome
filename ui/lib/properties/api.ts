@@ -126,5 +126,6 @@ export function toTourRequestPayload(
     property_price: formatPropertyRangeLabel(property.rent_range),
     property_beds: formatPropertyRangeLabel(property.bedroom_range),
     property_tags: property.main_amenities ?? [],
+    request_message: null,
   };
 }

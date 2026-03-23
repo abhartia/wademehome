@@ -100,3 +100,31 @@ def send_guarantor_request_email(
             f'<p>Please review and sign the guarantor request here: <a href="{invite_url}">{invite_url}</a></p>'
         ),
     )
+
+
+def send_tour_request_email(
+    *,
+    to_email: str,
+    renter_email: str,
+    property_name: str,
+    property_address: str,
+    requested_date: str | None,
+    requested_time: str | None,
+    request_message: str | None,
+) -> None:
+    date_line = (requested_date or "").strip() or "Not specified"
+    time_line = (requested_time or "").strip() or "Not specified"
+    message_line = (request_message or "").strip() or "No additional message provided."
+    _post_resend(
+        to=[to_email],
+        subject="New tour request from Wademehome",
+        html=(
+            "<p>A renter submitted a tour request.</p>"
+            f"<p><strong>Renter email:</strong> {renter_email}<br/>"
+            f"<strong>Property:</strong> {property_name}<br/>"
+            f"<strong>Address:</strong> {property_address}<br/>"
+            f"<strong>Preferred date:</strong> {date_line}<br/>"
+            f"<strong>Preferred time:</strong> {time_line}</p>"
+            f"<p><strong>Message:</strong><br/>{message_line}</p>"
+        ),
+    )

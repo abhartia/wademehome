@@ -48,6 +48,7 @@ class TourRequestCreate(BaseModel):
     property_tags: list[str] = Field(default_factory=list)
     requested_date: str | None = None
     requested_time: str | None = None
+    request_message: str | None = Field(default=None, max_length=6000)
 
 
 class TourRequestCreateResponse(BaseModel):

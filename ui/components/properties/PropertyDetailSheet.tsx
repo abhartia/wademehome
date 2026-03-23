@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PropertyImageGallery } from "@/components/properties/PropertyImageGallery";
 import { useEffect, useMemo, useState } from "react";
@@ -48,6 +49,10 @@ export function PropertyDetailSheet({
   const toggleFavorite = useToggleFavorite();
   const upsertNote = useUpsertPropertyNote(propertyKey);
   const createTourRequest = useCreateTourRequest();
+  const [tourConfirmOpen, setTourConfirmOpen] = useState(false);
+  const [tourRequestedDate, setTourRequestedDate] = useState("");
+  const [tourRequestedTime, setTourRequestedTime] = useState("");
+  const [tourRequestMessage, setTourRequestMessage] = useState("");
 
   const isFavorited = useMemo(() => {
     if (!favoritesQuery.data?.favorites || !propertyKey) return false;
@@ -86,14 +91,42 @@ export function PropertyDetailSheet({
     toast.success("Note saved");
   };
 
-  const onRequestTour = async () => {
-    await createTourRequest.mutateAsync(toTourRequestPayload(propertyKey, property));
-    toast.success("Tour request submitted");
+  const onRequestTour = () => {
+    setTourRequestedDate("");
+    setTourRequestedTime("");
+    setTourRequestMessage("");
+    setTourConfirmOpen(true);
   };
 
+  const onConfirmSendTourRequest = async () => {
+    try {
+      await createTourRequest.mutateAsync({
+        ...toTourRequestPayload(propertyKey, property),
+        requested_date: tourRequestedDate || null,
+        requested_time: tourRequestedTime || null,
+        request_message: tourRequestMessage.trim() || null,
+      });
+      toast.success("Tour request sent");
+      setTourConfirmOpen(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not send tour request";
+      toast.error(message);
+    }
+  };
+
+  const emailPreview = [
+    `Property: ${property.name}`,
+    `Address: ${property.address}`,
+    `Requested date: ${tourRequestedDate || "Not specified"}`,
+    `Requested time: ${tourRequestedTime || "Not specified"}`,
+    "",
+    tourRequestMessage.trim() || "No additional message provided.",
+  ].join("\n");
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{property.name}</SheetTitle>
           <SheetDescription>{property.address}</SheetDescription>
@@ -157,7 +190,60 @@ export function PropertyDetailSheet({
         <SheetFooter>
           <Button onClick={openFullDetails}>Open Full Details</Button>
         </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </SheetContent>
+      </Sheet>
+      <Sheet open={tourConfirmOpen} onOpenChange={setTourConfirmOpen}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Confirm tour request email</SheetTitle>
+            <SheetDescription>
+              Review and edit the request before sending to our tour operations inbox.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="space-y-3 px-4 pb-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Preferred date</label>
+                <Input
+                  type="date"
+                  value={tourRequestedDate}
+                  onChange={(event) => setTourRequestedDate(event.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Preferred time</label>
+                <Input
+                  type="time"
+                  value={tourRequestedTime}
+                  onChange={(event) => setTourRequestedTime(event.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Message</label>
+              <Textarea
+                value={tourRequestMessage}
+                onChange={(event) => setTourRequestMessage(event.target.value)}
+                placeholder="Any details for scheduling, availability, or access?"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Email preview</label>
+              <pre className="max-h-52 overflow-y-auto whitespace-pre-wrap rounded-md border bg-muted/30 p-3 text-xs">
+                {emailPreview}
+              </pre>
+            </div>
+          </div>
+          <SheetFooter>
+            <Button variant="outline" onClick={() => setTourConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={onConfirmSendTourRequest} disabled={createTourRequest.isPending}>
+              {createTourRequest.isPending ? "Sending..." : "Send Request"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

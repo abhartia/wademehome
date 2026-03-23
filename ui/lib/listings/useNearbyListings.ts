@@ -27,6 +27,24 @@ function normalizeNearby(data: ApiNearbyListingsResponse): NearbyListingsRespons
 
 export const DEFAULT_NEARBY_RADIUS_MILES = 15;
 export const DEFAULT_NEARBY_LIMIT = 50;
+const DEFAULT_BROWSE_ZOOM = 11;
+const MIN_NEARBY_RADIUS_MILES = 0.5;
+const MAX_NEARBY_RADIUS_MILES = 120;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Map zoom -> nearby search radius. Each zoom-in step halves radius,
+ * each zoom-out step doubles it, anchored at zoom 11 = 15 miles.
+ */
+export function radiusMilesForBrowseZoom(zoom: number): number {
+  if (!Number.isFinite(zoom)) return DEFAULT_NEARBY_RADIUS_MILES;
+  const raw = DEFAULT_NEARBY_RADIUS_MILES * 2 ** (DEFAULT_BROWSE_ZOOM - zoom);
+  const clamped = clamp(raw, MIN_NEARBY_RADIUS_MILES, MAX_NEARBY_RADIUS_MILES);
+  return Math.round(clamped * 10) / 10;
+}
 
 export function useNearbyListings(options: {
   latitude: number;

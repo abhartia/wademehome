@@ -94,7 +94,7 @@ interface PropertyListingsMapProps {
    * Browse mode only: called (debounced) after the user pans/zooms, and once when leaving
    * follow-data mode so the parent can refetch listings for the visible area.
    */
-  onBrowseCenterChange?: (center: { latitude: number; longitude: number }) => void;
+  onBrowseCenterChange?: (viewport: { latitude: number; longitude: number; zoom: number }) => void;
   /** API returned nearest inventory rows because nothing matched the search radius. */
   globalNearestFallback?: boolean;
   onSelectProperty?: (property: PropertyDataItem) => void;
@@ -279,7 +279,7 @@ export function PropertyListingsMap({
       mapRef.current
     ) {
       const c = mapRef.current.getCenter();
-      onBrowseCenterChange({ latitude: c.lat, longitude: c.lng });
+      onBrowseCenterChange({ latitude: c.lat, longitude: c.lng, zoom: mapRef.current.getZoom() });
     }
   }, [mapReady, followDataCamera, onBrowseCenterChange]);
 
@@ -292,7 +292,7 @@ export function PropertyListingsMap({
       if (timeoutId !== undefined) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         const c = map.getCenter();
-        onBrowseCenterChange({ latitude: c.lat, longitude: c.lng });
+        onBrowseCenterChange({ latitude: c.lat, longitude: c.lng, zoom: map.getZoom() });
       }, 450);
     };
     map.on("moveend", schedule);

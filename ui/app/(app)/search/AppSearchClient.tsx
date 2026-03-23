@@ -11,8 +11,8 @@ import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import {
   DEFAULT_NEARBY_LIMIT,
-  DEFAULT_NEARBY_RADIUS_MILES,
   type NearbyListingsResponse,
+  radiusMilesForBrowseZoom,
   useNearbyListings,
 } from "@/lib/listings/useNearbyListings";
 import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
@@ -123,7 +123,7 @@ type AppSearchInnerProps = {
   query: string;
   setQuery: (value: string) => void;
   browseMapCenter: { latitude: number; longitude: number };
-  onBrowseMapCenterChange: (c: { latitude: number; longitude: number }) => void;
+  onBrowseMapCenterChange: (c: { latitude: number; longitude: number; zoom: number }) => void;
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
   selectedProperty: PropertyDataItem | null;
   setSelectedProperty: (p: PropertyDataItem | null) => void;
@@ -430,12 +430,14 @@ export function AppSearchClient() {
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
+  const [browseMapZoom, setBrowseMapZoom] = useState(11);
   const latestMemoryAppliedVersionRef = useRef(0);
   const didAutoBootstrapSearchRef = useRef(false);
   const didSetInitialBrowseCenterRef = useRef(false);
 
-  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number }) => {
+  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number; zoom: number }) => {
     didSetInitialBrowseCenterRef.current = true;
+    setBrowseMapZoom((prev) => (Math.abs(prev - c.zoom) < 1e-3 ? prev : c.zoom));
     setBrowseMapCenter((prev) => {
       if (
         Math.abs(prev.latitude - c.latitude) < 1e-6 &&
@@ -450,7 +452,7 @@ export function AppSearchClient() {
   const nearbyQuery = useNearbyListings({
     latitude: browseMapCenter.latitude,
     longitude: browseMapCenter.longitude,
-    radiusMiles: DEFAULT_NEARBY_RADIUS_MILES,
+    radiusMiles: radiusMilesForBrowseZoom(browseMapZoom),
     limit: DEFAULT_NEARBY_LIMIT,
     enabled: !listingSessionActive,
   });
