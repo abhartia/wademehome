@@ -6,6 +6,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { isApiConfigured } from "@/lib/api/isApiConfigured";
 import { getNearbyListingsListingsNearbyGetOptions } from "@/lib/api/generated/@tanstack/react-query.gen";
 import type { NearbyListingsResponse as ApiNearbyListingsResponse } from "@/lib/api/generated/types.gen";
+import type { MapBoundsLngLat } from "@/lib/map/approximateBrowseBounds";
 
 /** Nearby listings payload with UI `PropertyDataItem` rows (stricter than OpenAPI). */
 export type NearbyListingsResponse = Omit<
@@ -19,6 +20,7 @@ function normalizeNearby(data: ApiNearbyListingsResponse): NearbyListingsRespons
   return {
     ...data,
     used_global_nearest_fallback: Boolean(data.used_global_nearest_fallback),
+    used_bbox: Boolean(data.used_bbox),
     properties: Array.isArray(data.properties)
       ? data.properties.map((p) => normalizePropertyDataItem(p))
       : [],
@@ -27,53 +29,65 @@ function normalizeNearby(data: ApiNearbyListingsResponse): NearbyListingsRespons
 
 export const DEFAULT_NEARBY_RADIUS_MILES = 15;
 export const DEFAULT_NEARBY_LIMIT = 50;
-const DEFAULT_BROWSE_ZOOM = 11;
-const MIN_NEARBY_RADIUS_MILES = 0.5;
-const MAX_NEARBY_RADIUS_MILES = 120;
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
+function boundsFinite(b: MapBoundsLngLat): boolean {
+  return (
+    Number.isFinite(b.west) &&
+    Number.isFinite(b.south) &&
+    Number.isFinite(b.east) &&
+    Number.isFinite(b.north) &&
+    b.south < b.north &&
+    b.west < b.east
+  );
 }
 
-/**
- * Map zoom -> nearby search radius. Each zoom-in step halves radius,
- * each zoom-out step doubles it, anchored at zoom 11 = 15 miles.
- */
-export function radiusMilesForBrowseZoom(zoom: number): number {
-  if (!Number.isFinite(zoom)) return DEFAULT_NEARBY_RADIUS_MILES;
-  const raw = DEFAULT_NEARBY_RADIUS_MILES * 2 ** (DEFAULT_BROWSE_ZOOM - zoom);
-  const clamped = clamp(raw, MIN_NEARBY_RADIUS_MILES, MAX_NEARBY_RADIUS_MILES);
-  return Math.round(clamped * 10) / 10;
-}
+type UseNearbyListingsOptions =
+  | {
+      mode: "bbox";
+      bounds: MapBoundsLngLat;
+      limit?: number;
+      enabled?: boolean;
+    }
+  | {
+      mode: "radius";
+      latitude: number;
+      longitude: number;
+      radiusMiles?: number;
+      limit?: number;
+      enabled?: boolean;
+    };
 
-export function useNearbyListings(options: {
-  latitude: number;
-  longitude: number;
-  radiusMiles?: number;
-  limit?: number;
-  enabled?: boolean;
-}) {
-  const {
-    latitude,
-    longitude,
-    radiusMiles = DEFAULT_NEARBY_RADIUS_MILES,
-    limit = DEFAULT_NEARBY_LIMIT,
-    enabled = true,
-  } = options;
+export function useNearbyListings(options: UseNearbyListingsOptions) {
+  const limit = options.limit ?? DEFAULT_NEARBY_LIMIT;
+  const enabled = options.enabled ?? true;
+
+  const queryKeyPayload =
+    options.mode === "bbox"
+      ? {
+          query: {
+            west: options.bounds.west,
+            south: options.bounds.south,
+            east: options.bounds.east,
+            north: options.bounds.north,
+            limit,
+          },
+        }
+      : {
+          query: {
+            latitude: options.latitude,
+            longitude: options.longitude,
+            radius_miles: options.radiusMiles ?? DEFAULT_NEARBY_RADIUS_MILES,
+            limit,
+          },
+        };
 
   const coordsOk =
-    Number.isFinite(latitude) &&
-    Number.isFinite(longitude);
+    options.mode === "bbox"
+      ? boundsFinite(options.bounds)
+      : Number.isFinite(options.latitude) && Number.isFinite(options.longitude);
 
   return useQuery({
-    ...getNearbyListingsListingsNearbyGetOptions({
-      query: {
-        latitude,
-        longitude,
-        radius_miles: radiusMiles,
-        limit,
-      },
-    }),
+    ...getNearbyListingsListingsNearbyGetOptions(queryKeyPayload),
     enabled: enabled && isApiConfigured() && coordsOk,
     select: normalizeNearby,
     placeholderData: keepPreviousData,

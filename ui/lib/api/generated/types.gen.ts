@@ -2021,6 +2021,11 @@ export type NearbyListingsResponse = {
      * True when nothing matched the radius; properties are the nearest rows with coordinates (any distance) so the map is still usable.
      */
     used_global_nearest_fallback?: boolean;
+    /**
+     * Used Bbox
+     * True when results were filtered by west/south/east/north bounding box.
+     */
+    used_bbox?: boolean;
 };
 
 /**
@@ -3569,15 +3574,22 @@ export type GetNearbyListingsListingsNearbyGetData = {
         /**
          * Latitude
          */
-        latitude: number;
+        latitude?: number;
         /**
          * Longitude
          */
-        longitude: number;
+        longitude?: number;
         /**
          * Radius Miles
          */
         radius_miles?: number;
+        /**
+         * Bbox west edge (longitude), with south/east/north for map-visible queries.
+         */
+        west?: number;
+        south?: number;
+        east?: number;
+        north?: number;
         /**
          * Limit
          */

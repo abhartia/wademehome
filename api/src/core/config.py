@@ -25,6 +25,13 @@ class Config:
     AZURE_OPENAI_MODEL: str = env_manager.get("AZURE_OPENAI_MODEL", "gpt-4o-mini")
     AZURE_OPENAI_API_VERSION: str = env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
 
+    # Text-to-SQL LLM cache (process-local; reuse SQL across users when prompts match)
+    LLM_TEXT2SQL_CACHE_ENABLED: str = env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
+    LLM_TEXT2SQL_CACHE_MAX_ENTRIES: str = env_manager.get("LLM_TEXT2SQL_CACHE_MAX_ENTRIES", "256") or "256"
+    LLM_TEXT2SQL_CACHE_TTL_SECONDS: str = (
+        env_manager.get("LLM_TEXT2SQL_CACHE_TTL_SECONDS", "3600") or "3600"
+    )
+
     # Application settings
     LOG_LEVEL: str = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
     LISTINGS_TABLE_NAME: str = env_manager.get("LISTINGS_TABLE_NAME", None)
@@ -60,6 +67,15 @@ class Config:
         cls.AZURE_OPENAI_MODEL = env_manager.get("AZURE_OPENAI_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
         cls.AZURE_OPENAI_API_VERSION = (
             env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview") or "2024-12-01-preview"
+        )
+        cls.LLM_TEXT2SQL_CACHE_ENABLED = (
+            env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
+        )
+        cls.LLM_TEXT2SQL_CACHE_MAX_ENTRIES = (
+            env_manager.get("LLM_TEXT2SQL_CACHE_MAX_ENTRIES", "256") or "256"
+        )
+        cls.LLM_TEXT2SQL_CACHE_TTL_SECONDS = (
+            env_manager.get("LLM_TEXT2SQL_CACHE_TTL_SECONDS", "3600") or "3600"
         )
         cls.LOG_LEVEL = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
         cls.LISTINGS_TABLE_NAME = env_manager.get("LISTINGS_TABLE_NAME", None)

@@ -115,6 +115,7 @@ export default function PropertyDetailsPage() {
     null;
 
   const nearbyQuery = useNearbyListings({
+    mode: "radius",
     latitude: mapLat ?? 0,
     longitude: mapLng ?? 0,
     radiusMiles: 2.5,

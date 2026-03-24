@@ -53,8 +53,14 @@ class PoiNearbyResponse(BaseModel):
 
 class NearbyListingsResponse(BaseModel):
     properties: list[PropertyDataItem]
-    total_in_radius: int = Field(ge=0)
-    radius_miles: float = Field(gt=0)
+    total_in_radius: int = Field(
+        ge=0,
+        description="Count of listings matching the query (radius circle or map bbox) before limit.",
+    )
+    radius_miles: float = Field(
+        ge=0,
+        description="Search radius in miles when using center+radius mode; 0 when using bbox mode.",
+    )
     limit: int = Field(ge=0)
     used_global_nearest_fallback: bool = Field(
         default=False,
@@ -62,4 +68,8 @@ class NearbyListingsResponse(BaseModel):
             "True when nothing matched the radius; properties are the nearest rows with "
             "coordinates (any distance) so the map is still usable."
         ),
+    )
+    used_bbox: bool = Field(
+        default=False,
+        description="True when results were filtered by west/south/east/north bounding box.",
     )

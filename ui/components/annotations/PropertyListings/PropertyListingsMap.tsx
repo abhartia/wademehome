@@ -10,6 +10,7 @@ import { buildingGroupKey } from "@/lib/properties/groupPropertiesByBuilding";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
 import type { PropertyDataItem } from "../UIEventsTypes";
+import type { BrowseMapViewport } from "@/lib/map/approximateBrowseBounds";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -95,7 +96,7 @@ interface PropertyListingsMapProps {
    * Browse mode only: called (debounced) after the user pans/zooms, and once when leaving
    * follow-data mode so the parent can refetch listings for the visible area.
    */
-  onBrowseCenterChange?: (viewport: { latitude: number; longitude: number; zoom: number }) => void;
+  onBrowseCenterChange?: (viewport: BrowseMapViewport) => void;
   /** API returned nearest inventory rows because nothing matched the search radius. */
   globalNearestFallback?: boolean;
   onSelectProperty?: (property: PropertyDataItem) => void;
@@ -301,8 +302,19 @@ export function PropertyListingsMap({
       followDataCamera === false &&
       mapRef.current
     ) {
-      const c = mapRef.current.getCenter();
-      onBrowseCenterChange({ latitude: c.lat, longitude: c.lng, zoom: mapRef.current.getZoom() });
+      const map = mapRef.current;
+      const c = map.getCenter();
+      const b = map.getBounds();
+      if (!b) return;
+      onBrowseCenterChange({
+        latitude: c.lat,
+        longitude: c.lng,
+        zoom: map.getZoom(),
+        west: b.getWest(),
+        south: b.getSouth(),
+        east: b.getEast(),
+        north: b.getNorth(),
+      });
     }
   }, [mapReady, followDataCamera, onBrowseCenterChange]);
 
@@ -343,10 +355,21 @@ export function PropertyListingsMap({
       if (timeoutId !== undefined) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         const c = map.getCenter();
-        onBrowseCenterChange({ latitude: c.lat, longitude: c.lng, zoom: map.getZoom() });
+        const b = map.getBounds();
+        if (!b) return;
+        onBrowseCenterChange({
+          latitude: c.lat,
+          longitude: c.lng,
+          zoom: map.getZoom(),
+          west: b.getWest(),
+          south: b.getSouth(),
+          east: b.getEast(),
+          north: b.getNorth(),
+        });
       }, 450);
     };
     map.on("moveend", schedule);
+    schedule();
     return () => {
       map.off("moveend", schedule);
       if (timeoutId !== undefined) clearTimeout(timeoutId);
@@ -466,6 +489,21 @@ export function PropertyListingsMap({
         const root = popup.getElement();
         if (!root || root.dataset.wmhCacheDelegated === "1") return;
         root.dataset.wmhCacheDelegated = "1";
+        const closeButton = root.querySelector(".mapboxgl-popup-close-button") as HTMLButtonElement | null;
+        if (closeButton) {
+          closeButton.style.top = "6px";
+          closeButton.style.right = "6px";
+          closeButton.style.width = "24px";
+          closeButton.style.height = "24px";
+          closeButton.style.borderRadius = "999px";
+          closeButton.style.background = "rgba(255,255,255,0.92)";
+          closeButton.style.border = "1px solid #e2e8f0";
+          closeButton.style.color = "#334155";
+          closeButton.style.display = "grid";
+          closeButton.style.placeItems = "center";
+          closeButton.style.lineHeight = "1";
+          closeButton.style.padding = "0";
+        }
         root.addEventListener("click", (e) => {
           const t = e.target as HTMLElement | null;
           const a = t?.closest?.("a[data-wmh-pk]") as HTMLAnchorElement | null;

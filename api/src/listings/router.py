@@ -86,36 +86,92 @@ def _distinct_on_building(cols: set[str]) -> tuple[str, str]:
     )
 
 
-def _empty_response(radius_miles: float, limit: int) -> NearbyListingsResponse:
+def _empty_response(
+    radius_miles: float,
+    limit: int,
+    *,
+    used_bbox: bool = False,
+) -> NearbyListingsResponse:
     return NearbyListingsResponse(
         properties=[],
         total_in_radius=0,
         radius_miles=radius_miles,
         limit=limit,
         used_global_nearest_fallback=False,
+        used_bbox=used_bbox,
     )
+
+
+# Max bbox span per axis (degrees) to limit query cost / abuse (~a few hundred miles at mid-latitudes).
+_MAX_BBOX_LAT_SPAN = 4.0
+_MAX_BBOX_LNG_SPAN = 6.0
+
+
+def _validate_bbox(west: float, south: float, east: float, north: float) -> None:
+    if south >= north:
+        raise HTTPException(status_code=422, detail="Bounding box invalid: south must be less than north")
+    if west >= east:
+        raise HTTPException(
+            status_code=422,
+            detail="Bounding box invalid: west must be less than east (antimeridian crossing not supported)",
+        )
+    if (north - south) > _MAX_BBOX_LAT_SPAN or (east - west) > _MAX_BBOX_LNG_SPAN:
+        raise HTTPException(
+            status_code=422,
+            detail="Map area too large; zoom in further to load listings for the visible region.",
+        )
 
 
 @router.get("/nearby", response_model=NearbyListingsResponse)
 def get_nearby_listings(
-    latitude: float = Query(..., ge=-90, le=90),
-    longitude: float = Query(..., ge=-180, le=180),
+    latitude: float | None = Query(default=None, ge=-90, le=90),
+    longitude: float | None = Query(default=None, ge=-180, le=180),
     radius_miles: float = Query(15, gt=0, le=500),
+    west: float | None = Query(default=None, ge=-180, le=180),
+    south: float | None = Query(default=None, ge=-90, le=90),
+    east: float | None = Query(default=None, ge=-180, le=180),
+    north: float | None = Query(default=None, ge=-90, le=90),
     limit: int = Query(50, ge=1, le=100),
 ) -> NearbyListingsResponse:
     """
-    Up to `limit` map pins: one row per building/property (closest unit to the query point),
-    within `radius_miles` when any inventory exists in that radius; otherwise nearest buildings
-    globally. Requires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.
+    Up to `limit` map pins: one row per building/property.
+
+    **Bounding box mode:** pass `west`, `south`, `east`, `north` (visible map extent). Listings are
+    filtered to points inside the box; results are ordered by distance to the box center.
+
+    **Radius mode (legacy):** pass `latitude`, `longitude`, and `radius_miles`. When any inventory
+    exists in that radius, results stay inside the circle; otherwise nearest buildings globally.
+
+    Requires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.
     """
+    bbox_mode = all(v is not None for v in (west, south, east, north))
+    center_mode = latitude is not None and longitude is not None
+
+    if bbox_mode:
+        assert west is not None and south is not None and east is not None and north is not None
+        _validate_bbox(west, south, east, north)
+        q_lat = (south + north) / 2.0
+        q_lng = (west + east) / 2.0
+        response_radius = 0.0
+    elif center_mode:
+        assert latitude is not None and longitude is not None
+        q_lat = latitude
+        q_lng = longitude
+        response_radius = radius_miles
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="Provide either bounding box (west, south, east, north) or latitude and longitude.",
+        )
+
     qtable = _qualified_table()
     db_url = (Config.get("DATABASE_URL") or "").strip()
     if not db_url or not qtable:
-        return _empty_response(radius_miles, limit)
+        return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
     if engine.dialect.name != "postgresql":
         logger.warning("listings/nearby: unsupported dialect %s", engine.dialect.name)
-        return _empty_response(radius_miles, limit)
+        return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
     schema_kw = (listing_table_schema or "").strip() or None
     schema_for_info = schema_kw if schema_kw else "public"
@@ -127,85 +183,161 @@ def get_nearby_listings(
         with engine.connect() as conn:
             insp = inspect(conn)
             if not insp.has_table(tname, schema=schema_kw):
-                return _empty_response(radius_miles, limit)
+                return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
             cols = _table_columns_lower(conn, schema_for_info, tname)
             distinct_on, order_building = _distinct_on_building(cols)
 
             params: dict[str, Any] = {
-                "lat": latitude,
-                "lng": longitude,
-                "radius": radius_miles,
+                "lat": q_lat,
+                "lng": q_lng,
                 "limit": limit,
             }
 
-            count_sql = text(
-                f"""
-                SELECT COUNT(*)::bigint AS c
-                FROM {qtable}
-                WHERE latitude IS NOT NULL
+            if bbox_mode:
+                assert west is not None and south is not None and east is not None and north is not None
+                params.update({"west": west, "south": south, "east": east, "north": north})
+                bbox_where = """
+                latitude IS NOT NULL
                   AND longitude IS NOT NULL
-                  AND {hav} <= :radius
+                  AND latitude BETWEEN :south AND :north
+                  AND longitude BETWEEN :west AND :east
                 """
-            )
-            total = int(conn.execute(count_sql, params).scalar() or 0)
+                bbox_where_inner = """
+                t_inner.latitude IS NOT NULL
+                  AND t_inner.longitude IS NOT NULL
+                  AND t_inner.latitude BETWEEN :south AND :north
+                  AND t_inner.longitude BETWEEN :west AND :east
+                """
+                count_sql = text(
+                    f"""
+                    SELECT COUNT(*)::bigint AS c
+                    FROM {qtable}
+                    WHERE {bbox_where}
+                    """
+                )
+                total = int(conn.execute(count_sql, params).scalar() or 0)
 
-            if total > 0:
-                select_sql = text(
-                    f"""
-                    SELECT * FROM (
-                      SELECT DISTINCT ON ({distinct_on})
-                        t_inner.*,
-                        ({hav_inner}) AS d_mi
-                      FROM {qtable} AS t_inner
-                      WHERE t_inner.latitude IS NOT NULL
-                        AND t_inner.longitude IS NOT NULL
-                        AND ({hav_inner}) <= :radius
-                      ORDER BY {order_building}, ({hav_inner}) ASC
-                    ) sub
-                    ORDER BY d_mi ASC
-                    LIMIT :limit
-                    """
-                )
-                used_fallback = False
+                if total > 0:
+                    select_sql = text(
+                        f"""
+                        SELECT * FROM (
+                          SELECT DISTINCT ON ({distinct_on})
+                            t_inner.*,
+                            ({hav_inner}) AS d_mi
+                          FROM {qtable} AS t_inner
+                          WHERE {bbox_where_inner}
+                          ORDER BY {order_building}, ({hav_inner}) ASC
+                        ) sub
+                        ORDER BY d_mi ASC
+                        LIMIT :limit
+                        """
+                    )
+                    used_fallback = False
+                else:
+                    any_coords = int(
+                        conn.execute(
+                            text(
+                                f"""
+                                SELECT COUNT(*)::bigint
+                                FROM {qtable}
+                                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                                """
+                            )
+                        ).scalar()
+                        or 0
+                    )
+                    if any_coords == 0:
+                        return _empty_response(response_radius, limit, used_bbox=True)
+                    logger.info(
+                        "listings/nearby: 0 within bbox; returning %s nearest buildings",
+                        limit,
+                    )
+                    select_sql = text(
+                        f"""
+                        SELECT * FROM (
+                          SELECT DISTINCT ON ({distinct_on})
+                            t_inner.*,
+                            ({hav_inner}) AS d_mi
+                          FROM {qtable} AS t_inner
+                          WHERE t_inner.latitude IS NOT NULL
+                            AND t_inner.longitude IS NOT NULL
+                          ORDER BY {order_building}, ({hav_inner}) ASC
+                        ) sub
+                        ORDER BY d_mi ASC
+                        LIMIT :limit
+                        """
+                    )
+                    used_fallback = True
             else:
-                any_coords = int(
-                    conn.execute(
-                        text(
-                            f"""
-                            SELECT COUNT(*)::bigint
-                            FROM {qtable}
-                            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                            """
-                        )
-                    ).scalar()
-                    or 0
-                )
-                if any_coords == 0:
-                    return _empty_response(radius_miles, limit)
-                logger.info(
-                    "listings/nearby: 0 within radius=%s mi of (%s,%s); returning %s nearest buildings",
-                    radius_miles,
-                    latitude,
-                    longitude,
-                    limit,
-                )
-                select_sql = text(
+                params["radius"] = radius_miles
+                count_sql = text(
                     f"""
-                    SELECT * FROM (
-                      SELECT DISTINCT ON ({distinct_on})
-                        t_inner.*,
-                        ({hav_inner}) AS d_mi
-                      FROM {qtable} AS t_inner
-                      WHERE t_inner.latitude IS NOT NULL
-                        AND t_inner.longitude IS NOT NULL
-                      ORDER BY {order_building}, ({hav_inner}) ASC
-                    ) sub
-                    ORDER BY d_mi ASC
-                    LIMIT :limit
+                    SELECT COUNT(*)::bigint AS c
+                    FROM {qtable}
+                    WHERE latitude IS NOT NULL
+                      AND longitude IS NOT NULL
+                      AND {hav} <= :radius
                     """
                 )
-                used_fallback = True
+                total = int(conn.execute(count_sql, params).scalar() or 0)
+
+                if total > 0:
+                    select_sql = text(
+                        f"""
+                        SELECT * FROM (
+                          SELECT DISTINCT ON ({distinct_on})
+                            t_inner.*,
+                            ({hav_inner}) AS d_mi
+                          FROM {qtable} AS t_inner
+                          WHERE t_inner.latitude IS NOT NULL
+                            AND t_inner.longitude IS NOT NULL
+                            AND ({hav_inner}) <= :radius
+                          ORDER BY {order_building}, ({hav_inner}) ASC
+                        ) sub
+                        ORDER BY d_mi ASC
+                        LIMIT :limit
+                        """
+                    )
+                    used_fallback = False
+                else:
+                    any_coords = int(
+                        conn.execute(
+                            text(
+                                f"""
+                                SELECT COUNT(*)::bigint
+                                FROM {qtable}
+                                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                                """
+                            )
+                        ).scalar()
+                        or 0
+                    )
+                    if any_coords == 0:
+                        return _empty_response(radius_miles, limit, used_bbox=False)
+                    logger.info(
+                        "listings/nearby: 0 within radius=%s mi of (%s,%s); returning %s nearest buildings",
+                        radius_miles,
+                        q_lat,
+                        q_lng,
+                        limit,
+                    )
+                    select_sql = text(
+                        f"""
+                        SELECT * FROM (
+                          SELECT DISTINCT ON ({distinct_on})
+                            t_inner.*,
+                            ({hav_inner}) AS d_mi
+                          FROM {qtable} AS t_inner
+                          WHERE t_inner.latitude IS NOT NULL
+                            AND t_inner.longitude IS NOT NULL
+                          ORDER BY {order_building}, ({hav_inner}) ASC
+                        ) sub
+                        ORDER BY d_mi ASC
+                        LIMIT :limit
+                        """
+                    )
+                    used_fallback = True
 
             result = conn.execute(select_sql, params)
             rows = result.mappings().all()
@@ -222,13 +354,16 @@ def get_nearby_listings(
         return NearbyListingsResponse(
             properties=properties,
             total_in_radius=total,
-            radius_miles=radius_miles,
+            radius_miles=response_radius,
             limit=limit,
             used_global_nearest_fallback=used_fallback,
+            used_bbox=bbox_mode,
         )
+    except HTTPException:
+        raise
     except Exception:
         logger.exception("listings/nearby: query failed")
-        return _empty_response(radius_miles, limit)
+        return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
 
 def _resolve_property_by_key(key: str) -> PropertyDataItem | None:

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PropertyListingsMap } from "@/components/annotations/PropertyListings/PropertyListingsMap";
 import { PropertyList } from "@/components/annotations/PropertyListings/PropertyListings";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
@@ -13,16 +14,16 @@ import { PublicSiteMenu } from "@/components/navigation/PublicSiteMenu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { GuestHomeListingChatRuntime } from "./GuestHomeListingChatRuntime";
-import {
-  DEFAULT_NEARBY_LIMIT,
-  radiusMilesForBrowseZoom,
-  useNearbyListings,
-} from "@/lib/listings/useNearbyListings";
+import { DEFAULT_NEARBY_LIMIT, useNearbyListings } from "@/lib/listings/useNearbyListings";
 import type {
   ListingSearchPhase,
   ListingSearchStreamApi,
 } from "@/lib/listings/useListingSearchStream";
 import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
+import {
+  approximateBoundsFromCenterZoom,
+  type BrowseMapViewport,
+} from "@/lib/map/approximateBrowseBounds";
 import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2, Search, X } from "lucide-react";
@@ -77,13 +78,22 @@ function NearbyListingsHeaderLine({
   const updatingPrefix = isBackgroundRefreshing ? (
     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
   ) : null;
+  const bbox = Boolean(d.used_bbox);
 
   if (d.used_global_nearest_fallback) {
     return (
       <>
         {updatingPrefix}
         <span className="text-muted-foreground">
-          None within {rm} mi of map center — showing {d.properties.length} closest (pins may be far away).
+          {bbox ? (
+            <>
+              None in the current map view — showing {d.properties.length} closest (pins may be far away).
+            </>
+          ) : (
+            <>
+              None within {rm} mi of map center — showing {d.properties.length} closest (pins may be far away).
+            </>
+          )}
           {isBackgroundRefreshing ? " Updating…" : ""}
         </span>
       </>
@@ -93,7 +103,15 @@ function NearbyListingsHeaderLine({
     <>
       {updatingPrefix}
       <span className="text-muted-foreground">
-        {d.properties.length} of {d.total_in_radius} within {rm} miles of map center
+        {bbox ? (
+          <>
+            {d.properties.length} of {d.total_in_radius} in the current map view
+          </>
+        ) : (
+          <>
+            {d.properties.length} of {d.total_in_radius} within {rm} miles of map center
+          </>
+        )}
         {isBackgroundRefreshing ? " Updating…" : ""}
       </span>
     </>
@@ -107,7 +125,7 @@ type GuestHomeSearchInnerProps = {
   query: string;
   setQuery: (value: string) => void;
   browseMapCenter: { latitude: number; longitude: number };
-  onBrowseMapCenterChange: (c: { latitude: number; longitude: number; zoom: number }) => void;
+  onBrowseMapCenterChange: (c: BrowseMapViewport) => void;
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
   selectedProperty: PropertyDataItem | null;
   setSelectedProperty: (p: PropertyDataItem | null) => void;
@@ -454,8 +472,8 @@ function GuestHomeSearchInner({
           {!useAiSlice && (
             <div className="mb-3 space-y-2 border-l-2 border-primary/35 pl-3">
               <p className="text-[11px] leading-snug text-muted-foreground">
-                Pins show listings near the <span className="font-medium text-foreground">map center</span>{" "}
-                —pan or zoom the map to load a new area. This is not tied to your location. Type at least{" "}
+                Pins show listings in the <span className="font-medium text-foreground">visible map area</span>
+                {" "}— pan or zoom to load a new region. This is not tied to your location. Type at least{" "}
                 <span className="font-medium text-foreground">{MIN_QUERY_CHARS}</span> characters,
                 then press <span className="font-medium text-foreground">Enter</span> or{" "}
                 <span className="font-medium text-foreground">Search</span> to run an AI-assisted
@@ -497,7 +515,11 @@ function GuestHomeSearchInner({
 }
 
 export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
+  const hasHydratedQueryFromUrlRef = useRef(false);
   /** Approximate device location for AI search context only; guest browse SQL uses GUEST_BROWSE_MAP_CENTER. */
   const locationRef = useRef(GUEST_BROWSE_MAP_CENTER);
   const trimmedQuery = query.trim();
@@ -510,14 +532,52 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
-  const [browseMapZoom, setBrowseMapZoom] = useState(11);
+  const [browseBounds, setBrowseBounds] = useState(() =>
+    approximateBoundsFromCenterZoom(
+      DEFAULT_BROWSE_MAP_CENTER.latitude,
+      DEFAULT_BROWSE_MAP_CENTER.longitude,
+      11,
+    ),
+  );
   const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusVersion, setMapFocusVersion] = useState(0);
   const [listScrollProperty, setListScrollProperty] = useState<PropertyDataItem | null>(null);
 
-  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number; zoom: number }) => {
-    setBrowseMapZoom((prev) => (Math.abs(prev - c.zoom) < 1e-3 ? prev : c.zoom));
+  useEffect(() => {
+    if (hasHydratedQueryFromUrlRef.current) return;
+    const urlQ = (searchParams.get("q") ?? "").trim();
+    if (urlQ.length > 0) {
+      setQuery(urlQ);
+    }
+    hasHydratedQueryFromUrlRef.current = true;
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!hasHydratedQueryFromUrlRef.current) return;
+    const timeoutId = window.setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      const next = query.trim();
+      const current = (searchParams.get("q") ?? "").trim();
+      if (next.length > 0) {
+        params.set("q", next);
+      } else {
+        params.delete("q");
+      }
+      if (current === next) return;
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [query, pathname, router, searchParams]);
+
+  const onBrowseMapCenterChange = useCallback((c: BrowseMapViewport) => {
+    setBrowseBounds({
+      west: c.west,
+      south: c.south,
+      east: c.east,
+      north: c.north,
+    });
     setBrowseMapCenter((prev) => {
       if (
         Math.abs(prev.latitude - c.latitude) < 1e-6 &&
@@ -530,9 +590,8 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   }, []);
 
   const nearbyQuery = useNearbyListings({
-    latitude: browseMapCenter.latitude,
-    longitude: browseMapCenter.longitude,
-    radiusMiles: radiusMilesForBrowseZoom(browseMapZoom),
+    mode: "bbox",
+    bounds: browseBounds,
     limit: DEFAULT_NEARBY_LIMIT,
     enabled: !listingSessionActive,
   });

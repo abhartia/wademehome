@@ -26,6 +26,7 @@ from workflow.events import (
     WrongSQLStatementEvent,
 )
 
+from workflow.llm_cache import build_text2sql_cache_key, get_text2sql_llm_cache
 from workflow.utils import (
     CHECK_QUERY_LAST_MESSAGE,
     CHECK_QUERY_OUTPUT_PARSER,
@@ -429,18 +430,41 @@ class ListingFetcherWorkflow(Workflow):
         logger.info("generate_sql: entered query=%r", ev.query)
         print(f"generate_sql: entered query={ev.query!r}")
 
+        schema_text = get_listing_table_info()
         fmt_messages = text2sql_prompt.format_messages(
             query_str=ev.query,
-            schema=get_listing_table_info()
+            schema=schema_text,
         )
 
         message_with_chat_history: list[ChatMessage] = await ctx.store.get("chat_history", [])
+        text2sql_messages: list[ChatMessage] = [
+            *message_with_chat_history,
+            *fmt_messages,
+        ]
 
-        chat_response = await asyncio.to_thread(
-            self._text2sql_llm_sync,
-            [*message_with_chat_history, *fmt_messages],
-        )
-        sql = parse_response_to_sql(chat_response)
+        t2sql_cache = get_text2sql_llm_cache()
+        sql: str
+        if t2sql_cache is not None:
+            cache_key = build_text2sql_cache_key(
+                text2sql_messages,
+                schema_text=schema_text,
+            )
+            cached = t2sql_cache.get(cache_key)
+            if cached is not None:
+                sql = cached
+            else:
+                chat_response = await asyncio.to_thread(
+                    self._text2sql_llm_sync,
+                    text2sql_messages,
+                )
+                sql = parse_response_to_sql(chat_response)
+                t2sql_cache.set(cache_key, sql)
+        else:
+            chat_response = await asyncio.to_thread(
+                self._text2sql_llm_sync,
+                text2sql_messages,
+            )
+            sql = parse_response_to_sql(chat_response)
         if not (sql or "").strip():
             raw = getattr(getattr(chat_response, "message", None), "content", None)
             raw_preview = (

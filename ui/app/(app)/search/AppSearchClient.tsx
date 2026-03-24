@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { PropertyListingsMap } from "@/components/annotations/PropertyListings/PropertyListingsMap";
 import { PropertyList } from "@/components/annotations/PropertyListings/PropertyListings";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
@@ -12,10 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   DEFAULT_NEARBY_LIMIT,
   type NearbyListingsResponse,
-  radiusMilesForBrowseZoom,
   useNearbyListings,
 } from "@/lib/listings/useNearbyListings";
 import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
+import {
+  approximateBoundsFromCenterZoom,
+  type BrowseMapViewport,
+} from "@/lib/map/approximateBrowseBounds";
 import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
 import { GuestHomeListingChatRuntime } from "@/app/(marketing)/GuestHomeListingChatRuntime";
 import type {
@@ -94,13 +98,18 @@ function NearbyListingsHeaderLine({
   const updatingPrefix = isBackgroundRefreshing ? (
     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
   ) : null;
+  const bbox = Boolean(d.used_bbox);
 
   if (d.used_global_nearest_fallback) {
     return (
       <>
         {updatingPrefix}
         <span className="text-muted-foreground">
-          None within {rm} mi of map center - showing {d.properties.length} closest.
+          {bbox ? (
+            <>None in the current map view - showing {d.properties.length} closest.</>
+          ) : (
+            <>None within {rm} mi of map center - showing {d.properties.length} closest.</>
+          )}
           {isBackgroundRefreshing ? " Updating..." : ""}
         </span>
       </>
@@ -110,7 +119,15 @@ function NearbyListingsHeaderLine({
     <>
       {updatingPrefix}
       <span className="text-muted-foreground">
-        {d.properties.length} of {d.total_in_radius} within {rm} miles of map center
+        {bbox ? (
+          <>
+            {d.properties.length} of {d.total_in_radius} in the current map view
+          </>
+        ) : (
+          <>
+            {d.properties.length} of {d.total_in_radius} within {rm} miles of map center
+          </>
+        )}
         {isBackgroundRefreshing ? " Updating..." : ""}
       </span>
     </>
@@ -124,7 +141,7 @@ type AppSearchInnerProps = {
   query: string;
   setQuery: (value: string) => void;
   browseMapCenter: { latitude: number; longitude: number };
-  onBrowseMapCenterChange: (c: { latitude: number; longitude: number; zoom: number }) => void;
+  onBrowseMapCenterChange: (c: BrowseMapViewport) => void;
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
   selectedProperty: PropertyDataItem | null;
   setSelectedProperty: (p: PropertyDataItem | null) => void;
@@ -260,8 +277,8 @@ function AppSearchInner({
                 </Button>
               </div>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
-                Pan/zoom for instant nearby browse. Enter at least {MIN_QUERY_CHARS} chars to run AI
-                search with map context.
+                Pan/zoom loads listings for the visible map area. Enter at least {MIN_QUERY_CHARS}{" "}
+                chars to run AI search with map context.
               </p>
               {useAiSlice && showAiActivity && (
                 <div
@@ -437,6 +454,7 @@ function AppSearchInner({
 }
 
 export function AppSearchClient() {
+  const searchParams = useSearchParams();
   const { profile, updateProfile } = useUserProfile();
   const [query, setQuery] = useState("");
   const locationRef = useRef(DEFAULT_BROWSE_MAP_CENTER);
@@ -449,7 +467,13 @@ export function AppSearchClient() {
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
-  const [browseMapZoom, setBrowseMapZoom] = useState(11);
+  const [browseBounds, setBrowseBounds] = useState(() =>
+    approximateBoundsFromCenterZoom(
+      DEFAULT_BROWSE_MAP_CENTER.latitude,
+      DEFAULT_BROWSE_MAP_CENTER.longitude,
+      11,
+    ),
+  );
   const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusVersion, setMapFocusVersion] = useState(0);
@@ -457,10 +481,16 @@ export function AppSearchClient() {
   const latestMemoryAppliedVersionRef = useRef(0);
   const didAutoBootstrapSearchRef = useRef(false);
   const didSetInitialBrowseCenterRef = useRef(false);
+  const didHydrateQueryFromUrlRef = useRef(false);
 
-  const onBrowseMapCenterChange = useCallback((c: { latitude: number; longitude: number; zoom: number }) => {
+  const onBrowseMapCenterChange = useCallback((c: BrowseMapViewport) => {
     didSetInitialBrowseCenterRef.current = true;
-    setBrowseMapZoom((prev) => (Math.abs(prev - c.zoom) < 1e-3 ? prev : c.zoom));
+    setBrowseBounds({
+      west: c.west,
+      south: c.south,
+      east: c.east,
+      north: c.north,
+    });
     setBrowseMapCenter((prev) => {
       if (
         Math.abs(prev.latitude - c.latitude) < 1e-6 &&
@@ -473,9 +503,8 @@ export function AppSearchClient() {
   }, []);
 
   const nearbyQuery = useNearbyListings({
-    latitude: browseMapCenter.latitude,
-    longitude: browseMapCenter.longitude,
-    radiusMiles: radiusMilesForBrowseZoom(browseMapZoom),
+    mode: "bbox",
+    bounds: browseBounds,
     limit: DEFAULT_NEARBY_LIMIT,
     enabled: !listingSessionActive,
   });
@@ -490,6 +519,9 @@ export function AppSearchClient() {
         locationRef.current = next;
         if (!didSetInitialBrowseCenterRef.current) {
           setBrowseMapCenter(next);
+          setBrowseBounds(
+            approximateBoundsFromCenterZoom(next.latitude, next.longitude, 11),
+          );
           didSetInitialBrowseCenterRef.current = true;
         }
       },
@@ -499,6 +531,21 @@ export function AppSearchClient() {
       { timeout: 5000 },
     );
   }, []);
+
+  useEffect(() => {
+    if (didHydrateQueryFromUrlRef.current) return;
+    const urlQ = (searchParams.get("q") ?? "").trim();
+    if (urlQ.length >= MIN_QUERY_CHARS) {
+      setQuery(urlQ);
+      setListingSessionActive(true);
+      setListingFireVersion((v) => v + 1);
+      didAutoBootstrapSearchRef.current = true;
+    } else if (urlQ.length > 0) {
+      setQuery(urlQ);
+      didAutoBootstrapSearchRef.current = true;
+    }
+    didHydrateQueryFromUrlRef.current = true;
+  }, [searchParams]);
 
   useEffect(() => {
     if (didAutoBootstrapSearchRef.current) return;
