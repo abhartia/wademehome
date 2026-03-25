@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "ai/react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { UIEventsTypesEnum } from "@/components/annotations/UIEventsTypes";
 import type { UserProfile } from "@/lib/types/userProfile";
@@ -221,11 +221,17 @@ function normalizeFinishMessage(message: unknown): {
   return null;
 }
 
+export type UseListingSearchStreamOptions = {
+  /** Passed to `useChat` `id` — must differ per surface so local persistence does not collide. */
+  id?: string;
+};
+
 /**
  * Streams POST /listings/chat via `useChat` (same protocol as the full search chat UI).
  * Persists message history for multi-turn search; use `resetSession` to clear.
  */
-export function useListingSearchStream() {
+export function useListingSearchStream(options?: UseListingSearchStreamOptions) {
+  const chatId = options?.id ?? "landing-listing-search";
   const [properties, setProperties] = useState<PropertyDataItem[]>([]);
   const [searchHint, setSearchHint] = useState<SearchHintState>(null);
   const [searchSummary, setSearchSummary] = useState<SearchSummaryState>(null);
@@ -266,9 +272,36 @@ export function useListingSearchStream() {
     api: CHAT_URL,
     credentials: "include",
     headers,
-    id: "landing-listing-search",
+    id: chatId,
     onFinish: applyAnnotationsFromFinish,
   });
+
+  useEffect(() => {
+    const assistants = messages.filter((m) => m.role === "assistant");
+    const last = assistants[assistants.length - 1];
+    if (!last) return;
+    const ann = (last as { annotations?: unknown }).annotations;
+    if (!Array.isArray(ann) || ann.length === 0) return;
+    const hasListingsAnnotation = ann.some(
+      (a) =>
+        a &&
+        typeof a === "object" &&
+        (a as { type?: string }).type === UIEventsTypesEnum.PROPERTY_LISTINGS,
+    );
+    const parsed = parseAssistantAnnotations(
+      last as { role?: string; annotations?: unknown },
+    );
+    if (hasListingsAnnotation) {
+      setProperties(parsed.properties);
+    }
+    setSearchHint(parsed.searchHint);
+    if (parsed.searchSummary !== null) {
+      setSearchSummary(parsed.searchSummary);
+    }
+    if (parsed.searchStats !== null) {
+      setSearchStats(parsed.searchStats);
+    }
+  }, [messages]);
 
   const chatFnsRef = useRef({ append, setMessages, stop });
   chatFnsRef.current = { append, setMessages, stop };

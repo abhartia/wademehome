@@ -1,0 +1,2 @@
+# One hostname per line (optional www). Probed as …/onlineleasing/{last-label}/floorplans.aspx
+parkmerced.securecafe.com

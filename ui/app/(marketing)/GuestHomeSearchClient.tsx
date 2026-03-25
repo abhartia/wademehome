@@ -169,10 +169,10 @@ function GuestHomeSearchInner({
   mapFocusVersion,
   listScrollProperty,
 }: GuestHomeSearchInnerProps) {
-  const messages = useMemo(() => listingChat?.messages ?? [], [listingChat]);
+  const messages = useMemo(() => listingChat?.messages ?? [], [listingChat?.messages]);
   const phase = listingChat?.phase ?? "idle";
-  const streamText = listingChat?.streamText ?? "";
-  const properties = useMemo(() => listingChat?.properties ?? [], [listingChat]);
+  const streamText = useMemo(() => listingChat?.streamText ?? "", [listingChat?.streamText]);
+  const properties = useMemo(() => listingChat?.properties ?? [], [listingChat?.properties]);
   const searchHint = listingChat?.searchHint ?? null;
   const searchSummary = listingChat?.searchSummary ?? null;
   const searchStats = listingChat?.searchStats ?? null;
@@ -186,11 +186,15 @@ function GuestHomeSearchInner({
     if (searchSummary && (searchSummary.headline || searchSummary.bullets.length > 0)) {
       return searchSummary;
     }
-    const bullets = messages
-      .filter((m) => m.role === "user")
-      .map((m) => stripGeoSuffix(String(m.content ?? "")))
-      .filter(Boolean)
-      .slice(-5);
+    const bullets = [
+      ...new Set(
+        messages
+          .filter((m) => m.role === "user")
+          .map((m) => stripGeoSuffix(String(m.content ?? "")))
+          .filter(Boolean)
+          .slice(-5),
+      ),
+    ];
     if (bullets.length === 0) return null;
     return { headline: "What we're using for this search", bullets };
   }, [searchSummary, messages]);
@@ -543,6 +547,13 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusVersion, setMapFocusVersion] = useState(0);
   const [listScrollProperty, setListScrollProperty] = useState<PropertyDataItem | null>(null);
+  const listingFireAckRef = useRef(0);
+
+  useEffect(() => {
+    if (listingFireVersion <= 0) {
+      listingFireAckRef.current = 0;
+    }
+  }, [listingFireVersion]);
 
   useEffect(() => {
     if (hasHydratedQueryFromUrlRef.current) return;
@@ -698,6 +709,8 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
 
       {listingSessionActive ? (
         <GuestHomeListingChatRuntime
+          chatId="guest-home-listings"
+          fireAcknowledgedVersionRef={listingFireAckRef}
           fireVersion={listingFireVersion}
           getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
           onPhaseChange={setListingPhase}

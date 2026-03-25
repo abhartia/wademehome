@@ -1,0 +1,6 @@
+cloudscraper
+requests
+pandas
+beautifulsoup4
+lxml
+pyarrow

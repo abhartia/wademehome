@@ -3,7 +3,12 @@
 *.example
 /data
 /greystar_scraper/env=local
+/rentcafe_scraper/env=local
+/realpage_scraper/env=local
+/entrata_scraper/env=local
 /.cursor
 /api/build
 /api/dist_check
 /api/venv
+/env=local
+/logs

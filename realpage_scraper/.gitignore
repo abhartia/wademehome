@@ -1,0 +1,6 @@
+env=local/
+logs/
+seeds_validated.txt
+*.probe_manifest.json
+*.pyc
+__pycache__/

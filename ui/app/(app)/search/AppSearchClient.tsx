@@ -181,10 +181,10 @@ function AppSearchInner({
   mapFocusVersion,
   listScrollProperty,
 }: AppSearchInnerProps) {
-  const messages = useMemo(() => listingChat?.messages ?? [], [listingChat]);
+  const messages = useMemo(() => listingChat?.messages ?? [], [listingChat?.messages]);
   const phase = listingChat?.phase ?? "idle";
-  const streamText = listingChat?.streamText ?? "";
-  const properties = useMemo(() => listingChat?.properties ?? [], [listingChat]);
+  const streamText = useMemo(() => listingChat?.streamText ?? "", [listingChat?.streamText]);
+  const properties = useMemo(() => listingChat?.properties ?? [], [listingChat?.properties]);
   const searchSummary = listingChat?.searchSummary ?? null;
   const searchStats = listingChat?.searchStats ?? null;
   const error = listingChat?.error ?? null;
@@ -197,11 +197,15 @@ function AppSearchInner({
     if (searchSummary && (searchSummary.headline || searchSummary.bullets.length > 0)) {
       return searchSummary;
     }
-    const bullets = messages
-      .filter((m) => m.role === "user")
-      .map((m) => stripGeoSuffix(String(m.content ?? "")))
-      .filter(Boolean)
-      .slice(-5);
+    const bullets = [
+      ...new Set(
+        messages
+          .filter((m) => m.role === "user")
+          .map((m) => stripGeoSuffix(String(m.content ?? "")))
+          .filter(Boolean)
+          .slice(-5),
+      ),
+    ];
     if (bullets.length === 0) return null;
     return { headline: "What we are using for this search", bullets };
   }, [messages, searchSummary]);
@@ -381,7 +385,9 @@ function AppSearchInner({
               properties={visibleListings}
               fallbackCenter={browseMapCenter}
               followDataCamera={
-                showingSearchPins || Boolean(nearbyQuery.data?.used_global_nearest_fallback)
+                showingSearchPins ||
+                (!listingSessionActive &&
+                  Boolean(nearbyQuery.data?.used_global_nearest_fallback))
               }
               onBrowseCenterChange={listingSessionActive ? undefined : onBrowseMapCenterChange}
               globalNearestFallback={Boolean(nearbyQuery.data?.used_global_nearest_fallback)}
@@ -453,6 +459,30 @@ function AppSearchInner({
   );
 }
 
+type AppSearchRuntimeInnerProps = Omit<AppSearchInnerProps, "listingChat"> & {
+  chat: ListingSearchStreamApi;
+  handleMemoryUpdate: (
+    memoryUpdate: ProfileMemoryUpdateState | null,
+    updateVersion: number,
+  ) => void;
+};
+
+/**
+ * Must stay at module scope. Defining this component inside `AppSearchClient` recreates a new
+ * function identity every render; React treats that as a new component type and remounts the
+ * entire subtree (map, list, sheets), which feels like a full page refresh on hover.
+ */
+function AppSearchRuntimeInner({
+  chat,
+  handleMemoryUpdate,
+  ...inner
+}: AppSearchRuntimeInnerProps) {
+  useEffect(() => {
+    handleMemoryUpdate(chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion);
+  }, [chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion, handleMemoryUpdate]);
+  return <AppSearchInner {...inner} listingChat={chat} />;
+}
+
 export function AppSearchClient() {
   const searchParams = useSearchParams();
   const { profile, updateProfile } = useUserProfile();
@@ -482,6 +512,8 @@ export function AppSearchClient() {
   const didAutoBootstrapSearchRef = useRef(false);
   const didSetInitialBrowseCenterRef = useRef(false);
   const didHydrateQueryFromUrlRef = useRef(false);
+  const prevTrimmedQueryRef = useRef<string | null>(null);
+  const listingFireAckRef = useRef(0);
 
   const onBrowseMapCenterChange = useCallback((c: BrowseMapViewport) => {
     didSetInitialBrowseCenterRef.current = true;
@@ -559,10 +591,18 @@ export function AppSearchClient() {
   }, [listingSessionActive, profile]);
 
   useEffect(() => {
+    const prev = prevTrimmedQueryRef.current;
+    prevTrimmedQueryRef.current = trimmedQuery;
+
     if (trimmedQuery.length >= MIN_QUERY_CHARS) return;
-    setListingSessionActive(false);
-    setListingFireVersion(0);
-    setListingPhase("idle");
+
+    // Only reset when the user shortens/clears an active query — not on first mount with ""
+    // (profile bootstrap sets a long query in the same tick and would be clobbered otherwise).
+    if (prev !== null && prev.length >= MIN_QUERY_CHARS) {
+      setListingSessionActive(false);
+      setListingFireVersion(0);
+      setListingPhase("idle");
+    }
   }, [trimmedQuery]);
 
   const submitSearchNow = useCallback(() => {
@@ -623,29 +663,24 @@ export function AppSearchClient() {
     listScrollProperty,
   };
 
-  const RuntimeInner = ({ chat }: { chat: ListingSearchStreamApi }) => {
-    useEffect(() => {
-      handleMemoryUpdate(chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion);
-      // handleMemoryUpdate is stable for this render scope and does not need to be a dependency.
-    }, [chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion]);
-    return (
-      <AppSearchInner
-        {...innerProps}
-        listingChat={chat}
-        setSelectedProperty={onListSelectProperty}
-      />
-    );
-  };
-
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       {listingSessionActive ? (
         <GuestHomeListingChatRuntime
+          chatId="app-search-listings"
+          fireAcknowledgedVersionRef={listingFireAckRef}
           fireVersion={listingFireVersion}
           getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
           onPhaseChange={setListingPhase}
         >
-          {(chat) => <RuntimeInner chat={chat} />}
+          {(chat) => (
+            <AppSearchRuntimeInner
+              chat={chat}
+              handleMemoryUpdate={handleMemoryUpdate}
+              {...innerProps}
+              setSelectedProperty={onListSelectProperty}
+            />
+          )}
         </GuestHomeListingChatRuntime>
       ) : (
         <AppSearchInner

@@ -1,0 +1,3 @@
+# OneSite / SecureCafe public floor plan URLs (one per line, # comments ok).
+# Example verified 2026-03: Parkmerced (San Francisco).
+https://parkmerced.securecafe.com/onlineleasing/parkmerced/floorplans.aspx

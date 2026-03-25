@@ -40,6 +40,30 @@ From the repo root, with `DATABASE_URL` set to a **`postgresql+psycopg2://...`**
 
 (`upsert` uses `listing_id` and a unique index; requires `--fast-postgres`.)
 
+**RentCafe scrape output** lives under `rentcafe_scraper/env=local/source=rentcafe/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet`. Load it with the same upsert mode:
+
+```bash
+./api/.venv/bin/python scripts/load_listings_from_parquet.py \
+  --parquet rentcafe_scraper/env=local/source=rentcafe/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet \
+  --fast-postgres --if-exists upsert
+```
+
+**RealPage / SecureCafe (OneSite-style ILS)** output lives under `realpage_scraper/env=local/source=realpage/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet`. Load with the same upsert mode:
+
+```bash
+./api/.venv/bin/python scripts/load_listings_from_parquet.py \
+  --parquet realpage_scraper/env=local/source=realpage/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet \
+  --fast-postgres --if-exists upsert
+```
+
+**Entrata-oriented marketing sites** (embedded Next.js / JSON-LD) output lives under `entrata_scraper/env=local/source=entrata/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet`:
+
+```bash
+./api/.venv/bin/python scripts/load_listings_from_parquet.py \
+  --parquet entrata_scraper/env=local/source=entrata/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet \
+  --fast-postgres --if-exists upsert
+```
+
 Dry run (no DB):
 
 ```bash

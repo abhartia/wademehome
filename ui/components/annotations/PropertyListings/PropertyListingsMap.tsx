@@ -138,6 +138,11 @@ export function PropertyListingsMap({
     };
   }
   const prevFollowDataCameraRef = useRef(followDataCamera);
+  const lastAppliedCameraRef = useRef<{
+    latitude: number;
+    longitude: number;
+    zoom: number;
+  } | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const onSelectRef = useRef(onSelectProperty);
   onSelectRef.current = onSelectProperty;
@@ -181,6 +186,25 @@ export function PropertyListingsMap({
     () => groupPropertiesByBuilding(mappableProperties),
     [mappableProperties],
   );
+
+  /**
+   * Rebuilding every Mapbox marker clears popups and feels like a full map refresh. Grouped props
+   * often get new array references while the mappable set is unchanged (e.g. parent re-renders on
+   * list hover). Key only when pin layout / labels should change.
+   */
+  const markerLayoutKey = useMemo(() => {
+    const rows: string[] = [];
+    for (const p of properties) {
+      const lat = toFiniteNumber(p.latitude);
+      const lng = toFiniteNumber(p.longitude);
+      if (lat === null || lng === null) continue;
+      rows.push(
+        `${buildPropertyKey(p)}|${lat.toFixed(5)}|${lng.toFixed(5)}|${p.bedroom_range}|${p.rent_range}`,
+      );
+    }
+    rows.sort();
+    return rows.join("\n");
+  }, [properties]);
 
   const cameraView = useMemo(() => {
     if (mappableProperties.length === 0) {
@@ -268,14 +292,32 @@ export function PropertyListingsMap({
   }, [MAPBOX_TOKEN]);
 
   useEffect(() => {
+    if (!followDataCamera) {
+      lastAppliedCameraRef.current = null;
+    }
+  }, [followDataCamera]);
+
+  useEffect(() => {
     if (!mapReady) return;
     const mapInstance = mapRef.current;
     if (!mapInstance) return;
     if (!followDataCamera) return;
 
+    const { latitude, longitude, zoom } = cameraView;
+    const prev = lastAppliedCameraRef.current;
+    if (
+      prev &&
+      Math.abs(prev.latitude - latitude) < 1e-7 &&
+      Math.abs(prev.longitude - longitude) < 1e-7 &&
+      Math.abs(prev.zoom - zoom) < 1e-4
+    ) {
+      return;
+    }
+    lastAppliedCameraRef.current = { latitude, longitude, zoom };
+
     mapInstance.jumpTo({
-      center: [cameraView.longitude, cameraView.latitude],
-      zoom: cameraView.zoom,
+      center: [longitude, latitude],
+      zoom,
     });
     mapInstance.resize();
   }, [mapReady, followDataCamera, cameraView]);
@@ -588,7 +630,9 @@ export function PropertyListingsMap({
         coords: [longitude, latitude],
       });
     }
-  }, [mapReady, groupedProperties]);
+    // groupedProperties is read from this render; markerLayoutKey bumps only when pin rows change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- groupedProperties intentionally omitted (identity churn)
+  }, [mapReady, markerLayoutKey]);
 
   if (!MAPBOX_TOKEN) {
     return (

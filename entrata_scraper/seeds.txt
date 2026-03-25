@@ -1,0 +1,4 @@
+# Verified Entrata-powered marketing / floor plan URLs (one per line).
+# Spike: confirm in DevTools that scripts or XHR reference entrata.com / propertiescdn before adding.
+# Example pattern (replace with a live property page that lists units or floorplans):
+# https://www.example-community.com/floorplans

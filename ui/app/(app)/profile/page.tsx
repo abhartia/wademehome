@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  ProfileSectionEditor,
+  type ProfileSectionId,
+} from "@/components/profile/ProfileSectionEditor";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import type { UserProfile } from "@/lib/types/userProfile";
 import {
   Crosshair,
   MapPin,
@@ -23,6 +28,22 @@ import {
 } from "lucide-react";
 import { JourneyStageSelector } from "@/components/journey/JourneyStageSelector";
 import { Checkbox } from "@/components/ui/checkbox";
+
+function livingArrangementLabel(
+  v: UserProfile["livingArrangement"],
+): string {
+  if (v === "solo") return "Just me";
+  if (v === "roommates") return "Me + roommate(s)";
+  if (v === "partner") return "Me + partner";
+  if (v === "family") return "My family";
+  return "—";
+}
+
+function searchTriggerLabel(v: UserProfile["searchTrigger"]): string {
+  if (v === "reactive") return "Reactive";
+  if (v === "proactive") return "Proactive";
+  return "—";
+}
 
 function EmptyState() {
   return (
@@ -49,74 +70,95 @@ function EmptyState() {
 export default function ProfilePage() {
   const { profile, updateProfile } = useUserProfile();
   const [showJson, setShowJson] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorSection, setEditorSection] = useState<ProfileSectionId | null>(
+    null,
+  );
+
+  const openEditor = (section: ProfileSectionId) => {
+    setEditorSection(section);
+    setEditorOpen(true);
+  };
+
+  const sections = useMemo(
+    () =>
+      [
+        {
+          id: "searchTrigger" as const,
+          title: "Search Trigger",
+          icon: Crosshair,
+          items: [
+            { label: "Type", value: searchTriggerLabel(profile.searchTrigger) },
+            { label: "Reason", value: profile.triggerReason || "—" },
+            { label: "Timeline", value: profile.moveTimeline || "—" },
+          ],
+        },
+        {
+          id: "location" as const,
+          title: "Location",
+          icon: MapPin,
+          items: [
+            {
+              label: "Target cities",
+              value: profile.preferredCities.length
+                ? profile.preferredCities.join(", ")
+                : "—",
+            },
+            { label: "Work / Study", value: profile.workLocation || "—" },
+          ],
+        },
+        {
+          id: "neighbourhood" as const,
+          title: "Neighbourhood",
+          icon: Building2,
+          items: [
+            {
+              label: "Priorities",
+              value: profile.neighbourhoodPriorities.length
+                ? profile.neighbourhoodPriorities.join(", ")
+                : "—",
+            },
+            {
+              label: "Dealbreakers",
+              value: profile.dealbreakers.length
+                ? profile.dealbreakers.join(", ")
+                : "None",
+            },
+          ],
+        },
+        {
+          id: "budget" as const,
+          title: "Budget",
+          icon: DollarSign,
+          items: [
+            { label: "Max rent", value: profile.maxMonthlyRent || "—" },
+            {
+              label: "Credit score",
+              value: profile.creditScoreRange || "—",
+            },
+          ],
+        },
+        {
+          id: "livingSituation" as const,
+          title: "Living Situation",
+          icon: Home,
+          items: [
+            {
+              label: "Arrangement",
+              value: livingArrangementLabel(profile.livingArrangement),
+            },
+            { label: "Bedrooms", value: profile.bedroomsNeeded || "—" },
+            {
+              label: "Pets",
+              value: profile.hasPets ? profile.petDetails : "None",
+            },
+          ],
+        },
+      ] as const,
+    [profile],
+  );
 
   if (!profile.onboardingCompleted) return <EmptyState />;
-
-  const sections = [
-    {
-      title: "Search Trigger",
-      icon: Crosshair,
-      items: [
-        { label: "Type", value: profile.searchTrigger ?? "—" },
-        { label: "Reason", value: profile.triggerReason || "—" },
-        { label: "Timeline", value: profile.moveTimeline || "—" },
-      ],
-    },
-    {
-      title: "Location",
-      icon: MapPin,
-      items: [
-        {
-          label: "Target cities",
-          value: profile.preferredCities.length
-            ? profile.preferredCities.join(", ")
-            : "—",
-        },
-        { label: "Work / Study", value: profile.workLocation || "—" },
-      ],
-    },
-    {
-      title: "Neighbourhood",
-      icon: Building2,
-      items: [
-        {
-          label: "Priorities",
-          value: profile.neighbourhoodPriorities.length
-            ? profile.neighbourhoodPriorities.join(", ")
-            : "—",
-        },
-        {
-          label: "Dealbreakers",
-          value: profile.dealbreakers.length
-            ? profile.dealbreakers.join(", ")
-            : "None",
-        },
-      ],
-    },
-    {
-      title: "Budget",
-      icon: DollarSign,
-      items: [
-        { label: "Max rent", value: profile.maxMonthlyRent || "—" },
-        {
-          label: "Credit score",
-          value: profile.creditScoreRange || "—",
-        },
-      ],
-    },
-    {
-      title: "Living Situation",
-      icon: Home,
-      items: [
-        { label: "Arrangement", value: profile.livingArrangement ?? "—" },
-        { label: "Bedrooms", value: profile.bedroomsNeeded || "—" },
-        {
-          label: "Pets",
-          value: profile.hasPets ? profile.petDetails : "None",
-        },
-      ],
-    },
-  ];
 
   // API payload preview -- strip meta fields
   const apiPayload = { ...profile };
@@ -137,13 +179,27 @@ export default function ProfilePage() {
               search.
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild className="gap-1.5">
-            <Link href="/onboarding">
-              <Pencil className="h-3.5 w-3.5" />
-              Edit
-            </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => openEditor("searchTrigger")}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit
           </Button>
         </div>
+
+        <ProfileSectionEditor
+          open={editorOpen}
+          onOpenChange={(open) => {
+            setEditorOpen(open);
+            if (!open) setEditorSection(null);
+          }}
+          section={editorSection}
+          profile={profile}
+          updateProfile={updateProfile}
+        />
 
         {/* Journey stage */}
         <Card>
@@ -209,12 +265,23 @@ export default function ProfilePage() {
 
         <div className="space-y-4">
           {sections.map((section) => (
-            <Card key={section.title}>
-              <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-                <section.icon className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm font-medium">
-                  {section.title}
-                </CardTitle>
+            <Card key={section.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex flex-row items-center gap-2">
+                  <section.icon className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-medium">
+                    {section.title}
+                  </CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  className="gap-1 text-muted-foreground"
+                  onClick={() => openEditor(section.id)}
+                >
+                  <Pencil className="h-3 w-3" />
+                  Edit
+                </Button>
               </CardHeader>
               <CardContent className="space-y-2">
                 {section.items.map((item) => (
