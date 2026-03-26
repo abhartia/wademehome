@@ -13,6 +13,7 @@ const PUBLIC_PATHS = new Set([
 ]);
 const PROTECTED_PREFIXES = [
   "/app",
+  "/admin",
   "/search",
   "/tours",
   "/roommates",

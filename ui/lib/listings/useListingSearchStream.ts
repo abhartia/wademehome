@@ -4,6 +4,7 @@ import { useChat } from "ai/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { UIEventsTypesEnum } from "@/components/annotations/UIEventsTypes";
+import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import type { UserProfile } from "@/lib/types/userProfile";
 
 const CHAT_URL =
@@ -208,6 +209,40 @@ function sanitizeUpdatedFields(raw: unknown, patch: ProfileMemoryPatch): Allowed
   return explicit.length > 0 ? explicit : validFromPatch;
 }
 
+/** Compact fingerprint for streaming annotation sync — avoids `JSON.stringify` on large listing payloads every tick. */
+function streamAnnotationsSignature(
+  messagesLength: number,
+  assistantContent: string,
+  ann: unknown[],
+): string {
+  const parts: string[] = [String(messagesLength), String(assistantContent.length)];
+  for (const raw of ann) {
+    if (!raw || typeof raw !== "object") continue;
+    const a = raw as { type?: string; data?: unknown };
+    const t = a.type ?? "?";
+    if (t === UIEventsTypesEnum.PROPERTY_LISTINGS) {
+      const d = a.data as { properties?: PropertyDataItem[] } | undefined;
+      const props = d?.properties;
+      const n = Array.isArray(props) ? props.length : 0;
+      const keys =
+        Array.isArray(props) && props.length > 0
+          ? props
+              .slice(0, 24)
+              .map((p) => buildPropertyKey(p))
+              .join(",")
+          : "";
+      parts.push(`PL:${n}:${keys}`);
+    } else {
+      try {
+        parts.push(`${t}:${JSON.stringify(a.data)}`);
+      } catch {
+        parts.push(`${t}:`);
+      }
+    }
+  }
+  return parts.join("\u001f");
+}
+
 function normalizeFinishMessage(message: unknown): {
   role?: string;
   annotations?: unknown;
@@ -274,33 +309,62 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     headers,
     id: chatId,
     onFinish: applyAnnotationsFromFinish,
+    /** Coalesces SWR `mutate` during streaming — unthrottled updates + map/list re-renders can exceed React's max update depth. */
+    experimental_throttle: 50,
   });
 
+  /** Avoids redundant setState (and update-depth issues) when `messages` gets a new array ref but content is unchanged. */
+  const streamAnnotationsSigRef = useRef<string>("");
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+  const annotationRafRef = useRef<number | null>(null);
+
   useEffect(() => {
-    const assistants = messages.filter((m) => m.role === "assistant");
-    const last = assistants[assistants.length - 1];
-    if (!last) return;
-    const ann = (last as { annotations?: unknown }).annotations;
-    if (!Array.isArray(ann) || ann.length === 0) return;
-    const hasListingsAnnotation = ann.some(
-      (a) =>
-        a &&
-        typeof a === "object" &&
-        (a as { type?: string }).type === UIEventsTypesEnum.PROPERTY_LISTINGS,
-    );
-    const parsed = parseAssistantAnnotations(
-      last as { role?: string; annotations?: unknown },
-    );
-    if (hasListingsAnnotation) {
-      setProperties(parsed.properties);
+    if (annotationRafRef.current != null) {
+      cancelAnimationFrame(annotationRafRef.current);
     }
-    setSearchHint(parsed.searchHint);
-    if (parsed.searchSummary !== null) {
-      setSearchSummary(parsed.searchSummary);
-    }
-    if (parsed.searchStats !== null) {
-      setSearchStats(parsed.searchStats);
-    }
+    annotationRafRef.current = requestAnimationFrame(() => {
+      annotationRafRef.current = null;
+      const msgs = messagesRef.current;
+      const tail = msgs[msgs.length - 1];
+      // Only sync from the in-flight / latest assistant reply, never from a prior assistant after a new user message.
+      if (!tail || tail.role !== "assistant") return;
+      const ann = (tail as { annotations?: unknown }).annotations;
+      if (!Array.isArray(ann) || ann.length === 0) return;
+      const hasListingsAnnotation = ann.some(
+        (a) =>
+          a &&
+          typeof a === "object" &&
+          (a as { type?: string }).type === UIEventsTypesEnum.PROPERTY_LISTINGS,
+      );
+      const content =
+        typeof (tail as { content?: unknown }).content === "string"
+          ? (tail as { content: string }).content
+          : "";
+      const sig = streamAnnotationsSignature(msgs.length, content, ann);
+      if (streamAnnotationsSigRef.current === sig) return;
+      streamAnnotationsSigRef.current = sig;
+
+      const parsed = parseAssistantAnnotations(
+        tail as { role?: string; annotations?: unknown },
+      );
+      if (hasListingsAnnotation) {
+        setProperties(parsed.properties);
+      }
+      setSearchHint(parsed.searchHint);
+      if (parsed.searchSummary !== null) {
+        setSearchSummary(parsed.searchSummary);
+      }
+      if (parsed.searchStats !== null) {
+        setSearchStats(parsed.searchStats);
+      }
+    });
+    return () => {
+      if (annotationRafRef.current != null) {
+        cancelAnimationFrame(annotationRafRef.current);
+        annotationRafRef.current = null;
+      }
+    };
   }, [messages]);
 
   const chatFnsRef = useRef({ append, setMessages, stop });
@@ -332,6 +396,7 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     const { stop: s, setMessages: sm } = chatFnsRef.current;
     s();
     sm([]);
+    streamAnnotationsSigRef.current = "";
     setProperties([]);
     setSearchHint(null);
     setSearchSummary(null);
@@ -343,6 +408,7 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
   const sendSearchTurn = useCallback(async ({ content }: SendSearchTurnArgs) => {
     const { append: ap, stop: s } = chatFnsRef.current;
     s();
+    streamAnnotationsSigRef.current = "";
     setProperties([]);
     setSearchHint(null);
     setSearchSummary(null);

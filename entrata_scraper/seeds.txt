@@ -1,4 +1,3 @@
-# Verified Entrata-powered marketing / floor plan URLs (one per line).
-# Spike: confirm in DevTools that scripts or XHR reference entrata.com / propertiescdn before adding.
-# Example pattern (replace with a live property page that lists units or floorplans):
-# https://www.example-community.com/floorplans
+# Jonah Digital floor plan widgets: inline config + listing-chunks XHR (handled by entrata_scraper).
+https://entrawestend.com/floorplans/
+https://www.elanredmond.com/interactivepropertymap

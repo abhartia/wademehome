@@ -294,28 +294,42 @@
           "listings"
         ],
         "summary": "Get Nearby Listings",
-        "description": "Up to `limit` map pins: one row per building/property (closest unit to the query point),\nwithin `radius_miles` when any inventory exists in that radius; otherwise nearest buildings\nglobally. Requires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.",
+        "description": "Up to `limit` map pins: one row per building/property.\n\n**Bounding box mode:** pass `west`, `south`, `east`, `north` (visible map extent). Listings are\nfiltered to points inside the box; results are ordered by distance to the box center.\n\n**Radius mode (legacy):** pass `latitude`, `longitude`, and `radius_miles`. When any inventory\nexists in that radius, results stay inside the circle; otherwise nearest buildings globally.\n\nRequires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.",
         "operationId": "get_nearby_listings_listings_nearby_get",
         "parameters": [
           {
             "name": "latitude",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "number",
-              "maximum": 90,
-              "minimum": -90,
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Latitude"
             }
           },
           {
             "name": "longitude",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "number",
-              "maximum": 180,
-              "minimum": -180,
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Longitude"
             }
           },
@@ -329,6 +343,78 @@
               "exclusiveMinimum": 0,
               "default": 15,
               "title": "Radius Miles"
+            }
+          },
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "West"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "South"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "East"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "North"
             }
           },
           {
@@ -4400,6 +4486,117 @@
         }
       }
     },
+    "/admin/inventory-analytics": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Inventory Analytics",
+        "operationId": "get_inventory_analytics_admin_inventory_analytics_get",
+        "parameters": [
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "BBox west longitude (default NYC metro)",
+              "title": "West"
+            },
+            "description": "BBox west longitude (default NYC metro)"
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "South"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "East"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "North"
+            }
+          },
+          {
+            "name": "available_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "When true, count only rows deemed available (availability_status and/or rent).",
+              "default": true,
+              "title": "Available Only"
+            },
+            "description": "When true, count only rows deemed available (availability_status and/or rent)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryAnalyticsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/listings/chat": {
       "post": {
         "summary": "Listing Chat",
@@ -4733,6 +4930,51 @@
         },
         "type": "object",
         "title": "ChecklistListResponse"
+      },
+      "CmsMarketShareSlice": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "listing_rows": {
+            "type": "integer",
+            "title": "Listing Rows"
+          },
+          "segment": {
+            "type": "string",
+            "title": "Segment"
+          },
+          "citation_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citation Url"
+          },
+          "assumption_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assumption Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "listing_rows",
+          "segment"
+        ],
+        "title": "CmsMarketShareSlice"
       },
       "CommuteLegResult": {
         "properties": {
@@ -5258,6 +5500,134 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "InventoryAnalyticsResponse": {
+        "properties": {
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "bbox": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Bbox"
+          },
+          "listings_table": {
+            "type": "string",
+            "title": "Listings Table"
+          },
+          "available_only": {
+            "type": "boolean",
+            "title": "Available Only",
+            "default": true
+          },
+          "availability_filter_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Filter Description"
+          },
+          "total_listing_rows": {
+            "type": "integer",
+            "title": "Total Listing Rows"
+          },
+          "distinct_buildings": {
+            "type": "integer",
+            "title": "Distinct Buildings"
+          },
+          "company_slices": {
+            "items": {
+              "$ref": "#/components/schemas/SourceSliceRow"
+            },
+            "type": "array",
+            "title": "Company Slices"
+          },
+          "staleness": {
+            "$ref": "#/components/schemas/StalenessSummary"
+          },
+          "staleness_by_company": {
+            "items": {
+              "$ref": "#/components/schemas/StalenessByBucket"
+            },
+            "type": "array",
+            "title": "Staleness By Company"
+          },
+          "staleness_by_priority": {
+            "items": {
+              "$ref": "#/components/schemas/StalenessByBucket"
+            },
+            "type": "array",
+            "title": "Staleness By Priority"
+          },
+          "zip_buckets": {
+            "items": {
+              "$ref": "#/components/schemas/ZipBucketRow"
+            },
+            "type": "array",
+            "title": "Zip Buckets"
+          },
+          "bedroom_mix": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Bedroom Mix"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/QualityMetrics"
+          },
+          "target_coverage": {
+            "$ref": "#/components/schemas/TargetCoverageSummary"
+          },
+          "metro_coverage_pie": {
+            "items": {
+              "$ref": "#/components/schemas/MetroCoveragePieSlice"
+            },
+            "type": "array",
+            "title": "Metro Coverage Pie"
+          },
+          "metro_coverage_estimate": {
+            "$ref": "#/components/schemas/MetroCoverageEstimate"
+          },
+          "listings_per_building_proof": {
+            "$ref": "#/components/schemas/ListingsPerBuildingProof"
+          },
+          "cms_market_share_pie": {
+            "items": {
+              "$ref": "#/components/schemas/CmsMarketShareSlice"
+            },
+            "type": "array",
+            "title": "Cms Market Share Pie"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bbox",
+          "listings_table",
+          "total_listing_rows",
+          "distinct_buildings",
+          "company_slices",
+          "staleness",
+          "staleness_by_company",
+          "staleness_by_priority",
+          "zip_buckets",
+          "bedroom_mix",
+          "quality",
+          "target_coverage",
+          "metro_coverage_pie",
+          "metro_coverage_estimate",
+          "listings_per_building_proof",
+          "cms_market_share_pie"
+        ],
+        "title": "InventoryAnalyticsResponse"
       },
       "LandlordApplicationCreate": {
         "properties": {
@@ -7102,6 +7472,155 @@
         ],
         "title": "LeasePayload"
       },
+      "ListingRowPeek": {
+        "properties": {
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url"
+          },
+          "property_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Name"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "title": "ListingRowPeek",
+        "description": "Up to a few concrete rows for a building_key \u2014 use to validate giant property_id buckets."
+      },
+      "ListingsPerBuildingProof": {
+        "properties": {
+          "total_listing_rows_attributed": {
+            "type": "integer",
+            "title": "Total Listing Rows Attributed"
+          },
+          "buildings_in_distribution": {
+            "type": "integer",
+            "title": "Buildings In Distribution"
+          },
+          "mean_listings_per_building": {
+            "type": "number",
+            "title": "Mean Listings Per Building"
+          },
+          "median_listings_per_building": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Listings Per Building"
+          },
+          "max_listings_single_building": {
+            "type": "integer",
+            "title": "Max Listings Single Building",
+            "default": 0
+          },
+          "buildings_with_count_1": {
+            "type": "integer",
+            "title": "Buildings With Count 1",
+            "default": 0
+          },
+          "buildings_with_count_2_to_5": {
+            "type": "integer",
+            "title": "Buildings With Count 2 To 5",
+            "default": 0
+          },
+          "buildings_with_count_6_to_15": {
+            "type": "integer",
+            "title": "Buildings With Count 6 To 15",
+            "default": 0
+          },
+          "buildings_with_count_16_plus": {
+            "type": "integer",
+            "title": "Buildings With Count 16 Plus",
+            "default": 0
+          },
+          "top_buildings_by_listing_count": {
+            "items": {
+              "$ref": "#/components/schemas/ListingsPerBuildingSample"
+            },
+            "type": "array",
+            "title": "Top Buildings By Listing Count"
+          },
+          "rows_without_building_key": {
+            "type": "integer",
+            "title": "Rows Without Building Key",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_listing_rows_attributed",
+          "buildings_in_distribution",
+          "mean_listings_per_building",
+          "top_buildings_by_listing_count"
+        ],
+        "title": "ListingsPerBuildingProof",
+        "description": "SQL proof that row count \u00f7 distinct buildings matches unit/listing density per property."
+      },
+      "ListingsPerBuildingSample": {
+        "properties": {
+          "building_key": {
+            "type": "string",
+            "title": "Building Key"
+          },
+          "listing_count": {
+            "type": "integer",
+            "title": "Listing Count"
+          },
+          "sample_rows": {
+            "items": {
+              "$ref": "#/components/schemas/ListingRowPeek"
+            },
+            "type": "array",
+            "title": "Sample Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "building_key",
+          "listing_count"
+        ],
+        "title": "ListingsPerBuildingSample"
+      },
       "LlamaCloudPipeline": {
         "properties": {
           "pipeline": {
@@ -7277,6 +7796,102 @@
         ],
         "title": "MessageRole",
         "description": "Message role."
+      },
+      "MetroCoverageEstimate": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured",
+            "default": false
+          },
+          "estimated_metro_buildings": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Metro Buildings"
+          },
+          "estimated_market_listing_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Market Listing Rows"
+          },
+          "on_platform_buildings": {
+            "type": "integer",
+            "title": "On Platform Buildings",
+            "default": 0
+          },
+          "gap_buildings": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap Buildings"
+          },
+          "inventory_meets_or_exceeds_estimate": {
+            "type": "boolean",
+            "title": "Inventory Meets Or Exceeds Estimate",
+            "default": false
+          },
+          "methodology_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Methodology Note"
+          },
+          "cms_market_pie_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cms Market Pie Warning"
+          }
+        },
+        "type": "object",
+        "title": "MetroCoverageEstimate",
+        "description": "Metro-wide total is not knowable from inventory DB alone; set\n`estimated_metro_rental_buildings` in nyc_metro_coverage_context.json (your benchmark)."
+      },
+      "MetroCoveragePieSlice": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "buildings": {
+            "type": "integer",
+            "title": "Buildings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "buildings"
+        ],
+        "title": "MetroCoveragePieSlice",
+        "description": "Buildings count per slice for market vs platform donut."
       },
       "MoveInPlanOut": {
         "properties": {
@@ -7727,12 +8342,14 @@
           "total_in_radius": {
             "type": "integer",
             "minimum": 0.0,
-            "title": "Total In Radius"
+            "title": "Total In Radius",
+            "description": "Count of listings matching the query (radius circle or map bbox) before limit."
           },
           "radius_miles": {
             "type": "number",
-            "exclusiveMinimum": 0.0,
-            "title": "Radius Miles"
+            "minimum": 0.0,
+            "title": "Radius Miles",
+            "description": "Search radius in miles when using center+radius mode; 0 when using bbox mode."
           },
           "limit": {
             "type": "integer",
@@ -7743,6 +8360,12 @@
             "type": "boolean",
             "title": "Used Global Nearest Fallback",
             "description": "True when nothing matched the radius; properties are the nearest rows with coordinates (any distance) so the map is still usable.",
+            "default": false
+          },
+          "used_bbox": {
+            "type": "boolean",
+            "title": "Used Bbox",
+            "description": "True when results were filtered by west/south/east/north bounding box.",
             "default": false
           }
         },
@@ -8265,6 +8888,18 @@
             "type": "string",
             "title": "Address"
           },
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url",
+            "description": "Original listing page URL scraped from the provider site (if available)."
+          },
           "city": {
             "anyOf": [
               {
@@ -8440,6 +9075,78 @@
           "note"
         ],
         "title": "PropertyNoteUpsertRequest"
+      },
+      "QualityMetrics": {
+        "properties": {
+          "rent_present_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent Present Pct"
+          },
+          "image_present_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Present Pct"
+          },
+          "listing_id_null_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id Null Pct"
+          },
+          "duplicate_listing_id_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Listing Id Rows"
+          },
+          "top5_priority_share_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top5 Priority Share Pct"
+          },
+          "availability_stale_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Stale Rows"
+          }
+        },
+        "type": "object",
+        "title": "QualityMetrics"
       },
       "ResendVerificationRequest": {
         "properties": {
@@ -8975,6 +9682,218 @@
           "email"
         ],
         "title": "SignupResponse"
+      },
+      "SourceSliceRow": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "listing_rows": {
+            "type": "integer",
+            "title": "Listing Rows"
+          },
+          "distinct_buildings": {
+            "type": "integer",
+            "title": "Distinct Buildings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "listing_rows",
+          "distinct_buildings"
+        ],
+        "title": "SourceSliceRow"
+      },
+      "StalenessByBucket": {
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "title": "Bucket"
+          },
+          "listing_rows": {
+            "type": "integer",
+            "title": "Listing Rows"
+          },
+          "age_hours_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Hours Mean"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bucket",
+          "listing_rows"
+        ],
+        "title": "StalenessByBucket"
+      },
+      "StalenessSummary": {
+        "properties": {
+          "rows_with_timestamp": {
+            "type": "integer",
+            "title": "Rows With Timestamp"
+          },
+          "rows_parse_failed": {
+            "type": "integer",
+            "title": "Rows Parse Failed"
+          },
+          "age_hours_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Hours Min"
+          },
+          "age_hours_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Hours Max"
+          },
+          "age_hours_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Hours Mean"
+          },
+          "age_hours_p50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Hours P50"
+          },
+          "age_hours_p90": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Hours P90"
+          },
+          "pct_older_than_7d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Older Than 7D"
+          },
+          "pct_older_than_30d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Older Than 30D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows_with_timestamp",
+          "rows_parse_failed"
+        ],
+        "title": "StalenessSummary"
+      },
+      "TargetCoverageRow": {
+        "properties": {
+          "seed_url": {
+            "type": "string",
+            "title": "Seed Url"
+          },
+          "normalized_prefix": {
+            "type": "string",
+            "title": "Normalized Prefix"
+          },
+          "covered": {
+            "type": "boolean",
+            "title": "Covered"
+          },
+          "matched_listing_sample": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Listing Sample"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seed_url",
+          "normalized_prefix",
+          "covered"
+        ],
+        "title": "TargetCoverageRow"
+      },
+      "TargetCoverageSummary": {
+        "properties": {
+          "total_targets": {
+            "type": "integer",
+            "title": "Total Targets"
+          },
+          "covered_count": {
+            "type": "integer",
+            "title": "Covered Count"
+          },
+          "uncovered_count": {
+            "type": "integer",
+            "title": "Uncovered Count"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/TargetCoverageRow"
+            },
+            "type": "array",
+            "title": "Targets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_targets",
+          "covered_count",
+          "uncovered_count",
+          "targets"
+        ],
+        "title": "TargetCoverageSummary"
       },
       "TourCreate": {
         "properties": {
@@ -9938,6 +10857,29 @@
           "token"
         ],
         "title": "VerifyEmailRequest"
+      },
+      "ZipBucketRow": {
+        "properties": {
+          "zip5": {
+            "type": "string",
+            "title": "Zip5"
+          },
+          "listing_rows": {
+            "type": "integer",
+            "title": "Listing Rows"
+          },
+          "distinct_buildings": {
+            "type": "integer",
+            "title": "Distinct Buildings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "zip5",
+          "listing_rows",
+          "distinct_buildings"
+        ],
+        "title": "ZipBucketRow"
       },
       "portal__schemas__TourPropertyPayload": {
         "properties": {

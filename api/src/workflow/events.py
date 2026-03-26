@@ -61,6 +61,10 @@ class GeneratedResponseEvent(Event):
 class PropertyDataItem(BaseModel):
     name: str
     address: str
+    listing_url: str | None = Field(
+        default=None,
+        description="Original listing page URL scraped from the provider site (if available).",
+    )
     city: str | None = Field(
         default=None,
         description="City or locality from the listings row when present (e.g. units.parquet `city`).",

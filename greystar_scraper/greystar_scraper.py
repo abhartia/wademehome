@@ -150,7 +150,11 @@ def flatten_units(prop_meta, units, url, scraped_at, extras=None):
         lease_term = unit.get("leaseLength")
         floor_number = unit.get("floorShortLabel")
 
-        listing_id = f"{prop_id}_{beds}_{baths}_{sqft}_{unit_name or 'NA'}"
+        base_lid = f"{prop_id}_{beds}_{baths}_{sqft}_{unit_name or 'NA'}"
+        if unit_id is not None and str(unit_id).strip() != "":
+            listing_id = f"{base_lid}_u{unit_id}"
+        else:
+            listing_id = base_lid
 
         results.append({
             "listing_id": listing_id,

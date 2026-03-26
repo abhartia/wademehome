@@ -74,7 +74,8 @@ def _ensure_landlord(db: Session, user: Users) -> LandlordProfiles:
     if profile is None:
         profile = LandlordProfiles(user_id=user.id)
         db.add(profile)
-    if user.role != UserRole.landlord:
+    # Only promote renters to landlord; never downgrade admin (or other roles).
+    if user.role == UserRole.user:
         user.role = UserRole.landlord
     db.commit()
     db.refresh(profile)

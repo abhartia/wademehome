@@ -167,6 +167,32 @@ export type ChecklistListResponse = {
 };
 
 /**
+ * CmsMarketShareSlice
+ */
+export type CmsMarketShareSlice = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Listing Rows
+     */
+    listing_rows: number;
+    /**
+     * Segment
+     */
+    segment: string;
+    /**
+     * Citation Url
+     */
+    citation_url?: string | null;
+    /**
+     * Assumption Note
+     */
+    assumption_note?: string | null;
+};
+
+/**
  * CommuteLegResult
  */
 export type CommuteLegResult = {
@@ -519,6 +545,77 @@ export type HttpValidationError = {
      * Detail
      */
     detail?: Array<ValidationError>;
+};
+
+/**
+ * InventoryAnalyticsResponse
+ */
+export type InventoryAnalyticsResponse = {
+    /**
+     * Computed At
+     */
+    computed_at?: string;
+    /**
+     * Bbox
+     */
+    bbox: {
+        [key: string]: number;
+    };
+    /**
+     * Listings Table
+     */
+    listings_table: string;
+    /**
+     * Available Only
+     */
+    available_only?: boolean;
+    /**
+     * Availability Filter Description
+     */
+    availability_filter_description?: string | null;
+    /**
+     * Total Listing Rows
+     */
+    total_listing_rows: number;
+    /**
+     * Distinct Buildings
+     */
+    distinct_buildings: number;
+    /**
+     * Company Slices
+     */
+    company_slices: Array<SourceSliceRow>;
+    staleness: StalenessSummary;
+    /**
+     * Staleness By Company
+     */
+    staleness_by_company: Array<StalenessByBucket>;
+    /**
+     * Staleness By Priority
+     */
+    staleness_by_priority: Array<StalenessByBucket>;
+    /**
+     * Zip Buckets
+     */
+    zip_buckets: Array<ZipBucketRow>;
+    /**
+     * Bedroom Mix
+     */
+    bedroom_mix: {
+        [key: string]: number;
+    };
+    quality: QualityMetrics;
+    target_coverage: TargetCoverageSummary;
+    /**
+     * Metro Coverage Pie
+     */
+    metro_coverage_pie: Array<MetroCoveragePieSlice>;
+    metro_coverage_estimate: MetroCoverageEstimate;
+    listings_per_building_proof: ListingsPerBuildingProof;
+    /**
+     * Cms Market Share Pie
+     */
+    cms_market_share_pie: Array<CmsMarketShareSlice>;
 };
 
 /**
@@ -1640,6 +1737,98 @@ export type LeasePayload = {
 };
 
 /**
+ * ListingRowPeek
+ * Up to a few concrete rows for a building_key — use to validate giant property_id buckets.
+ */
+export type ListingRowPeek = {
+    /**
+     * Listing Url
+     */
+    listing_url?: string | null;
+    /**
+     * Property Name
+     */
+    property_name?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+};
+
+/**
+ * ListingsPerBuildingProof
+ * SQL proof that row count ÷ distinct buildings matches unit/listing density per property.
+ */
+export type ListingsPerBuildingProof = {
+    /**
+     * Total Listing Rows Attributed
+     */
+    total_listing_rows_attributed: number;
+    /**
+     * Buildings In Distribution
+     */
+    buildings_in_distribution: number;
+    /**
+     * Mean Listings Per Building
+     */
+    mean_listings_per_building: number;
+    /**
+     * Median Listings Per Building
+     */
+    median_listings_per_building?: number | null;
+    /**
+     * Max Listings Single Building
+     */
+    max_listings_single_building?: number;
+    /**
+     * Buildings With Count 1
+     */
+    buildings_with_count_1?: number;
+    /**
+     * Buildings With Count 2 To 5
+     */
+    buildings_with_count_2_to_5?: number;
+    /**
+     * Buildings With Count 6 To 15
+     */
+    buildings_with_count_6_to_15?: number;
+    /**
+     * Buildings With Count 16 Plus
+     */
+    buildings_with_count_16_plus?: number;
+    /**
+     * Top Buildings By Listing Count
+     */
+    top_buildings_by_listing_count: Array<ListingsPerBuildingSample>;
+    /**
+     * Rows Without Building Key
+     */
+    rows_without_building_key?: number;
+};
+
+/**
+ * ListingsPerBuildingSample
+ */
+export type ListingsPerBuildingSample = {
+    /**
+     * Building Key
+     */
+    building_key: string;
+    /**
+     * Listing Count
+     */
+    listing_count: number;
+    /**
+     * Sample Rows
+     */
+    sample_rows?: Array<ListingRowPeek>;
+};
+
+/**
  * LlamaCloudPipeline
  * The selected LlamaCloud pipeline to use for the chat.
  * (Only available when the app is configured to use LlamaCloud)
@@ -1740,6 +1929,61 @@ export type MarketSnapshotResponse = {
  * Message role.
  */
 export type MessageRole = 'system' | 'developer' | 'user' | 'assistant' | 'function' | 'tool' | 'chatbot' | 'model';
+
+/**
+ * MetroCoverageEstimate
+ * Metro-wide total is not knowable from inventory DB alone; set
+ * `estimated_metro_rental_buildings` in nyc_metro_coverage_context.json (your benchmark).
+ */
+export type MetroCoverageEstimate = {
+    /**
+     * Configured
+     */
+    configured?: boolean;
+    /**
+     * Estimated Metro Buildings
+     */
+    estimated_metro_buildings?: number | null;
+    /**
+     * Estimated Market Listing Rows
+     */
+    estimated_market_listing_rows?: number | null;
+    /**
+     * On Platform Buildings
+     */
+    on_platform_buildings?: number;
+    /**
+     * Gap Buildings
+     */
+    gap_buildings?: number | null;
+    /**
+     * Inventory Meets Or Exceeds Estimate
+     */
+    inventory_meets_or_exceeds_estimate?: boolean;
+    /**
+     * Methodology Note
+     */
+    methodology_note?: string | null;
+    /**
+     * Cms Market Pie Warning
+     */
+    cms_market_pie_warning?: string | null;
+};
+
+/**
+ * MetroCoveragePieSlice
+ * Buildings count per slice for market vs platform donut.
+ */
+export type MetroCoveragePieSlice = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Buildings
+     */
+    buildings: number;
+};
 
 /**
  * MoveInPlanOut
@@ -2006,10 +2250,12 @@ export type NearbyListingsResponse = {
     properties: Array<PropertyDataItem>;
     /**
      * Total In Radius
+     * Count of listings matching the query (radius circle or map bbox) before limit.
      */
     total_in_radius: number;
     /**
      * Radius Miles
+     * Search radius in miles when using center+radius mode; 0 when using bbox mode.
      */
     radius_miles: number;
     /**
@@ -2258,6 +2504,11 @@ export type PropertyDataItem = {
      */
     address: string;
     /**
+     * Listing Url
+     * Original listing page URL scraped from the provider site (if available).
+     */
+    listing_url?: string | null;
+    /**
      * City
      * City or locality from the listings row when present (e.g. units.parquet `city`).
      */
@@ -2358,6 +2609,36 @@ export type PropertyNoteUpsertRequest = {
      * Note
      */
     note: string;
+};
+
+/**
+ * QualityMetrics
+ */
+export type QualityMetrics = {
+    /**
+     * Rent Present Pct
+     */
+    rent_present_pct?: number | null;
+    /**
+     * Image Present Pct
+     */
+    image_present_pct?: number | null;
+    /**
+     * Listing Id Null Pct
+     */
+    listing_id_null_pct?: number | null;
+    /**
+     * Duplicate Listing Id Rows
+     */
+    duplicate_listing_id_rows?: number | null;
+    /**
+     * Top5 Priority Share Pct
+     */
+    top5_priority_share_pct?: number | null;
+    /**
+     * Availability Stale Rows
+     */
+    availability_stale_rows?: number | null;
 };
 
 /**
@@ -2712,6 +2993,128 @@ export type SignupResponse = {
      * Message
      */
     message?: string;
+};
+
+/**
+ * SourceSliceRow
+ */
+export type SourceSliceRow = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Listing Rows
+     */
+    listing_rows: number;
+    /**
+     * Distinct Buildings
+     */
+    distinct_buildings: number;
+};
+
+/**
+ * StalenessByBucket
+ */
+export type StalenessByBucket = {
+    /**
+     * Bucket
+     */
+    bucket: string;
+    /**
+     * Listing Rows
+     */
+    listing_rows: number;
+    /**
+     * Age Hours Mean
+     */
+    age_hours_mean?: number | null;
+};
+
+/**
+ * StalenessSummary
+ */
+export type StalenessSummary = {
+    /**
+     * Rows With Timestamp
+     */
+    rows_with_timestamp: number;
+    /**
+     * Rows Parse Failed
+     */
+    rows_parse_failed: number;
+    /**
+     * Age Hours Min
+     */
+    age_hours_min?: number | null;
+    /**
+     * Age Hours Max
+     */
+    age_hours_max?: number | null;
+    /**
+     * Age Hours Mean
+     */
+    age_hours_mean?: number | null;
+    /**
+     * Age Hours P50
+     */
+    age_hours_p50?: number | null;
+    /**
+     * Age Hours P90
+     */
+    age_hours_p90?: number | null;
+    /**
+     * Pct Older Than 7D
+     */
+    pct_older_than_7d?: number | null;
+    /**
+     * Pct Older Than 30D
+     */
+    pct_older_than_30d?: number | null;
+};
+
+/**
+ * TargetCoverageRow
+ */
+export type TargetCoverageRow = {
+    /**
+     * Seed Url
+     */
+    seed_url: string;
+    /**
+     * Normalized Prefix
+     */
+    normalized_prefix: string;
+    /**
+     * Covered
+     */
+    covered: boolean;
+    /**
+     * Matched Listing Sample
+     */
+    matched_listing_sample?: string | null;
+};
+
+/**
+ * TargetCoverageSummary
+ */
+export type TargetCoverageSummary = {
+    /**
+     * Total Targets
+     */
+    total_targets: number;
+    /**
+     * Covered Count
+     */
+    covered_count: number;
+    /**
+     * Uncovered Count
+     */
+    uncovered_count: number;
+    /**
+     * Targets
+     */
+    targets: Array<TargetCoverageRow>;
 };
 
 /**
@@ -3324,6 +3727,24 @@ export type VerifyEmailRequest = {
 };
 
 /**
+ * ZipBucketRow
+ */
+export type ZipBucketRow = {
+    /**
+     * Zip5
+     */
+    zip5: string;
+    /**
+     * Listing Rows
+     */
+    listing_rows: number;
+    /**
+     * Distinct Buildings
+     */
+    distinct_buildings: number;
+};
+
+/**
  * TourPropertyPayload
  */
 export type PortalSchemasTourPropertyPayload = {
@@ -3570,26 +3991,35 @@ export type MeAuthMeGetResponse = MeAuthMeGetResponses[keyof MeAuthMeGetResponse
 export type GetNearbyListingsListingsNearbyGetData = {
     body?: never;
     path?: never;
-    query: {
+    query?: {
         /**
          * Latitude
          */
-        latitude?: number;
+        latitude?: number | null;
         /**
          * Longitude
          */
-        longitude?: number;
+        longitude?: number | null;
         /**
          * Radius Miles
          */
         radius_miles?: number;
         /**
-         * Bbox west edge (longitude), with south/east/north for map-visible queries.
+         * West
          */
-        west?: number;
-        south?: number;
-        east?: number;
-        north?: number;
+        west?: number | null;
+        /**
+         * South
+         */
+        south?: number | null;
+        /**
+         * East
+         */
+        east?: number | null;
+        /**
+         * North
+         */
+        north?: number | null;
         /**
          * Limit
          */
@@ -6226,6 +6656,54 @@ export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses 
 };
 
 export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponse = PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses[keyof PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses];
+
+export type GetInventoryAnalyticsAdminInventoryAnalyticsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * West
+         * BBox west longitude (default NYC metro)
+         */
+        west?: number | null;
+        /**
+         * South
+         */
+        south?: number | null;
+        /**
+         * East
+         */
+        east?: number | null;
+        /**
+         * North
+         */
+        north?: number | null;
+        /**
+         * Available Only
+         * When true, count only rows deemed available (availability_status and/or rent).
+         */
+        available_only?: boolean;
+    };
+    url: '/admin/inventory-analytics';
+};
+
+export type GetInventoryAnalyticsAdminInventoryAnalyticsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetInventoryAnalyticsAdminInventoryAnalyticsGetError = GetInventoryAnalyticsAdminInventoryAnalyticsGetErrors[keyof GetInventoryAnalyticsAdminInventoryAnalyticsGetErrors];
+
+export type GetInventoryAnalyticsAdminInventoryAnalyticsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: InventoryAnalyticsResponse;
+};
+
+export type GetInventoryAnalyticsAdminInventoryAnalyticsGetResponse = GetInventoryAnalyticsAdminInventoryAnalyticsGetResponses[keyof GetInventoryAnalyticsAdminInventoryAnalyticsGetResponses];
 
 export type ListingChatListingsChatPostData = {
     body: ChatRequest;

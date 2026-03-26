@@ -8,7 +8,6 @@ import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { PropertyDetailSheet } from "@/components/properties/PropertyDetailSheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import {
   DEFAULT_NEARBY_LIMIT,
@@ -214,6 +213,7 @@ function AppSearchInner({
   const assistantNeedsExpand = assistantFullText.length > 400;
   const showAiActivity =
     useAiSlice && (phase === "streaming" || phase === "done" || phase === "error");
+  const [mapAiPanelOpen, setMapAiPanelOpen] = useState(true);
 
   const lastAiListingsRef = useRef<PropertyDataItem[]>([]);
   useEffect(() => {
@@ -290,90 +290,118 @@ function AppSearchInner({
                   aria-live="polite"
                 >
                   <div className="pointer-events-auto flex min-h-0 flex-col gap-2">
-                    <div className="max-h-[min(40vh,15rem)] min-h-0 overflow-y-auto rounded-md border bg-muted/40 px-3 py-2">
-                      <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                        {phase === "streaming" && (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                            <span>Searching listings with AI...</span>
-                          </>
-                        )}
-                        {phase === "done" && <span>Search ready</span>}
-                        {phase === "error" && <span className="text-destructive">Search failed</span>}
-                      </div>
-                      {displaySearchSummary && (
-                        <div className="mb-2 rounded-md border border-border/50 bg-background/80 px-2.5 py-2">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            Active search
-                          </p>
-                          {displaySearchSummary.headline ? (
-                            <p className="mt-1 text-sm font-medium text-foreground">
-                              {displaySearchSummary.headline}
-                            </p>
-                          ) : null}
-                          {displaySearchSummary.bullets.length > 0 ? (
-                            <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
-                              {displaySearchSummary.bullets.map((b, i) => (
-                                <li key={i}>{b}</li>
-                              ))}
-                            </ul>
-                          ) : null}
-                        </div>
-                      )}
-                      {assistantFullText.length > 0 && (
-                        <div className="mt-1">
-                          <p className="text-[11px] font-medium text-muted-foreground">Latest from assistant</p>
-                          {!assistantNeedsExpand ? (
-                            <p className="mt-0.5 whitespace-pre-wrap text-sm leading-snug text-foreground">
-                              {assistantFullText}
-                            </p>
-                          ) : (
-                            <Collapsible open={assistantExpanded} onOpenChange={setAssistantExpanded}>
-                              <div
-                                className={cn(
-                                  "mt-0.5 rounded-md text-sm leading-snug text-foreground",
-                                  assistantExpanded
-                                    ? "max-h-60 overflow-y-auto border border-border/50 bg-background/90 p-2"
-                                    : "max-h-24 overflow-hidden",
-                                )}
-                              >
-                                <p className="whitespace-pre-wrap">{assistantFullText}</p>
-                              </div>
-                              <CollapsibleTrigger asChild>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="mt-1 h-auto gap-1 px-0 py-0.5 text-xs text-primary"
-                                >
-                                  <ChevronDown
-                                    className={cn(
-                                      "h-3.5 w-3.5 transition-transform",
-                                      assistantExpanded && "rotate-180",
-                                    )}
-                                    aria-hidden
-                                  />
-                                  {assistantExpanded ? "Show less" : "Show full message"}
-                                </Button>
-                              </CollapsibleTrigger>
-                            </Collapsible>
+                    <div className="overflow-hidden rounded-md border bg-muted/40">
+                      <div className="flex items-center justify-between gap-2 px-3 py-2">
+                        <div className="flex min-w-0 flex-1 items-center gap-2 text-xs font-medium text-muted-foreground">
+                          {phase === "streaming" && (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                              <span className="min-w-0">Searching listings with AI...</span>
+                            </>
+                          )}
+                          {phase === "done" && <span>Search ready</span>}
+                          {phase === "error" && (
+                            <span className="text-destructive">Search failed</span>
                           )}
                         </div>
-                      )}
-                      {phase === "error" && error && (
-                        <p className="mt-2 text-sm text-destructive">{error.message}</p>
-                      )}
-                      {memoryUpdate && (
-                        <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-2">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
-                            Memory updated
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Saved {memoryUpdate.updated_fields.length} preference
-                            {memoryUpdate.updated_fields.length === 1 ? "" : "s"} from this turn.
-                          </p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 shrink-0 gap-1 px-2 text-xs text-muted-foreground"
+                          aria-expanded={mapAiPanelOpen}
+                          aria-label={mapAiPanelOpen ? "Hide AI search details" : "Show AI search details"}
+                          onClick={() => setMapAiPanelOpen((open) => !open)}
+                        >
+                          <ChevronDown
+                            className={cn(
+                              "h-3.5 w-3.5 transition-transform",
+                              mapAiPanelOpen && "rotate-180",
+                            )}
+                            aria-hidden
+                          />
+                          {mapAiPanelOpen ? "Hide" : "Details"}
+                        </Button>
+                      </div>
+                      {mapAiPanelOpen ? (
+                        <div className="max-h-[min(40vh,15rem)] min-h-0 overflow-y-auto border-t border-border/40 px-3 py-2">
+                            {displaySearchSummary && (
+                              <div className="mb-2 rounded-md border border-border/50 bg-background/80 px-2.5 py-2">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                  Active search
+                                </p>
+                                {displaySearchSummary.headline ? (
+                                  <p className="mt-1 text-sm font-medium text-foreground">
+                                    {displaySearchSummary.headline}
+                                  </p>
+                                ) : null}
+                                {displaySearchSummary.bullets.length > 0 ? (
+                                  <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
+                                    {displaySearchSummary.bullets.map((b, i) => (
+                                      <li key={i}>{b}</li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+                              </div>
+                            )}
+                            {assistantFullText.length > 0 && (
+                              <div className="mt-1">
+                                <p className="text-[11px] font-medium text-muted-foreground">
+                                  Latest from assistant
+                                </p>
+                                {!assistantNeedsExpand ? (
+                                  <p className="mt-0.5 whitespace-pre-wrap text-sm leading-snug text-foreground">
+                                    {assistantFullText}
+                                  </p>
+                                ) : (
+                                  <div className="mt-0.5">
+                                    <div
+                                      className={cn(
+                                        "rounded-md text-sm leading-snug text-foreground",
+                                        assistantExpanded
+                                          ? "max-h-60 overflow-y-auto border border-border/50 bg-background/90 p-2"
+                                          : "max-h-24 overflow-hidden",
+                                      )}
+                                    >
+                                      <p className="whitespace-pre-wrap">{assistantFullText}</p>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="mt-1 h-auto gap-1 px-0 py-0.5 text-xs text-primary"
+                                      aria-expanded={assistantExpanded}
+                                      onClick={() => setAssistantExpanded(!assistantExpanded)}
+                                    >
+                                      <ChevronDown
+                                        className={cn(
+                                          "h-3.5 w-3.5 transition-transform",
+                                          assistantExpanded && "rotate-180",
+                                        )}
+                                        aria-hidden
+                                      />
+                                      {assistantExpanded ? "Show less" : "Show full message"}
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {phase === "error" && error && (
+                              <p className="mt-2 text-sm text-destructive">{error.message}</p>
+                            )}
+                            {memoryUpdate && (
+                              <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-2">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                                  Memory updated
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  Saved {memoryUpdate.updated_fields.length} preference
+                                  {memoryUpdate.updated_fields.length === 1 ? "" : "s"} from this turn.
+                                </p>
+                              </div>
+                            )}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>

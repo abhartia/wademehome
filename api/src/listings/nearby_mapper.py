@@ -316,6 +316,20 @@ def row_to_property_data_item(row: Mapping[str, Any]) -> PropertyDataItem:
     lat = _to_float(_get_ci(row, "latitude", "lat"))
     lng = _to_float(_get_ci(row, "longitude", "lng", "lon"))
 
+    listing_url_raw = _get_ci(
+        row,
+        "listing_url",
+        "listingUrl",
+        "source_url",
+        "sourceUrl",
+        "url",
+    )
+    listing_url = (
+        listing_url_raw
+        if isinstance(listing_url_raw, str) and listing_url_raw.strip().startswith("http")
+        else None
+    )
+
     city_v = _get_ci(row, "city", "locality")
     state_v = _get_ci(row, "state", "state_code", "region")
     zip_v = _get_ci(row, "zipcode", "zip", "postal_code")
@@ -326,6 +340,7 @@ def row_to_property_data_item(row: Mapping[str, Any]) -> PropertyDataItem:
     return PropertyDataItem(
         name=_name_from_row(row),
         address=_address_from_row(row),
+        listing_url=listing_url,
         city=city_s,
         state=state_s,
         zip_code=zip_s,

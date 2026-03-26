@@ -17,6 +17,8 @@ export type UIEventTypes = UIEventsTypesEnum;
 export interface PropertyDataItem {
   name: string;
   address: string;
+  /** Original listing page URL scraped from the provider site (if available). */
+  listing_url?: string | null;
   /** From listings row (e.g. units.parquet city) when available. */
   city?: string | null;
   state?: string | null;

@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from glob import glob
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse, urlunparse
 
 import cloudscraper
 import pandas as pd
@@ -157,7 +157,19 @@ def _parse_float(v) -> float | None:
 def is_likely_inventory_leaf(d: dict) -> bool:
     if not isinstance(d, dict) or len(d) < 2:
         return False
-    rent = _pick_first(d, "rent", "minRent", "maxRent", "startingRent", "baseRent", "price", "monthlyRent", "fromRent")
+    rent = _pick_first(
+        d,
+        "rent",
+        "minRent",
+        "maxRent",
+        "startingRent",
+        "baseRent",
+        "price",
+        "monthlyRent",
+        "fromRent",
+        "startingPrice",
+        "totalRentStartingPrice",
+    )
     if _parse_float(rent) is None:
         return False
     uid = _pick_first(d, "unitId", "unit_id", "unitNumber", "unit_number", "id", "apartmentNumber", "aptNumber")
@@ -328,12 +340,194 @@ def rows_from_fp_dom_cards(
     return rows
 
 
+def extract_jonah_digital_config(html: str) -> dict | None:
+    soup = BeautifulSoup(html, "html.parser")
+    for sc in soup.find_all("script"):
+        if not sc.string:
+            continue
+        t = sc.string.strip()
+        if not t.startswith('{"version"'):
+            continue
+        try:
+            data = json.loads(t)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if data.get("renderable_endpoint") == "_fp-renderable" and data.get("base_uri"):
+            return data
+    return None
+
+
+def infer_address_from_marketing_soup(soup: BeautifulSoup) -> tuple[str | None, str | None, str | None, str | None]:
+    text = soup.get_text("\n", strip=True)
+    m = re.search(
+        r"(\d[\w\s.\#'\-/]+)\s*\|\s*([^,\n]+),\s*([A-Z]{2})\s+(\d{5})(?:-\d{4})?",
+        text,
+        re.MULTILINE,
+    )
+    if m:
+        return m.group(1).strip(), m.group(2).strip(), m.group(3).strip(), m.group(4).strip()
+    m2 = re.search(
+        r"(\d[\w\s.\#'\-/]{5,80}),\s*([^,\n]+),\s*([A-Z]{2})\s+(\d{5})\b",
+        text,
+    )
+    if m2:
+        return m2.group(1).strip(), m2.group(2).strip(), m2.group(3).strip(), m2.group(4).strip()
+    return None, None, None, None
+
+
+def rows_from_jonah_listing_chunks(
+    *,
+    html: str,
+    seed_url: str,
+    session,
+    scraped_ts: str,
+    prop_id: str,
+    prop_name: str | None,
+    address,
+    city,
+    state,
+    zipcode,
+    plat,
+    plon,
+    meta_description: str | None,
+) -> list[dict]:
+    cfg = extract_jonah_digital_config(html)
+    if not cfg or session is None:
+        return []
+    base_uri = cfg.get("base_uri")
+    if not isinstance(base_uri, str) or not base_uri.startswith("/"):
+        return []
+    parsed = urlparse(seed_url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        return []
+    instance_key = hashlib.md5(parsed.path.encode("utf-8")).hexdigest()
+    param = f"params:instance={instance_key}&action=render&type=listing-chunks"
+    enc = quote(param, safe="")
+    chunks_path = f"{base_uri.rstrip('/')}/_fp-renderable/{enc}/?forcecache=1"
+    chunks_url = urlunparse((parsed.scheme, parsed.netloc, chunks_path, "", "", ""))
+    try:
+        r = session.get(
+            chunks_url,
+            timeout=50,
+            headers={
+                "Referer": seed_url,
+                "X-Requested-With": "XMLHttpRequest",
+                "Accept": "*/*",
+            },
+        )
+        r.raise_for_status()
+    except Exception as e:
+        logger.warning("Jonah listing-chunks failed %s: %s", chunks_url, e)
+        return []
+    if len(r.text) < 200 or "jd-fp-floorplan-card" not in r.text:
+        return []
+
+    if not (city and state):
+        sa, scity, sst, szip = infer_address_from_marketing_soup(BeautifulSoup(html, "html.parser"))
+        if scity:
+            address = address or sa
+            city, state, zipcode = scity, sst, szip
+
+    # Regex on raw HTML: Jonah chunks sometimes confuse html.parser/lxml (NavigableString text
+    # not visible to get_text on <span>); card blocks are small and stable.
+    card_pat = re.compile(
+        r'<a(?=[^>]*jd-fp-floorplan-card)(?=[^>]*data-floorplan="(\d+)")[^>]*>[\s\S]*?</a>',
+        re.I,
+    )
+    rows: list[dict] = []
+    for m in card_pat.finditer(r.text):
+        block = m.group(0)
+        fp_id = m.group(1)
+        t_m = re.search(r'(?:title|aria-label)="([^"]+)"', block, re.I)
+        fp_title = None
+        if t_m:
+            raw_t = t_m.group(1).strip()
+            if raw_t.lower().startswith("floorplan "):
+                fp_title = raw_t[10:].strip()
+            elif raw_t.lower().startswith("view floorplan "):
+                fp_title = raw_t[15:].strip()
+            elif raw_t.lower().startswith("view floor plan "):
+                fp_title = raw_t[16:].strip()
+            else:
+                fp_title = raw_t[:200]
+        rent = None
+        pr = re.search(
+            r"(?:Starting at|From|Starting)\s*(?:\$|USD\s*)?([\d,]+(?:\.\d+)?)",
+            block,
+            re.I,
+        )
+        if pr:
+            rent = _parse_float(pr.group(1))
+        beds = baths = sqft = None
+        if re.search(r">\s*Studio\s*<", block, re.I):
+            beds = 0.0
+        else:
+            bd = re.search(r"(\d+)\s*(?:bed|br|bedroom)s?\b", block, re.I)
+            if bd:
+                beds = _parse_float(bd.group(1))
+        bt = re.search(r"(\d+)\s*baths?\b", block, re.I)
+        if bt:
+            baths = _parse_float(bt.group(1))
+        sf = re.search(r"([\d,]+)\s*sq\.?\s*ft", block, re.I)
+        if sf:
+            sqft = _parse_float(sf.group(1))
+
+        listing_id = f"entrata_{prop_id}_{fp_id}"
+        rows.append(
+            {
+                "listing_id": listing_id,
+                "property_id": str(prop_id),
+                "alternate_property_id": fp_id,
+                "property_name": prop_name,
+                "address": address,
+                "city": city,
+                "state": state,
+                "zipcode": zipcode,
+                "latitude": plat,
+                "longitude": plon,
+                "floor_plan": str(fp_title)[:500] if fp_title else None,
+                "unit_name": fp_title,
+                "unit_id": fp_id,
+                "beds": beds,
+                "baths": baths,
+                "sqft": sqft,
+                "rent_price": rent,
+                "rent_max": rent,
+                "deposit": None,
+                "availability_status": "available" if rent else "unavailable",
+                "available_at": None,
+                "lease_url": None,
+                "lease_term": None,
+                "listing_url": seed_url,
+                "email": None,
+                "phone": None,
+                "description": meta_description,
+                "images": json.dumps([]),
+                "website": parsed.netloc,
+                "company": COMPANY,
+                "building_type": "apartment",
+                "building_subtype": None,
+                "floor_number": None,
+                "community_amenities": json.dumps([]),
+                "apartment_amenities": json.dumps([]),
+                "fees": json.dumps([]),
+                "concessions": None,
+                "year_built": None,
+                "total_units": None,
+                "stories": None,
+                "scraped_timestamp": scraped_ts,
+            }
+        )
+    return rows
+
+
 def rows_from_seed_page(
     html: str,
     url: str,
     *,
     scraped_ts: str,
     geocode: bool,
+    session=None,
 ) -> tuple[list[dict], list[dict]]:
     soup = BeautifulSoup(html, "html.parser")
     photos: list[dict] = []
@@ -357,73 +551,102 @@ def rows_from_seed_page(
     if geocode and (plat is None or plon is None) and (city and state):
         plat, plon = geocode_nominatim(f"{city}, {state}")
 
+    rows: list[dict] = []
+    if extract_jonah_digital_config(html):
+        rows.extend(
+            rows_from_jonah_listing_chunks(
+                html=html,
+                seed_url=url,
+                session=session,
+                scraped_ts=scraped_ts,
+                prop_id=str(prop_id),
+                prop_name=prop_name,
+                address=address,
+                city=city,
+                state=state,
+                zipcode=zipcode,
+                plat=plat,
+                plon=plon,
+                meta_description=(meta or {}).get("description") if meta else None,
+            )
+        )
+
     leaves: list[dict] = []
     nd = extract_next_data(html)
     if nd:
         walk_collect_inventory(nd, leaves)
 
-    rows: list[dict] = []
-    for i, leaf in enumerate(leaves):
-        rent = _parse_float(
-            _pick_first(leaf, "rent", "minRent", "maxRent", "startingRent", "baseRent", "price", "monthlyRent", "fromRent")
-        )
-        uid = _pick_first(leaf, "unitId", "unit_id", "unitNumber", "unit_number", "id", "apartmentNumber", "aptNumber")
-        fp_name = _pick_first(leaf, "floorPlanName", "floorplanName", "name", "floorPlanId", "floor_plan_id")
-        beds = _parse_float(_pick_first(leaf, "beds", "bedrooms", "bedRooms"))
-        baths = _parse_float(_pick_first(leaf, "baths", "bathrooms", "bathRooms"))
-        sqft = _parse_float(_pick_first(leaf, "sqft", "squareFeet", "square_feet", "size"))
-        fn_raw = _pick_first(leaf, "floor", "floorNumber", "floor_number")
-        fnv = _parse_float(fn_raw)
-        floor_num = int(fnv) if fnv is not None else None
-        unit_key = str(uid or fp_name or i)
-        safe_key = re.sub(r"[^\w\-]+", "_", unit_key)[:80]
-        listing_id = f"entrata_{prop_id}_{safe_key}"
+    if not rows:
+        for i, leaf in enumerate(leaves):
+            rent = _parse_float(
+                _pick_first(
+                    leaf,
+                    "rent",
+                    "minRent",
+                    "maxRent",
+                    "startingRent",
+                    "baseRent",
+                    "price",
+                    "monthlyRent",
+                    "fromRent",
+                    "startingPrice",
+                    "totalRentStartingPrice",
+                )
+            )
+            uid = _pick_first(leaf, "unitId", "unit_id", "unitNumber", "unit_number", "id", "apartmentNumber", "aptNumber")
+            fp_name = _pick_first(leaf, "floorPlanName", "floorplanName", "name", "floorPlanId", "floor_plan_id")
+            beds = _parse_float(_pick_first(leaf, "beds", "bedrooms", "bedRooms"))
+            baths = _parse_float(_pick_first(leaf, "baths", "bathrooms", "bathRooms"))
+            sqft = _parse_float(_pick_first(leaf, "sqft", "squareFeet", "square_feet", "size"))
+            unit_key = str(uid or fp_name or i)
+            safe_key = re.sub(r"[^\w\-]+", "_", unit_key)[:80]
+            listing_id = f"entrata_{prop_id}_{safe_key}"
 
-        rows.append(
-            {
-                "listing_id": listing_id,
-                "property_id": str(prop_id),
-                "alternate_property_id": str(uid) if uid is not None else None,
-                "property_name": prop_name,
-                "address": address,
-                "city": city,
-                "state": state,
-                "zipcode": zipcode,
-                "latitude": plat,
-                "longitude": plon,
-                "floor_plan": str(fp_name)[:500] if fp_name else None,
-                "unit_name": str(uid) if uid else None,
-                "unit_id": str(uid) if uid else str(i),
-                "beds": beds,
-                "baths": baths,
-                "sqft": sqft,
-                "rent_price": rent,
-                "rent_max": rent,
-                "deposit": None,
-                "availability_status": "available" if rent else "unavailable",
-                "available_at": None,
-                "lease_url": None,
-                "lease_term": None,
-                "listing_url": url,
-                "email": None,
-                "phone": None,
-                "description": (meta or {}).get("description") if meta else None,
-                "images": json.dumps([]),
-                "website": urlparse(url).netloc,
-                "company": COMPANY,
-                "building_type": "apartment",
-                "building_subtype": None,
-                "floor_number": _parse_float(_pick_first(leaf, "floor", "floorNumber", "floor_number")),
-                "community_amenities": json.dumps([]),
-                "apartment_amenities": json.dumps([]),
-                "fees": json.dumps([]),
-                "concessions": None,
-                "year_built": None,
-                "total_units": None,
-                "stories": None,
-                "scraped_timestamp": scraped_ts,
-            }
-        )
+            rows.append(
+                {
+                    "listing_id": listing_id,
+                    "property_id": str(prop_id),
+                    "alternate_property_id": str(uid) if uid is not None else None,
+                    "property_name": prop_name,
+                    "address": address,
+                    "city": city,
+                    "state": state,
+                    "zipcode": zipcode,
+                    "latitude": plat,
+                    "longitude": plon,
+                    "floor_plan": str(fp_name)[:500] if fp_name else None,
+                    "unit_name": str(uid) if uid else None,
+                    "unit_id": str(uid) if uid else str(i),
+                    "beds": beds,
+                    "baths": baths,
+                    "sqft": sqft,
+                    "rent_price": rent,
+                    "rent_max": rent,
+                    "deposit": None,
+                    "availability_status": "available" if rent else "unavailable",
+                    "available_at": None,
+                    "lease_url": None,
+                    "lease_term": None,
+                    "listing_url": url,
+                    "email": None,
+                    "phone": None,
+                    "description": (meta or {}).get("description") if meta else None,
+                    "images": json.dumps([]),
+                    "website": urlparse(url).netloc,
+                    "company": COMPANY,
+                    "building_type": "apartment",
+                    "building_subtype": None,
+                    "floor_number": _parse_float(_pick_first(leaf, "floor", "floorNumber", "floor_number")),
+                    "community_amenities": json.dumps([]),
+                    "apartment_amenities": json.dumps([]),
+                    "fees": json.dumps([]),
+                    "concessions": None,
+                    "year_built": None,
+                    "total_units": None,
+                    "stories": None,
+                    "scraped_timestamp": scraped_ts,
+                }
+            )
 
     if not rows:
         rows.extend(
@@ -667,7 +890,7 @@ def scrape_seed_url(url: str, env: str, scraped_at: str, geocode: bool) -> tuple
     folder_id = url_folder_id(url)
     save_raw_gz(env, folder_id, scraped_at, html)
     scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    rows, photos = rows_from_seed_page(html, url, scraped_ts=scraped_ts, geocode=geocode)
+    rows, photos = rows_from_seed_page(html, url, scraped_ts=scraped_ts, geocode=geocode, session=session)
     return rows, photos, folder_id
 
 

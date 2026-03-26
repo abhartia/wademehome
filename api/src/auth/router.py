@@ -27,7 +27,7 @@ from auth.security import (
     verify_password,
 )
 from core.config import Config
-from db.models import MagicLinkTokens, UserProfiles, UserSessions, Users
+from db.models import MagicLinkTokens, UserProfiles, UserSessions, UserRole, Users
 from db.session import get_session_local
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -121,6 +121,13 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> Users:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email not verified",
         )
+    return user
+
+
+def get_current_admin_user(user: Users = Depends(get_current_user)) -> Users:
+    raw = user.role.value if isinstance(user.role, UserRole) else str(user.role)
+    if str(raw).strip().lower() != UserRole.admin.value:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin only")
     return user
 
 

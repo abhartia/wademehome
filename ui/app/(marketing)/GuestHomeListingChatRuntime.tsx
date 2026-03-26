@@ -43,10 +43,12 @@ export function GuestHomeListingChatRuntime({
   getMessageRef.current = getMessage;
   const sendSearchTurnRef = useRef(api.sendSearchTurn);
   sendSearchTurnRef.current = api.sendSearchTurn;
+  const onPhaseChangeRef = useRef(onPhaseChange);
+  onPhaseChangeRef.current = onPhaseChange;
 
   useEffect(() => {
-    onPhaseChange?.(api.phase);
-  }, [api.phase, onPhaseChange]);
+    onPhaseChangeRef.current?.(api.phase);
+  }, [api.phase]);
 
   useEffect(() => {
     // fireAcknowledgedVersionRef is optional and stable from the parent; omitting from deps avoids

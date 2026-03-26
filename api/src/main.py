@@ -37,6 +37,7 @@ from guarantors.router import router as guarantors_router
 from movein.router import router as movein_router
 from roommates.router import router as roommates_router
 from landlord.router import router as landlord_router
+from admin.router import router as admin_router
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -64,6 +65,7 @@ app.include_router(guarantors_public_router)
 app.include_router(movein_router)
 app.include_router(roommates_router)
 app.include_router(landlord_router)
+app.include_router(admin_router)
 
 def get_event_generator(
     handler: WorkflowHandler,

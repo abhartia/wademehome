@@ -35,6 +35,7 @@ import { getCachedProperty, cacheProperty } from "@/lib/properties/propertyStora
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 function toFiniteNumber(v: unknown): number | null {
@@ -282,6 +283,14 @@ export default function PropertyDetailsPage() {
             >
               Share
             </Button>
+            {property.listing_url ? (
+              <Button variant="outline" asChild>
+                <a href={property.listing_url} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                  Original source
+                </a>
+              </Button>
+            ) : null}
             <Button variant="outline" onClick={() => toast.info("Contact flow coming next")}>
               Contact
             </Button>
