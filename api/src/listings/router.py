@@ -120,6 +120,77 @@ def _building_key_from_row(row: dict[str, Any]) -> str:
     return "unknown"
 
 
+def _nearby_projection(cols: set[str]) -> str:
+    """Project only columns needed by row mapper to avoid loading huge blobs."""
+    wanted = (
+        "property_id",
+        "listing_id",
+        "building_name",
+        "property_name",
+        "name",
+        "title",
+        "address",
+        "street_address",
+        "full_address",
+        "formatted_address",
+        "location",
+        "city",
+        "locality",
+        "state",
+        "state_code",
+        "region",
+        "zipcode",
+        "zip",
+        "postal_code",
+        "latitude",
+        "longitude",
+        "lat",
+        "lng",
+        "lon",
+        "rent_range",
+        "rental_range",
+        "price_range",
+        "list_price_range",
+        "min_rent",
+        "max_rent",
+        "monthly_rent",
+        "rent_price",
+        "rent",
+        "price",
+        "list_price",
+        "bedroom_range",
+        "bedrooms_display",
+        "beds_range",
+        "bedrooms",
+        "bedroom_count",
+        "beds",
+        "num_bedrooms",
+        "n_bedrooms",
+        "amenities",
+        "amenity_list",
+        "features",
+        "apartment_amenities",
+        "community_amenities",
+        "building_amenities",
+        # Prefer pre-normalized image columns; avoid raw heavy JSON blobs (images/photos).
+        "images_urls",
+        "image_urls",
+        "image_url",
+        "primary_image_url",
+        "photo_url",
+        "thumbnail_url",
+        "listing_url",
+        "listingurl",
+        "source_url",
+        "sourceurl",
+        "url",
+    )
+    chosen = [c for c in wanted if c in cols]
+    if not chosen:
+        return "t_inner.*"
+    return ", ".join(f't_inner."{c}"' for c in chosen)
+
+
 # Max bbox span per axis (degrees) to limit query cost / abuse (~a few hundred miles at mid-latitudes).
 _MAX_BBOX_LAT_SPAN = 4.0
 _MAX_BBOX_LNG_SPAN = 6.0
@@ -210,11 +281,14 @@ def get_nearby_listings(
                 return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
             cols = _table_columns_lower(conn, schema_for_info, tname)
+            select_cols = _nearby_projection(cols)
             params: dict[str, Any] = {
                 "lat": q_lat,
                 "lng": q_lng,
                 "limit": limit,
-                "prefetch_limit": min(max(limit * 10, limit), 1000),
+                # Need enough candidate rows before per-building dedupe, especially for
+                # dense markets where many unit rows belong to the same property.
+                "prefetch_limit": min(max(limit * 20, limit), 2500),
             }
 
             if bbox_mode:
@@ -242,7 +316,7 @@ def get_nearby_listings(
                     select_sql = text(
                         f"""
                         SELECT
-                          t_inner.*,
+                          {select_cols},
                           {total_value_expr} AS total_in_scope,
                           ST_Distance(
                             t_inner.geog,
@@ -267,7 +341,7 @@ def get_nearby_listings(
                     select_sql = text(
                         f"""
                         SELECT
-                          t_inner.*,
+                          {select_cols},
                           {total_value_expr} AS total_in_scope,
                           ({hav_inner}) AS d_mi
                         FROM {qtable} AS t_inner
@@ -288,7 +362,7 @@ def get_nearby_listings(
                     fallback_sql = text(
                         f"""
                         SELECT
-                          t_inner.*,
+                          {select_cols},
                           ({hav_inner}) AS d_mi
                         FROM {qtable} AS t_inner
                         WHERE t_inner.latitude IS NOT NULL
@@ -308,7 +382,7 @@ def get_nearby_listings(
                     select_sql = text(
                         f"""
                         SELECT
-                          t_inner.*,
+                          {select_cols},
                           {total_value_expr} AS total_in_scope,
                           ST_Distance(
                             t_inner.geog,
@@ -330,7 +404,7 @@ def get_nearby_listings(
                     select_sql = text(
                         f"""
                         SELECT
-                          t_inner.*,
+                          {select_cols},
                           {total_value_expr} AS total_in_scope,
                           ({hav_inner}) AS d_mi
                         FROM {qtable} AS t_inner
@@ -356,7 +430,7 @@ def get_nearby_listings(
                     fallback_sql = text(
                         f"""
                         SELECT
-                          t_inner.*,
+                          {select_cols},
                           ({hav_inner}) AS d_mi
                         FROM {qtable} AS t_inner
                         WHERE t_inner.latitude IS NOT NULL

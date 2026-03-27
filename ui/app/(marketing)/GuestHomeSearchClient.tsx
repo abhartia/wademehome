@@ -605,6 +605,10 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
     const urlQ = (searchParams.get("q") ?? "").trim();
     if (urlQ.length > 0) {
       setQuery(urlQ);
+      if (urlQ.length >= MIN_QUERY_CHARS) {
+        setListingSessionActive(true);
+        setListingFireVersion((v) => v + 1);
+      }
     }
     hasHydratedQueryFromUrlRef.current = true;
   }, [searchParams]);

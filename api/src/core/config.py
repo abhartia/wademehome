@@ -17,6 +17,7 @@ class Config:
     # OpenAI (used when Azure OpenAI is not configured)
     OPENAI_API_KEY: str = env_manager.get("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = env_manager.get("OPENAI_MODEL", "gpt-4.1")
+    OPENAI_SEARCH_PLANNER_MODEL: str = env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini")
 
     # Azure OpenAI (if AZURE_OPENAI_ENDPOINT is set, this is used instead of OpenAI)
     AZURE_OPENAI_ENDPOINT: str = env_manager.get("AZURE_OPENAI_ENDPOINT", "")
@@ -25,6 +26,14 @@ class Config:
     AZURE_OPENAI_MODEL: str = env_manager.get("AZURE_OPENAI_MODEL", "gpt-4o-mini")
     AZURE_OPENAI_API_VERSION: str = env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
     AZURE_OPENAI_EMBEDDING_DEPLOYMENT: str = env_manager.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "")
+    AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT: str = env_manager.get(
+        "AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT",
+        "",
+    )
+    AZURE_OPENAI_SEARCH_PLANNER_MODEL: str = env_manager.get(
+        "AZURE_OPENAI_SEARCH_PLANNER_MODEL",
+        "gpt-4o-mini",
+    )
 
     # Text-to-SQL LLM cache (process-local; reuse SQL across users when prompts match)
     LLM_TEXT2SQL_CACHE_ENABLED: str = env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
@@ -67,6 +76,9 @@ class Config:
         cls.DATABASE_URL = env_manager.get("DATABASE_URL", "") or ""
         cls.OPENAI_API_KEY = env_manager.get("OPENAI_API_KEY", "") or ""
         cls.OPENAI_MODEL = env_manager.get("OPENAI_MODEL", "gpt-4.1") or "gpt-4.1"
+        cls.OPENAI_SEARCH_PLANNER_MODEL = (
+            env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
+        )
         cls.AZURE_OPENAI_ENDPOINT = env_manager.get("AZURE_OPENAI_ENDPOINT", "") or ""
         cls.AZURE_OPENAI_API_KEY = env_manager.get("AZURE_OPENAI_API_KEY", "") or ""
         cls.AZURE_OPENAI_DEPLOYMENT = env_manager.get("AZURE_OPENAI_DEPLOYMENT", "") or ""
@@ -76,6 +88,12 @@ class Config:
         )
         cls.AZURE_OPENAI_EMBEDDING_DEPLOYMENT = (
             env_manager.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "") or ""
+        )
+        cls.AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT = (
+            env_manager.get("AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT", "") or ""
+        )
+        cls.AZURE_OPENAI_SEARCH_PLANNER_MODEL = (
+            env_manager.get("AZURE_OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
         )
         cls.LLM_TEXT2SQL_CACHE_ENABLED = (
             env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"

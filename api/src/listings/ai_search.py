@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from threading import Lock
 from typing import Any
 
 from openai import AzureOpenAI as AzureOpenAIClient
@@ -15,6 +17,7 @@ from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.llms import LLM
 
 from core.config import Config
+from core.logger import get_logger
 from prompts.loader import load_app_prompt
 from workflow.utils import get_engine
 from listings.nearby_mapper import property_list_from_sql_rows
@@ -22,6 +25,12 @@ from workflow.events import PropertyDataItem, PropertyDataList
 
 
 SEARCH_QUERY_PLAN_SYSTEM = load_app_prompt("search_query_plan")
+logger = get_logger(__name__)
+
+_PLAN_CACHE_TTL_S = 300.0
+_PLAN_CACHE_MAX = 256
+_plan_cache_lock = Lock()
+_plan_cache: dict[str, tuple[float, "SearchQueryPlan"]] = {}
 
 # Terms matched with LIKE against listing blobs rarely contain these; keep them in semantic ranker.
 # Multi-word phrases ending like a neighborhood; listing blobs rarely repeat them verbatim.
@@ -230,17 +239,90 @@ async def extract_query_plan(
     user_msg: str,
     chat_history: list[ChatMessage] | None,
 ) -> SearchQueryPlan:
-    sllm = llm.as_structured_llm(SearchQueryPlan)
+    cache_key = _plan_cache_key(user_msg, chat_history)
+    if cache_key:
+        cached = _plan_cache_get(cache_key)
+        if cached is not None:
+            logger.info("search planner llm timing: cache_hit=true total_ms=0 ttft_ms=0")
+            return cached
+
+    t0 = time.perf_counter()
     history = chat_history or []
-    resp = await sllm.achat(
-        messages=[
-            ChatMessage(role="system", content=SEARCH_QUERY_PLAN_SYSTEM),
-            *history[-10:],
-            ChatMessage(role="user", content=user_msg),
-        ]
+    messages = [
+        ChatMessage(role="system", content=SEARCH_QUERY_PLAN_SYSTEM),
+        *history[-10:],
+        ChatMessage(role="user", content=user_msg),
+    ]
+    parsed = SearchQueryPlan()
+    # LlamaIndex-only planner path: request JSON object + high output budget.
+    # reasoning_effort is best-effort (model may ignore).
+    variants: list[dict[str, Any]] = [
+        {"response_format": {"type": "json_object"}, "max_tokens": 2000, "reasoning_effort": "none"},
+        {"response_format": {"type": "json_object"}, "max_tokens": 2000, "reasoning_effort": "minimal"},
+        {"response_format": {"type": "json_object"}, "max_tokens": 2000},
+    ]
+    for idx, kwargs in enumerate(variants):
+        try:
+            raw_resp = await llm.achat(messages=messages, **kwargs)
+            parsed = _parse_plan_response(raw_resp)
+            logger.info(
+                "search planner llm variant=%s succeeded (reasoning_effort=%s)",
+                idx,
+                kwargs.get("reasoning_effort", "default"),
+            )
+            break
+        except Exception:
+            logger.exception(
+                "search planner llamaindex json call failed variant=%s (reasoning_effort=%s)",
+                idx,
+                kwargs.get("reasoning_effort", "default"),
+            )
+    normalized = _normalize_plan(parsed, user_msg)
+    logger.info(
+        "search planner llm timing: cache_hit=false path=llamaindex_json total_ms=%s ttft_ms=n/a",
+        int((time.perf_counter() - t0) * 1000),
     )
-    parsed = _parse_plan_response(resp)
-    return _normalize_plan(parsed, user_msg)
+    if cache_key:
+        _plan_cache_put(cache_key, normalized)
+    return normalized
+
+
+def _plan_cache_key(user_msg: str, chat_history: list[ChatMessage] | None) -> str:
+    msg = (user_msg or "").strip()
+    if not msg:
+        return ""
+    # Keep cache key compact: latest user intent + final assistant/user turns.
+    history = chat_history or []
+    tail: list[str] = []
+    for m in history[-4:]:
+        role = getattr(m, "role", "") or ""
+        content = str(getattr(m, "content", "") or "")
+        tail.append(f"{role}:{content}")
+    raw = "\n".join([*tail, f"user:{msg}"])
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _plan_cache_get(key: str) -> SearchQueryPlan | None:
+    now = time.monotonic()
+    with _plan_cache_lock:
+        hit = _plan_cache.get(key)
+        if not hit:
+            return None
+        exp, plan = hit
+        if exp <= now:
+            _plan_cache.pop(key, None)
+            return None
+        return plan.model_copy(deep=True)
+
+
+def _plan_cache_put(key: str, plan: SearchQueryPlan) -> None:
+    now = time.monotonic()
+    with _plan_cache_lock:
+        if len(_plan_cache) >= _PLAN_CACHE_MAX:
+            # Drop one soonest-to-expire item to keep this O(n) infrequent.
+            oldest = min(_plan_cache.items(), key=lambda kv: kv[1][0])[0]
+            _plan_cache.pop(oldest, None)
+        _plan_cache[key] = (now + _PLAN_CACHE_TTL_S, plan.model_copy(deep=True))
 
 
 def _parse_plan_response(resp: ChatResponse | None) -> SearchQueryPlan:
@@ -253,8 +335,11 @@ def _parse_plan_response(resp: ChatResponse | None) -> SearchQueryPlan:
         except Exception:
             return SearchQueryPlan()
     if isinstance(content, str):
+        raw = content.strip()
+        if raw.casefold() in {"none", "null", ""}:
+            return SearchQueryPlan()
         try:
-            return SearchQueryPlan.model_validate_json(content.strip())
+            return SearchQueryPlan.model_validate_json(raw)
         except Exception:
             return SearchQueryPlan()
     return SearchQueryPlan()
@@ -308,6 +393,77 @@ def _text_blob_expr(cols: set[str]) -> str:
     if not parts:
         return "''"
     return f"concat_ws(' ', {', '.join(parts)})"
+
+
+def _property_projection(cols: set[str]) -> str:
+    """Select only fields needed for PropertyDataItem mapping to reduce I/O."""
+    wanted = (
+        "property_id",
+        "listing_id",
+        "building_name",
+        "property_name",
+        "name",
+        "title",
+        "address",
+        "street_address",
+        "full_address",
+        "formatted_address",
+        "location",
+        "city",
+        "locality",
+        "state",
+        "state_code",
+        "region",
+        "zipcode",
+        "zip",
+        "postal_code",
+        "latitude",
+        "longitude",
+        "lat",
+        "lng",
+        "lon",
+        "rent_range",
+        "rental_range",
+        "price_range",
+        "list_price_range",
+        "min_rent",
+        "max_rent",
+        "monthly_rent",
+        "rent_price",
+        "rent",
+        "price",
+        "list_price",
+        "bedroom_range",
+        "bedrooms_display",
+        "beds_range",
+        "bedrooms",
+        "bedroom_count",
+        "beds",
+        "num_bedrooms",
+        "n_bedrooms",
+        "amenities",
+        "amenity_list",
+        "features",
+        "apartment_amenities",
+        "community_amenities",
+        "building_amenities",
+        # Prefer pre-normalized image columns; avoid raw heavy JSON blobs.
+        "images_urls",
+        "image_urls",
+        "image_url",
+        "primary_image_url",
+        "photo_url",
+        "thumbnail_url",
+        "listing_url",
+        "listingurl",
+        "source_url",
+        "sourceurl",
+        "url",
+    )
+    chosen = [c for c in wanted if c in cols]
+    if not chosen:
+        return "*"
+    return ", ".join(f'"{c}"' for c in chosen)
 
 
 def _number_expr(cols: set[str], aliases: tuple[str, ...]) -> str | None:
@@ -425,6 +581,7 @@ def _fetch_listing_rows(
     all_expr: str,
     order_sql: str,
     params: dict[str, Any],
+    select_cols: str,
 ) -> tuple[list[Any], int]:
     t_sel = time.perf_counter()
     with get_engine().connect() as conn:
@@ -432,7 +589,7 @@ def _fetch_listing_rows(
             conn.execute(
                 text(
                     f"""
-                    SELECT *
+                    SELECT {select_cols}
                     FROM {qtable}
                     WHERE {all_expr}
                     ORDER BY {order_sql}
@@ -452,6 +609,7 @@ def run_fast_search(
     limit: int = 60,
 ) -> SearchRunResult:
     cols = _table_columns()
+    select_cols = _property_projection(cols)
     params: dict[str, Any] = {}
     criteria = _build_criteria(plan, cols, params)
     all_expr = " AND ".join(expr for _, _, expr in criteria) if criteria else "TRUE"
@@ -490,7 +648,7 @@ def run_fast_search(
         return items, m, int((time.perf_counter() - t_b) * 1000)
 
     def select_job() -> tuple[list[Any], int]:
-        return _fetch_listing_rows(qtable, all_expr, order_sql, params)
+        return _fetch_listing_rows(qtable, all_expr, order_sql, params, select_cols)
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         fut_b = pool.submit(breakdown_job)
@@ -528,15 +686,24 @@ def _compute_breakdown(
             )
         return [], matched
 
-    select_parts = [
-        "COUNT(*) FILTER (WHERE " + (" AND ".join(expr for _, _, expr in criteria)) + ") AS matched_count",
+    # Evaluate each predicate once per row in a CTE, then aggregate booleans.
+    criterion_select = [
+        f"({expr}) AS c_{idx}" for idx, (_, _, expr) in enumerate(criteria)
     ]
-    for idx, (_, _, _) in enumerate(criteria):
-        others = [expr for j, (_, _, expr) in enumerate(criteria) if j != idx]
+    matched_expr = " AND ".join(f"c_{idx}" for idx in range(len(criteria)))
+    select_parts = [f"COUNT(*) FILTER (WHERE {matched_expr}) AS matched_count"]
+    for idx in range(len(criteria)):
+        others = [f"c_{j}" for j in range(len(criteria)) if j != idx]
         without_expr = " AND ".join(others) if others else "TRUE"
         select_parts.append(f"COUNT(*) FILTER (WHERE {without_expr}) AS without_{idx}")
 
-    sql = f"SELECT {', '.join(select_parts)} FROM {qtable}"
+    sql = (
+        "WITH criteria_eval AS ("
+        f" SELECT {', '.join(criterion_select)}"
+        f" FROM {qtable}"
+        ") "
+        f"SELECT {', '.join(select_parts)} FROM criteria_eval"
+    )
     with get_engine().connect() as conn:
         row = conn.execute(text(sql), params).mappings().one()
 

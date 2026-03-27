@@ -111,6 +111,8 @@ def get_event_generator(
     request: Request
 ):
     async def event_generator():
+        stream_t0 = time.perf_counter()
+        first_chunk_logged = False
         try:
             async for event in handler.stream_events():
                 if await request.is_disconnected():
@@ -121,14 +123,32 @@ def get_event_generator(
 
                 if isinstance(event, UIEvent):
                     # Handle UIEvent
+                    if not first_chunk_logged:
+                        first_chunk_logged = True
+                        logger.info(
+                            "listings/chat stream ttft_ms=%s",
+                            int((time.perf_counter() - stream_t0) * 1000),
+                        )
                     yield f"8:{json.dumps([event.to_response()])}\n\n"
 
                 if isinstance(event, ResponseStreamEvent):
                     async for item in event.response_stream:
+                        if not first_chunk_logged:
+                            first_chunk_logged = True
+                            logger.info(
+                                "listings/chat stream ttft_ms=%s",
+                                int((time.perf_counter() - stream_t0) * 1000),
+                            )
                         yield f"0:{json.dumps(item.delta)}\n\n"
                 elif isinstance(event, StopEvent):
                     # Handle StopEvent
                     result = getattr(event, "result", None)
+                    if not first_chunk_logged:
+                        first_chunk_logged = True
+                        logger.info(
+                            "listings/chat stream ttft_ms=%s",
+                            int((time.perf_counter() - stream_t0) * 1000),
+                        )
                     if result is None:
                         # Keep protocol stable: always yield a string payload.
                         yield stop_event_result_to_sse_chunk(result)
