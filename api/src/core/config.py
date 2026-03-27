@@ -24,6 +24,7 @@ class Config:
     AZURE_OPENAI_DEPLOYMENT: str = env_manager.get("AZURE_OPENAI_DEPLOYMENT", "")
     AZURE_OPENAI_MODEL: str = env_manager.get("AZURE_OPENAI_MODEL", "gpt-4o-mini")
     AZURE_OPENAI_API_VERSION: str = env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
+    AZURE_OPENAI_EMBEDDING_DEPLOYMENT: str = env_manager.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "")
 
     # Text-to-SQL LLM cache (process-local; reuse SQL across users when prompts match)
     LLM_TEXT2SQL_CACHE_ENABLED: str = env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
@@ -36,6 +37,11 @@ class Config:
     LOG_LEVEL: str = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
     LISTINGS_TABLE_NAME: str = env_manager.get("LISTINGS_TABLE_NAME", None)
     LISTINGS_TABLE_SCHEMA: str = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
+    OPENAI_EMBEDDING_MODEL: str = env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
+    OPENAI_EMBEDDING_DIMENSIONS: str = env_manager.get("OPENAI_EMBEDDING_DIMENSIONS", "1536") or "1536"
+    LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT: str = (
+        env_manager.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false"
+    )
 
     # Mapbox (server-side geocoding, matrix, POI search). Optional; endpoints return 503 if unset.
     MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
@@ -68,6 +74,9 @@ class Config:
         cls.AZURE_OPENAI_API_VERSION = (
             env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview") or "2024-12-01-preview"
         )
+        cls.AZURE_OPENAI_EMBEDDING_DEPLOYMENT = (
+            env_manager.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "") or ""
+        )
         cls.LLM_TEXT2SQL_CACHE_ENABLED = (
             env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
         )
@@ -80,6 +89,15 @@ class Config:
         cls.LOG_LEVEL = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
         cls.LISTINGS_TABLE_NAME = env_manager.get("LISTINGS_TABLE_NAME", None)
         cls.LISTINGS_TABLE_SCHEMA = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
+        cls.OPENAI_EMBEDDING_MODEL = (
+            env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
+        )
+        cls.OPENAI_EMBEDDING_DIMENSIONS = (
+            env_manager.get("OPENAI_EMBEDDING_DIMENSIONS", "1536") or "1536"
+        )
+        cls.LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT = (
+            env_manager.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false"
+        )
         cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
         cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""
         cls.RESEND_FROM_EMAIL = env_manager.get("RESEND_FROM_EMAIL", "") or ""

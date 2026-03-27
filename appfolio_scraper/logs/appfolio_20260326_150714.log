@@ -1,0 +1,26 @@
+2026-03-26 15:07:14,136 [INFO] AppFolio scrape: 23 seed URLs
+2026-03-26 15:07:14,824 [INFO] Parsed 0 rows from https://proteam.appfolio.com/listings/listings
+2026-03-26 15:07:15,077 [INFO] Parsed 6 rows from https://citywidepm.appfolio.com/listings/listings
+2026-03-26 15:07:15,130 [INFO] Parsed 2 rows from https://downtown.appfolio.com/listings/listings
+2026-03-26 15:07:15,349 [INFO] Parsed 0 rows from https://bfrealtygroup.appfolio.com/listings/listings
+2026-03-26 15:07:15,626 [INFO] Parsed 32 rows from https://remresidential.appfolio.com/listings/listings
+2026-03-26 15:07:15,733 [INFO] Parsed 0 rows from https://shoreviews.appfolio.com/listings/listings
+2026-03-26 15:07:16,177 [INFO] Parsed 0 rows from https://metropolitanpmg.appfolio.com/listings/listings
+2026-03-26 15:07:16,197 [INFO] Parsed 0 rows from https://njproperty.appfolio.com/listings/listings
+2026-03-26 15:07:16,477 [INFO] Parsed 0 rows from https://nycmetro.appfolio.com/listings/listings
+2026-03-26 15:07:16,744 [INFO] Parsed 20 rows from https://oneroofpm.appfolio.com/listings/listings
+2026-03-26 15:07:16,811 [INFO] Parsed 0 rows from https://hemlockpm.appfolio.com/listings/listings
+2026-03-26 15:07:16,920 [INFO] Parsed 0 rows from https://goldstonepm.appfolio.com/listings/listings
+2026-03-26 15:07:16,953 [INFO] Parsed 0 rows from https://vanguardpm.appfolio.com/listings/listings
+2026-03-26 15:07:17,016 [INFO] Parsed 0 rows from https://harborpm.appfolio.com/listings/listings
+2026-03-26 15:07:18,262 [INFO] Parsed 0 rows from https://stuytown.appfolio.com/listings/listings
+2026-03-26 15:07:18,512 [INFO] Parsed 0 rows from https://sterlingeq.appfolio.com/listings/listings
+2026-03-26 15:07:18,705 [INFO] Parsed 0 rows from https://heritagerealtymgmt.appfolio.com/listings/listings
+2026-03-26 15:07:18,850 [INFO] Parsed 0 rows from https://manhattanresidences.appfolio.com/listings/listings
+2026-03-26 15:07:19,272 [INFO] Parsed 248 rows from https://tulirealty.appfolio.com/listings/listings
+2026-03-26 15:07:19,590 [INFO] Parsed 14 rows from https://rockrose.appfolio.com/listings/listings
+2026-03-26 15:07:19,731 [INFO] Parsed 12 rows from https://morganpm.appfolio.com/listings/listings
+2026-03-26 15:07:19,975 [INFO] Parsed 16 rows from https://morganproperties.appfolio.com/listings/listings
+2026-03-26 15:07:20,537 [INFO] Parsed 60 rows from https://ctpm.appfolio.com/listings/listings
+2026-03-26 15:07:20,540 [INFO] Scrape done: ok=23 failed=0 total_rows=410
+2026-03-26 15:07:20,760 [INFO] Quality summary: {"rows": 214, "unique_listing_ids": 214, "duplicate_listing_ids": 0, "null_rates": {"company": 0.0, "scraped_timestamp": 0.0, "listing_url": 0.0, "availability_status": 0.0, "listing_id": 0.0, "address": 0.0421, "property_name": 0.0421, "city": 0.0421, "state": 0.0467, "zipcode": 0.0467, "image_url": 0.0421, "available_at": 0.7056, "property_id": 1.0, "latitude": 1.0, "longitude": 1.0, "rent_price": 1.0, "beds": 1.0, "baths": 1.0, "sqft": 1.0, "unit_id": 1.0, "unit_name": 1.0, "floor_plan": 1.0, "description": 1.0, "images": 1.0}}

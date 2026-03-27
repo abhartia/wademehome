@@ -8,7 +8,8 @@
     "greystar_scraper/env=local/source=greystar/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet",
     "rentcafe_scraper/env=local/source=rentcafe/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet",
     "realpage_scraper/env=local/source=realpage/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet",
-    "entrata_scraper/env=local/source=entrata/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet"
+    "entrata_scraper/env=local/source=entrata/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet",
+    "appfolio_scraper/env=local/source=appfolio/stage=processed/entity=property/load_date=<YYYY-MM-DD>/units.parquet"
   ],
   "columns": {
     "address": {

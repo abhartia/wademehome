@@ -22,10 +22,31 @@ export type SearchSummaryState = {
   bullets: string[];
 } | null;
 
+export type SearchPlanState = {
+  summary_headline: string;
+  summary_bullets: string[];
+} | null;
+
+export type SearchFilterBreakdownState = {
+  criteria: Array<{
+    key: string;
+    label: string;
+    excluded_count: number;
+    matched_count: number;
+    eligible_without_this_rule: number;
+  }>;
+} | null;
+
 export type SearchStatsState = {
   returned_count: number;
+  matched_count: number | null;
   limit_cap: number | null;
   sort_note: string | null;
+  parse_ms: number | null;
+  embed_ms: number | null;
+  db_ms: number | null;
+  breakdown_ms: number | null;
+  total_ms: number | null;
 } | null;
 
 type AllowedMemoryField =
@@ -65,22 +86,26 @@ function parseAssistantAnnotations(message: {
   properties: PropertyDataItem[];
   searchHint: SearchHintState;
   searchSummary: SearchSummaryState;
+  searchPlan: SearchPlanState;
+  searchFilterBreakdown: SearchFilterBreakdownState;
   searchStats: SearchStatsState;
   profileMemoryUpdate: ProfileMemoryUpdateState;
 } {
   let properties: PropertyDataItem[] = [];
   let searchHint: SearchHintState = null;
   let searchSummary: SearchSummaryState = null;
+  let searchPlan: SearchPlanState = null;
+  let searchFilterBreakdown: SearchFilterBreakdownState = null;
   let searchStats: SearchStatsState = null;
   let profileMemoryUpdate: ProfileMemoryUpdateState = null;
 
   if (message.role && message.role !== "assistant") {
-    return { properties, searchHint, searchSummary, searchStats, profileMemoryUpdate };
+    return { properties, searchHint, searchSummary, searchPlan, searchFilterBreakdown, searchStats, profileMemoryUpdate };
   }
 
   const annRaw = message.annotations;
   if (!Array.isArray(annRaw)) {
-    return { properties, searchHint, searchSummary, searchStats, profileMemoryUpdate };
+    return { properties, searchHint, searchSummary, searchPlan, searchFilterBreakdown, searchStats, profileMemoryUpdate };
   }
 
   for (const raw of annRaw) {
@@ -107,23 +132,111 @@ function parseAssistantAnnotations(message: {
         searchSummary = { headline: headline || "Your search", bullets };
       }
     }
+    if (ann.type === UIEventsTypesEnum.SEARCH_PLAN && ann.data && typeof ann.data === "object") {
+      const d = ann.data as { summary_headline?: unknown; summary_bullets?: unknown };
+      const summary_headline =
+        typeof d.summary_headline === "string" && d.summary_headline.trim()
+          ? d.summary_headline.trim()
+          : "Property search";
+      const summary_bullets = Array.isArray(d.summary_bullets)
+        ? d.summary_bullets.filter((b): b is string => typeof b === "string" && b.trim().length > 0)
+        : [];
+      searchPlan = { summary_headline, summary_bullets };
+    }
+    if (
+      ann.type === UIEventsTypesEnum.SEARCH_FILTER_BREAKDOWN &&
+      ann.data &&
+      typeof ann.data === "object"
+    ) {
+      const d = ann.data as { criteria?: unknown };
+      const criteria = Array.isArray(d.criteria)
+        ? d.criteria
+            .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
+            .map((item) => {
+              const key = typeof item.key === "string" ? item.key : "";
+              const label = typeof item.label === "string" ? item.label : key;
+              const excluded_count =
+                typeof item.excluded_count === "number" && Number.isFinite(item.excluded_count)
+                  ? Math.max(0, Math.floor(item.excluded_count))
+                  : 0;
+              const matched_count =
+                typeof item.matched_count === "number" && Number.isFinite(item.matched_count)
+                  ? Math.max(0, Math.floor(item.matched_count))
+                  : 0;
+              const eligible_without_this_rule =
+                typeof item.eligible_without_this_rule === "number" &&
+                Number.isFinite(item.eligible_without_this_rule)
+                  ? Math.max(0, Math.floor(item.eligible_without_this_rule))
+                  : 0;
+              return {
+                key,
+                label,
+                excluded_count,
+                matched_count,
+                eligible_without_this_rule,
+              };
+            })
+            .filter((item) => item.key.length > 0)
+        : [];
+      searchFilterBreakdown = { criteria };
+    }
     if (ann.type === UIEventsTypesEnum.SEARCH_STATS && ann.data && typeof ann.data === "object") {
       const d = ann.data as {
         returned_count?: unknown;
+        matched_count?: unknown;
         limit_cap?: unknown;
         sort_note?: unknown;
+        parse_ms?: unknown;
+        embed_ms?: unknown;
+        db_ms?: unknown;
+        breakdown_ms?: unknown;
+        total_ms?: unknown;
       };
       const returned =
         typeof d.returned_count === "number" && Number.isFinite(d.returned_count)
           ? Math.max(0, Math.floor(d.returned_count))
           : 0;
+      const matched =
+        typeof d.matched_count === "number" && Number.isFinite(d.matched_count)
+          ? Math.max(0, Math.floor(d.matched_count))
+          : null;
       const cap =
         typeof d.limit_cap === "number" && Number.isFinite(d.limit_cap)
           ? Math.max(0, Math.floor(d.limit_cap))
           : null;
       const note =
         typeof d.sort_note === "string" && d.sort_note.trim() ? d.sort_note.trim() : null;
-      searchStats = { returned_count: returned, limit_cap: cap, sort_note: note };
+      const parseMs =
+        typeof d.parse_ms === "number" && Number.isFinite(d.parse_ms)
+          ? Math.max(0, Math.floor(d.parse_ms))
+          : null;
+      const embedMs =
+        typeof d.embed_ms === "number" && Number.isFinite(d.embed_ms)
+          ? Math.max(0, Math.floor(d.embed_ms))
+          : null;
+      const dbMs =
+        typeof d.db_ms === "number" && Number.isFinite(d.db_ms)
+          ? Math.max(0, Math.floor(d.db_ms))
+          : null;
+      const breakdownMs =
+        typeof d.breakdown_ms === "number" && Number.isFinite(d.breakdown_ms)
+          ? Math.max(0, Math.floor(d.breakdown_ms))
+          : null;
+      const totalMs =
+        typeof d.total_ms === "number" && Number.isFinite(d.total_ms)
+          ? Math.max(0, Math.floor(d.total_ms))
+          : null;
+      searchStats = {
+        returned_count: returned,
+        matched_count: matched,
+        limit_cap: cap,
+        sort_note: note,
+        parse_ms: parseMs,
+        embed_ms: embedMs,
+        db_ms: dbMs,
+        breakdown_ms: breakdownMs,
+        total_ms: totalMs,
+      };
     }
     if (
       ann.type === UIEventsTypesEnum.PROFILE_MEMORY_UPDATE &&
@@ -142,7 +255,15 @@ function parseAssistantAnnotations(message: {
     }
   }
 
-  return { properties, searchHint, searchSummary, searchStats, profileMemoryUpdate };
+  return {
+    properties,
+    searchHint,
+    searchSummary,
+    searchPlan,
+    searchFilterBreakdown,
+    searchStats,
+    profileMemoryUpdate,
+  };
 }
 
 const ALLOWED_MEMORY_FIELDS: AllowedMemoryField[] = [
@@ -270,6 +391,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
   const [properties, setProperties] = useState<PropertyDataItem[]>([]);
   const [searchHint, setSearchHint] = useState<SearchHintState>(null);
   const [searchSummary, setSearchSummary] = useState<SearchSummaryState>(null);
+  const [searchPlan, setSearchPlan] = useState<SearchPlanState>(null);
+  const [searchFilterBreakdown, setSearchFilterBreakdown] = useState<SearchFilterBreakdownState>(null);
   const [searchStats, setSearchStats] = useState<SearchStatsState>(null);
   const [profileMemoryUpdate, setProfileMemoryUpdate] = useState<ProfileMemoryUpdateState>(null);
   const [profileMemoryUpdateVersion, setProfileMemoryUpdateVersion] = useState(0);
@@ -293,6 +416,12 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     setSearchHint(parsed.searchHint);
     if (parsed.searchSummary !== null) {
       setSearchSummary(parsed.searchSummary);
+    }
+    if (parsed.searchPlan !== null) {
+      setSearchPlan(parsed.searchPlan);
+    }
+    if (parsed.searchFilterBreakdown !== null) {
+      setSearchFilterBreakdown(parsed.searchFilterBreakdown);
     }
     if (parsed.searchStats !== null) {
       setSearchStats(parsed.searchStats);
@@ -355,6 +484,12 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
       if (parsed.searchSummary !== null) {
         setSearchSummary(parsed.searchSummary);
       }
+      if (parsed.searchPlan !== null) {
+        setSearchPlan(parsed.searchPlan);
+      }
+      if (parsed.searchFilterBreakdown !== null) {
+        setSearchFilterBreakdown(parsed.searchFilterBreakdown);
+      }
       if (parsed.searchStats !== null) {
         setSearchStats(parsed.searchStats);
       }
@@ -400,6 +535,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     setProperties([]);
     setSearchHint(null);
     setSearchSummary(null);
+    setSearchPlan(null);
+    setSearchFilterBreakdown(null);
     setSearchStats(null);
     setProfileMemoryUpdate(null);
     setProfileMemoryUpdateVersion(0);
@@ -412,6 +549,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     setProperties([]);
     setSearchHint(null);
     setSearchSummary(null);
+    setSearchPlan(null);
+    setSearchFilterBreakdown(null);
     setSearchStats(null);
     setProfileMemoryUpdate(null);
     await ap({ role: "user", content });
@@ -425,6 +564,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     properties,
     searchHint,
     searchSummary,
+    searchPlan,
+    searchFilterBreakdown,
     searchStats,
     profileMemoryUpdate,
     profileMemoryUpdateVersion,

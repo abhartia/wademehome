@@ -657,13 +657,20 @@ def run_scraper(
     max_cities: int | None = None,
     max_properties: int | None = None,
     expand_city_graph: bool = False,
+    seeds_file: str | None = None,
 ):
     scraped_at = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     output_dir = f"env={env}/source=rentcafe/stage=processed/entity=property/load_date={scraped_at}"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    city_urls = discover_city_urls(env=env, max_cities=max_cities, expand_city_graph=expand_city_graph)
-    property_urls = discover_property_urls(env=env, city_urls=city_urls)
+    if seeds_file and os.path.isfile(seeds_file):
+        with open(seeds_file, encoding="utf-8") as f:
+            property_urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+        city_urls = []
+        logger.info("Using pre-discovered seeds: %s property URLs from %s", len(property_urls), seeds_file)
+    else:
+        city_urls = discover_city_urls(env=env, max_cities=max_cities, expand_city_graph=expand_city_graph)
+        property_urls = discover_property_urls(env=env, city_urls=city_urls)
     if max_properties is not None:
         property_urls = property_urls[:max_properties]
     manifest = {
@@ -673,6 +680,7 @@ def run_scraper(
         "expand_city_graph": expand_city_graph,
         "max_cities": max_cities,
         "max_properties": max_properties,
+        "seeds_file": seeds_file,
         "cities_sample": city_urls[:20],
     }
     with open(os.path.join(output_dir, "discovery_manifest.json"), "w", encoding="utf-8") as f:
@@ -795,6 +803,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_cities", type=int, default=None)
     parser.add_argument("--max_properties", type=int, default=None)
     parser.add_argument("--expand_city_graph", action="store_true")
+    parser.add_argument("--seeds", default=None, help="Pre-discovered property URL file (one URL per line)")
     parser.add_argument("--scrape_date", default=None)
     args = parser.parse_args()
 
@@ -806,6 +815,7 @@ if __name__ == "__main__":
             max_cities=args.max_cities,
             max_properties=args.max_properties,
             expand_city_graph=args.expand_city_graph,
+            seeds_file=args.seeds,
         )
     else:
         process_local(env=args.env, output_format=args.format, scraped_at=args.scrape_date)

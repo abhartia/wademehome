@@ -156,6 +156,7 @@ def flatten_units(prop_meta, units, url, scraped_at, extras=None):
         else:
             listing_id = base_lid
 
+        # Greystar's PropertyDetailsFloorPlans.availableUnits is the site-aligned “available now” feed.
         results.append({
             "listing_id": listing_id,
             "property_id": str(prop_id),
@@ -176,7 +177,7 @@ def flatten_units(prop_meta, units, url, scraped_at, extras=None):
             "rent_price": float(rent_min) if rent_min else None,
             "rent_max": float(rent_max) if rent_max else None,
             "deposit": deposit,
-            "availability_status": "available" if rent_min else "unavailable",
+            "availability_status": "available",
             "available_at": available,
             "lease_url": None,
             "lease_term": lease_term,

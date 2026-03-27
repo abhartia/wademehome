@@ -261,6 +261,83 @@ def _table_exists(engine, table_name: str, schema: str | None) -> bool:
         )
 
 
+def _get_table_columns(engine, table_name: str, schema: str | None) -> set[str]:
+    schema_name = schema or "public"
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_schema = :schema
+                  AND table_name = :tname
+                """
+            ),
+            {"schema": schema_name, "tname": table_name},
+        )
+        return {str(r[0]).lower() for r in rows}
+
+
+def _refresh_search_columns(engine, table_name: str, schema: str | None) -> None:
+    cols = _get_table_columns(engine, table_name, schema)
+    if not cols:
+        return
+
+    qtable = f'"{schema}"."{table_name}"' if schema else f'"{table_name}"'
+
+    def pick(*names: str) -> str | None:
+        for n in names:
+            if n.lower() in cols:
+                return n.lower()
+        return None
+
+    lat_col = pick("latitude", "lat")
+    lon_col = pick("longitude", "lng", "lon")
+    search_doc_col = "search_doc" if "search_doc" in cols else None
+    geog_col = "geog" if "geog" in cols else None
+    if not search_doc_col and not geog_col:
+        return
+
+    search_parts: list[str] = []
+    for name in (
+        pick("property_name", "building_name", "name", "title"),
+        pick("address", "street_address", "full_address", "formatted_address"),
+        pick("city", "locality"),
+        pick("state", "state_code", "region"),
+        pick("zipcode", "zip", "postal_code"),
+        pick("amenities", "community_amenities", "apartment_amenities", "building_amenities"),
+        pick("description", "summary", "about"),
+    ):
+        if name:
+            search_parts.append(f'COALESCE("{name}"::text, \'\')')
+
+    with engine.begin() as conn:
+        if geog_col and lat_col and lon_col:
+            conn.execute(
+                text(
+                    f"""
+                    UPDATE {qtable}
+                    SET geog = CASE
+                        WHEN "{lat_col}" IS NOT NULL
+                         AND "{lon_col}" IS NOT NULL
+                        THEN ST_SetSRID(ST_MakePoint("{lon_col}"::double precision, "{lat_col}"::double precision), 4326)::geography
+                        ELSE NULL
+                    END
+                    """
+                )
+            )
+        if search_doc_col and search_parts:
+            concat_sql = ", ".join(search_parts)
+            conn.execute(
+                text(
+                    f"""
+                    UPDATE {qtable}
+                    SET search_doc = NULLIF(trim(concat_ws(' ', {concat_sql})), '')
+                    """
+                )
+            )
+
+
 def _dedupe_listing_ids_in_table(raw, *, qtable: str) -> int:
     """Remove duplicate listing_id rows, keep one row per listing_id (lowest ctid). Returns rows deleted."""
     cur = raw.cursor()
@@ -510,6 +587,8 @@ def main() -> int:
 
     with engine.connect() as conn:
         count = conn.execute(q).scalar()
+
+    _refresh_search_columns(engine, table_name, schema)
 
     log(f"Rows now in DB: {count:,}")
     log("Done.")

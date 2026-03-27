@@ -8,7 +8,9 @@ export enum UIEventsTypesEnum {
   PROPERTY_LISTINGS = "property_listings",
   SEARCH_HINT = "search_hint",
   SEARCH_SUMMARY = "search_summary",
+  SEARCH_PLAN = "search_plan",
   SEARCH_STATS = "search_stats",
+  SEARCH_FILTER_BREAKDOWN = "search_filter_breakdown",
   PROFILE_MEMORY_UPDATE = "profile_memory_update",
 }
 
@@ -62,8 +64,35 @@ export interface UISearchStatsAnnotation {
   type: UIEventsTypesEnum.SEARCH_STATS;
   data: {
     returned_count: number;
+    matched_count?: number | null;
     limit_cap?: number | null;
     sort_note?: string | null;
+    parse_ms?: number | null;
+    embed_ms?: number | null;
+    db_ms?: number | null;
+    breakdown_ms?: number | null;
+    total_ms?: number | null;
+  };
+}
+
+export interface UISearchPlanAnnotation {
+  type: UIEventsTypesEnum.SEARCH_PLAN;
+  data: {
+    summary_headline: string;
+    summary_bullets: string[];
+  };
+}
+
+export interface UISearchFilterBreakdownAnnotation {
+  type: UIEventsTypesEnum.SEARCH_FILTER_BREAKDOWN;
+  data: {
+    criteria: Array<{
+      key: string;
+      label: string;
+      excluded_count: number;
+      matched_count: number;
+      eligible_without_this_rule?: number;
+    }>;
   };
 }
 
@@ -79,5 +108,7 @@ export type UIEventsAnnotations =
   | UIPropertyListingAnnotation
   | UISearchHintAnnotation
   | UISearchSummaryAnnotation
+  | UISearchPlanAnnotation
   | UISearchStatsAnnotation
+  | UISearchFilterBreakdownAnnotation
   | UIProfileMemoryUpdateAnnotation;

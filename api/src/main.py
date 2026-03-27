@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import traceback
 
 from core.llama_cloud_compat import apply_llama_cloud_server_compat
@@ -66,6 +67,44 @@ app.include_router(movein_router)
 app.include_router(roommates_router)
 app.include_router(landlord_router)
 app.include_router(admin_router)
+
+
+_TIMED_PATH_PREFIXES: tuple[str, ...] = (
+    "/listings",
+    "/properties",
+)
+
+
+@app.middleware("http")
+async def log_timed_routes(request: Request, call_next):
+    path = request.url.path
+    should_time = any(path.startswith(prefix) for prefix in _TIMED_PATH_PREFIXES)
+    if not should_time:
+        return await call_next(request)
+
+    t0 = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        logger.exception(
+            "api timing: %s %s failed after %sms",
+            request.method,
+            path,
+            elapsed_ms,
+        )
+        raise
+
+    elapsed_ms = int((time.perf_counter() - t0) * 1000)
+    logger.info(
+        "api timing: %s %s -> %s in %sms",
+        request.method,
+        path,
+        response.status_code,
+        elapsed_ms,
+    )
+    return response
+
 
 def get_event_generator(
     handler: WorkflowHandler,

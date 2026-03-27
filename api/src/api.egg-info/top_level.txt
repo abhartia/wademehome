@@ -1,7 +1,9 @@
+admin
 auth
 core
 db
 guarantors
+landlord
 listings
 movein
 portal

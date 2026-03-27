@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import time
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -102,6 +103,23 @@ def _empty_response(
     )
 
 
+def _building_key_from_row(row: dict[str, Any]) -> str:
+    pid = row.get("property_id")
+    if pid not in (None, ""):
+        return f"pid:{pid}"
+    lat = row.get("latitude")
+    lng = row.get("longitude")
+    if lat is not None and lng is not None:
+        try:
+            return f"ll:{round(float(lat), 5)}:{round(float(lng), 5)}"
+        except Exception:
+            pass
+    lid = row.get("listing_id")
+    if lid not in (None, ""):
+        return f"lid:{lid}"
+    return "unknown"
+
+
 # Max bbox span per axis (degrees) to limit query cost / abuse (~a few hundred miles at mid-latitudes).
 _MAX_BBOX_LAT_SPAN = 4.0
 _MAX_BBOX_LNG_SPAN = 6.0
@@ -144,7 +162,14 @@ def get_nearby_listings(
 
     Requires PostgreSQL, DATABASE_URL, LISTINGS_TABLE_NAME, latitude/longitude columns.
     """
+    t0 = time.perf_counter()
     bbox_mode = all(v is not None for v in (west, south, east, north))
+    include_total = (Config.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
     center_mode = latitude is not None and longitude is not None
 
     if bbox_mode:
@@ -176,7 +201,6 @@ def get_nearby_listings(
     schema_kw = (listing_table_schema or "").strip() or None
     schema_for_info = schema_kw if schema_kw else "public"
     tname = (listing_table_name or "").strip()
-    hav = _haversine_mi_sql()
     hav_inner = _haversine_mi_sql(table_alias="t_inner")
 
     try:
@@ -186,12 +210,11 @@ def get_nearby_listings(
                 return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
             cols = _table_columns_lower(conn, schema_for_info, tname)
-            distinct_on, order_building = _distinct_on_building(cols)
-
             params: dict[str, Any] = {
                 "lat": q_lat,
                 "lng": q_lng,
                 "limit": limit,
+                "prefetch_limit": min(max(limit * 10, limit), 1000),
             }
 
             if bbox_mode:
@@ -209,112 +232,120 @@ def get_nearby_listings(
                   AND t_inner.latitude BETWEEN :south AND :north
                   AND t_inner.longitude BETWEEN :west AND :east
                 """
-                count_sql = text(
-                    f"""
-                    SELECT COUNT(*)::bigint AS c
-                    FROM {qtable}
-                    WHERE {bbox_where}
-                    """
+                # Circle that fully covers the requested bbox for indexed prefiltering.
+                params["bbox_radius_m"] = (
+                    float(math.hypot((north - south) * 110_574.0, (east - west) * 111_320.0 * max(0.25, math.cos(math.radians(q_lat)))) / 2.0)
                 )
-                total = int(conn.execute(count_sql, params).scalar() or 0)
-
-                if total > 0:
+                # Use geog+GiST path when available; fall back to haversine for portability.
+                if "geog" in cols:
+                    total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
                     select_sql = text(
                         f"""
-                        SELECT * FROM (
-                          SELECT DISTINCT ON ({distinct_on})
-                            t_inner.*,
-                            ({hav_inner}) AS d_mi
-                          FROM {qtable} AS t_inner
-                          WHERE {bbox_where_inner}
-                          ORDER BY {order_building}, ({hav_inner}) ASC
-                        ) sub
-                        ORDER BY d_mi ASC
-                        LIMIT :limit
+                        SELECT
+                          t_inner.*,
+                          {total_value_expr} AS total_in_scope,
+                          ST_Distance(
+                            t_inner.geog,
+                            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+                          ) / 1609.344 AS d_mi
+                        FROM {qtable} AS t_inner
+                        WHERE t_inner.geog IS NOT NULL
+                          AND ST_DWithin(
+                            t_inner.geog,
+                            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+                            :bbox_radius_m
+                          )
+                          AND t_inner.latitude BETWEEN :south AND :north
+                          AND t_inner.longitude BETWEEN :west AND :east
+                        ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+                        LIMIT :prefetch_limit
                         """
                     )
+                else:
+                    # Single-pass scoped query: nearest rows + in-scope total count.
+                    total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
+                    select_sql = text(
+                        f"""
+                        SELECT
+                          t_inner.*,
+                          {total_value_expr} AS total_in_scope,
+                          ({hav_inner}) AS d_mi
+                        FROM {qtable} AS t_inner
+                        WHERE {bbox_where_inner}
+                        ORDER BY ({hav_inner}) ASC
+                        LIMIT :prefetch_limit
+                        """
+                    )
+                rows = conn.execute(select_sql, params).mappings().all()
+                if rows:
+                    total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
                     used_fallback = False
                 else:
-                    any_coords = int(
-                        conn.execute(
-                            text(
-                                f"""
-                                SELECT COUNT(*)::bigint
-                                FROM {qtable}
-                                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                                """
-                            )
-                        ).scalar()
-                        or 0
-                    )
-                    if any_coords == 0:
-                        return _empty_response(response_radius, limit, used_bbox=True)
                     logger.info(
                         "listings/nearby: 0 within bbox; returning %s nearest buildings",
                         limit,
                     )
-                    select_sql = text(
+                    fallback_sql = text(
                         f"""
-                        SELECT * FROM (
-                          SELECT DISTINCT ON ({distinct_on})
-                            t_inner.*,
-                            ({hav_inner}) AS d_mi
-                          FROM {qtable} AS t_inner
-                          WHERE t_inner.latitude IS NOT NULL
-                            AND t_inner.longitude IS NOT NULL
-                          ORDER BY {order_building}, ({hav_inner}) ASC
-                        ) sub
-                        ORDER BY d_mi ASC
-                        LIMIT :limit
+                        SELECT
+                          t_inner.*,
+                          ({hav_inner}) AS d_mi
+                        FROM {qtable} AS t_inner
+                        WHERE t_inner.latitude IS NOT NULL
+                          AND t_inner.longitude IS NOT NULL
+                        ORDER BY ({hav_inner}) ASC
+                        LIMIT :prefetch_limit
                         """
                     )
-                    used_fallback = True
+                    rows = conn.execute(fallback_sql, params).mappings().all()
+                    total = 0
+                    used_fallback = bool(rows)
             else:
                 params["radius"] = radius_miles
-                count_sql = text(
-                    f"""
-                    SELECT COUNT(*)::bigint AS c
-                    FROM {qtable}
-                    WHERE latitude IS NOT NULL
-                      AND longitude IS NOT NULL
-                      AND {hav} <= :radius
-                    """
-                )
-                total = int(conn.execute(count_sql, params).scalar() or 0)
-
-                if total > 0:
+                params["radius_m"] = float(radius_miles) * 1609.344
+                if "geog" in cols:
+                    total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
                     select_sql = text(
                         f"""
-                        SELECT * FROM (
-                          SELECT DISTINCT ON ({distinct_on})
-                            t_inner.*,
-                            ({hav_inner}) AS d_mi
-                          FROM {qtable} AS t_inner
-                          WHERE t_inner.latitude IS NOT NULL
-                            AND t_inner.longitude IS NOT NULL
-                            AND ({hav_inner}) <= :radius
-                          ORDER BY {order_building}, ({hav_inner}) ASC
-                        ) sub
-                        ORDER BY d_mi ASC
-                        LIMIT :limit
+                        SELECT
+                          t_inner.*,
+                          {total_value_expr} AS total_in_scope,
+                          ST_Distance(
+                            t_inner.geog,
+                            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+                          ) / 1609.344 AS d_mi
+                        FROM {qtable} AS t_inner
+                        WHERE t_inner.geog IS NOT NULL
+                          AND ST_DWithin(
+                            t_inner.geog,
+                            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+                            :radius_m
+                          )
+                        ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+                        LIMIT :prefetch_limit
                         """
                     )
+                else:
+                    total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
+                    select_sql = text(
+                        f"""
+                        SELECT
+                          t_inner.*,
+                          {total_value_expr} AS total_in_scope,
+                          ({hav_inner}) AS d_mi
+                        FROM {qtable} AS t_inner
+                        WHERE t_inner.latitude IS NOT NULL
+                          AND t_inner.longitude IS NOT NULL
+                          AND ({hav_inner}) <= :radius
+                        ORDER BY ({hav_inner}) ASC
+                        LIMIT :prefetch_limit
+                        """
+                    )
+                rows = conn.execute(select_sql, params).mappings().all()
+                if rows:
+                    total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
                     used_fallback = False
                 else:
-                    any_coords = int(
-                        conn.execute(
-                            text(
-                                f"""
-                                SELECT COUNT(*)::bigint
-                                FROM {qtable}
-                                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                                """
-                            )
-                        ).scalar()
-                        or 0
-                    )
-                    if any_coords == 0:
-                        return _empty_response(radius_miles, limit, used_bbox=False)
                     logger.info(
                         "listings/nearby: 0 within radius=%s mi of (%s,%s); returning %s nearest buildings",
                         radius_miles,
@@ -322,36 +353,48 @@ def get_nearby_listings(
                         q_lng,
                         limit,
                     )
-                    select_sql = text(
+                    fallback_sql = text(
                         f"""
-                        SELECT * FROM (
-                          SELECT DISTINCT ON ({distinct_on})
-                            t_inner.*,
-                            ({hav_inner}) AS d_mi
-                          FROM {qtable} AS t_inner
-                          WHERE t_inner.latitude IS NOT NULL
-                            AND t_inner.longitude IS NOT NULL
-                          ORDER BY {order_building}, ({hav_inner}) ASC
-                        ) sub
-                        ORDER BY d_mi ASC
-                        LIMIT :limit
+                        SELECT
+                          t_inner.*,
+                          ({hav_inner}) AS d_mi
+                        FROM {qtable} AS t_inner
+                        WHERE t_inner.latitude IS NOT NULL
+                          AND t_inner.longitude IS NOT NULL
+                        ORDER BY ({hav_inner}) ASC
+                        LIMIT :prefetch_limit
                         """
                     )
-                    used_fallback = True
+                    rows = conn.execute(fallback_sql, params).mappings().all()
+                    total = 0
+                    used_fallback = bool(rows)
 
-            result = conn.execute(select_sql, params)
-            rows = result.mappings().all()
+        # Keep one listing per building while preserving nearest-first ordering.
+        deduped_rows: list[dict[str, Any]] = []
+        seen_buildings: set[str] = set()
+        for row in rows:
+            row_dict = dict(row)
+            bkey = _building_key_from_row(row_dict)
+            if bkey in seen_buildings:
+                continue
+            seen_buildings.add(bkey)
+            deduped_rows.append(row_dict)
+            if len(deduped_rows) >= limit:
+                break
 
         properties: list[PropertyDataItem] = []
-        for row in rows:
+        for row_dict in deduped_rows:
             try:
-                row_dict = dict(row)
                 row_dict.pop("d_mi", None)
+                row_dict.pop("total_in_scope", None)
                 properties.append(row_to_property_data_item(row_dict))
             except Exception:
                 logger.exception("listings/nearby: skip row that failed to map")
 
-        return NearbyListingsResponse(
+        if not include_total:
+            total = len(properties)
+
+        resp = NearbyListingsResponse(
             properties=properties,
             total_in_radius=total,
             radius_miles=response_radius,
@@ -359,6 +402,16 @@ def get_nearby_listings(
             used_global_nearest_fallback=used_fallback,
             used_bbox=bbox_mode,
         )
+        logger.info(
+            "listings/nearby timing: mode=%s total_ms=%s returned=%s total_in_scope=%s fallback=%s geog=%s",
+            "bbox" if bbox_mode else "radius",
+            int((time.perf_counter() - t0) * 1000),
+            len(properties),
+            total,
+            used_fallback,
+            "geog" in cols,
+        )
+        return resp
     except HTTPException:
         raise
     except Exception:

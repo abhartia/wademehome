@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2, Search, X } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { NearbyListingsResponse } from "@/lib/listings/useNearbyListings";
+import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
 
 /** Default map + SQL browse center for guests (not the browser geolocation). */
 const GUEST_BROWSE_MAP_CENTER = { latitude: 40.7128, longitude: -74.006 };
@@ -174,6 +175,8 @@ function GuestHomeSearchInner({
   const properties = useMemo(() => listingChat?.properties ?? [], [listingChat?.properties]);
   const searchHint = listingChat?.searchHint ?? null;
   const searchSummary = listingChat?.searchSummary ?? null;
+  const searchPlan = listingChat?.searchPlan ?? null;
+  const searchFilterBreakdown = listingChat?.searchFilterBreakdown ?? null;
   const searchStats = listingChat?.searchStats ?? null;
   const error = listingChat?.error ?? null;
 
@@ -182,6 +185,12 @@ function GuestHomeSearchInner({
   const useAiSlice = listingSessionActive;
 
   const displaySearchSummary = useMemo(() => {
+    if (searchPlan && (searchPlan.summary_headline || searchPlan.summary_bullets.length > 0)) {
+      return {
+        headline: searchPlan.summary_headline,
+        bullets: searchPlan.summary_bullets,
+      };
+    }
     if (searchSummary && (searchSummary.headline || searchSummary.bullets.length > 0)) {
       return searchSummary;
     }
@@ -196,7 +205,7 @@ function GuestHomeSearchInner({
     ];
     if (bullets.length === 0) return null;
     return { headline: "What we're using for this search", bullets };
-  }, [searchSummary, messages]);
+  }, [messages, searchPlan, searchSummary]);
 
   const assistantFullText = streamText.trim();
   const assistantHasQuestion = assistantFullText.includes("?");
@@ -345,6 +354,12 @@ function GuestHomeSearchInner({
                                   ) : null}
                                 </div>
                               )}
+                              {searchFilterBreakdown?.criteria?.length ? (
+                                <SearchTransparencyPanel
+                                  criteria={searchFilterBreakdown.criteria}
+                                  finalMatched={searchStats?.matched_count ?? null}
+                                />
+                              ) : null}
                               {phase === "streaming" && streamText.length === 0 && (
                                 <p className="text-xs text-muted-foreground">
                                   Interpreting your request and querying listings…
@@ -488,6 +503,9 @@ function GuestHomeSearchInner({
                 Search returned{" "}
                 <span className="font-medium text-foreground">{searchStats.returned_count}</span>{" "}
                 listing{searchStats.returned_count === 1 ? "" : "s"}
+                {searchStats.matched_count != null
+                  ? ` (${searchStats.matched_count} matched before limit)`
+                  : ""}
                 {searchStats.limit_cap != null
                   ? ` (up to ${searchStats.limit_cap} per query)`
                   : ""}
@@ -495,6 +513,7 @@ function GuestHomeSearchInner({
                 {nearbyListings.length !== searchStats.returned_count
                   ? ` · ${nearbyListings.length} shown with map coordinates`
                   : ""}
+                {searchStats.total_ms != null ? ` · ${searchStats.total_ms}ms total` : ""}
               </p>
             )}
           </div>
@@ -560,6 +579,7 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const [listingSessionActive, setListingSessionActive] = useState(false);
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
+  const [hasBrowseViewport, setHasBrowseViewport] = useState(false);
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
   const [browseBounds, setBrowseBounds] = useState(() =>
     approximateBoundsFromCenterZoom(
@@ -608,6 +628,7 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   }, [query, pathname, router, searchParams]);
 
   const onBrowseMapCenterChange = useCallback((c: BrowseMapViewport) => {
+    setHasBrowseViewport(true);
     setBrowseBounds({
       west: c.west,
       south: c.south,
@@ -629,7 +650,7 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
     mode: "bbox",
     bounds: browseBounds,
     limit: DEFAULT_NEARBY_LIMIT,
-    enabled: !listingSessionActive,
+    enabled: !listingSessionActive && hasBrowseViewport,
   });
 
   useEffect(() => {

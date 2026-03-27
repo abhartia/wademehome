@@ -31,6 +31,7 @@ import type { UserProfile } from "@/lib/types/userProfile";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2, Search } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
 
 const MIN_QUERY_CHARS = 2;
 const EMPTY_PROPERTY_LIST: PropertyDataItem[] = [];
@@ -185,6 +186,8 @@ function AppSearchInner({
   const streamText = useMemo(() => listingChat?.streamText ?? "", [listingChat?.streamText]);
   const properties = useMemo(() => listingChat?.properties ?? [], [listingChat?.properties]);
   const searchSummary = listingChat?.searchSummary ?? null;
+  const searchPlan = listingChat?.searchPlan ?? null;
+  const searchFilterBreakdown = listingChat?.searchFilterBreakdown ?? null;
   const searchStats = listingChat?.searchStats ?? null;
   const error = listingChat?.error ?? null;
 
@@ -193,6 +196,12 @@ function AppSearchInner({
   const memoryUpdate = listingChat?.profileMemoryUpdate ?? null;
 
   const displaySearchSummary = useMemo(() => {
+    if (searchPlan && (searchPlan.summary_headline || searchPlan.summary_bullets.length > 0)) {
+      return {
+        headline: searchPlan.summary_headline,
+        bullets: searchPlan.summary_bullets,
+      };
+    }
     if (searchSummary && (searchSummary.headline || searchSummary.bullets.length > 0)) {
       return searchSummary;
     }
@@ -207,7 +216,7 @@ function AppSearchInner({
     ];
     if (bullets.length === 0) return null;
     return { headline: "What we are using for this search", bullets };
-  }, [messages, searchSummary]);
+  }, [messages, searchPlan, searchSummary]);
 
   const assistantFullText = streamText.trim();
   const assistantNeedsExpand = assistantFullText.length > 400;
@@ -344,6 +353,12 @@ function AppSearchInner({
                                 ) : null}
                               </div>
                             )}
+                            {searchFilterBreakdown?.criteria?.length ? (
+                              <SearchTransparencyPanel
+                                criteria={searchFilterBreakdown.criteria}
+                                finalMatched={searchStats?.matched_count ?? null}
+                              />
+                            ) : null}
                             {assistantFullText.length > 0 && (
                               <div className="mt-1">
                                 <p className="text-[11px] font-medium text-muted-foreground">
@@ -450,11 +465,15 @@ function AppSearchInner({
                 Search returned{" "}
                 <span className="font-medium text-foreground">{searchStats.returned_count}</span>{" "}
                 listing{searchStats.returned_count === 1 ? "" : "s"}
+                {searchStats.matched_count != null
+                  ? ` (${searchStats.matched_count} matched before limit)`
+                  : ""}
                 {searchStats.limit_cap != null ? ` (up to ${searchStats.limit_cap} per query)` : ""}
                 {searchStats.sort_note ? ` - ${searchStats.sort_note}` : ""}
                 {visibleListings.length !== searchStats.returned_count
                   ? ` - ${visibleListings.length} shown with map coordinates`
                   : ""}
+                {searchStats.total_ms != null ? ` - ${searchStats.total_ms}ms total` : ""}
               </p>
             )}
             {memoryUpdate && memoryUpdate.updated_fields.length > 0 && (
@@ -524,6 +543,7 @@ export function AppSearchClient() {
   const [listingSessionActive, setListingSessionActive] = useState(false);
   const [listingFireVersion, setListingFireVersion] = useState(0);
   const [listingPhase, setListingPhase] = useState<ListingSearchPhase>("idle");
+  const [hasBrowseViewport, setHasBrowseViewport] = useState(false);
   const [browseMapCenter, setBrowseMapCenter] = useState(DEFAULT_BROWSE_MAP_CENTER);
   const [browseBounds, setBrowseBounds] = useState(() =>
     approximateBoundsFromCenterZoom(
@@ -545,6 +565,7 @@ export function AppSearchClient() {
 
   const onBrowseMapCenterChange = useCallback((c: BrowseMapViewport) => {
     didSetInitialBrowseCenterRef.current = true;
+    setHasBrowseViewport(true);
     setBrowseBounds({
       west: c.west,
       south: c.south,
@@ -566,7 +587,7 @@ export function AppSearchClient() {
     mode: "bbox",
     bounds: browseBounds,
     limit: DEFAULT_NEARBY_LIMIT,
-    enabled: !listingSessionActive,
+    enabled: !listingSessionActive && hasBrowseViewport,
   });
 
   useEffect(() => {
@@ -583,6 +604,7 @@ export function AppSearchClient() {
             approximateBoundsFromCenterZoom(next.latitude, next.longitude, 11),
           );
           didSetInitialBrowseCenterRef.current = true;
+          setHasBrowseViewport(true);
         }
       },
       () => {

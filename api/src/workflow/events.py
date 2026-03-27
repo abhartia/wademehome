@@ -119,6 +119,10 @@ class SearchStatsData(BaseModel):
     """Streamed with listing results: transparency about counts and query shape."""
 
     returned_count: int = Field(ge=0, description="Rows returned by the listing SQL query.")
+    matched_count: int | None = Field(
+        default=None,
+        description="Rows matching all strict constraints before LIMIT.",
+    )
     limit_cap: int | None = Field(
         default=None,
         description="LIMIT from the SQL if parseable; None if unknown.",
@@ -127,6 +131,34 @@ class SearchStatsData(BaseModel):
         default=None,
         description="Short UI line about ordering (e.g. distance sort).",
     )
+    parse_ms: int | None = Field(default=None, ge=0)
+    embed_ms: int | None = Field(default=None, ge=0)
+    db_ms: int | None = Field(default=None, ge=0)
+    breakdown_ms: int | None = Field(default=None, ge=0)
+    total_ms: int | None = Field(default=None, ge=0)
+
+
+class SearchPlanData(BaseModel):
+    summary_headline: str = Field(default="Property search")
+    summary_bullets: List[str] = Field(default_factory=list)
+
+
+class SearchFilterBreakdownItem(BaseModel):
+    key: str
+    label: str
+    excluded_count: int = Field(ge=0)
+    matched_count: int = Field(
+        ge=0,
+        description="Rows matching all filters (same value on each row; use for global summary).",
+    )
+    eligible_without_this_rule: int = Field(
+        ge=0,
+        description="Rows matching every other filter if this rule were ignored.",
+    )
+
+
+class SearchFilterBreakdownData(BaseModel):
+    criteria: List[SearchFilterBreakdownItem] = Field(default_factory=list)
 
 
 class SearchHintData(BaseModel):

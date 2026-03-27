@@ -1,0 +1,22 @@
+2026-03-26 14:55:33,903 [INFO] AppFolio scrape: 19 seed URLs
+2026-03-26 14:55:34,598 [INFO] Parsed 0 rows from https://proteam.appfolio.com/listings/listings
+2026-03-26 14:55:34,671 [INFO] Parsed 2 rows from https://downtown.appfolio.com/listings/listings
+2026-03-26 14:55:34,768 [INFO] Parsed 6 rows from https://citywidepm.appfolio.com/listings/listings
+2026-03-26 14:55:35,136 [INFO] Parsed 32 rows from https://remresidential.appfolio.com/listings/listings
+2026-03-26 14:55:35,171 [INFO] Parsed 0 rows from https://bfrealtygroup.appfolio.com/listings/listings
+2026-03-26 14:55:35,605 [INFO] Parsed 0 rows from https://shoreviews.appfolio.com/listings/listings
+2026-03-26 14:55:35,700 [INFO] Parsed 0 rows from https://metropolitanpmg.appfolio.com/listings/listings
+2026-03-26 14:55:35,751 [INFO] Parsed 0 rows from https://hemlockpm.appfolio.com/listings/listings
+2026-03-26 14:55:35,776 [INFO] Parsed 0 rows from https://njproperty.appfolio.com/listings/listings
+2026-03-26 14:55:36,165 [INFO] Parsed 20 rows from https://oneroofpm.appfolio.com/listings/listings
+2026-03-26 14:55:36,363 [INFO] Parsed 0 rows from https://vanguardpm.appfolio.com/listings/listings
+2026-03-26 14:55:36,433 [INFO] Parsed 0 rows from https://goldstonepm.appfolio.com/listings/listings
+2026-03-26 14:55:36,683 [INFO] Parsed 0 rows from https://nycmetro.appfolio.com/listings/listings
+2026-03-26 14:55:36,906 [INFO] Parsed 0 rows from https://harborpm.appfolio.com/listings/listings
+2026-03-26 14:55:37,357 [INFO] Parsed 0 rows from https://manhattanresidences.appfolio.com/listings/listings
+2026-03-26 14:55:37,361 [INFO] Parsed 0 rows from https://stuytown.appfolio.com/listings/listings
+2026-03-26 14:55:37,365 [INFO] Parsed 0 rows from https://heritagerealtymgmt.appfolio.com/listings/listings
+2026-03-26 14:55:37,495 [INFO] Parsed 0 rows from https://sterlingeq.appfolio.com/listings/listings
+2026-03-26 14:55:38,128 [INFO] Parsed 248 rows from https://tulirealty.appfolio.com/listings/listings
+2026-03-26 14:55:38,130 [INFO] Scrape done: ok=19 failed=0 total_rows=308
+2026-03-26 14:55:38,628 [INFO] Quality summary: {"rows": 159, "unique_listing_ids": 159, "duplicate_listing_ids": 0, "null_rates": {"company": 0.0, "scraped_timestamp": 0.0, "listing_url": 0.0, "availability_status": 0.0, "listing_id": 0.0, "address": 0.0314, "property_name": 0.0314, "city": 0.0314, "state": 0.0314, "zipcode": 0.0314, "available_at": 0.7107, "image_url": 0.0314, "property_id": 1.0, "latitude": 1.0, "longitude": 1.0, "rent_price": 1.0, "bedrooms": 1.0, "bathrooms": 1.0, "square_feet": 1.0, "unit_id": 1.0, "unit_name": 1.0, "floor_plan": 1.0, "amenities": 1.0, "description": 1.0, "images": 1.0}}

@@ -29,6 +29,21 @@ function normalizeNearby(data: ApiNearbyListingsResponse): NearbyListingsRespons
 
 export const DEFAULT_NEARBY_RADIUS_MILES = 15;
 export const DEFAULT_NEARBY_LIMIT = 50;
+const COORD_PRECISION = 4;
+
+function stableCoord(value: number): number {
+  const scale = 10 ** COORD_PRECISION;
+  return Math.round(value * scale) / scale;
+}
+
+function stableBounds(bounds: MapBoundsLngLat): MapBoundsLngLat {
+  return {
+    west: stableCoord(bounds.west),
+    south: stableCoord(bounds.south),
+    east: stableCoord(bounds.east),
+    north: stableCoord(bounds.north),
+  };
+}
 
 function boundsFinite(b: MapBoundsLngLat): boolean {
   return (
@@ -60,22 +75,25 @@ type UseNearbyListingsOptions =
 export function useNearbyListings(options: UseNearbyListingsOptions) {
   const limit = options.limit ?? DEFAULT_NEARBY_LIMIT;
   const enabled = options.enabled ?? true;
+  const normalizedBounds = options.mode === "bbox" ? stableBounds(options.bounds) : null;
+  const normalizedLat = options.mode === "radius" ? stableCoord(options.latitude) : null;
+  const normalizedLng = options.mode === "radius" ? stableCoord(options.longitude) : null;
 
   const queryKeyPayload =
     options.mode === "bbox"
       ? {
           query: {
-            west: options.bounds.west,
-            south: options.bounds.south,
-            east: options.bounds.east,
-            north: options.bounds.north,
+            west: normalizedBounds!.west,
+            south: normalizedBounds!.south,
+            east: normalizedBounds!.east,
+            north: normalizedBounds!.north,
             limit,
           },
         }
       : {
           query: {
-            latitude: options.latitude,
-            longitude: options.longitude,
+            latitude: normalizedLat!,
+            longitude: normalizedLng!,
             radius_miles: options.radiusMiles ?? DEFAULT_NEARBY_RADIUS_MILES,
             limit,
           },
@@ -83,8 +101,8 @@ export function useNearbyListings(options: UseNearbyListingsOptions) {
 
   const coordsOk =
     options.mode === "bbox"
-      ? boundsFinite(options.bounds)
-      : Number.isFinite(options.latitude) && Number.isFinite(options.longitude);
+      ? boundsFinite(normalizedBounds!)
+      : Number.isFinite(normalizedLat) && Number.isFinite(normalizedLng);
 
   return useQuery({
     ...getNearbyListingsListingsNearbyGetOptions(queryKeyPayload),
@@ -92,5 +110,8 @@ export function useNearbyListings(options: UseNearbyListingsOptions) {
     select: normalizeNearby,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

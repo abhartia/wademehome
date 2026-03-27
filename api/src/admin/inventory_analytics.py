@@ -129,7 +129,7 @@ class ListingsPerBuildingProof(BaseModel):
 class CmsMarketShareSlice(BaseModel):
     label: str
     listing_rows: int
-    segment: str  # on_platform | off_platform
+    segment: str  # on_platform | scrape_next | not_scrapable
     citation_url: str | None = None
     assumption_note: str | None = None
 
@@ -212,6 +212,7 @@ def load_target_seeds() -> list[str]:
 class OffPlatformSourceRow:
     label: str
     listing_rows: int
+    scrape_status: str | None = None  # scrape_next | not_scrapable
     note: str | None = None
     citation_url: str | None = None
 
@@ -240,7 +241,10 @@ def load_metro_coverage_context_file() -> MetroCoverageContextFile:
     if not isinstance(raw, dict):
         return MetroCoverageContextFile(None, None, [], None)
     b_est = _positive_int(raw.get("estimated_metro_rental_buildings"))
-    l_est = _positive_int(raw.get("estimated_market_listing_rows"))
+    l_est = _positive_int(
+        raw.get("estimated_total_available_units")
+        or raw.get("estimated_market_listing_rows")
+    )
     note_raw = raw.get("methodology_note") or raw.get("description")
     note = note_raw.strip() if isinstance(note_raw, str) and note_raw.strip() else None
 
@@ -255,12 +259,15 @@ def load_metro_coverage_context_file() -> MetroCoverageContextFile:
             if isinstance(lab, str) and lab.strip() and cnt is not None:
                 n_raw = item.get("note")
                 c_raw = item.get("citation_url")
+                ss_raw = item.get("scrape_status")
                 note = n_raw.strip() if isinstance(n_raw, str) and n_raw.strip() else None
                 cit = c_raw.strip() if isinstance(c_raw, str) and c_raw.strip() else None
+                ss = ss_raw.strip() if isinstance(ss_raw, str) and ss_raw.strip() else None
                 off.append(
                     OffPlatformSourceRow(
                         label=lab.strip(),
                         listing_rows=cnt,
+                        scrape_status=ss,
                         note=note,
                         citation_url=cit,
                     )
@@ -319,45 +326,31 @@ def build_cms_market_share_pie(
         )
     remainder = market_total_listings - total_listing_rows
     configured = sum(n.listing_rows for n in off_platform)
-    if configured > remainder:
-        warn = (
-            f"off_platform_listing_sources sum ({configured}) exceeds market remainder "
-            f"({remainder}); adjust JSON so labeled off-platform rows sum to ≤ remainder."
-        )
-        out.append(
-            CmsMarketShareSlice(
-                label="Off-platform (remainder — fix config)",
-                listing_rows=remainder,
-                segment="off_platform",
-            )
-        )
-        return out, warn
+    scale = remainder / configured if configured > remainder and configured > 0 else 1.0
+    scaled_total = 0
     for row in off_platform:
         if row.listing_rows > 0:
+            seg = row.scrape_status if row.scrape_status in ("scrape_next", "not_scrapable") else "not_scrapable"
+            scaled = max(1, int(row.listing_rows * scale))
+            scaled_total += scaled
             out.append(
                 CmsMarketShareSlice(
                     label=row.label,
-                    listing_rows=row.listing_rows,
-                    segment="off_platform",
+                    listing_rows=scaled,
+                    segment=seg,
                     citation_url=row.citation_url,
                     assumption_note=row.note,
                 )
             )
-    unalloc = remainder - configured
+    unalloc = remainder - scaled_total
     if unalloc > 0:
         out.append(
             CmsMarketShareSlice(
-                label="Other off-platform (unallocated estimate)",
+                label="Other / unallocated (estimate)",
                 listing_rows=unalloc,
-                segment="off_platform",
+                segment="not_scrapable",
             )
         )
-    pie_sum = sum(x.listing_rows for x in out)
-    if pie_sum != market_total_listings:
-        d = market_total_listings - pie_sum
-        warn = (
-            (warn + " ") if warn else ""
-        ) + f"Listing pie sum {pie_sum} vs market total {market_total_listings} (diff {d})."
     return out, warn
 
 
