@@ -143,6 +143,11 @@ export function PropertyListingsMap({
     longitude: number;
     zoom: number;
   } | null>(null);
+  /** When followDataCamera is false, sync map center only when fallbackCenter changes (e.g. geolocation). Never override user zoom. */
+  const lastAppliedBrowseFallbackCenterRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const onSelectRef = useRef(onSelectProperty);
   onSelectRef.current = onSelectProperty;
@@ -321,6 +326,31 @@ export function PropertyListingsMap({
     });
     mapInstance.resize();
   }, [mapReady, followDataCamera, cameraView]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    if (followDataCamera) return;
+    const mapInstance = mapRef.current;
+    if (!mapInstance) return;
+
+    const { latitude, longitude } = fallbackCenter;
+    const prev = lastAppliedBrowseFallbackCenterRef.current;
+    if (
+      prev &&
+      Math.abs(prev.latitude - latitude) < 1e-7 &&
+      Math.abs(prev.longitude - longitude) < 1e-7
+    ) {
+      return;
+    }
+    lastAppliedBrowseFallbackCenterRef.current = { latitude, longitude };
+
+    const z = mapInstance.getZoom();
+    mapInstance.jumpTo({
+      center: [longitude, latitude],
+      zoom: z,
+    });
+    mapInstance.resize();
+  }, [mapReady, followDataCamera, fallbackCenter.latitude, fallbackCenter.longitude]);
 
   useEffect(() => {
     if (!mapReady) return;

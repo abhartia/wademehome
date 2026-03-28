@@ -21,3 +21,20 @@ export function getDefaultBrowseMapCenter(): { latitude: number; longitude: numb
 
 /** Evaluated at module load (Next inlines env at build time). */
 export const DEFAULT_BROWSE_MAP_CENTER = getDefaultBrowseMapCenter();
+
+/**
+ * True when the map center is still near the configured default (user has not panned to another region).
+ * Used so browser geolocation can update the viewport after the initial map callback, which otherwise races ahead of getCurrentPosition.
+ */
+const DEFAULT_BROWSE_MATCH_EPS_DEG = 0.15;
+
+export function isApproxDefaultBrowseCenter(center: {
+  latitude: number;
+  longitude: number;
+}): boolean {
+  const d = DEFAULT_BROWSE_MAP_CENTER;
+  return (
+    Math.abs(center.latitude - d.latitude) < DEFAULT_BROWSE_MATCH_EPS_DEG &&
+    Math.abs(center.longitude - d.longitude) < DEFAULT_BROWSE_MATCH_EPS_DEG
+  );
+}

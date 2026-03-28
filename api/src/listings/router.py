@@ -13,6 +13,7 @@ from sqlalchemy import inspect, text
 from core.config import Config
 from core.logger import get_logger
 from listings.mapbox_client import driving_durations_minutes, forward_geocode, search_category_nearby
+from listings.listings_table_cache import cached_execute_all, cached_execute_first
 from listings.market_snapshot import build_market_snapshot_sql, extract_zip_from_address, normalize_us_zip_query
 from listings.nearby_mapper import row_to_property_data_item
 from listings.property_key import item_matches_property_key, parse_property_key
@@ -350,7 +351,7 @@ def get_nearby_listings(
                         LIMIT :prefetch_limit
                         """
                     )
-                rows = conn.execute(select_sql, params).mappings().all()
+                rows = cached_execute_all(conn, select_sql, params)
                 if rows:
                     total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
                     used_fallback = False
@@ -371,7 +372,7 @@ def get_nearby_listings(
                         LIMIT :prefetch_limit
                         """
                     )
-                    rows = conn.execute(fallback_sql, params).mappings().all()
+                    rows = cached_execute_all(conn, fallback_sql, params)
                     total = 0
                     used_fallback = bool(rows)
             else:
@@ -415,7 +416,7 @@ def get_nearby_listings(
                         LIMIT :prefetch_limit
                         """
                     )
-                rows = conn.execute(select_sql, params).mappings().all()
+                rows = cached_execute_all(conn, select_sql, params)
                 if rows:
                     total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
                     used_fallback = False
@@ -439,7 +440,7 @@ def get_nearby_listings(
                         LIMIT :prefetch_limit
                         """
                     )
-                    rows = conn.execute(fallback_sql, params).mappings().all()
+                    rows = cached_execute_all(conn, fallback_sql, params)
                     total = 0
                     used_fallback = bool(rows)
 
@@ -548,7 +549,7 @@ def _resolve_property_by_key(key: str) -> PropertyDataItem | None:
                     LIMIT :limit
                     """
                 )
-                rows = conn.execute(sql, params).mappings().all()
+                rows = cached_execute_all(conn, sql, params)
             else:
                 params = {"limit": 1800}
                 if "property_id" in cols:
@@ -577,7 +578,7 @@ def _resolve_property_by_key(key: str) -> PropertyDataItem | None:
                         LIMIT :limit
                         """
                     )
-                rows = conn.execute(sql, params).mappings().all()
+                rows = cached_execute_all(conn, sql, params)
 
         matches: list[PropertyDataItem] = []
         for row in rows:
@@ -706,7 +707,7 @@ def get_market_snapshot(
                     detail="Could not build market query (need rent columns plus zip or city+state columns on listings).",
                 )
             sql, params = built
-            row = conn.execute(text(sql), params).mappings().first()
+            row = cached_execute_first(conn, sql, params)
             if row is None:
                 return MarketSnapshotResponse(
                     scope=scope,

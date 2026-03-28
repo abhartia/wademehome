@@ -20,6 +20,7 @@ from core.config import Config
 from core.logger import get_logger
 from prompts.loader import load_app_prompt
 from workflow.utils import get_engine
+from listings.listings_table_cache import cached_execute_all, cached_execute_scalar
 from listings.nearby_mapper import property_list_from_sql_rows
 from workflow.events import PropertyDataItem, PropertyDataList
 
@@ -586,7 +587,8 @@ def _fetch_listing_rows(
     t_sel = time.perf_counter()
     with get_engine().connect() as conn:
         rows = list(
-            conn.execute(
+            cached_execute_all(
+                conn,
                 text(
                     f"""
                     SELECT {select_cols}
@@ -597,7 +599,7 @@ def _fetch_listing_rows(
                     """
                 ),
                 params,
-            ).mappings().all()
+            )
         )
     return rows, int((time.perf_counter() - t_sel) * 1000)
 
@@ -682,7 +684,12 @@ def _compute_breakdown(
     if not criteria:
         with get_engine().connect() as conn:
             matched = int(
-                conn.execute(text(f"SELECT COUNT(*) AS n FROM {qtable}"), params).scalar() or 0
+                cached_execute_scalar(
+                    conn,
+                    text(f"SELECT COUNT(*) AS n FROM {qtable}"),
+                    params,
+                )
+                or 0
             )
         return [], matched
 
@@ -705,7 +712,8 @@ def _compute_breakdown(
         f"SELECT {', '.join(select_parts)} FROM criteria_eval"
     )
     with get_engine().connect() as conn:
-        row = conn.execute(text(sql), params).mappings().one()
+        br = cached_execute_all(conn, text(sql), params)
+    row = br[0]
 
     matched = int(row["matched_count"] or 0)
     items: list[SearchCriterionBreakdownItem] = []

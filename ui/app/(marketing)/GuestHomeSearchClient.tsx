@@ -18,7 +18,10 @@ import type {
   ListingSearchPhase,
   ListingSearchStreamApi,
 } from "@/lib/listings/useListingSearchStream";
-import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
+import {
+  DEFAULT_BROWSE_MAP_CENTER,
+  isApproxDefaultBrowseCenter,
+} from "@/lib/map/defaultBrowseCenter";
 import {
   approximateBoundsFromCenterZoom,
   type BrowseMapViewport,
@@ -30,9 +33,6 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import type { NearbyListingsResponse } from "@/lib/listings/useNearbyListings";
 import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
 
-/** Default map + SQL browse center for guests (not the browser geolocation). */
-const GUEST_BROWSE_MAP_CENTER = { latitude: 40.7128, longitude: -74.006 };
-
 const MIN_QUERY_CHARS = 2;
 
 const EMPTY_PROPERTY_LIST: PropertyDataItem[] = [];
@@ -42,7 +42,7 @@ function composeListingMessage(
   location: { latitude: number; longitude: number },
 ): string {
   const q = query.trim();
-  return `${q}\n\n[System context: User's approximate browser location is latitude ${location.latitude}, longitude ${location.longitude}. Prefer listings near this area when relevant.]`;
+  return `${q}\n\n[System context: Approximate device location is latitude ${location.latitude}, longitude ${location.longitude}. If the user names a neighborhood, city, ZIP, or region, search there first. Use device location only when the query does not specify a place.]`;
 }
 
 function stripGeoSuffix(content: string): string {
@@ -568,8 +568,10 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const hasHydratedQueryFromUrlRef = useRef(false);
-  /** Approximate device location for AI search context only; guest browse SQL uses GUEST_BROWSE_MAP_CENTER. */
-  const locationRef = useRef(GUEST_BROWSE_MAP_CENTER);
+  /** Approximate device location for AI search context; falls back to default browse center until geolocation resolves. */
+  const locationRef = useRef(DEFAULT_BROWSE_MAP_CENTER);
+  const didSetInitialBrowseCenterRef = useRef(false);
+  const browseMapCenterRef = useRef(DEFAULT_BROWSE_MAP_CENTER);
   const trimmedQuery = query.trim();
   const [selectedProperty, setSelectedProperty] = useState<PropertyDataItem | null>(null);
   const [isPropertyDetailOpen, setIsPropertyDetailOpen] = useState(false);
@@ -588,11 +590,13 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
       11,
     ),
   );
+  browseMapCenterRef.current = browseMapCenter;
   const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusVersion, setMapFocusVersion] = useState(0);
   const [listScrollProperty, setListScrollProperty] = useState<PropertyDataItem | null>(null);
   const listingFireAckRef = useRef(0);
+  const prevTrimmedQueryRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (listingFireVersion <= 0) {
@@ -632,6 +636,7 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   }, [query, pathname, router, searchParams]);
 
   const onBrowseMapCenterChange = useCallback((c: BrowseMapViewport) => {
+    didSetInitialBrowseCenterRef.current = true;
     setHasBrowseViewport(true);
     setBrowseBounds({
       west: c.west,
@@ -660,10 +665,22 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        locationRef.current = {
+        const next = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
+        locationRef.current = next;
+        const shouldApplyGeo =
+          !didSetInitialBrowseCenterRef.current ||
+          isApproxDefaultBrowseCenter(browseMapCenterRef.current);
+        if (shouldApplyGeo) {
+          setBrowseMapCenter(next);
+          setBrowseBounds(
+            approximateBoundsFromCenterZoom(next.latitude, next.longitude, 11),
+          );
+          didSetInitialBrowseCenterRef.current = true;
+          setHasBrowseViewport(true);
+        }
       },
       () => {
         locationRef.current = DEFAULT_BROWSE_MAP_CENTER;
@@ -673,10 +690,18 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const prev = prevTrimmedQueryRef.current;
+    prevTrimmedQueryRef.current = trimmedQuery;
+
     if (trimmedQuery.length >= MIN_QUERY_CHARS) return;
-    setListingSessionActive(false);
-    setListingFireVersion(0);
-    setListingPhase("idle");
+
+    // Only reset when the user shortens/clears an active query — not on first mount with ""
+    // (URL ?q= hydration sets a long query in the same tick and would be clobbered otherwise).
+    if (prev !== null && prev.length >= MIN_QUERY_CHARS) {
+      setListingSessionActive(false);
+      setListingFireVersion(0);
+      setListingPhase("idle");
+    }
   }, [trimmedQuery]);
 
   const submitSearchNow = useCallback(() => {

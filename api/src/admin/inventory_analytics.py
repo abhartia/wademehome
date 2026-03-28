@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
+from listings.listings_table_cache import cached_execute_all
 from listings.location_columns import quote_ident, resolve_zip_column
 from listings.market_snapshot import _bedroom_label_sql, _rent_sql_expr
 
@@ -528,7 +529,7 @@ def build_column_sql(qtable: str, cols: set[str]) -> ColumnSql:
 
 
 def _execute_map(conn: Connection, sql: str, params: dict[str, Any]) -> list[dict[str, Any]]:
-    return [dict(r) for r in conn.execute(text(sql), params).mappings().all()]
+    return cached_execute_all(conn, sql, params)
 
 
 def _in_clause_placeholders(keys: list[str]) -> tuple[str, dict[str, Any]]:

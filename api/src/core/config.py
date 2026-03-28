@@ -52,6 +52,13 @@ class Config:
         env_manager.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false"
     )
 
+    # Listings table read query cache (process-local TTL+LRU for SELECTs against LISTINGS_TABLE_*)
+    LISTINGS_TABLE_CACHE_ENABLED: str = env_manager.get("LISTINGS_TABLE_CACHE_ENABLED", "true") or "true"
+    LISTINGS_TABLE_CACHE_MAX_ENTRIES: str = env_manager.get("LISTINGS_TABLE_CACHE_MAX_ENTRIES", "512") or "512"
+    LISTINGS_TABLE_CACHE_TTL_SECONDS: str = (
+        env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
+    )
+
     # Mapbox (server-side geocoding, matrix, POI search). Optional; endpoints return 503 if unset.
     MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
 
@@ -115,6 +122,15 @@ class Config:
         )
         cls.LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT = (
             env_manager.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false"
+        )
+        cls.LISTINGS_TABLE_CACHE_ENABLED = (
+            env_manager.get("LISTINGS_TABLE_CACHE_ENABLED", "true") or "true"
+        )
+        cls.LISTINGS_TABLE_CACHE_MAX_ENTRIES = (
+            env_manager.get("LISTINGS_TABLE_CACHE_MAX_ENTRIES", "512") or "512"
+        )
+        cls.LISTINGS_TABLE_CACHE_TTL_SECONDS = (
+            env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
         )
         cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
         cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""

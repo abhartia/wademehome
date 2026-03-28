@@ -14,7 +14,10 @@ import {
   type NearbyListingsResponse,
   useNearbyListings,
 } from "@/lib/listings/useNearbyListings";
-import { DEFAULT_BROWSE_MAP_CENTER } from "@/lib/map/defaultBrowseCenter";
+import {
+  DEFAULT_BROWSE_MAP_CENTER,
+  isApproxDefaultBrowseCenter,
+} from "@/lib/map/defaultBrowseCenter";
 import {
   approximateBoundsFromCenterZoom,
   type BrowseMapViewport,
@@ -535,6 +538,7 @@ export function AppSearchClient() {
   const { profile, updateProfile } = useUserProfile();
   const [query, setQuery] = useState("");
   const locationRef = useRef(DEFAULT_BROWSE_MAP_CENTER);
+  const browseMapCenterRef = useRef(DEFAULT_BROWSE_MAP_CENTER);
   const trimmedQuery = query.trim();
   const [selectedProperty, setSelectedProperty] = useState<PropertyDataItem | null>(null);
   const [isPropertyDetailOpen, setIsPropertyDetailOpen] = useState(false);
@@ -552,6 +556,7 @@ export function AppSearchClient() {
       11,
     ),
   );
+  browseMapCenterRef.current = browseMapCenter;
   const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusVersion, setMapFocusVersion] = useState(0);
@@ -598,7 +603,10 @@ export function AppSearchClient() {
           longitude: position.coords.longitude,
         };
         locationRef.current = next;
-        if (!didSetInitialBrowseCenterRef.current) {
+        const shouldApplyGeo =
+          !didSetInitialBrowseCenterRef.current ||
+          isApproxDefaultBrowseCenter(browseMapCenterRef.current);
+        if (shouldApplyGeo) {
           setBrowseMapCenter(next);
           setBrowseBounds(
             approximateBoundsFromCenterZoom(next.latitude, next.longitude, 11),
