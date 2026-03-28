@@ -360,6 +360,7 @@ function AppSearchInner({
                               <SearchTransparencyPanel
                                 criteria={searchFilterBreakdown.criteria}
                                 finalMatched={searchStats?.matched_count ?? null}
+                                stageStats={searchStats}
                               />
                             ) : null}
                             {assistantFullText.length > 0 && (
@@ -530,7 +531,14 @@ function AppSearchRuntimeInner({
   useEffect(() => {
     handleMemoryUpdate(chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion);
   }, [chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion, handleMemoryUpdate]);
-  return <AppSearchInner {...inner} listingChat={chat} />;
+  const { listingSessionActive, ...rest } = inner;
+  return (
+    <AppSearchInner
+      {...rest}
+      listingSessionActive={listingSessionActive}
+      listingChat={listingSessionActive ? chat : null}
+    />
+  );
 }
 
 export function AppSearchClient() {
@@ -723,30 +731,26 @@ export function AppSearchClient() {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      {listingSessionActive ? (
-        <GuestHomeListingChatRuntime
-          chatId="app-search-listings"
-          fireAcknowledgedVersionRef={listingFireAckRef}
-          fireVersion={listingFireVersion}
-          getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
-          onPhaseChange={setListingPhase}
-        >
-          {(chat) => (
-            <AppSearchRuntimeInner
-              chat={chat}
-              handleMemoryUpdate={handleMemoryUpdate}
-              {...innerProps}
-              setSelectedProperty={onListSelectProperty}
-            />
-          )}
-        </GuestHomeListingChatRuntime>
-      ) : (
-        <AppSearchInner
-          {...innerProps}
-          listingChat={null}
-          setSelectedProperty={onListSelectProperty}
-        />
-      )}
+      {/*
+        Single subtree: do not swap AppSearchInner between runtime and non-runtime parents,
+        or the search Input remounts and loses focus when listingSessionActive flips off.
+      */}
+      <GuestHomeListingChatRuntime
+        chatId="app-search-listings"
+        fireAcknowledgedVersionRef={listingFireAckRef}
+        fireVersion={listingSessionActive ? listingFireVersion : 0}
+        getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
+        onPhaseChange={setListingPhase}
+      >
+        {(chat) => (
+          <AppSearchRuntimeInner
+            chat={chat}
+            handleMemoryUpdate={handleMemoryUpdate}
+            {...innerProps}
+            setSelectedProperty={onListSelectProperty}
+          />
+        )}
+      </GuestHomeListingChatRuntime>
     </div>
   );
 }

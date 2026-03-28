@@ -145,6 +145,7 @@ class SearchRunResult:
     matched_count: int
     limit_cap: int
     timings_ms: dict[str, int]
+    stage_stats: dict[str, int]
 
 
 def _qualified_table() -> str:
@@ -161,6 +162,18 @@ def _table_schema() -> str:
 
 def _table_name() -> str:
     return (Config.get("LISTINGS_TABLE_NAME") or "listings").strip() or "listings"
+
+
+def _amenity_table_name() -> str:
+    return (Config.get("LISTING_AMENITIES_TABLE_NAME") or "listing_amenities").strip() or "listing_amenities"
+
+
+def _qualified_amenity_table() -> str:
+    table = _amenity_table_name()
+    schema = (Config.get("LISTINGS_TABLE_SCHEMA") or "").strip()
+    if schema:
+        return f'"{schema}"."{table}"'
+    return f'"{table}"'
 
 
 def _table_columns() -> set[str]:
@@ -378,6 +391,49 @@ def _vector_literal(vec: list[float]) -> str:
     return "[" + ",".join(f"{x:.8f}" for x in vec) + "]"
 
 
+def _amenity_distances(
+    listing_ids: list[str],
+    *,
+    query_embedding: list[float],
+) -> tuple[dict[str, float], int]:
+    if not listing_ids or not query_embedding:
+        return {}, 0
+    t0 = time.perf_counter()
+    qtable = _qualified_amenity_table()
+    vec = _vector_literal(query_embedding)
+    binds: dict[str, Any] = {}
+    placeholders: list[str] = []
+    for i, listing_id in enumerate(listing_ids):
+        key = f"lid_{i}"
+        placeholders.append(f":{key}")
+        binds[key] = listing_id
+    sql = text(
+        f"""
+        SELECT
+          listing_id::text AS listing_id,
+          MIN(amenity_embedding <=> '{vec}'::vector) AS d
+        FROM {qtable}
+        WHERE amenity_embedding IS NOT NULL
+          AND listing_id::text IN ({", ".join(placeholders)})
+        GROUP BY listing_id::text
+        """
+    )
+    try:
+        with get_engine().connect() as conn:
+            rows = cached_execute_all(conn, sql, binds)
+        out: dict[str, float] = {}
+        for row in rows:
+            lid = str(row["listing_id"])
+            d = row["d"]
+            if isinstance(d, (int, float)):
+                out[lid] = float(d)
+        return out, int((time.perf_counter() - t0) * 1000)
+    except Exception:
+        # listing_amenities may not be created yet in all environments.
+        logger.exception("amenity distance lookup failed")
+        return {}, int((time.perf_counter() - t0) * 1000)
+
+
 def _text_blob_expr(cols: set[str]) -> str:
     parts: list[str] = []
     for c in (
@@ -559,13 +615,6 @@ def _build_criteria(
         )
 
     blob = _text_blob_expr(cols)
-    if plan.must_have_terms:
-        pieces: list[str] = []
-        for i, term in enumerate(plan.must_have_terms):
-            key = f"must_have_{i}"
-            params[key] = f"%{term.lower()}%"
-            pieces.append(f"LOWER({blob}) LIKE :{key}")
-        criteria.append(("must_have_terms", "Must include requested terms", "(" + " AND ".join(pieces) + ")"))
     if plan.must_not_have_terms:
         pieces = []
         for i, term in enumerate(plan.must_not_have_terms):
@@ -617,7 +666,8 @@ def run_fast_search(
     all_expr = " AND ".join(expr for _, _, expr in criteria) if criteria else "TRUE"
     qtable = _qualified_table()
     limit = max(1, min(200, int(limit)))
-    params["limit_rows"] = limit
+    candidate_limit = min(max(limit * 4, limit), 240)
+    params["limit_rows"] = candidate_limit
 
     ranking_bits: list[str] = []
     if query_embedding and "embedding" in cols:
@@ -658,6 +708,36 @@ def run_fast_search(
         breakdown_items, matched_count, t_break = fut_b.result()
         rows, t_sel = fut_s.result()
 
+    listing_id_col = _pick_column(cols, "listing_id")
+    semantic_candidates = len(rows)
+    amenity_ms = 0
+    amenity_scored_count = 0
+    if listing_id_col and query_embedding and rows:
+        ids = [
+            str(r.get(listing_id_col))
+            for r in rows
+            if r.get(listing_id_col) not in (None, "")
+        ]
+        amenity_scores, amenity_ms = _amenity_distances(ids, query_embedding=query_embedding)
+        amenity_scored_count = len(amenity_scores)
+        if amenity_scores:
+            # Blend semantic base rank (original order) with amenity similarity.
+            # Lower score is better.
+            scored_rows: list[tuple[float, int, Any]] = []
+            for idx, row in enumerate(rows):
+                lid_raw = row.get(listing_id_col)
+                lid = str(lid_raw) if lid_raw not in (None, "") else ""
+                amenity_d = amenity_scores.get(lid)
+                base_score = float(idx) / max(1.0, float(len(rows)))
+                if amenity_d is None:
+                    score = base_score + 0.35
+                else:
+                    score = base_score + (0.35 * amenity_d)
+                scored_rows.append((score, idx, row))
+            scored_rows.sort(key=lambda x: (x[0], x[1]))
+            rows = [r for _, _, r in scored_rows]
+
+    rows = rows[:limit]
     ckeys = list(rows[0].keys()) if rows else []
     raw_rows = [tuple(r[c] for c in ckeys) for r in rows]
     properties = property_list_from_sql_rows(raw_rows, ckeys)
@@ -666,6 +746,7 @@ def run_fast_search(
     timings_ms = {
         "db_ms": t_sel,
         "breakdown_ms": t_break,
+        "amenity_ms": amenity_ms,
     }
     return SearchRunResult(
         properties=properties,
@@ -673,6 +754,11 @@ def run_fast_search(
         matched_count=matched_count,
         limit_cap=limit,
         timings_ms=timings_ms,
+        stage_stats={
+            "strict_pass_count": int(matched_count),
+            "semantic_candidates": int(semantic_candidates),
+            "amenity_scored_count": int(amenity_scored_count),
+        },
     )
 
 

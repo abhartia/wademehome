@@ -33,6 +33,10 @@ export interface PropertyDataItem {
   main_amenities: string[];
   /** One-line explanation of why this row matched the user's query (optional). */
   match_reason?: string | null;
+  /** Dynamic validation phase from backend search stream. */
+  validation_status?: "candidate" | "validating" | "confirmed" | "rejected" | null;
+  validation_explanation?: string | null;
+  validation_confidence?: number | null;
   latitude?: number;
   longitude?: number;
 }
@@ -71,7 +75,15 @@ export interface UISearchStatsAnnotation {
     embed_ms?: number | null;
     db_ms?: number | null;
     breakdown_ms?: number | null;
+    amenity_ms?: number | null;
+    validation_ms?: number | null;
     total_ms?: number | null;
+    semantic_candidates?: number | null;
+    amenity_scored_count?: number | null;
+    validated_kept_count?: number | null;
+    validated_dropped_count?: number | null;
+    validation_cache_hits?: number | null;
+    validation_cache_misses?: number | null;
   };
 }
 

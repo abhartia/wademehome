@@ -14,10 +14,19 @@ type Criterion = {
 export function SearchTransparencyPanel({
   criteria,
   finalMatched,
+  stageStats,
 }: {
   criteria: Criterion[];
   /** Rows matching every strict filter (before LIMIT). */
   finalMatched?: number | null;
+  stageStats?: {
+    semantic_candidates?: number | null;
+    amenity_scored_count?: number | null;
+    validated_kept_count?: number | null;
+    validated_dropped_count?: number | null;
+    validation_cache_hits?: number | null;
+    validation_cache_misses?: number | null;
+  } | null;
 }) {
   if (!criteria || criteria.length === 0) return null;
   const globalMatch =
@@ -34,6 +43,36 @@ export function SearchTransparencyPanel({
           <span className="font-medium text-foreground">All filters:</span> {globalMatch} listing
           {globalMatch === 1 ? "" : "s"}
         </p>
+      ) : null}
+      {stageStats ? (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {typeof stageStats.semantic_candidates === "number" ? (
+            <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
+              semantic {stageStats.semantic_candidates}
+            </Badge>
+          ) : null}
+          {typeof stageStats.amenity_scored_count === "number" ? (
+            <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
+              amenity scored {stageStats.amenity_scored_count}
+            </Badge>
+          ) : null}
+          {typeof stageStats.validated_kept_count === "number" ? (
+            <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
+              kept {stageStats.validated_kept_count}
+            </Badge>
+          ) : null}
+          {typeof stageStats.validated_dropped_count === "number" ? (
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal">
+              dropped {stageStats.validated_dropped_count}
+            </Badge>
+          ) : null}
+          {typeof stageStats.validation_cache_hits === "number" &&
+          typeof stageStats.validation_cache_misses === "number" ? (
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal">
+              cache {stageStats.validation_cache_hits}/{stageStats.validation_cache_hits + stageStats.validation_cache_misses}
+            </Badge>
+          ) : null}
+        </div>
       ) : null}
       <div className="mt-2 space-y-2">
         {criteria.map((item) => {

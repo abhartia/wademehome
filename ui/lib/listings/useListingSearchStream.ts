@@ -46,7 +46,15 @@ export type SearchStatsState = {
   embed_ms: number | null;
   db_ms: number | null;
   breakdown_ms: number | null;
+  amenity_ms: number | null;
+  validation_ms: number | null;
   total_ms: number | null;
+  semantic_candidates: number | null;
+  amenity_scored_count: number | null;
+  validated_kept_count: number | null;
+  validated_dropped_count: number | null;
+  validation_cache_hits: number | null;
+  validation_cache_misses: number | null;
 } | null;
 
 type AllowedMemoryField =
@@ -190,7 +198,15 @@ function parseAssistantAnnotations(message: {
         embed_ms?: unknown;
         db_ms?: unknown;
         breakdown_ms?: unknown;
+        amenity_ms?: unknown;
+        validation_ms?: unknown;
         total_ms?: unknown;
+        semantic_candidates?: unknown;
+        amenity_scored_count?: unknown;
+        validated_kept_count?: unknown;
+        validated_dropped_count?: unknown;
+        validation_cache_hits?: unknown;
+        validation_cache_misses?: unknown;
       };
       const returned =
         typeof d.returned_count === "number" && Number.isFinite(d.returned_count)
@@ -226,6 +242,38 @@ function parseAssistantAnnotations(message: {
         typeof d.total_ms === "number" && Number.isFinite(d.total_ms)
           ? Math.max(0, Math.floor(d.total_ms))
           : null;
+      const amenityMs =
+        typeof d.amenity_ms === "number" && Number.isFinite(d.amenity_ms)
+          ? Math.max(0, Math.floor(d.amenity_ms))
+          : null;
+      const validationMs =
+        typeof d.validation_ms === "number" && Number.isFinite(d.validation_ms)
+          ? Math.max(0, Math.floor(d.validation_ms))
+          : null;
+      const semanticCandidates =
+        typeof d.semantic_candidates === "number" && Number.isFinite(d.semantic_candidates)
+          ? Math.max(0, Math.floor(d.semantic_candidates))
+          : null;
+      const amenityScoredCount =
+        typeof d.amenity_scored_count === "number" && Number.isFinite(d.amenity_scored_count)
+          ? Math.max(0, Math.floor(d.amenity_scored_count))
+          : null;
+      const validatedKept =
+        typeof d.validated_kept_count === "number" && Number.isFinite(d.validated_kept_count)
+          ? Math.max(0, Math.floor(d.validated_kept_count))
+          : null;
+      const validatedDropped =
+        typeof d.validated_dropped_count === "number" && Number.isFinite(d.validated_dropped_count)
+          ? Math.max(0, Math.floor(d.validated_dropped_count))
+          : null;
+      const validationCacheHits =
+        typeof d.validation_cache_hits === "number" && Number.isFinite(d.validation_cache_hits)
+          ? Math.max(0, Math.floor(d.validation_cache_hits))
+          : null;
+      const validationCacheMisses =
+        typeof d.validation_cache_misses === "number" && Number.isFinite(d.validation_cache_misses)
+          ? Math.max(0, Math.floor(d.validation_cache_misses))
+          : null;
       searchStats = {
         returned_count: returned,
         matched_count: matched,
@@ -235,7 +283,15 @@ function parseAssistantAnnotations(message: {
         embed_ms: embedMs,
         db_ms: dbMs,
         breakdown_ms: breakdownMs,
+        amenity_ms: amenityMs,
+        validation_ms: validationMs,
         total_ms: totalMs,
+        semantic_candidates: semanticCandidates,
+        amenity_scored_count: amenityScoredCount,
+        validated_kept_count: validatedKept,
+        validated_dropped_count: validatedDropped,
+        validation_cache_hits: validationCacheHits,
+        validation_cache_misses: validationCacheMisses,
       };
     }
     if (

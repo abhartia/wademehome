@@ -46,6 +46,7 @@ class Config:
     LOG_LEVEL: str = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
     LISTINGS_TABLE_NAME: str = env_manager.get("LISTINGS_TABLE_NAME", None)
     LISTINGS_TABLE_SCHEMA: str = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
+    LISTING_AMENITIES_TABLE_NAME: str = env_manager.get("LISTING_AMENITIES_TABLE_NAME", "listing_amenities")
     OPENAI_EMBEDDING_MODEL: str = env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
     OPENAI_EMBEDDING_DIMENSIONS: str = env_manager.get("OPENAI_EMBEDDING_DIMENSIONS", "1536") or "1536"
     LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT: str = (
@@ -114,6 +115,9 @@ class Config:
         cls.LOG_LEVEL = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
         cls.LISTINGS_TABLE_NAME = env_manager.get("LISTINGS_TABLE_NAME", None)
         cls.LISTINGS_TABLE_SCHEMA = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
+        cls.LISTING_AMENITIES_TABLE_NAME = (
+            env_manager.get("LISTING_AMENITIES_TABLE_NAME", "listing_amenities") or "listing_amenities"
+        )
         cls.OPENAI_EMBEDDING_MODEL = (
             env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
         )

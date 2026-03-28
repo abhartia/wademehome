@@ -110,6 +110,18 @@ class PropertyDataItem(BaseModel):
             "the user's search (e.g. name/amenities mention 'park', proximity, filters applied)."
         ),
     )
+    validation_status: str | None = Field(
+        default=None,
+        description="Semantic/LLM validation state for dynamic UI: candidate|validating|confirmed|rejected.",
+    )
+    validation_explanation: str | None = Field(
+        default=None,
+        description="Short explanation of why the listing is relevant to the current query.",
+    )
+    validation_confidence: float | None = Field(
+        default=None,
+        description="Optional validator confidence in [0,1].",
+    )
 
 class PropertyDataList(BaseModel):
     properties: list[PropertyDataItem]
@@ -135,7 +147,15 @@ class SearchStatsData(BaseModel):
     embed_ms: int | None = Field(default=None, ge=0)
     db_ms: int | None = Field(default=None, ge=0)
     breakdown_ms: int | None = Field(default=None, ge=0)
+    amenity_ms: int | None = Field(default=None, ge=0)
+    validation_ms: int | None = Field(default=None, ge=0)
     total_ms: int | None = Field(default=None, ge=0)
+    semantic_candidates: int | None = Field(default=None, ge=0)
+    amenity_scored_count: int | None = Field(default=None, ge=0)
+    validated_kept_count: int | None = Field(default=None, ge=0)
+    validated_dropped_count: int | None = Field(default=None, ge=0)
+    validation_cache_hits: int | None = Field(default=None, ge=0)
+    validation_cache_misses: int | None = Field(default=None, ge=0)
 
 
 class SearchPlanData(BaseModel):

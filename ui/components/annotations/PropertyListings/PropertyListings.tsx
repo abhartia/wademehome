@@ -53,6 +53,9 @@ const PropertyCard = ({
   const imageUrl = property.images_urls?.[0];
   const photoCount = property.images_urls?.filter(Boolean).length ?? 0;
   const extraPhotos = photoCount > 1 ? photoCount - 1 : 0;
+  const isValidating = property.validation_status === "validating";
+  const isConfirmed = property.validation_status === "confirmed";
+  const validationCopy = property.validation_explanation?.trim() || property.match_reason?.trim();
 
   return (
     <button
@@ -64,8 +67,10 @@ const PropertyCard = ({
     >
       <Card
         className={cn(
-          "flex w-full flex-row gap-3 overflow-hidden py-0 transition-colors",
+          "flex w-full flex-row gap-3 overflow-hidden py-0 transition-all duration-300 ease-out",
           isSelected ? "ring-2 ring-primary" : "hover:bg-muted/30",
+          isValidating && "opacity-80",
+          isConfirmed && "opacity-100",
         )}
       >
       <div className="relative min-h-48 w-32 shrink-0 self-stretch overflow-hidden rounded-l-md bg-muted">
@@ -86,8 +91,20 @@ const PropertyCard = ({
             <MapPin className="h-3 w-3" />
             <p>{property.address}</p>
           </div>
-          {property.match_reason?.trim() ? (
-            <p className="mt-1 text-xs leading-snug text-muted-foreground">{property.match_reason}</p>
+          {(isValidating || isConfirmed) && (
+            <div className="mt-1.5 flex items-center gap-1">
+              <Badge variant={isConfirmed ? "secondary" : "outline"} className="h-5 px-1.5 text-[10px]">
+                {isConfirmed ? "Confirmed" : "Validating..."}
+              </Badge>
+              {typeof property.validation_confidence === "number" ? (
+                <span className="text-[10px] text-muted-foreground">
+                  {Math.round(Math.max(0, Math.min(1, property.validation_confidence)) * 100)}%
+                </span>
+              ) : null}
+            </div>
+          )}
+          {validationCopy ? (
+            <p className="mt-1 text-xs leading-snug text-muted-foreground">{validationCopy}</p>
           ) : null}
           <p className="mt-1 text-sm text-gray-600">
             {formatPropertyRangeLabel(property.bedroom_range)}
@@ -130,10 +147,20 @@ const BuildingGroupCard = ({
   const imageUrl = representative.images_urls?.[0];
   const photoCount = representative.images_urls?.filter(Boolean).length ?? 0;
   const extraPhotos = photoCount > 1 ? photoCount - 1 : 0;
+  const isValidating = representative.validation_status === "validating";
+  const isConfirmed = representative.validation_status === "confirmed";
+  const validationCopy =
+    representative.validation_explanation?.trim() || representative.match_reason?.trim();
 
   return (
     <div ref={registerGroupRef}>
-      <Card className="overflow-hidden py-0">
+      <Card
+        className={cn(
+          "overflow-hidden py-0 transition-all duration-300 ease-out",
+          isValidating && "opacity-80",
+          isConfirmed && "opacity-100",
+        )}
+      >
         <div className="flex flex-row gap-3 border-b border-border/60">
         <div className="relative min-h-40 w-28 shrink-0 self-stretch overflow-hidden bg-muted md:min-h-44 md:w-32">
           <ListingImage src={imageUrl} alt={representative.name} />
@@ -152,9 +179,21 @@ const BuildingGroupCard = ({
             <MapPin className="h-3 w-3 shrink-0" />
             <p className="min-w-0">{representative.address}</p>
           </div>
-          {representative.match_reason?.trim() ? (
+          {(isValidating || isConfirmed) && (
+            <div className="mt-1.5 flex items-center gap-1">
+              <Badge variant={isConfirmed ? "secondary" : "outline"} className="h-5 px-1.5 text-[10px]">
+                {isConfirmed ? "Confirmed" : "Validating..."}
+              </Badge>
+              {typeof representative.validation_confidence === "number" ? (
+                <span className="text-[10px] text-muted-foreground">
+                  {Math.round(Math.max(0, Math.min(1, representative.validation_confidence)) * 100)}%
+                </span>
+              ) : null}
+            </div>
+          )}
+          {validationCopy ? (
             <p className="mt-1 text-xs leading-snug text-muted-foreground">
-              {representative.match_reason}
+              {validationCopy}
             </p>
           ) : null}
           <p className="mt-2 text-xs font-medium text-muted-foreground">

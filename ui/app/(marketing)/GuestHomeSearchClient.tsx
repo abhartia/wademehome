@@ -358,6 +358,7 @@ function GuestHomeSearchInner({
                                 <SearchTransparencyPanel
                                   criteria={searchFilterBreakdown.criteria}
                                   finalMatched={searchStats?.matched_count ?? null}
+                                  stageStats={searchStats}
                                 />
                               ) : null}
                               {phase === "streaming" && streamText.length === 0 && (
@@ -782,29 +783,26 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
         </div>
       </header>
 
-      {listingSessionActive ? (
-        <GuestHomeListingChatRuntime
-          chatId="guest-home-listings"
-          fireAcknowledgedVersionRef={listingFireAckRef}
-          fireVersion={listingFireVersion}
-          getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
-          onPhaseChange={setListingPhase}
-        >
-          {(chat) => (
-            <GuestHomeSearchInner
-              {...innerProps}
-              listingChat={chat}
-              setSelectedProperty={onListSelectProperty}
-            />
-          )}
-        </GuestHomeListingChatRuntime>
-      ) : (
-        <GuestHomeSearchInner
-          {...innerProps}
-          listingChat={null}
-          setSelectedProperty={onListSelectProperty}
-        />
-      )}
+      {/*
+        Keep a single subtree: toggling listingSessionActive must not swap GuestHomeSearchInner
+        between two parents, or the search Input remounts and loses focus when the draft query
+        drops below MIN_QUERY_CHARS (session reset).
+      */}
+      <GuestHomeListingChatRuntime
+        chatId="guest-home-listings"
+        fireAcknowledgedVersionRef={listingFireAckRef}
+        fireVersion={listingSessionActive ? listingFireVersion : 0}
+        getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
+        onPhaseChange={setListingPhase}
+      >
+        {(chat) => (
+          <GuestHomeSearchInner
+            {...innerProps}
+            listingChat={listingSessionActive ? chat : null}
+            setSelectedProperty={onListSelectProperty}
+          />
+        )}
+      </GuestHomeListingChatRuntime>
     </div>
   );
 }
