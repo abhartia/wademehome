@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import re
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -27,6 +28,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import cloudscraper
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+import listing_amenities_parsers as _amenities
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -426,11 +432,15 @@ def parse_available_units_html(
     property_lat: float | None,
     property_lon: float | None,
     scraped_ts: str,
+    community_amenities: list[str] | None = None,
+    apartment_amenities: list[str] | None = None,
 ) -> tuple[list[dict], list[dict]]:
     soup = BeautifulSoup(html, "html.parser")
     labels_by_table = _floor_plan_labels_by_table(soup)
     rows_out: list[dict] = []
     photos: list[dict] = []
+    comm_j = json.dumps(community_amenities) if community_amenities is not None else json.dumps([])
+    apt_j = json.dumps(apartment_amenities) if apartment_amenities is not None else json.dumps([])
 
     for table in soup.find_all("table", class_=_class_has("availableUnits")):
         fp_label = labels_by_table.get(id(table), "")
@@ -496,8 +506,8 @@ def parse_available_units_html(
                     "building_type": "apartment",
                     "building_subtype": None,
                     "floor_number": None,
-                    "community_amenities": json.dumps([]),
-                    "apartment_amenities": json.dumps([]),
+                    "community_amenities": comm_j,
+                    "apartment_amenities": apt_j,
                     "fees": json.dumps([]),
                     "concessions": None,
                     "year_built": None,
@@ -669,6 +679,26 @@ def scrape_securecafe_floorplans(
     r2.raise_for_status()
     units_html = r2.text
 
+    comm_list: list[str] | None = None
+    apt_list: list[str] | None = None
+    try:
+        am_url = _amenities.securecafe_amenities_url(floorplans_url)
+        ra = session.get(
+            am_url,
+            timeout=45,
+            headers={
+                "Referer": floorplans_url,
+                "Accept": "text/html,application/xhtml+xml",
+            },
+        )
+        if ra.status_code == 200:
+            save_raw_gz(env, folder_id, scraped_at, "amenities.html", ra.text)
+            parsed_am = _amenities.parse_securecafe_amenities_html(ra.text)
+            if parsed_am is not None:
+                comm_list, apt_list = parsed_am
+    except Exception as e:
+        logger.debug("SecureCafe amenities fetch/parse skipped for %s: %s", floorplans_url, e)
+
     save_raw_gz(env, folder_id, scraped_at, "floorplans.html", floor_html)
     save_raw_gz(env, folder_id, scraped_at, "availableunits.html", units_html)
 
@@ -706,6 +736,8 @@ def scrape_securecafe_floorplans(
         property_lat=plat,
         property_lon=plon,
         scraped_ts=scraped_ts,
+        community_amenities=comm_list,
+        apartment_amenities=apt_list,
     )
     return rows, photos, folder_id
 
@@ -830,6 +862,7 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str | No
         folder_id = folder_part.split("=", 1)[-1]
         fp_path = os.path.join(base, "floorplans.html.gz")
         au_path = os.path.join(base, "availableunits.html.gz")
+        am_path = os.path.join(base, "amenities.html.gz")
         meta_path = os.path.join(base, "meta.json.gz")
         if not os.path.isfile(fp_path) or not os.path.isfile(au_path):
             continue
@@ -837,6 +870,13 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str | No
             floor_html = f.read()
         with gzip.open(au_path, "rt", encoding="utf-8") as f:
             units_html = f.read()
+        comm_list = apt_list = None
+        if os.path.isfile(am_path):
+            with gzip.open(am_path, "rt", encoding="utf-8") as f:
+                am_html = f.read()
+            parsed_am = _amenities.parse_securecafe_amenities_html(am_html)
+            if parsed_am is not None:
+                comm_list, apt_list = parsed_am
         meta = {}
         if os.path.isfile(meta_path):
             with gzip.open(meta_path, "rt", encoding="utf-8") as f:
@@ -862,6 +902,8 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str | No
             property_lat=plat,
             property_lon=plon,
             scraped_ts=scraped_ts,
+            community_amenities=comm_list,
+            apartment_amenities=apt_list,
         )
         rows.extend(r)
         photos.extend(p)

@@ -8,6 +8,7 @@ Flattens **embedded JSON** (`__NEXT_DATA__`) and **JSON-LD** from consumer multi
 - Before adding a seed, confirm in DevTools **Network** that inventory is present in **document JSON** (Next.js) or **JSON-LD**, not only behind authenticated XHR.
 - **Themes differ**: v1 uses generic heuristics (objects with rent + unit/floorplan keys). Tighten per-operator handlers as you validate seeds.
 - **Bot friction**: `cloudscraper` + optional proxies (same pattern as RentCafe).
+- **Amenities (Jonah Digital)**: same-origin **`/amenities/`** page (linked from the marketing nav). Structure: `div.amenity-c__group` with `h2.amenity-c__title` **“Community Amenities”** or **“Apartment Features”**; list items are non-empty `li` under `ul` in that group. The scraper fetches `/amenities/` once per seed (Referer = seed URL) and applies the same JSON lists to all unit rows when parsing succeeds (`listing_amenities_parsers.parse_entrata_jonah_amenities_html`).
 
 ## Setup
 

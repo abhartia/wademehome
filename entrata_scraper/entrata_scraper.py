@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import re
+import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -26,6 +27,11 @@ from pathlib import Path
 from urllib.parse import quote, urlparse, urlunparse
 
 import cloudscraper
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+import listing_amenities_parsers as _amenities
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -531,6 +537,29 @@ def rows_from_seed_page(
 ) -> tuple[list[dict], list[dict]]:
     soup = BeautifulSoup(html, "html.parser")
     photos: list[dict] = []
+    entrata_amenities: tuple[list[str], list[str]] | None = None
+    parsed_url = urlparse(url)
+    if (
+        session is not None
+        and parsed_url.scheme in ("http", "https")
+        and parsed_url.netloc
+        and not parsed_url.netloc.startswith("local.")
+    ):
+        try:
+            am_url = _amenities.entrata_amenities_url(url)
+            am_r = session.get(
+                am_url,
+                timeout=50,
+                headers={
+                    "Referer": url,
+                    "Accept": "text/html,application/xhtml+xml",
+                },
+            )
+            if am_r.status_code == 200:
+                entrata_amenities = _amenities.parse_entrata_jonah_amenities_html(am_r.text)
+        except Exception as e:
+            logger.debug("Entrata amenities fetch/parse skipped for %s: %s", url, e)
+
     meta = extract_json_ld_property(soup)
     prop_id = extract_property_id_hint(html) or url_folder_id(url)
     prop_name = None
@@ -713,6 +742,12 @@ def rows_from_seed_page(
                 "scraped_timestamp": scraped_ts,
             }
         )
+
+    if entrata_amenities and rows:
+        cj, aj = json.dumps(entrata_amenities[0]), json.dumps(entrata_amenities[1])
+        for row in rows:
+            row["community_amenities"] = cj
+            row["apartment_amenities"] = aj
 
     return rows, photos
 
@@ -1005,7 +1040,10 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str | No
             folder_id = Path(path).parts[-3].split("=", 1)[-1]
             url = f"https://local.reprocess/entrata/{folder_id}"
             scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-            r, p = rows_from_seed_page(html, url, scraped_ts=scraped_ts, geocode=False)
+            sess = get_session("local")
+            r, p = rows_from_seed_page(
+                html, url, scraped_ts=scraped_ts, geocode=False, session=sess
+            )
             rows.extend(r)
             photos.extend(p)
         except Exception as e:

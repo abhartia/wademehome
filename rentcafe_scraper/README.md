@@ -3,6 +3,12 @@
 Scrapes Yardi/RentCafe rental listing pages and flattens floorplan-level pricing data
 into the existing `units.parquet` schema used by the API loader.
 
+## Amenities (source-only)
+
+- **Apartment**: `RCILSSettings.apartmentAmenities = [...]` in an inline script (JSON array).
+- **Community**: DOM — `p` with text “Community amenities” (bold title row); the **grandparent** of that `p` contains a `ul` whose class includes `list-bullet`; non-empty `li` text are community amenities.
+- Parsing is implemented in repo-root `listing_amenities_parsers.py` (`parse_rentcafe_amenities`). If the structure is missing, the scraper leaves both columns as `[]`.
+
 ## Setup
 
 Local-only mode:

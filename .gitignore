@@ -13,3 +13,7 @@
 /env=local
 /logs
 /appfolio_scraper/env=local
+/__pycache__
+amenity_backfill_run.log
+amenity_pipeline_full.log
+amenity_pipeline_v2.log

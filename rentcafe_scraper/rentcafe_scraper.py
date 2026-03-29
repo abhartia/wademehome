@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -15,6 +16,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import cloudscraper
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+import listing_amenities_parsers as _amenities
 import pandas as pd
 from bs4 import BeautifulSoup
 
@@ -426,11 +432,20 @@ def extract_property_meta(soup: BeautifulSoup, url: str) -> dict:
     return meta
 
 
-def extract_floorplan_rows(soup: BeautifulSoup, url: str, prop: dict, scraped_at: str) -> tuple[list[dict], list[dict]]:
+def extract_floorplan_rows(
+    soup: BeautifulSoup,
+    url: str,
+    prop: dict,
+    scraped_at: str,
+    *,
+    amenities: tuple[list[str], list[str]] | None = None,
+) -> tuple[list[dict], list[dict]]:
     rows: list[dict] = []
     photos: list[dict] = []
     cards = soup.select(".fp-item")
     scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    comm_amenities_j = json.dumps(amenities[0]) if amenities else json.dumps([])
+    apt_amenities_j = json.dumps(amenities[1]) if amenities else json.dumps([])
 
     for idx, card in enumerate(cards):
         fp_id = card.get("data-floorplan-id") or card.get("data-id") or f"fp_{idx}"
@@ -498,8 +513,8 @@ def extract_floorplan_rows(soup: BeautifulSoup, url: str, prop: dict, scraped_at
                 "building_type": "apartment",
                 "building_subtype": None,
                 "floor_number": None,
-                "community_amenities": json.dumps([]),
-                "apartment_amenities": json.dumps([]),
+                "community_amenities": comm_amenities_j,
+                "apartment_amenities": apt_amenities_j,
                 "fees": json.dumps([]),
                 "concessions": None,
                 "year_built": None,
@@ -639,7 +654,10 @@ def scrape_property(url: str, env: str, scraped_at: str) -> tuple[list[dict], li
     prop = extract_property_meta(soup, url)
     save_raw_property_html(env, prop["property_id"], html, scraped_at)
     save_raw_property_json(env, prop["property_id"], {"url": url, "meta": prop}, scraped_at)
-    rows, photos = extract_floorplan_rows(soup, url, prop, scraped_at=scraped_at)
+    amenities = _amenities.parse_rentcafe_amenities(html)
+    rows, photos = extract_floorplan_rows(
+        soup, url, prop, scraped_at=scraped_at, amenities=amenities
+    )
     return rows, photos
 
 
@@ -770,7 +788,10 @@ def process_local(env: str, output_format: str = "parquet", scraped_at: str | No
             url = extract_canonical_listing_url(soup) or property_id_to_listing_url(prop_id)
             prop = extract_property_meta(soup, url=url)
             prop["property_id"] = prop_id
-            r, p = extract_floorplan_rows(soup, url=url, prop=prop, scraped_at=scraped_at)
+            am = _amenities.parse_rentcafe_amenities(html)
+            r, p = extract_floorplan_rows(
+                soup, url=url, prop=prop, scraped_at=scraped_at, amenities=am
+            )
             rows.extend(r)
             photos.extend(p)
         except Exception as e:

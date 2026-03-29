@@ -10,6 +10,7 @@ Consumer-facing **Yardi SecureCafe / RealPage online leasing** sites that expose
 - **IDs**: `listing_id` = `realpage_{propertyid}_{unit_th_id}`; `company` = `RealPage`.
 - **Geo**: Street/city/state/zip from `.unit-address`. Optional **Nominatim** (`--geocode`) uses “City, ST” parsed from meta description (respect [usage policy](https://operations.osmfoundation.org/policies/nominatim/); ~1.1s delay per property).
 - **Bot**: Expect Cloudflare; `cloudscraper` is used for session cookies.
+- **Amenities** (not on `floorplans.aspx`): GET `…/onlineleasing/{sitekey}/amenities.aspx` with **Referer** set to the `floorplans.aspx` URL. Parse `h2` “Community Amenities” / “Apartment Amenities” each followed by `ul.amenities-list` → `li` text. Saved as `amenities.html.gz` next to raw floorplans; see `listing_amenities_parsers.parse_securecafe_amenities_html`.
 
 ## Example seed
 

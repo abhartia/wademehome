@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 from __future__ import annotations
 
 import ast
@@ -25,6 +25,14 @@ def _qtable(schema: str | None, table: str) -> str:
     if schema:
         return f'"{schema}"."{table}"'
     return f'"{table}"'
+
+
+def _psycopg_dsn(database_url: str) -> str:
+    u = database_url.strip()
+    for prefix in ("postgresql+psycopg2://", "postgresql+asyncpg://"):
+        if u.startswith(prefix):
+            return "postgresql://" + u[len(prefix) :]
+    return u
 
 
 def _normalize_amenity_text(value: str) -> str:
@@ -96,8 +104,10 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description="Sync listings amenity columns into listing_amenities")
     parser.add_argument("--batch-size", type=int, default=800, help="Rows per batched INSERT")
-    parser.add_argument("--progress-every", type=int, default=5000, help="Log progress every N listing rows")
+    parser.add_argument("--progress-every", type=int, default=2000, help="Log progress every N listing rows")
     args = parser.parse_args()
+
+    print("listing_amenities sync: loading env and connecting…", flush=True)
 
     if not ENV_FILE.exists():
         raise RuntimeError(f"Missing env file: {ENV_FILE}")
@@ -133,6 +143,10 @@ def main() -> int:
         print("No amenity columns found; nothing to sync.")
         return 0
 
+    print(
+        f"listing_amenities sync: scanning {qtable} (columns: {listing_id_col}, {', '.join(amenity_cols)})…",
+        flush=True,
+    )
     select_cols = ", ".join([f'"{listing_id_col}"'] + [f'"{c}"' for c in amenity_cols])
     upsert_sql = """
         INSERT INTO listing_amenities (
@@ -143,7 +157,7 @@ def main() -> int:
           amenity_embedding_source_hash,
           updated_at
         ) VALUES %s
-        ON CONFLICT (listing_id, amenity_text_norm)
+        ON CONFLICT (listing_id, amenity_text_norm, source_field)
         DO UPDATE SET
           amenity_text_raw = EXCLUDED.amenity_text_raw,
           source_field = EXCLUDED.source_field,
@@ -166,7 +180,8 @@ def main() -> int:
           END
         """
 
-    seen_pairs: set[tuple[str, str]] = set()
+    # One row per (listing, normalized text, source column) so community vs apartment both persist.
+    seen_pairs: set[tuple[str, str, str]] = set()
     upserted = 0
     listing_rows_seen = 0
     batch: list[tuple[str, str, str, str, str]] = []
@@ -186,15 +201,23 @@ def main() -> int:
 
     col_index = {c: i for i, c in enumerate([listing_id_col] + amenity_cols)}
 
-    pg = psycopg2.connect(db_url)
+    dsn = _psycopg_dsn(db_url)
+    pg_read = psycopg2.connect(dsn)
+    pg_write = psycopg2.connect(dsn)
     try:
-        pg.autocommit = False
-        scan_cur = pg.cursor(name="listing_amenities_scan")
-        scan_cur.itersize = 2000
+        pg_read.autocommit = False
+        pg_write.autocommit = False
+        scan_cur = pg_read.cursor(name="listing_amenities_scan")
+        scan_cur.itersize = min(500, max(50, args.batch_size))
         scan_cur.execute(f"SELECT {select_cols} FROM {qtable}")
-        upsert_cur = pg.cursor()
+        print("listing_amenities sync: query open, streaming rows…", flush=True)
+        upsert_cur = pg_write.cursor()
         try:
+            first_row = True
             for row in scan_cur:
+                if first_row:
+                    print("listing_amenities sync: first listing row received", flush=True)
+                    first_row = False
                 listing_rows_seen += 1
                 if args.progress_every and listing_rows_seen % args.progress_every == 0:
                     print(
@@ -209,7 +232,7 @@ def main() -> int:
                         norm = _normalize_amenity_text(raw_amenity)
                         if not norm:
                             continue
-                        key = (listing_id, norm)
+                        key = (listing_id, norm, source_col)
                         if key in seen_pairs:
                             continue
                         seen_pairs.add(key)
@@ -217,13 +240,15 @@ def main() -> int:
                         batch.append((listing_id, raw_amenity, norm, source_col, h))
                         if len(batch) >= args.batch_size:
                             flush_batch(upsert_cur)
+                            pg_write.commit()
             flush_batch(upsert_cur)
-            pg.commit()
+            pg_write.commit()
         finally:
             upsert_cur.close()
             scan_cur.close()
     finally:
-        pg.close()
+        pg_read.close()
+        pg_write.close()
 
     print(f"listing_amenities synced: {upserted} upserts, {len(seen_pairs)} unique rows", flush=True)
     return 0
