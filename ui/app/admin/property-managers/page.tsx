@@ -20,6 +20,7 @@ type ScrapeTargetRow = {
   host?: string | null;
   identifier?: string | null;
   notes?: string | null;
+  listings_in_postgres?: number;
 };
 
 type ScrapeTargetsResponse = {
@@ -210,6 +211,7 @@ export default function AdminPropertyManagersPage() {
                     <th className="p-2">Host</th>
                     <th className="p-2">Identifier</th>
                     <th className="p-2">Seed URL</th>
+                    <th className="p-2 text-right">Listings (Postgres)</th>
                     <th className="p-2">Notes</th>
                     <th className="p-2 text-right">Actions</th>
                   </tr>
@@ -234,6 +236,9 @@ export default function AdminPropertyManagersPage() {
                           {row.seed_url}
                         </a>
                       </td>
+                      <td className="p-2 text-right tabular-nums">
+                        {(row.listings_in_postgres ?? 0).toLocaleString()}
+                      </td>
                       <td className="p-2 text-xs text-muted-foreground break-words">
                         {row.notes ?? "—"}
                       </td>
@@ -257,7 +262,7 @@ export default function AdminPropertyManagersPage() {
                   ))}
                   {filtered.length === 0 ? (
                     <tr className="border-t">
-                      <td colSpan={6} className="p-4 text-muted-foreground">
+                      <td colSpan={7} className="p-4 text-muted-foreground">
                         No targets match your filters.
                       </td>
                     </tr>

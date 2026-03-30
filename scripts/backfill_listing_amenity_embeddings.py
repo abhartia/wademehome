@@ -24,6 +24,11 @@ def _psycopg_dsn(database_url: str) -> str:
     return u
 
 
+def _http_timeout_s() -> float:
+    raw = (os.environ.get("AMENITY_EMBED_HTTP_TIMEOUT_S") or "120").strip()
+    return max(10.0, float(raw))
+
+
 def _embed_many(
     inputs: list[str],
     *,
@@ -31,11 +36,13 @@ def _embed_many(
     dimensions: int,
     azure_cfg: dict[str, str],
 ) -> list[list[float]]:
+    timeout = _http_timeout_s()
     if azure_cfg["endpoint"] and azure_cfg["api_key"] and azure_cfg["deployment"]:
         client = AzureOpenAIClient(
             api_key=azure_cfg["api_key"],
             api_version=azure_cfg["api_version"],
             azure_endpoint=azure_cfg["endpoint"].rstrip("/"),
+            timeout=timeout,
         )
         res = client.embeddings.create(model=azure_cfg["deployment"], input=inputs)
         return [list(d.embedding) for d in res.data]
@@ -43,7 +50,7 @@ def _embed_many(
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OPENAI_API_KEY is required")
-    client = OpenAIClient(api_key=key)
+    client = OpenAIClient(api_key=key, timeout=timeout)
     res = client.embeddings.create(model=model, input=inputs, dimensions=dimensions)
     return [list(d.embedding) for d in res.data]
 
@@ -96,6 +103,12 @@ def main() -> int:
         action="store_true",
         help="Omit per-batch timing breakdown (summary line only)",
     )
+    parser.add_argument(
+        "--statement-timeout-s",
+        type=int,
+        default=int((os.environ.get("AMENITY_EMBED_PG_STATEMENT_TIMEOUT_S") or "0").strip() or 0),
+        help="PostgreSQL statement_timeout in seconds (0 = server default). Prevents endless stuck queries.",
+    )
     args = parser.parse_args()
 
     print(
@@ -137,8 +150,22 @@ def main() -> int:
     sum_total_ms = 0.0
 
     dsn = _psycopg_dsn(database_url)
-    pg = psycopg2.connect(dsn)
+    print("[amenity-embed] connecting to Postgres…", flush=True)
+    pg = psycopg2.connect(
+        dsn,
+        connect_timeout=30,
+        options=(
+            "-c application_name=amenity_embedding_backfill "
+            + (
+                f"-c statement_timeout={int(args.statement_timeout_s) * 1000}"
+                if args.statement_timeout_s > 0
+                else ""
+            )
+        ).strip(),
+    )
     pg.autocommit = False
+    with pg.cursor() as cur:
+        cur.execute("SET lock_timeout TO '30s'")
 
     sel_null = """
         SELECT id, amenity_text_norm
@@ -159,15 +186,19 @@ def main() -> int:
         ORDER BY id
         LIMIT %s
         """
+    # One index seek per distinct norm (fast on ix_listing_amenities_norm_model_embedded).
     fetch_cached_sql = """
-        SELECT DISTINCT ON (la.amenity_text_norm)
-          la.amenity_text_norm,
-          la.amenity_embedding::text AS emb
-        FROM listing_amenities la
-        WHERE la.amenity_text_norm = ANY(%s)
-          AND la.amenity_embedding IS NOT NULL
-          AND la.amenity_embedding_model = %s
-        ORDER BY la.amenity_text_norm, la.id
+        SELECT q.amenity_text_norm, la.amenity_embedding::text AS emb
+        FROM unnest(%s::text[]) AS q(amenity_text_norm)
+        INNER JOIN LATERAL (
+          SELECT amenity_embedding
+          FROM listing_amenities la
+          WHERE la.amenity_text_norm = q.amenity_text_norm
+            AND la.amenity_embedding IS NOT NULL
+            AND la.amenity_embedding_model = %s
+          ORDER BY la.id
+          LIMIT 1
+        ) la ON TRUE
         """
     update_sql = """
         UPDATE listing_amenities AS la
@@ -185,6 +216,12 @@ def main() -> int:
             t_batch = time.perf_counter()
             t_sel = t_cache = t_api = t_upd = t_prep = 0.0
 
+            phase = "NULL-embedding rows" if prefer_null_embedding else "model-mismatch rows"
+            print(
+                f"[amenity-embed] fetch | phase=SELECT ({phase}) limit={lim} | "
+                f"t={time.strftime('%H:%M:%S')}",
+                flush=True,
+            )
             t0 = time.perf_counter()
             with pg.cursor() as cur:
                 if prefer_null_embedding:
@@ -192,12 +229,18 @@ def main() -> int:
                     rows = cur.fetchall()
                     if not rows:
                         prefer_null_embedding = False
+                        print(
+                            "[amenity-embed] no NULL-embedding rows left; "
+                            "switching to model-mismatch SELECT",
+                            flush=True,
+                        )
                         cur.execute(sel_remodel, (model, lim))
                         rows = cur.fetchall()
                 else:
                     cur.execute(sel_remodel, (model, lim))
                     rows = cur.fetchall()
             t_sel = (time.perf_counter() - t0) * 1000
+            pg.commit()
 
             if not rows:
                 break
@@ -211,15 +254,32 @@ def main() -> int:
             need_lookup = [n for n in unique_norms if n not in norm_cache]
             t0 = time.perf_counter()
             if need_lookup:
+                print(
+                    f"[amenity-embed] batch {batch_num} | phase=cache_lookup "
+                    f"norms={len(need_lookup)} | t={time.strftime('%H:%M:%S')}",
+                    flush=True,
+                )
                 with pg.cursor() as cur:
                     cur.execute(fetch_cached_sql, (need_lookup, model))
-                    for norm, emb_txt in cur.fetchall():
+                    got = cur.fetchall()
+                    for norm, emb_txt in got:
                         norm_cache[norm] = _vector_from_db(emb_txt)
+                    print(
+                        f"[amenity-embed] batch {batch_num} | phase=cache_lookup_done "
+                        f"rows={len(got)} | t={time.strftime('%H:%M:%S')}",
+                        flush=True,
+                    )
+                pg.commit()
             t_cache = (time.perf_counter() - t0) * 1000
 
             api_norms = [n for n in unique_norms if n not in norm_cache]
             t0 = time.perf_counter()
             if api_norms:
+                print(
+                    f"[amenity-embed] batch {batch_num} | phase=embedding_api "
+                    f"vectors={len(api_norms)} | t={time.strftime('%H:%M:%S')}",
+                    flush=True,
+                )
                 new_vecs = _embed_many(
                     api_norms,
                     model=model,
@@ -237,11 +297,21 @@ def main() -> int:
             emb_strs = [_vec_literal(e) for e in embeddings]
             t_prep = (time.perf_counter() - t0) * 1000
 
+            print(
+                f"[amenity-embed] batch {batch_num} | phase=update_commit "
+                f"rows={len(ids)} | t={time.strftime('%H:%M:%S')}",
+                flush=True,
+            )
             t0 = time.perf_counter()
             with pg.cursor() as cur:
                 cur.execute(update_sql, (model, ids, emb_strs))
             pg.commit()
             t_upd = (time.perf_counter() - t0) * 1000
+            print(
+                f"[amenity-embed] batch {batch_num} | phase=update_commit_done "
+                f"({_fmt_ms(t_upd)}) | t={time.strftime('%H:%M:%S')}",
+                flush=True,
+            )
 
             embedded_this_run += len(rows)
             rows_total += len(rows)

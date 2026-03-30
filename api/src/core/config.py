@@ -15,7 +15,7 @@ class Config:
     DATABASE_URL: str = env_manager.get("DATABASE_URL", "")
 
     # OpenAI (used when Azure OpenAI is not configured)
-    OPENAI_API_KEY: str = env_manager.get("OPENAI_API_KEY", "")
+    OPENAI_API_KEY: str = env_manager.get("AZURE_OPENAI_API_KEY", "")
     OPENAI_MODEL: str = env_manager.get("OPENAI_MODEL", "gpt-4.1")
     OPENAI_SEARCH_PLANNER_MODEL: str = env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini")
 

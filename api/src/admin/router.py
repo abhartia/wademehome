@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 from admin.inventory_analytics import (
     NYC_METRO_BBOX_DEFAULT,
@@ -37,6 +37,7 @@ class ScrapeTargetRow(BaseModel):
     host: str | None = None
     identifier: str | None = None
     notes: str | None = None
+    listings_in_postgres: int = 0
 
 
 class ScrapeTargetsResponse(BaseModel):
@@ -91,6 +92,29 @@ def _seed_to_row(platform: str, seed_url: str) -> ScrapeTargetRow:
     )
 
 
+def _listings_url_col(conn, schema_for_info: str, tname: str) -> str | None:
+    rows = conn.execute(
+        text(
+            """
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = :schema AND table_name = :tname
+            """
+        ),
+        {"schema": schema_for_info, "tname": tname},
+    ).fetchall()
+    cols = {str(r[0]).lower() for r in rows}
+    for candidate in ("listing_url", "listingurl", "url"):
+        if candidate in cols:
+            return candidate
+    return None
+
+
+def _url_like_pattern(seed_url: str) -> str:
+    normalized = _normalize_seed_url(seed_url)
+    esc = normalized.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"{esc}%"
+
+
 @router.get("/scrape-targets", response_model=ScrapeTargetsResponse)
 def get_scrape_targets(
     user: Users = Depends(get_current_admin_user),
@@ -128,6 +152,46 @@ def get_scrape_targets(
     counts: dict[str, int] = {}
     for r in deduped:
         counts[r.platform] = counts.get(r.platform, 0) + 1
+
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        raise HTTPException(status_code=503, detail="Listings database not configured")
+    if engine.dialect.name != "postgresql":
+        raise HTTPException(status_code=503, detail="Unsupported database dialect")
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+    if not tname:
+        raise HTTPException(status_code=503, detail="Listings table not configured")
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                raise HTTPException(status_code=503, detail="Listings table missing")
+            url_col = _listings_url_col(conn, schema_for_info=schema_for_info, tname=tname)
+            if not url_col:
+                raise HTTPException(status_code=503, detail="Listings table URL column missing")
+            uq = f'"{url_col}"'
+            for idx, row in enumerate(deduped):
+                pattern = _url_like_pattern(row.seed_url)
+                sql = text(
+                    f"""
+                    SELECT COUNT(*)::bigint AS c
+                    FROM {qtable}
+                    WHERE NULLIF(TRIM(CAST({uq} AS text)), '') IS NOT NULL
+                      AND LOWER(TRIM(CAST({uq} AS text))) LIKE :pattern ESCAPE '\\'
+                    """
+                )
+                count = int(conn.execute(sql, {"pattern": pattern}).scalar() or 0)
+                deduped[idx] = row.model_copy(update={"listings_in_postgres": count})
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("admin/scrape-targets postgres count failed")
+        raise HTTPException(status_code=500, detail="Failed to compute Postgres listing counts")
 
     return ScrapeTargetsResponse(counts_by_platform=counts, targets=deduped)
 
