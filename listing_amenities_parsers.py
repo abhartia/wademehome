@@ -14,51 +14,89 @@ from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 
 
+_RENTCAFE_COMMUNITY_LABELS = (
+    "community amenities",
+    "property amenities",
+    "building amenities",
+    "community features",
+)
+_RENTCAFE_APARTMENT_LABELS = (
+    "apartment amenities",
+    "unit amenities",
+    "residence amenities",
+    "in-home amenities",
+    "suite amenities",
+)
+
+
 def parse_rentcafe_amenities(html: str) -> tuple[list[str], list[str]] | None:
     """
-    RentCafe property pages (default.aspx):
+    RentCafe property pages (default.aspx).
 
-    - Apartment amenities: ``RCILSSettings.apartmentAmenities = [...]`` (JSON array).
-    - Community amenities: under a ``<p>`` with text "Community amenities", the
-      grandparent column contains a ``<ul class="... list-bullet ...">`` with
-      ``<li>`` items (verified structure; headings are title case on live pages).
+    Apartment list prefers ``RCILSSettings.apartmentAmenities`` JSON, then DOM near
+    apartment-style headings. Community list is taken from DOM near community-style
+    headings. Headings and ``<ul>`` layouts vary by template; we try several labels and
+    a relaxed walk from headings to nearby lists.
+
+    Returns ``None`` only when **both** sides lack any recognizable signal. If only one
+    side parses, the other is returned as ``[]`` (still structured, source-derived).
     """
     apartment = _rentcafe_apartment_amenities_from_rcils(html)
     if apartment is None:
-        apartment = _rentcafe_amenities_from_dom_section(html, "Apartment amenities")
-    community = _rentcafe_amenities_from_dom_section(html, "Community amenities")
-    if apartment is None or community is None:
+        apartment = _rentcafe_amenities_dom_best(html, _RENTCAFE_APARTMENT_LABELS)
+    community = _rentcafe_amenities_dom_best(html, _RENTCAFE_COMMUNITY_LABELS)
+    if apartment is None and community is None:
         return None
-    return (community, apartment)
+    return (list(community or []), list(apartment or []))
 
 
 def _rentcafe_apartment_amenities_from_rcils(html: str) -> list[str] | None:
-    m = re.search(
+    patterns = (
         r"RCILSSettings\.apartmentAmenities\s*=\s*(\[[\s\S]*?\])\s*;",
-        html,
-        re.I,
+        r"RCILSSettings\[['\"]apartmentAmenities['\"]\]\s*=\s*(\[[\s\S]*?\])\s*;",
+        r"\bapartmentAmenities\s*:\s*(\[[\s\S]*?\])\s*[,}\n]",
     )
-    if not m:
-        return None
-    try:
-        raw = json.loads(m.group(1))
-    except (json.JSONDecodeError, TypeError):
-        return None
-    if not isinstance(raw, list):
-        return None
-    out: list[str] = []
-    for x in raw:
-        if isinstance(x, str) and x.strip():
-            out.append(x.strip())
-    return out
+    for pat in patterns:
+        m = re.search(pat, html, re.I)
+        if not m:
+            continue
+        try:
+            raw = json.loads(m.group(1))
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(raw, list):
+            continue
+        out: list[str] = []
+        for x in raw:
+            if isinstance(x, str) and x.strip():
+                out.append(x.strip())
+        return out
+    return None
+
+
+def _rentcafe_amenities_dom_best(html: str, labels: tuple[str, ...]) -> list[str] | None:
+    soup = BeautifulSoup(html, "html.parser")
+    for label in labels:
+        items = _rentcafe_amenities_from_dom_card(soup, label)
+        if items is not None:
+            return items
+    for key in labels:
+        items = _rentcafe_amenities_relaxed_near_heading(soup, key.strip().lower())
+        if items is not None:
+            return items
+    return None
 
 
 def _rentcafe_amenities_from_dom_section(html: str, heading: str) -> list[str] | None:
-    soup = BeautifulSoup(html, "html.parser")
+    """Backward-compatible name for tests / call sites using a single heading."""
+    return _rentcafe_amenities_dom_best(html, (heading,))
+
+
+def _rentcafe_amenities_from_dom_card(soup: BeautifulSoup, heading: str) -> list[str] | None:
     target = heading.strip().lower()
     p = soup.find(
         "p",
-        class_=lambda c: c and "font-weight-bold" in c.split(),
+        class_=lambda c: c and "font-weight-bold" in str(c).split(),
         string=lambda t: t is not None and t.strip().lower() == target,
     )
     if p is None:
@@ -67,22 +105,107 @@ def _rentcafe_amenities_from_dom_section(html: str, heading: str) -> list[str] |
             string=lambda t: t is not None and t.strip().lower() == target,
         )
     if p is None:
+        for hn in ("h2", "h3", "h4"):
+            h = soup.find(
+                hn,
+                string=lambda t: t is not None and t.strip().lower() == target,
+            )
+            if h is not None:
+                p = h
+                break
+    if p is None:
         return None
-    gp = p.parent.parent if p.parent else None
-    if gp is None:
-        return None
-    ul = gp.find(
-        "ul",
-        class_=lambda c: c and any("list-bullet" in str(x) for x in (c if isinstance(c, list) else [c])),
-    )
-    if ul is None:
-        return None
-    items = []
+
+    def _ul_class_matches(attr) -> bool:
+        if not attr:
+            return False
+        blob = " ".join(attr) if isinstance(attr, list) else str(attr)
+        b = blob.lower()
+        return any(tok in b for tok in ("list-bullet", "list-disc", "amenities", "pl-", "px-"))
+
+    inner = p.parent
+    # Prefer tight parent (e.g. ``<section>`` with ``h2`` + ``ul``); fall back to
+    # grandparent (legacy RentCafe flex column + sibling ``ul``).
+    containers: list = []
+    if inner is not None:
+        containers.append(inner)
+        if inner.parent is not None:
+            containers.append(inner.parent)
+
+    for gp in containers:
+        ul = gp.find("ul", class_=lambda c: _ul_class_matches(c))
+        if ul is None:
+            ul = gp.find("ul")
+        if ul is None:
+            continue
+        items = _rentcafe_ul_li_texts(ul)
+        if items:
+            return items
+    return None
+
+
+def _rentcafe_ul_li_texts(ul) -> list[str]:
+    items: list[str] = []
     for li in ul.find_all("li", recursive=False):
-        t = li.get_text(strip=True)
-        if t:
+        t = li.get_text(" ", strip=True)
+        if t and len(t) < 220 and not t.lower().startswith("http"):
+            items.append(t)
+    if items:
+        return items
+    for li in ul.find_all("li", recursive=True):
+        t = li.get_text(" ", strip=True)
+        if t and len(t) < 220 and not t.lower().startswith("http"):
             items.append(t)
     return items
+
+
+def _rentcafe_amenities_relaxed_near_heading(soup: BeautifulSoup, label_lc: str) -> list[str] | None:
+    """Follow heading-like nodes and walk ancestors / siblings for a sensible ``<ul>``."""
+    for el in soup.find_all(["p", "h2", "h3", "h4", "span", "strong", "div"]):
+        if el.find_parent(["nav", "header", "footer"]):
+            continue
+        txt = el.get_text(strip=True)
+        if not txt or len(txt) > 140:
+            continue
+        tl = txt.lower()
+        if label_lc not in tl:
+            continue
+        if "amenit" not in tl and "feature" not in tl and tl != label_lc:
+            continue
+        cur = el
+        for _ in range(12):
+            if cur is None:
+                break
+            for ul in cur.find_all("ul", recursive=False):
+                if ul.find_parent(["nav", "header", "footer"]):
+                    continue
+                items = _rentcafe_ul_li_texts(ul)
+                if _rentcafe_looks_amenity_list(items):
+                    return items
+            cur = cur.parent
+        parent = el.parent
+        if parent is not None:
+            for sib in parent.find_next_siblings(limit=12):
+                if getattr(sib, "name", None) == "ul":
+                    items = _rentcafe_ul_li_texts(sib)
+                    if _rentcafe_looks_amenity_list(items):
+                        return items
+                if hasattr(sib, "find"):
+                    ul = sib.find("ul")
+                    if ul is not None:
+                        items = _rentcafe_ul_li_texts(ul)
+                        if _rentcafe_looks_amenity_list(items):
+                            return items
+    return None
+
+
+def _rentcafe_looks_amenity_list(items: list[str]) -> bool:
+    if len(items) < 1:
+        return False
+    if len(items) >= 2:
+        return True
+    one = items[0]
+    return 2 <= len(one) <= 120
 
 
 def securecafe_amenities_url(floorplans_url: str) -> str:

@@ -59,6 +59,28 @@ def test_parse_rentcafe_missing_returns_none():
     assert lap.parse_rentcafe_amenities("<html><body></body></html>") is None
 
 
+def test_parse_rentcafe_alt_h2_fixture():
+    html = (FIXTURES / "rentcafe_alt_layout.html").read_text(encoding="utf-8")
+    out = lap.parse_rentcafe_amenities(html)
+    assert out is not None
+    comm, apt = out
+    assert "Dog Park" in comm
+    assert "Quartz counters" in apt
+
+
+def test_parse_rentcafe_partial_community_only():
+    """If only community DOM parses, apartment may be empty rather than failing the whole URL."""
+    html = """<html><body>
+    <p class="font-weight-bold">Community amenities</p>
+    <ul class="list-bullet"><li>Pool</li></ul>
+    </body></html>"""
+    out = lap.parse_rentcafe_amenities(html)
+    assert out is not None
+    comm, apt = out
+    assert comm == ["Pool"]
+    assert apt == []
+
+
 def test_parse_greystar_amenities_fixture():
     html = (FIXTURES / "greystar_next_data_sample.html").read_text(encoding="utf-8")
     out = lap.parse_greystar_amenities_from_html(html)

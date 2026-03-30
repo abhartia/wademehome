@@ -1760,6 +1760,28 @@ export type ListingRowPeek = {
 };
 
 /**
+ * ListingWithoutAmenitiesRow
+ */
+export type ListingWithoutAmenitiesRow = {
+    /**
+     * Listing Id
+     */
+    listing_id: string;
+    /**
+     * Listing Url
+     */
+    listing_url?: string | null;
+    /**
+     * Property Name
+     */
+    property_name?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+};
+
+/**
  * ListingsPerBuildingProof
  * SQL proof that row count ÷ distinct buildings matches unit/listing density per property.
  */
@@ -1826,6 +1848,40 @@ export type ListingsPerBuildingSample = {
      * Sample Rows
      */
     sample_rows?: Array<ListingRowPeek>;
+};
+
+/**
+ * ListingsWithoutAmenitiesResponse
+ */
+export type ListingsWithoutAmenitiesResponse = {
+    /**
+     * Computed At
+     */
+    computed_at?: string;
+    /**
+     * Listings Table
+     */
+    listings_table: string;
+    /**
+     * Amenities Table
+     */
+    amenities_table: string;
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Limit
+     */
+    limit: number;
+    /**
+     * Offset
+     */
+    offset: number;
+    /**
+     * Items
+     */
+    items: Array<ListingWithoutAmenitiesRow>;
 };
 
 /**
@@ -2574,6 +2630,21 @@ export type PropertyDataItem = {
      * One short sentence (max ~200 chars) explaining why this listing matches the user's search (e.g. name/amenities mention 'park', proximity, filters applied).
      */
     match_reason?: string | null;
+    /**
+     * Validation Status
+     * Semantic/LLM validation state for dynamic UI: candidate|validating|confirmed|rejected.
+     */
+    validation_status?: string | null;
+    /**
+     * Validation Explanation
+     * Short explanation of why the listing is relevant to the current query.
+     */
+    validation_explanation?: string | null;
+    /**
+     * Validation Confidence
+     * Optional validator confidence in [0,1].
+     */
+    validation_confidence?: number | null;
 };
 
 /**
@@ -2917,6 +2988,57 @@ export type SavedGuarantorPatch = {
      * Relationship
      */
     relationship?: string | null;
+};
+
+/**
+ * ScrapeTargetRow
+ */
+export type ScrapeTargetRow = {
+    /**
+     * Platform
+     * appfolio | realpage | rentcafe | entrata | greystar
+     */
+    platform: string;
+    /**
+     * Seed Url
+     */
+    seed_url: string;
+    /**
+     * Host
+     */
+    host?: string | null;
+    /**
+     * Identifier
+     */
+    identifier?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Listings In Postgres
+     */
+    listings_in_postgres?: number;
+};
+
+/**
+ * ScrapeTargetsResponse
+ */
+export type ScrapeTargetsResponse = {
+    /**
+     * Computed At
+     */
+    computed_at?: string;
+    /**
+     * Counts By Platform
+     */
+    counts_by_platform: {
+        [key: string]: number;
+    };
+    /**
+     * Targets
+     */
+    targets: Array<ScrapeTargetRow>;
 };
 
 /**
@@ -6656,6 +6778,58 @@ export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses 
 };
 
 export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponse = PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses[keyof PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses];
+
+export type GetScrapeTargetsAdminScrapeTargetsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/scrape-targets';
+};
+
+export type GetScrapeTargetsAdminScrapeTargetsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ScrapeTargetsResponse;
+};
+
+export type GetScrapeTargetsAdminScrapeTargetsGetResponse = GetScrapeTargetsAdminScrapeTargetsGetResponses[keyof GetScrapeTargetsAdminScrapeTargetsGetResponses];
+
+export type GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         * Page size (max 500).
+         */
+        limit?: number;
+        /**
+         * Offset
+         * Rows to skip.
+         */
+        offset?: number;
+    };
+    url: '/admin/listings-without-amenities';
+};
+
+export type GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetError = GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetErrors[keyof GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetErrors];
+
+export type GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ListingsWithoutAmenitiesResponse;
+};
+
+export type GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetResponse = GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetResponses[keyof GetListingsWithoutAmenitiesAdminListingsWithoutAmenitiesGetResponses];
 
 export type GetInventoryAnalyticsAdminInventoryAnalyticsGetData = {
     body?: never;

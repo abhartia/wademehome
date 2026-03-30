@@ -23,6 +23,7 @@ from auth.router import get_current_admin_user
 from core.config import Config
 from core.logger import get_logger
 from db.models import Users
+from listings.location_columns import first_column_present, quote_ident
 from workflow.utils import engine, listing_table_name, listing_table_schema
 
 logger = get_logger(__name__)
@@ -45,6 +46,23 @@ class ScrapeTargetsResponse(BaseModel):
     computed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     counts_by_platform: dict[str, int]
     targets: list[ScrapeTargetRow]
+
+
+class ListingWithoutAmenitiesRow(BaseModel):
+    listing_id: str
+    listing_url: str | None = None
+    property_name: str | None = None
+    address: str | None = None
+
+
+class ListingsWithoutAmenitiesResponse(BaseModel):
+    computed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    listings_table: str
+    amenities_table: str
+    total: int
+    limit: int
+    offset: int
+    items: list[ListingWithoutAmenitiesRow]
 
 
 def _read_seed_lines(path: Path) -> list[str]:
@@ -108,6 +126,33 @@ def _listings_url_col(conn, schema_for_info: str, tname: str) -> str | None:
         if candidate in cols:
             return candidate
     return None
+
+
+def _table_columns_lower(conn, schema: str, tname: str) -> set[str]:
+    rows = conn.execute(
+        text(
+            """
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = :schema AND table_name = :tname
+            """
+        ),
+        {"schema": schema, "tname": tname},
+    ).fetchall()
+    return {str(r[0]).lower() for r in rows}
+
+
+def _qualified_amenity_table() -> str:
+    tname = (Config.get("LISTING_AMENITIES_TABLE_NAME") or "listing_amenities").strip() or "listing_amenities"
+    schema = (listing_table_schema or "").strip()
+    if schema:
+        return f'"{schema}"."{tname}"'
+    return f'"{tname}"'
+
+
+def _amenities_table_display() -> str:
+    tname = (Config.get("LISTING_AMENITIES_TABLE_NAME") or "listing_amenities").strip() or "listing_amenities"
+    schema = (listing_table_schema or "").strip()
+    return f"{schema}.{tname}" if schema else tname
 
 
 @router.get("/scrape-targets", response_model=ScrapeTargetsResponse)
@@ -221,6 +266,127 @@ def _qualified_table() -> str:
     if schema:
         return f'"{schema}"."{name}"'
     return f'"{name}"'
+
+
+def _listings_table_display() -> str:
+    name = (listing_table_name or "").strip()
+    schema = (listing_table_schema or "").strip()
+    return f"{schema}.{name}" if schema else name
+
+
+@router.get("/listings-without-amenities", response_model=ListingsWithoutAmenitiesResponse)
+def get_listings_without_amenities(
+    user: Users = Depends(get_current_admin_user),
+    limit: int = Query(100, ge=1, le=500, description="Page size (max 500)."),
+    offset: int = Query(0, ge=0, description="Rows to skip."),
+) -> ListingsWithoutAmenitiesResponse:
+    """List inventory rows with no `listing_amenities` rows (admin). Large tables: COUNT may be slow."""
+    _ = user
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        raise HTTPException(status_code=503, detail="Listings database not configured")
+    if engine.dialect.name != "postgresql":
+        raise HTTPException(status_code=503, detail="Unsupported database dialect")
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+    if not tname:
+        raise HTTPException(status_code=503, detail="Listings table not configured")
+
+    amenity_q = _qualified_amenity_table()
+    amenity_tname = (Config.get("LISTING_AMENITIES_TABLE_NAME") or "listing_amenities").strip() or "listing_amenities"
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                raise HTTPException(status_code=503, detail="Listings table missing")
+            if not insp.has_table(amenity_tname, schema=schema_kw):
+                raise HTTPException(
+                    status_code=503,
+                    detail="listing_amenities table missing — run migrations",
+                )
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            li = first_column_present(cols, ("listing_id",))
+            if not li:
+                raise HTTPException(status_code=503, detail="Listings table has no listing_id column")
+
+            url_col = _listings_url_col(conn, schema_for_info=schema_for_info, tname=tname)
+            name_col = first_column_present(cols, ("property_name", "name", "building_name", "propertyname"))
+            addr_col = first_column_present(
+                cols,
+                ("address", "street_address", "full_address", "street", "line1"),
+            )
+
+            liq = quote_ident(li)
+            not_exists = (
+                "NOT EXISTS (SELECT 1 FROM "
+                f"{amenity_q} a "
+                f"WHERE a.listing_id = NULLIF(TRIM(CAST(l.{liq} AS text)), ''))"
+            )
+            base_where = (
+                f"l.{liq} IS NOT NULL AND NULLIF(TRIM(CAST(l.{liq} AS text)), '') IS NOT NULL "
+                f"AND {not_exists}"
+            )
+
+            sel_url = f"NULLIF(TRIM(CAST(l.{quote_ident(url_col)} AS text)), '')" if url_col else "NULL::text"
+            sel_name = f"NULLIF(TRIM(CAST(l.{quote_ident(name_col)} AS text)), '')" if name_col else "NULL::text"
+            sel_addr = f"NULLIF(TRIM(CAST(l.{quote_ident(addr_col)} AS text)), '')" if addr_col else "NULL::text"
+
+            count_sql = text(f"SELECT COUNT(*)::bigint AS c FROM {qtable} l WHERE {base_where}")
+            total = int(conn.execute(count_sql).scalar() or 0)
+
+            page_sql = text(
+                f"""
+                SELECT
+                  NULLIF(TRIM(CAST(l.{liq} AS text)), '') AS listing_id,
+                  {sel_url} AS listing_url,
+                  {sel_name} AS property_name,
+                  {sel_addr} AS address
+                FROM {qtable} l
+                WHERE {base_where}
+                ORDER BY NULLIF(TRIM(CAST(l.{liq} AS text)), '')
+                LIMIT :lim OFFSET :off
+                """
+            )
+            rows = conn.execute(page_sql, {"lim": limit, "off": offset}).mappings().all()
+
+        items: list[ListingWithoutAmenitiesRow] = []
+        for r in rows:
+            lid = str(r["listing_id"] or "").strip()
+            if not lid:
+                continue
+            raw_url = r.get("listing_url")
+            url_s = str(raw_url).strip() if raw_url not in (None, "") else ""
+            pname = r.get("property_name")
+            pname_s = str(pname).strip() if pname not in (None, "") else ""
+            addr = r.get("address")
+            addr_s = str(addr).strip() if addr not in (None, "") else ""
+            items.append(
+                ListingWithoutAmenitiesRow(
+                    listing_id=lid,
+                    listing_url=url_s or None,
+                    property_name=pname_s or None,
+                    address=addr_s or None,
+                )
+            )
+
+        return ListingsWithoutAmenitiesResponse(
+            listings_table=_listings_table_display(),
+            amenities_table=_amenities_table_display(),
+            total=total,
+            limit=limit,
+            offset=offset,
+            items=items,
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("admin/listings-without-amenities failed")
+        raise HTTPException(status_code=500, detail="Query failed")
 
 
 @router.get("/inventory-analytics", response_model=InventoryAnalyticsResponse)

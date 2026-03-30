@@ -1,8 +1,9 @@
 {
-  "mode_signature": "6f3122625aa92f17e40a824d",
-  "processed": 2099,
-  "parsed_ok": 917,
-  "parsed_none": 1182,
-  "last_key": "RentCafe|https://www.rentcafe.com/apartments/ca/bakersfield/5301/lennox/avenue/unit/one/bedroom/default.aspx",
-  "updated_at": "2026-03-30T16:10:43Z"
+  "mode_signature": "1ade6b8eb1ba58f5c6ccde0c",
+  "processed": 3,
+  "queue_total": 3,
+  "parsed_ok": 3,
+  "parsed_none": 0,
+  "last_key": "RentCafe|https://www.rentcafe.com/apartments/al/auburn/447/w/longleaf/dr/unit/13060/default.aspx",
+  "updated_at": "2026-03-30T16:51:53Z"
 }

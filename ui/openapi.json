@@ -4486,6 +4486,88 @@
         }
       }
     },
+    "/admin/scrape-targets": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Scrape Targets",
+        "operationId": "get_scrape_targets_admin_scrape_targets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeTargetsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/listings-without-amenities": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get Listings Without Amenities",
+        "description": "List inventory rows with no `listing_amenities` rows (admin). Large tables: COUNT may be slow.",
+        "operationId": "get_listings_without_amenities_admin_listings_without_amenities_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Page size (max 500).",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Page size (max 500)."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Rows to skip.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Rows to skip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingsWithoutAmenitiesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/inventory-analytics": {
       "get": {
         "tags": [
@@ -7523,6 +7605,52 @@
         "title": "ListingRowPeek",
         "description": "Up to a few concrete rows for a building_key \u2014 use to validate giant property_id buckets."
       },
+      "ListingWithoutAmenitiesRow": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "title": "Listing Id"
+          },
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url"
+          },
+          "property_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Name"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id"
+        ],
+        "title": "ListingWithoutAmenitiesRow"
+      },
       "ListingsPerBuildingProof": {
         "properties": {
           "total_listing_rows_attributed": {
@@ -7620,6 +7748,52 @@
           "listing_count"
         ],
         "title": "ListingsPerBuildingSample"
+      },
+      "ListingsWithoutAmenitiesResponse": {
+        "properties": {
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "listings_table": {
+            "type": "string",
+            "title": "Listings Table"
+          },
+          "amenities_table": {
+            "type": "string",
+            "title": "Amenities Table"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ListingWithoutAmenitiesRow"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listings_table",
+          "amenities_table",
+          "total",
+          "limit",
+          "offset",
+          "items"
+        ],
+        "title": "ListingsWithoutAmenitiesResponse"
       },
       "LlamaCloudPipeline": {
         "properties": {
@@ -9006,6 +9180,42 @@
             ],
             "title": "Match Reason",
             "description": "One short sentence (max ~200 chars) explaining why this listing matches the user's search (e.g. name/amenities mention 'park', proximity, filters applied)."
+          },
+          "validation_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Status",
+            "description": "Semantic/LLM validation state for dynamic UI: candidate|validating|confirmed|rejected."
+          },
+          "validation_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Explanation",
+            "description": "Short explanation of why the listing is relevant to the current query."
+          },
+          "validation_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Confidence",
+            "description": "Optional validator confidence in [0,1]."
           }
         },
         "type": "object",
@@ -9563,6 +9773,92 @@
         },
         "type": "object",
         "title": "SavedGuarantorPatch"
+      },
+      "ScrapeTargetRow": {
+        "properties": {
+          "platform": {
+            "type": "string",
+            "title": "Platform",
+            "description": "appfolio | realpage | rentcafe | entrata | greystar"
+          },
+          "seed_url": {
+            "type": "string",
+            "title": "Seed Url"
+          },
+          "host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host"
+          },
+          "identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identifier"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "listings_in_postgres": {
+            "type": "integer",
+            "title": "Listings In Postgres",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform",
+          "seed_url"
+        ],
+        "title": "ScrapeTargetRow"
+      },
+      "ScrapeTargetsResponse": {
+        "properties": {
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "counts_by_platform": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts By Platform"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/ScrapeTargetRow"
+            },
+            "type": "array",
+            "title": "Targets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counts_by_platform",
+          "targets"
+        ],
+        "title": "ScrapeTargetsResponse"
       },
       "ServerFileResponse": {
         "properties": {

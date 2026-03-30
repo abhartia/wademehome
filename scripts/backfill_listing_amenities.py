@@ -114,10 +114,12 @@ def _save_checkpoint(
     parsed_ok: int,
     parsed_none: int,
     last_key: str,
+    queue_total: int,
 ) -> None:
     payload = {
         "mode_signature": mode_signature,
         "processed": int(processed),
+        "queue_total": int(queue_total),
         "parsed_ok": int(parsed_ok),
         "parsed_none": int(parsed_none),
         "last_key": last_key,
@@ -310,10 +312,11 @@ def fetch_amenities(job: UrlJob, connect_timeout_s: int, read_timeout_s: int) ->
 
     if job.company == "RentCafe":
         cf = _get_thread_cf_session()
-        candidates = normalize_listing_url_for_fetch(job.company, job.listing_url)
         rebuilt = rentcafe_url_from_property_id(job.property_id)
-        if rebuilt and rebuilt not in candidates:
-            candidates.append(rebuilt)
+        candidates = normalize_listing_url_for_fetch(job.company, job.listing_url)
+        if rebuilt:
+            candidates = [u for u in candidates if u != rebuilt]
+            candidates.insert(0, rebuilt)
         last_html = ""
         last_status = 0
         for attempt_url in candidates:
@@ -576,16 +579,27 @@ def main() -> int:
     checkpoint_path = Path(args.checkpoint_file).expanduser()
     mode_signature = _build_mode_signature(args)
     cp = _load_checkpoint(checkpoint_path)
+    resume_from = 0
     if cp and cp.get("mode_signature") == mode_signature:
-        resume_from = 0
         last_key = str(cp.get("last_key", "") or "")
-        if last_key:
-            key_to_idx = {_job_key(job): i for i, job in enumerate(jobs)}
-            if last_key in key_to_idx:
-                resume_from = key_to_idx[last_key] + 1
-            elif last_key == "DONE":
-                resume_from = total_jobs
-        if resume_from == 0:
+        cp_qt = int(cp.get("queue_total", -1) or -1)
+        queue_changed = cp_qt >= 0 and cp_qt != total_jobs
+        if queue_changed:
+            _log(
+                f"Checkpoint queue_total {cp_qt} != current {total_jobs}; "
+                "starting over (still-missing rows need another pass)."
+            )
+        key_to_idx = {_job_key(job): i for i, job in enumerate(jobs)}
+        if not queue_changed and last_key in key_to_idx:
+            resume_from = key_to_idx[last_key] + 1
+        elif not queue_changed and last_key == "DONE":
+            # A finished run cleared the checkpoint, but listings can still lack amenities
+            # (empty parse, DB writer hiccup, or new parser). Re-run the full current queue.
+            resume_from = 0
+        elif not queue_changed and last_key and last_key not in key_to_idx and last_key != "DONE":
+            _log("Checkpoint last_key missing from current queue; starting from beginning.")
+            resume_from = 0
+        elif not queue_changed and resume_from == 0 and last_key != "DONE":
             resume_from = max(0, min(int(cp.get("processed", 0) or 0), total_jobs))
         if resume_from > 0:
             _log(
@@ -614,8 +628,13 @@ def main() -> int:
         f"workers={args.workers}  http=({args.connect_timeout_s}s,{args.timeout_s}s)"
     )
 
-    parsed_ok = int(cp.get("parsed_ok", 0)) if (cp and cp.get("mode_signature") == mode_signature) else 0
-    parsed_none = int(cp.get("parsed_none", 0)) if (cp and cp.get("mode_signature") == mode_signature) else 0
+    use_prior_counters = bool(cp and cp.get("mode_signature") == mode_signature and resume_from > 0)
+    if use_prior_counters:
+        parsed_ok = int(cp.get("parsed_ok", 0))
+        parsed_none = int(cp.get("parsed_none", 0))
+    else:
+        parsed_ok = 0
+        parsed_none = 0
     processed = resume_from
 
     write_q: queue.Queue[list[tuple[str, str, str, str, str]] | None] | None = None
@@ -649,7 +668,13 @@ def main() -> int:
 
     def checkpoint_now(job: UrlJob) -> None:
         _save_checkpoint(
-            checkpoint_path, mode_signature, processed, parsed_ok, parsed_none, _job_key(job)
+            checkpoint_path,
+            mode_signature,
+            processed,
+            parsed_ok,
+            parsed_none,
+            _job_key(job),
+            total_jobs,
         )
 
     t_start = time.monotonic()
@@ -731,7 +756,9 @@ def main() -> int:
                 _log("DB writer join timed out after 7200s.")
 
     total_s = time.monotonic() - t_start
-    _save_checkpoint(checkpoint_path, mode_signature, total_jobs, parsed_ok, parsed_none, "DONE")
+    _save_checkpoint(
+        checkpoint_path, mode_signature, total_jobs, parsed_ok, parsed_none, "DONE", total_jobs
+    )
     _log(
         f"Done: urls={processed}  ok={parsed_ok}  skip={parsed_none}  "
         f"elapsed={total_s:.1f}s  avg={processed / max(total_s, 1e-6):.2f} url/s"

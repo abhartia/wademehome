@@ -17,6 +17,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Button asChild variant="ghost" size="sm">
               <Link href="/admin/property-managers">Property managers</Link>
             </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/admin/listings-without-amenities">No amenities</Link>
+            </Button>
           </nav>
         </div>
       </div>
