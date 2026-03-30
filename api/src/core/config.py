@@ -15,7 +15,7 @@ class Config:
     DATABASE_URL: str = env_manager.get("DATABASE_URL", "")
 
     # OpenAI (used when Azure OpenAI is not configured)
-    OPENAI_API_KEY: str = env_manager.get("AZURE_OPENAI_API_KEY", "")
+    OPENAI_API_KEY: str = env_manager.get("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = env_manager.get("OPENAI_MODEL", "gpt-4.1")
     OPENAI_SEARCH_PLANNER_MODEL: str = env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini")
 
@@ -82,7 +82,7 @@ class Config:
     def _refresh_values(cls) -> None:
         """Re-sync class attributes after .env reload (see env_manager.auto_reload)."""
         cls.DATABASE_URL = env_manager.get("DATABASE_URL", "") or ""
-        cls.OPENAI_API_KEY = env_manager.get("OPENAI_API_KEY", "") or ""
+        cls.OPENAI_API_KEY = env_manager.get("AZURE_OPENAI_API_KEY", "") or ""
         cls.OPENAI_MODEL = env_manager.get("OPENAI_MODEL", "gpt-4.1") or "gpt-4.1"
         cls.OPENAI_SEARCH_PLANNER_MODEL = (
             env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"

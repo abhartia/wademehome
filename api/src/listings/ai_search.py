@@ -367,6 +367,11 @@ def _embed_query_text(query: str) -> list[float]:
     endpoint = (Config.get("AZURE_OPENAI_ENDPOINT") or "").strip()
     azure_key = (Config.get("AZURE_OPENAI_API_KEY") or "").strip()
     azure_emb = (Config.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") or "").strip()
+    if azure_key and (endpoint or azure_emb) and not (endpoint and azure_emb):
+        raise RuntimeError(
+            "Azure embeddings require AZURE_OPENAI_ENDPOINT and "
+            "AZURE_OPENAI_EMBEDDING_DEPLOYMENT when AZURE_OPENAI_API_KEY is set"
+        )
     if endpoint and azure_key and azure_emb:
         client = AzureOpenAIClient(
             api_key=azure_key,

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowUpDown } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ export default function AdminPropertyManagersPage() {
   const isAdmin = isAdminRole(user?.role);
   const [platform, setPlatform] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [countSort, setCountSort] = useState<"desc" | "asc">("desc");
 
   useEffect(() => {
     void queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
@@ -67,7 +68,7 @@ export default function AdminPropertyManagersPage() {
   const filtered = useMemo(() => {
     const data = targetsQuery.data?.targets ?? [];
     const qn = normalizeText(q);
-    return data.filter((row) => {
+    const out = data.filter((row) => {
       if (platform !== "all" && row.platform !== platform) return false;
       if (!qn) return true;
       const hay = normalizeText(
@@ -75,7 +76,16 @@ export default function AdminPropertyManagersPage() {
       );
       return hay.includes(qn);
     });
-  }, [platform, q, targetsQuery.data?.targets]);
+    out.sort((a, b) => {
+      const ac = a.listings_in_postgres ?? 0;
+      const bc = b.listings_in_postgres ?? 0;
+      if (ac !== bc) {
+        return countSort === "desc" ? bc - ac : ac - bc;
+      }
+      return a.seed_url.localeCompare(b.seed_url);
+    });
+    return out;
+  }, [countSort, platform, q, targetsQuery.data?.targets]);
 
   if (authLoading) {
     return <div className="mx-auto max-w-6xl p-8 text-muted-foreground">Checking session…</div>;
@@ -211,9 +221,17 @@ export default function AdminPropertyManagersPage() {
                     <th className="p-2">Host</th>
                     <th className="p-2">Identifier</th>
                     <th className="p-2">Seed URL</th>
-                    <th className="p-2 text-right">Listings (Postgres)</th>
-                    <th className="p-2">Notes</th>
-                    <th className="p-2 text-right">Actions</th>
+                    <th className="p-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto h-7 px-2"
+                        onClick={() => setCountSort((prev) => (prev === "desc" ? "asc" : "desc"))}
+                      >
+                        Listings (Postgres)
+                        <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+                      </Button>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -239,30 +257,11 @@ export default function AdminPropertyManagersPage() {
                       <td className="p-2 text-right tabular-nums">
                         {(row.listings_in_postgres ?? 0).toLocaleString()}
                       </td>
-                      <td className="p-2 text-xs text-muted-foreground break-words">
-                        {row.notes ?? "—"}
-                      </td>
-                      <td className="p-2 text-right">
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(row.seed_url);
-                              toast.success("Copied seed URL");
-                            } catch {
-                              toast.error("Copy failed");
-                            }
-                          }}
-                        >
-                          Copy URL
-                        </Button>
-                      </td>
                     </tr>
                   ))}
                   {filtered.length === 0 ? (
                     <tr className="border-t">
-                      <td colSpan={7} className="p-4 text-muted-foreground">
+                      <td colSpan={5} className="p-4 text-muted-foreground">
                         No targets match your filters.
                       </td>
                     </tr>

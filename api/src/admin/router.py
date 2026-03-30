@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from collections import defaultdict
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -109,12 +110,6 @@ def _listings_url_col(conn, schema_for_info: str, tname: str) -> str | None:
     return None
 
 
-def _url_like_pattern(seed_url: str) -> str:
-    normalized = _normalize_seed_url(seed_url)
-    esc = normalized.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    return f"{esc}%"
-
-
 @router.get("/scrape-targets", response_model=ScrapeTargetsResponse)
 def get_scrape_targets(
     user: Users = Depends(get_current_admin_user),
@@ -175,18 +170,40 @@ def get_scrape_targets(
             if not url_col:
                 raise HTTPException(status_code=503, detail="Listings table URL column missing")
             uq = f'"{url_col}"'
+            targets_by_host: dict[str, list[int]] = defaultdict(list)
             for idx, row in enumerate(deduped):
-                pattern = _url_like_pattern(row.seed_url)
-                sql = text(
+                host = (urlparse(row.seed_url).netloc or "").strip().lower()
+                if not host:
+                    continue
+                targets_by_host[host].append(idx)
+
+            if targets_by_host:
+                hosts = sorted(targets_by_host.keys())
+                host_counts_sql = text(
                     f"""
-                    SELECT COUNT(*)::bigint AS c
+                    SELECT
+                      LOWER(TRIM(SUBSTRING(CAST({uq} AS text) FROM '^https?://([^/]+)'))) AS host,
+                      COUNT(*)::bigint AS c
                     FROM {qtable}
                     WHERE NULLIF(TRIM(CAST({uq} AS text)), '') IS NOT NULL
-                      AND LOWER(TRIM(CAST({uq} AS text))) LIKE :pattern ESCAPE '\\'
+                      AND LOWER(TRIM(SUBSTRING(CAST({uq} AS text) FROM '^https?://([^/]+)'))) = ANY(:hosts)
+                    GROUP BY 1
                     """
                 )
-                count = int(conn.execute(sql, {"pattern": pattern}).scalar() or 0)
-                deduped[idx] = row.model_copy(update={"listings_in_postgres": count})
+                host_rows = conn.execute(host_counts_sql, {"hosts": hosts}).fetchall()
+                counts_by_host: dict[str, int] = {
+                    str(r[0]): int(r[1] or 0) for r in host_rows if r and r[0]
+                }
+                counts_by_idx: dict[int, int] = defaultdict(int)
+                for host, idxs in targets_by_host.items():
+                    c = int(counts_by_host.get(host, 0))
+                    for idx in idxs:
+                        counts_by_idx[idx] = c
+
+                for idx, row in enumerate(deduped):
+                    deduped[idx] = row.model_copy(
+                        update={"listings_in_postgres": int(counts_by_idx.get(idx, 0))}
+                    )
     except HTTPException:
         raise
     except Exception:
