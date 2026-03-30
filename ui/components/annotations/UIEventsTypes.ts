@@ -80,10 +80,18 @@ export interface UISearchStatsAnnotation {
     total_ms?: number | null;
     semantic_candidates?: number | null;
     amenity_scored_count?: number | null;
+    db_budget_exhausted?: boolean | null;
+    amenity_budget_exhausted?: boolean | null;
+    breakdown_deferred?: boolean | null;
+    breakdown_ready?: boolean | null;
+    breakdown_budget_exhausted?: boolean | null;
     validated_kept_count?: number | null;
     validated_dropped_count?: number | null;
     validation_cache_hits?: number | null;
     validation_cache_misses?: number | null;
+    validation_completed_count?: number | null;
+    validation_pending_count?: number | null;
+    validation_budget_exhausted?: boolean | null;
   };
 }
 

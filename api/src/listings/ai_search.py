@@ -4,7 +4,6 @@ import asyncio
 import hashlib
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
@@ -142,10 +141,10 @@ class SearchCriterionBreakdownItem(BaseModel):
 class SearchRunResult:
     properties: PropertyDataList
     breakdown: list[SearchCriterionBreakdownItem]
-    matched_count: int
+    matched_count: int | None
     limit_cap: int
     timings_ms: dict[str, int]
-    stage_stats: dict[str, int]
+    stage_stats: dict[str, Any]
 
 
 def _qualified_table() -> str:
@@ -174,6 +173,22 @@ def _qualified_amenity_table() -> str:
     if schema:
         return f'"{schema}"."{table}"'
     return f'"{table}"'
+
+
+def _parse_positive_int(raw: str | None, default: int) -> int:
+    try:
+        n = int((raw or "").strip())
+        return n if n > 0 else default
+    except ValueError:
+        return default
+
+
+def _parse_non_negative_int(raw: str | None, default: int) -> int:
+    try:
+        n = int((raw or "").strip())
+        return n if n >= 0 else default
+    except ValueError:
+        return default
 
 
 def _table_columns() -> set[str]:
@@ -396,11 +411,52 @@ def _vector_literal(vec: list[float]) -> str:
     return "[" + ",".join(f"{x:.8f}" for x in vec) + "]"
 
 
+def fetch_amenities_for_listings(
+    listing_ids: list[str],
+) -> dict[str, list[str]]:
+    """Fetch amenity text from listing_amenities for a batch of listing IDs.
+
+    Returns {listing_id: [amenity_text_norm, ...]} for populating
+    PropertyDataItem.amenities after the amenity columns were removed from
+    the listings table.
+    """
+    if not listing_ids:
+        return {}
+    qtable = _qualified_amenity_table()
+    binds: dict[str, Any] = {}
+    placeholders: list[str] = []
+    for i, lid in enumerate(listing_ids):
+        key = f"lid_{i}"
+        placeholders.append(f":{key}")
+        binds[key] = lid
+    sql = text(
+        f"""
+        SELECT listing_id, amenity_text_norm
+        FROM {qtable}
+        WHERE listing_id IN ({", ".join(placeholders)})
+        ORDER BY listing_id, id
+        """
+    )
+    try:
+        with get_engine().connect() as conn:
+            rows = cached_execute_all(conn, sql, binds)
+        out: dict[str, list[str]] = {}
+        for row in rows:
+            lid = str(row["listing_id"])
+            txt = str(row["amenity_text_norm"] or "")
+            if txt:
+                out.setdefault(lid, []).append(txt)
+        return out
+    except Exception:
+        logger.exception("fetch_amenities_for_listings failed")
+        return {}
+
+
 def _amenity_distances(
     listing_ids: list[str],
     *,
     query_embedding: list[float],
-) -> tuple[dict[str, float], int]:
+ ) -> tuple[dict[str, float], int]:
     if not listing_ids or not query_embedding:
         return {}, 0
     t0 = time.perf_counter()
@@ -415,12 +471,12 @@ def _amenity_distances(
     sql = text(
         f"""
         SELECT
-          listing_id::text AS listing_id,
+          listing_id AS listing_id,
           MIN(amenity_embedding <=> '{vec}'::vector) AS d
         FROM {qtable}
         WHERE amenity_embedding IS NOT NULL
-          AND listing_id::text IN ({", ".join(placeholders)})
-        GROUP BY listing_id::text
+          AND listing_id IN ({", ".join(placeholders)})
+        GROUP BY listing_id
         """
     )
     try:
@@ -446,7 +502,6 @@ def _text_blob_expr(cols: set[str]) -> str:
         _pick_column(cols, "description", "summary", "about", "long_description"),
         _pick_column(cols, "neighborhood", "area", "submarket", "district"),
         _pick_column(cols, "borough"),
-        _pick_column(cols, "amenities", "community_amenities", "apartment_amenities", "building_amenities"),
         _pick_column(cols, "property_name", "building_name", "name", "title"),
         _pick_column(cols, "address", "street_address", "full_address", "formatted_address"),
     ):
@@ -503,12 +558,10 @@ def _property_projection(cols: set[str]) -> str:
         "beds",
         "num_bedrooms",
         "n_bedrooms",
-        "amenities",
-        "amenity_list",
-        "features",
-        "apartment_amenities",
-        "community_amenities",
-        "building_amenities",
+        "search_doc",
+        "description",
+        "neighborhood",
+        "borough",
         # Prefer pre-normalized image columns; avoid raw heavy JSON blobs.
         "images_urls",
         "image_urls",
@@ -620,6 +673,13 @@ def _build_criteria(
         )
 
     blob = _text_blob_expr(cols)
+    if plan.must_have_terms:
+        pieces = []
+        for i, term in enumerate(plan.must_have_terms):
+            key = f"must_have_{i}"
+            params[key] = f"%{term.lower()}%"
+            pieces.append(f"LOWER({blob}) LIKE :{key}")
+        criteria.append(("must_have_terms", "Must include requested terms", "(" + " AND ".join(pieces) + ")"))
     if plan.must_not_have_terms:
         pieces = []
         for i, term in enumerate(plan.must_not_have_terms):
@@ -658,6 +718,144 @@ def _fetch_listing_rows(
     return rows, int((time.perf_counter() - t_sel) * 1000)
 
 
+_TEXT_FILTER_KEYS = frozenset({"must_have_terms", "must_not_have_terms"})
+
+
+def _row_text_for_filter(row: dict[str, Any]) -> str:
+    """Build lowercase searchable text from all string-ish values in a row."""
+    parts: list[str] = []
+    for v in row.values():
+        if isinstance(v, str):
+            parts.append(v)
+        elif isinstance(v, list):
+            for item in v:
+                if isinstance(item, str):
+                    parts.append(item)
+    return " ".join(parts).lower()
+
+
+def _extract_filter_words(terms: list[str]) -> list[str]:
+    """Split compound phrases into individual keywords for substring matching."""
+    words: list[str] = []
+    for term in terms:
+        for m in _FTS_WORD_RE.finditer(term):
+            w = m.group().lower()
+            if len(w) >= 2 and w not in _FTS_STOP_WORDS:
+                words.append(w)
+    return words
+
+
+def _apply_text_post_filter(
+    rows: list[dict[str, Any]],
+    plan: SearchQueryPlan,
+) -> list[dict[str, Any]]:
+    """Apply must_have / must_not_have text matching in Python.
+
+    Uses word-level matching so "in-unit washer and dryer" matches rows
+    containing "washer" AND "dryer" regardless of phrasing or punctuation.
+    """
+    must_words = _extract_filter_words(plan.must_have_terms or [])
+    must_not_words = _extract_filter_words(plan.must_not_have_terms or [])
+    if not must_words and not must_not_words:
+        return rows
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        blob = _row_text_for_filter(row)
+        if must_words and not all(w in blob for w in must_words):
+            continue
+        if must_not_words and any(w in blob for w in must_not_words):
+            continue
+        out.append(row)
+    return out
+
+
+_FTS_STOP_WORDS = frozenset({
+    "a", "an", "the", "in", "on", "at", "to", "for", "of", "with",
+    "and", "or", "is", "are", "was", "were", "be", "been", "being",
+    "it", "its", "this", "that", "by", "from", "as", "not", "no",
+    "unit", "units", "property", "properties", "apartment", "apartments",
+    "bedroom", "bedrooms", "br", "bed", "bath", "baths",
+})
+
+_FTS_WORD_RE = re.compile(r"[a-zA-Z0-9]+")
+
+
+def _build_fts_query(plan: SearchQueryPlan) -> str:
+    """Build a websearch_to_tsquery-compatible search string from the plan.
+
+    Extracts individual keywords from city + must_have_terms, strips hyphens
+    and compound phrases, and filters English stop-words so the GIN index
+    matches as broadly as possible.
+    """
+    raw_parts: list[str] = []
+    if plan.city:
+        raw_parts.append(plan.city.strip())
+    for term in plan.must_have_terms or []:
+        cleaned = term.strip()
+        if cleaned:
+            raw_parts.append(cleaned)
+    words: list[str] = []
+    for part in raw_parts:
+        for m in _FTS_WORD_RE.finditer(part):
+            w = m.group().lower()
+            if len(w) >= 2 and w not in _FTS_STOP_WORDS:
+                words.append(w)
+    seen: set[str] = set()
+    unique: list[str] = []
+    for w in words:
+        if w not in seen:
+            seen.add(w)
+            unique.append(w)
+    return " ".join(unique)
+
+
+def _apply_numeric_post_filter(
+    rows: list[dict[str, Any]],
+    plan: SearchQueryPlan,
+    cols: set[str],
+) -> list[dict[str, Any]]:
+    """Post-filter numeric criteria (bedrooms, rent) in Python.
+
+    After the GIN full-text index dramatically narrows the candidate set,
+    column-level numeric checks are cheap in Python and avoid the need for
+    functional indexes on the DB.
+    """
+    beds_col = _pick_column(cols, "bedrooms", "bedroom_count", "beds", "num_bedrooms", "n_bedrooms")
+    rent_col = _pick_column(cols, "monthly_rent", "rent_price", "rent", "price", "list_price", "min_rent", "max_rent")
+
+    def _safe_number(row: dict, col: str | None) -> float | None:
+        if not col:
+            return None
+        raw = row.get(col)
+        if raw is None:
+            return None
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            cleaned = re.sub(r"[^0-9.]", "", str(raw))
+            if cleaned:
+                try:
+                    return float(cleaned)
+                except ValueError:
+                    pass
+        return None
+
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        beds = _safe_number(row, beds_col)
+        if plan.min_bedrooms is not None and (beds is None or beds < float(plan.min_bedrooms)):
+            continue
+        if plan.max_bedrooms is not None and (beds is None or beds > float(plan.max_bedrooms)):
+            continue
+        rent = _safe_number(row, rent_col)
+        if plan.min_rent is not None and rent is not None and rent < float(plan.min_rent):
+            continue
+        if plan.max_rent is not None and rent is not None and rent > float(plan.max_rent):
+            continue
+        out.append(row)
+    return out
+
+
 def run_fast_search(
     plan: SearchQueryPlan,
     *,
@@ -667,51 +865,99 @@ def run_fast_search(
     cols = _table_columns()
     select_cols = _property_projection(cols)
     params: dict[str, Any] = {}
-    criteria = _build_criteria(plan, cols, params)
-    all_expr = " AND ".join(expr for _, _, expr in criteria) if criteria else "TRUE"
+    all_criteria = _build_criteria(plan, cols, params)
+
     qtable = _qualified_table()
     limit = max(1, min(200, int(limit)))
-    candidate_limit = min(max(limit * 4, limit), 240)
-    params["limit_rows"] = candidate_limit
+    candidate_limit_cfg = _parse_positive_int(
+        Config.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120"),
+        120,
+    )
+    amenity_top_k = _parse_positive_int(
+        Config.get("LISTINGS_SEARCH_AMENITY_TOPK", "80"),
+        80,
+    )
 
-    ranking_bits: list[str] = []
-    if query_embedding and "embedding" in cols:
-        vec = _vector_literal(query_embedding)
-        # Keep rows with NULL embeddings at the end during partial backfills.
-        ranking_bits.append('"embedding" IS NULL ASC')
-        ranking_bits.append(f'("embedding" <=> \'{vec}\'::vector) ASC')
+    # ── Strategy: use GIN full-text index on search_doc when available.
+    # Without column indexes (city, beds, rent), column-based WHERE is a
+    # sequential scan over 184K+ rows.  The GIN index narrows to ~100s of
+    # rows in milliseconds; numeric/column filters run as Python post-filter
+    # on the tiny candidate set.
+    fts_query = _build_fts_query(plan) if "search_doc" in cols else ""
+    use_fts = bool(fts_query)
 
-    lat_col = _pick_column(cols, "latitude", "lat")
-    lon_col = _pick_column(cols, "longitude", "lng", "lon")
-    if plan.latitude is not None and plan.longitude is not None:
-        params["rank_lat"] = float(plan.latitude)
-        params["rank_lon"] = float(plan.longitude)
-        if lat_col and lon_col:
+    if use_fts:
+        # Combine FTS (GIN index) with column criteria.  GIN narrows 184K
+        # rows to ~tens in milliseconds; column filters on that tiny set are
+        # instant even without dedicated indexes.
+        sql_criteria = [c for c in all_criteria if c[0] not in _TEXT_FILTER_KEYS]
+        column_where = " AND ".join(e for _, _, e in sql_criteria) if sql_criteria else "TRUE"
+        fts_clause = (
+            "to_tsvector('english', COALESCE(search_doc, '')) "
+            "@@ websearch_to_tsquery('english', :fts_query)"
+        )
+        combined_where = f"{fts_clause} AND {column_where}"
+
+        params_fts: dict[str, Any] = {**params, "fts_query": fts_query}
+        for k in list(params_fts):
+            if k.startswith("must_have_") or k.startswith("must_not_"):
+                del params_fts[k]
+        candidate_limit = min(candidate_limit_cfg * 3, 600)
+        params_fts["limit_rows"] = candidate_limit
+
+        ranking_bits: list[str] = []
+        if "geog" in cols and plan.latitude is not None and plan.longitude is not None:
+            params_fts["rank_lat"] = float(plan.latitude)
+            params_fts["rank_lon"] = float(plan.longitude)
             ranking_bits.append(
-                f'ST_Distance(ST_SetSRID(ST_MakePoint("{lon_col}"::double precision, "{lat_col}"::double precision), 4326)::geography, '
-                f"ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography) ASC"
+                "geog <-> ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography"
             )
-    if not ranking_bits:
-        fallback_sort = _pick_column(cols, "listing_id", "property_id", "address")
-        if fallback_sort:
-            ranking_bits.append(f'"{fallback_sort}" ASC')
-        else:
-            ranking_bits.append("1")
-    order_sql = ", ".join(ranking_bits)
+        if not ranking_bits:
+            fallback_sort = _pick_column(cols, "listing_id", "property_id", "address")
+            ranking_bits.append(f'"{fallback_sort}" ASC' if fallback_sort else "1")
+        order_sql = ", ".join(ranking_bits)
 
-    def breakdown_job() -> tuple[list[SearchCriterionBreakdownItem], int, int]:
-        t_b = time.perf_counter()
-        items, m = _compute_breakdown(criteria, params, qtable)
-        return items, m, int((time.perf_counter() - t_b) * 1000)
+        rows, t_sel = _fetch_listing_rows(qtable, combined_where, order_sql, params_fts, select_cols)
 
-    def select_job() -> tuple[list[Any], int]:
-        return _fetch_listing_rows(qtable, all_expr, order_sql, params, select_cols)
+        pre_post_filter = len(rows)
+        rows = _apply_text_post_filter(rows, plan)
+        logger.info(
+            "search FTS path: fts_query=%r pre=%d post=%d db_ms=%d",
+            fts_query, pre_post_filter, len(rows), t_sel,
+        )
+    else:
+        # Fallback: column-based WHERE (no GIN index available)
+        sql_criteria = [c for c in all_criteria if c[0] not in _TEXT_FILTER_KEYS]
+        has_text_post_filter = bool(plan.must_have_terms or plan.must_not_have_terms)
+        if has_text_post_filter:
+            for k in list(params):
+                if k.startswith("must_have_") or k.startswith("must_not_"):
+                    del params[k]
 
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        fut_b = pool.submit(breakdown_job)
-        fut_s = pool.submit(select_job)
-        breakdown_items, matched_count, t_break = fut_b.result()
-        rows, t_sel = fut_s.result()
+        sql_where = " AND ".join(e for _, _, e in sql_criteria) if sql_criteria else "TRUE"
+        candidate_limit = min(candidate_limit_cfg * (3 if has_text_post_filter else 1), 600)
+        params["limit_rows"] = candidate_limit
+
+        ranking_bits = []
+        if "geog" in cols and plan.latitude is not None and plan.longitude is not None:
+            params["rank_lat"] = float(plan.latitude)
+            params["rank_lon"] = float(plan.longitude)
+            ranking_bits.append(
+                "geog <-> ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography"
+            )
+        if not ranking_bits:
+            fallback_sort = _pick_column(cols, "listing_id", "property_id", "address")
+            ranking_bits.append(f'"{fallback_sort}" ASC' if fallback_sort else "1")
+        order_sql = ", ".join(ranking_bits)
+
+        rows, t_sel = _fetch_listing_rows(qtable, sql_where, order_sql, params, select_cols)
+        pre_post_filter = len(rows)
+        if has_text_post_filter and rows:
+            rows = _apply_text_post_filter(rows, plan)
+        logger.info(
+            "search column path: pre=%d post=%d db_ms=%d",
+            pre_post_filter, len(rows), t_sel,
+        )
 
     listing_id_col = _pick_column(cols, "listing_id")
     semantic_candidates = len(rows)
@@ -722,12 +968,13 @@ def run_fast_search(
             str(r.get(listing_id_col))
             for r in rows
             if r.get(listing_id_col) not in (None, "")
-        ]
-        amenity_scores, amenity_ms = _amenity_distances(ids, query_embedding=query_embedding)
+        ][:amenity_top_k]
+        amenity_scores, amenity_ms = _amenity_distances(
+            ids,
+            query_embedding=query_embedding,
+        )
         amenity_scored_count = len(amenity_scores)
         if amenity_scores:
-            # Blend semantic base rank (original order) with amenity similarity.
-            # Lower score is better.
             scored_rows: list[tuple[float, int, Any]] = []
             for idx, row in enumerate(rows):
                 lid_raw = row.get(listing_id_col)
@@ -743,26 +990,44 @@ def run_fast_search(
             rows = [r for _, _, r in scored_rows]
 
     rows = rows[:limit]
+
+    # Populate amenity text from listing_amenities into each row dict so
+    # the nearby_mapper's _amenities_merged picks them up.
+    listing_id_col_for_amenities = _pick_column(cols, "listing_id")
+    if listing_id_col_for_amenities and rows:
+        lids = [
+            str(r[listing_id_col_for_amenities])
+            for r in rows
+            if r.get(listing_id_col_for_amenities)
+        ]
+        amenity_map = fetch_amenities_for_listings(lids)
+        for row in rows:
+            lid = str(row.get(listing_id_col_for_amenities, ""))
+            row["amenities"] = ", ".join(amenity_map.get(lid, []))
+
     ckeys = list(rows[0].keys()) if rows else []
     raw_rows = [tuple(r[c] for c in ckeys) for r in rows]
     properties = property_list_from_sql_rows(raw_rows, ckeys)
-    _attach_match_reasons(properties, criteria)
+    _attach_match_reasons(properties, all_criteria)
 
     timings_ms = {
         "db_ms": t_sel,
-        "breakdown_ms": t_break,
+        "breakdown_ms": 0,
         "amenity_ms": amenity_ms,
     }
     return SearchRunResult(
         properties=properties,
-        breakdown=breakdown_items,
-        matched_count=matched_count,
+        breakdown=[],
+        matched_count=None,
         limit_cap=limit,
         timings_ms=timings_ms,
         stage_stats={
-            "strict_pass_count": int(matched_count),
             "semantic_candidates": int(semantic_candidates),
             "amenity_scored_count": int(amenity_scored_count),
+            "db_budget_exhausted": 0,
+            "amenity_budget_exhausted": 0,
+            "breakdown_deferred": 1,
+            "breakdown_ready": 0,
         },
     )
 
@@ -771,7 +1036,7 @@ def _compute_breakdown(
     criteria: list[tuple[str, str, str]],
     params: dict[str, Any],
     qtable: str,
-) -> tuple[list[SearchCriterionBreakdownItem], int]:
+) -> tuple[list[SearchCriterionBreakdownItem], int | None, bool]:
     if not criteria:
         with get_engine().connect() as conn:
             matched = int(
@@ -782,7 +1047,7 @@ def _compute_breakdown(
                 )
                 or 0
             )
-        return [], matched
+        return [], matched, False
 
     # Evaluate each predicate once per row in a CTE, then aggregate booleans.
     criterion_select = [
@@ -820,7 +1085,21 @@ def _compute_breakdown(
                 eligible_without_this_rule=without,
             )
         )
-    return items, matched
+    return items, matched, False
+
+
+def compute_deferred_breakdown(
+    plan: SearchQueryPlan,
+) -> tuple[list[SearchCriterionBreakdownItem], int | None, int, bool]:
+    """Compute exact per-criterion breakdown outside first-render critical path."""
+    t0 = time.perf_counter()
+    cols = _table_columns()
+    params: dict[str, Any] = {}
+    criteria = _build_criteria(plan, cols, params)
+    qtable = _qualified_table()
+    items, matched, budget_exhausted = _compute_breakdown(criteria, params, qtable)
+    elapsed_ms = int((time.perf_counter() - t0) * 1000)
+    return items, matched, elapsed_ms, budget_exhausted
 
 
 def _attach_match_reasons(

@@ -10,6 +10,7 @@ from llama_index.core.llms import LLM
 from llama_index.server.models.chat import ChatRequest
 from llama_index.server.models.ui import UIEvent
 
+from core.config import Config
 from core.logger import get_logger
 from listings.ai_search import embed_query_text, extract_query_plan, run_fast_search
 from workflow.events import (
@@ -29,6 +30,22 @@ _VALIDATION_CACHE_TTL_S = 1800.0
 _VALIDATION_CACHE_MAX = 4096
 _validation_cache_lock = Lock()
 _validation_cache: dict[str, tuple[float, dict[str, object]]] = {}
+
+
+def _parse_positive_int(raw: str | None, default: int) -> int:
+    try:
+        n = int((raw or "").strip())
+        return n if n > 0 else default
+    except ValueError:
+        return default
+
+
+def _parse_positive_float(raw: str | None, default: float) -> float:
+    try:
+        x = float((raw or "").strip())
+        return x if x > 0 else default
+    except ValueError:
+        return default
 
 
 def _validation_cache_key(user_msg: str, listing_id: str, content_hash: str) -> str:
@@ -235,7 +252,14 @@ class ListingFetcherWorkflow(Workflow):
             cache_misses = 0
             kept_count = 0
             dropped_count = 0
-            sem = asyncio.Semaphore(12)
+            validation_completed_count = 0
+            validation_pending_count = 0
+            validation_budget_exhausted = False
+            validation_concurrency = _parse_positive_int(
+                Config.get("LISTINGS_VALIDATION_CONCURRENCY", "12"),
+                12,
+            )
+            sem = asyncio.Semaphore(validation_concurrency)
 
             async def _run_one(idx: int):
                 async with sem:
@@ -247,6 +271,7 @@ class ListingFetcherWorkflow(Workflow):
 
             tasks = [asyncio.create_task(_run_one(i)) for i in range(len(items))]
             for task in asyncio.as_completed(tasks):
+                validation_completed_count += 1
                 idx, (relevant, explanation, confidence, cache_hit) = await task
                 item = items[idx]
                 if cache_hit:
@@ -258,41 +283,42 @@ class ListingFetcherWorkflow(Workflow):
                     item.validation_status = "confirmed"
                     item.validation_explanation = explanation or item.match_reason
                     kept_count += 1
-                    ctx.write_event_to_stream(
-                        UIEvent(type="property_listings", data=PropertyDataList(properties=list(items)))
-                    )
                 else:
                     item.validation_status = "rejected"
                     item.validation_explanation = explanation or "Not relevant to current query."
                     dropped_count += 1
-                    # Briefly surface rejected rows so UI can animate a graceful removal.
-                    ctx.write_event_to_stream(
-                        UIEvent(type="property_listings", data=PropertyDataList(properties=list(items)))
-                    )
-                    await asyncio.sleep(0.12)
 
-                # Progressive stream: keep validating + confirmed, drop rejected.
+                # Monotonic stream: once rejected, never re-emitted.
                 visible_items = [
                     it for it in items if it.validation_status in {"validating", "confirmed"}
                 ]
                 ctx.write_event_to_stream(
                     UIEvent(type="property_listings", data=PropertyDataList(properties=visible_items))
                 )
+            validation_pending_count = 0
+
+            breakdown_items = list(search_result.breakdown)
+            matched_count = search_result.matched_count
+            breakdown_ms = search_result.timings_ms.get("breakdown_ms", 0)
+            breakdown_deferred = bool(search_result.stage_stats.get("breakdown_deferred", 0))
+            breakdown_ready = bool(search_result.stage_stats.get("breakdown_ready", 0))
+            breakdown_budget_exhausted = False
 
             validated_items = [it for it in items if it.validation_status != "rejected"]
             validation_ms = int((time.perf_counter() - validation_t0) * 1000)
             search_result.properties = PropertyDataList(properties=validated_items)
-            ctx.write_event_to_stream(
-                UIEvent(
-                    type="search_filter_breakdown",
-                    data=SearchFilterBreakdownData(
-                        criteria=[
-                            SearchFilterBreakdownItem.model_validate(item.model_dump())
-                            for item in search_result.breakdown
-                        ]
-                    ),
+            if breakdown_items:
+                ctx.write_event_to_stream(
+                    UIEvent(
+                        type="search_filter_breakdown",
+                        data=SearchFilterBreakdownData(
+                            criteria=[
+                                SearchFilterBreakdownItem.model_validate(item.model_dump())
+                                for item in breakdown_items
+                            ]
+                        ),
+                    )
                 )
-            )
 
             returned_count = len(search_result.properties.properties)
             total_ms = int((time.perf_counter() - t0) * 1000)
@@ -301,27 +327,37 @@ class ListingFetcherWorkflow(Workflow):
                     type="search_stats",
                     data=SearchStatsData(
                         returned_count=returned_count,
-                        matched_count=search_result.matched_count,
+                        matched_count=matched_count,
                         limit_cap=search_result.limit_cap,
                         sort_note="Strict filters first, then semantic relevance.",
                         parse_ms=parse_ms,
                         embed_ms=embed_ms,
                         db_ms=search_result.timings_ms.get("db_ms"),
-                        breakdown_ms=search_result.timings_ms.get("breakdown_ms"),
+                        breakdown_ms=breakdown_ms,
                         amenity_ms=search_result.timings_ms.get("amenity_ms"),
                         validation_ms=validation_ms,
                         total_ms=total_ms,
                         semantic_candidates=search_result.stage_stats.get("semantic_candidates"),
                         amenity_scored_count=search_result.stage_stats.get("amenity_scored_count"),
+                        db_budget_exhausted=bool(search_result.stage_stats.get("db_budget_exhausted", 0)),
+                        amenity_budget_exhausted=bool(
+                            search_result.stage_stats.get("amenity_budget_exhausted", 0)
+                        ),
+                        breakdown_deferred=breakdown_deferred,
+                        breakdown_ready=breakdown_ready,
+                        breakdown_budget_exhausted=breakdown_budget_exhausted,
                         validated_kept_count=kept_count,
                         validated_dropped_count=dropped_count,
                         validation_cache_hits=cache_hits,
                         validation_cache_misses=cache_misses,
+                        validation_completed_count=validation_completed_count,
+                        validation_pending_count=validation_pending_count,
+                        validation_budget_exhausted=validation_budget_exhausted,
                     ),
                 )
             )
             logger.info(
-                "listings/chat timing: parse_ms=%s embed_ms=%s db_ms=%s breakdown_ms=%s amenity_ms=%s validation_ms=%s total_ms=%s matched=%s candidates=%s kept=%s dropped=%s cache_hits=%s cache_misses=%s",
+                "listings/chat timing: parse_ms=%s embed_ms=%s db_ms=%s breakdown_ms=%s amenity_ms=%s validation_ms=%s total_ms=%s matched=%s candidates=%s kept=%s dropped=%s cache_hits=%s cache_misses=%s validation_completed=%s validation_pending=%s validation_budget_exhausted=%s",
                 parse_ms,
                 embed_ms,
                 search_result.timings_ms.get("db_ms"),
@@ -329,12 +365,15 @@ class ListingFetcherWorkflow(Workflow):
                 search_result.timings_ms.get("amenity_ms"),
                 validation_ms,
                 total_ms,
-                search_result.matched_count,
+                matched_count,
                 search_result.stage_stats.get("semantic_candidates"),
                 kept_count,
                 dropped_count,
                 cache_hits,
                 cache_misses,
+                validation_completed_count,
+                validation_pending_count,
+                validation_budget_exhausted,
             )
 
             if returned_count == 0:

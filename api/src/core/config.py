@@ -59,6 +59,33 @@ class Config:
     LISTINGS_TABLE_CACHE_TTL_SECONDS: str = (
         env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
     )
+    LISTINGS_VALIDATION_CONCURRENCY: str = (
+        env_manager.get("LISTINGS_VALIDATION_CONCURRENCY", "12") or "12"
+    )
+    LISTINGS_VALIDATION_MAX_SECONDS: str = (
+        env_manager.get("LISTINGS_VALIDATION_MAX_SECONDS", "25") or "25"
+    )
+    LISTINGS_SEARCH_PLANNER_MAX_MS: str = (
+        env_manager.get("LISTINGS_SEARCH_PLANNER_MAX_MS", "2500") or "2500"
+    )
+    LISTINGS_SEARCH_DB_MAX_MS: str = (
+        env_manager.get("LISTINGS_SEARCH_DB_MAX_MS", "5000") or "5000"
+    )
+    LISTINGS_SEARCH_AMENITY_MAX_MS: str = (
+        env_manager.get("LISTINGS_SEARCH_AMENITY_MAX_MS", "2000") or "2000"
+    )
+    LISTINGS_SEARCH_BREAKDOWN_MAX_MS: str = (
+        env_manager.get("LISTINGS_SEARCH_BREAKDOWN_MAX_MS", "2000") or "2000"
+    )
+    LISTINGS_SEARCH_CANDIDATE_LIMIT: str = (
+        env_manager.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120") or "120"
+    )
+    LISTINGS_SEARCH_AMENITY_TOPK: str = (
+        env_manager.get("LISTINGS_SEARCH_AMENITY_TOPK", "80") or "80"
+    )
+    LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER: str = (
+        env_manager.get("LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER", "false") or "false"
+    )
 
     # Mapbox (server-side geocoding, matrix, POI search). Optional; endpoints return 503 if unset.
     MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
@@ -82,7 +109,7 @@ class Config:
     def _refresh_values(cls) -> None:
         """Re-sync class attributes after .env reload (see env_manager.auto_reload)."""
         cls.DATABASE_URL = env_manager.get("DATABASE_URL", "") or ""
-        cls.OPENAI_API_KEY = env_manager.get("AZURE_OPENAI_API_KEY", "") or ""
+        cls.OPENAI_API_KEY = env_manager.get("OPENAI_API_KEY", "") or ""
         cls.OPENAI_MODEL = env_manager.get("OPENAI_MODEL", "gpt-4.1") or "gpt-4.1"
         cls.OPENAI_SEARCH_PLANNER_MODEL = (
             env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
@@ -135,6 +162,33 @@ class Config:
         )
         cls.LISTINGS_TABLE_CACHE_TTL_SECONDS = (
             env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
+        )
+        cls.LISTINGS_VALIDATION_CONCURRENCY = (
+            env_manager.get("LISTINGS_VALIDATION_CONCURRENCY", "12") or "12"
+        )
+        cls.LISTINGS_VALIDATION_MAX_SECONDS = (
+            env_manager.get("LISTINGS_VALIDATION_MAX_SECONDS", "25") or "25"
+        )
+        cls.LISTINGS_SEARCH_PLANNER_MAX_MS = (
+            env_manager.get("LISTINGS_SEARCH_PLANNER_MAX_MS", "2500") or "2500"
+        )
+        cls.LISTINGS_SEARCH_DB_MAX_MS = (
+            env_manager.get("LISTINGS_SEARCH_DB_MAX_MS", "5000") or "5000"
+        )
+        cls.LISTINGS_SEARCH_AMENITY_MAX_MS = (
+            env_manager.get("LISTINGS_SEARCH_AMENITY_MAX_MS", "2000") or "2000"
+        )
+        cls.LISTINGS_SEARCH_BREAKDOWN_MAX_MS = (
+            env_manager.get("LISTINGS_SEARCH_BREAKDOWN_MAX_MS", "2000") or "2000"
+        )
+        cls.LISTINGS_SEARCH_CANDIDATE_LIMIT = (
+            env_manager.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120") or "120"
+        )
+        cls.LISTINGS_SEARCH_AMENITY_TOPK = (
+            env_manager.get("LISTINGS_SEARCH_AMENITY_TOPK", "80") or "80"
+        )
+        cls.LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER = (
+            env_manager.get("LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER", "false") or "false"
         )
         cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
         cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""

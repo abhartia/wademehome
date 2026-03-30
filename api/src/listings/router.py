@@ -167,12 +167,6 @@ def _nearby_projection(cols: set[str]) -> str:
         "beds",
         "num_bedrooms",
         "n_bedrooms",
-        "amenities",
-        "amenity_list",
-        "features",
-        "apartment_amenities",
-        "community_amenities",
-        "building_amenities",
         # Prefer pre-normalized image columns; avoid raw heavy JSON blobs (images/photos).
         "images_urls",
         "image_urls",

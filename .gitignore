@@ -16,3 +16,4 @@
 /__pycache__
 *.log
 scripts/.amenity_backfill.checkpoint.json
+/scripts/__pycache__

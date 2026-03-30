@@ -51,10 +51,18 @@ export type SearchStatsState = {
   total_ms: number | null;
   semantic_candidates: number | null;
   amenity_scored_count: number | null;
+  db_budget_exhausted: boolean | null;
+  amenity_budget_exhausted: boolean | null;
+  breakdown_deferred: boolean | null;
+  breakdown_ready: boolean | null;
+  breakdown_budget_exhausted: boolean | null;
   validated_kept_count: number | null;
   validated_dropped_count: number | null;
   validation_cache_hits: number | null;
   validation_cache_misses: number | null;
+  validation_completed_count: number | null;
+  validation_pending_count: number | null;
+  validation_budget_exhausted: boolean | null;
 } | null;
 
 type AllowedMemoryField =
@@ -203,10 +211,18 @@ function parseAssistantAnnotations(message: {
         total_ms?: unknown;
         semantic_candidates?: unknown;
         amenity_scored_count?: unknown;
+        db_budget_exhausted?: unknown;
+        amenity_budget_exhausted?: unknown;
+        breakdown_deferred?: unknown;
+        breakdown_ready?: unknown;
+        breakdown_budget_exhausted?: unknown;
         validated_kept_count?: unknown;
         validated_dropped_count?: unknown;
         validation_cache_hits?: unknown;
         validation_cache_misses?: unknown;
+        validation_completed_count?: unknown;
+        validation_pending_count?: unknown;
+        validation_budget_exhausted?: unknown;
       };
       const returned =
         typeof d.returned_count === "number" && Number.isFinite(d.returned_count)
@@ -258,6 +274,18 @@ function parseAssistantAnnotations(message: {
         typeof d.amenity_scored_count === "number" && Number.isFinite(d.amenity_scored_count)
           ? Math.max(0, Math.floor(d.amenity_scored_count))
           : null;
+      const dbBudgetExhausted =
+        typeof d.db_budget_exhausted === "boolean" ? d.db_budget_exhausted : null;
+      const amenityBudgetExhausted =
+        typeof d.amenity_budget_exhausted === "boolean" ? d.amenity_budget_exhausted : null;
+      const breakdownDeferred =
+        typeof d.breakdown_deferred === "boolean" ? d.breakdown_deferred : null;
+      const breakdownReady =
+        typeof d.breakdown_ready === "boolean" ? d.breakdown_ready : null;
+      const breakdownBudgetExhausted =
+        typeof d.breakdown_budget_exhausted === "boolean"
+          ? d.breakdown_budget_exhausted
+          : null;
       const validatedKept =
         typeof d.validated_kept_count === "number" && Number.isFinite(d.validated_kept_count)
           ? Math.max(0, Math.floor(d.validated_kept_count))
@@ -274,6 +302,20 @@ function parseAssistantAnnotations(message: {
         typeof d.validation_cache_misses === "number" && Number.isFinite(d.validation_cache_misses)
           ? Math.max(0, Math.floor(d.validation_cache_misses))
           : null;
+      const validationCompletedCount =
+        typeof d.validation_completed_count === "number" &&
+        Number.isFinite(d.validation_completed_count)
+          ? Math.max(0, Math.floor(d.validation_completed_count))
+          : null;
+      const validationPendingCount =
+        typeof d.validation_pending_count === "number" &&
+        Number.isFinite(d.validation_pending_count)
+          ? Math.max(0, Math.floor(d.validation_pending_count))
+          : null;
+      const validationBudgetExhausted =
+        typeof d.validation_budget_exhausted === "boolean"
+          ? d.validation_budget_exhausted
+          : null;
       searchStats = {
         returned_count: returned,
         matched_count: matched,
@@ -288,10 +330,18 @@ function parseAssistantAnnotations(message: {
         total_ms: totalMs,
         semantic_candidates: semanticCandidates,
         amenity_scored_count: amenityScoredCount,
+        db_budget_exhausted: dbBudgetExhausted,
+        amenity_budget_exhausted: amenityBudgetExhausted,
+        breakdown_deferred: breakdownDeferred,
+        breakdown_ready: breakdownReady,
+        breakdown_budget_exhausted: breakdownBudgetExhausted,
         validated_kept_count: validatedKept,
         validated_dropped_count: validatedDropped,
         validation_cache_hits: validationCacheHits,
         validation_cache_misses: validationCacheMisses,
+        validation_completed_count: validationCompletedCount,
+        validation_pending_count: validationPendingCount,
+        validation_budget_exhausted: validationBudgetExhausted,
       };
     }
     if (
@@ -452,6 +502,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
   const [searchStats, setSearchStats] = useState<SearchStatsState>(null);
   const [profileMemoryUpdate, setProfileMemoryUpdate] = useState<ProfileMemoryUpdateState>(null);
   const [profileMemoryUpdateVersion, setProfileMemoryUpdateVersion] = useState(0);
+  const streamVisibleKeysRef = useRef<Set<string> | null>(null);
+  const streamRemovalStartedRef = useRef(false);
 
   const headers = useMemo(
     () =>
@@ -468,6 +520,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
       normalizeFinishMessage(message) ?? (message as { role?: string; annotations?: unknown } | null);
     if (!normalized) return;
     const parsed = parseAssistantAnnotations(normalized);
+    streamVisibleKeysRef.current = null;
+    streamRemovalStartedRef.current = false;
     setProperties(parsed.properties);
     setSearchHint(parsed.searchHint);
     if (parsed.searchSummary !== null) {
@@ -504,6 +558,25 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
   messagesRef.current = messages;
   const annotationRafRef = useRef<number | null>(null);
 
+  const applyStreamingProperties = useCallback((nextProperties: PropertyDataItem[]) => {
+    const nextKeys = new Set(nextProperties.map((p) => buildPropertyKey(p)));
+    const prevKeys = streamVisibleKeysRef.current;
+
+    if (prevKeys && streamRemovalStartedRef.current) {
+      const addsPreviouslyMissing = Array.from(nextKeys).some((k) => !prevKeys.has(k));
+      const countIncreased = nextKeys.size > prevKeys.size;
+      if (addsPreviouslyMissing || countIncreased) {
+        return;
+      }
+    }
+
+    if (prevKeys && nextKeys.size < prevKeys.size) {
+      streamRemovalStartedRef.current = true;
+    }
+    streamVisibleKeysRef.current = nextKeys;
+    setProperties(nextProperties);
+  }, []);
+
   useEffect(() => {
     if (annotationRafRef.current != null) {
       cancelAnimationFrame(annotationRafRef.current);
@@ -534,7 +607,7 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
         tail as { role?: string; annotations?: unknown },
       );
       if (hasListingsAnnotation) {
-        setProperties(parsed.properties);
+        applyStreamingProperties(parsed.properties);
       }
       setSearchHint(parsed.searchHint);
       if (parsed.searchSummary !== null) {
@@ -556,7 +629,7 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
         annotationRafRef.current = null;
       }
     };
-  }, [messages]);
+  }, [messages, applyStreamingProperties]);
 
   const chatFnsRef = useRef({ append, setMessages, stop });
   chatFnsRef.current = { append, setMessages, stop };
@@ -588,6 +661,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     s();
     sm([]);
     streamAnnotationsSigRef.current = "";
+    streamVisibleKeysRef.current = null;
+    streamRemovalStartedRef.current = false;
     setProperties([]);
     setSearchHint(null);
     setSearchSummary(null);
@@ -602,6 +677,8 @@ export function useListingSearchStream(options?: UseListingSearchStreamOptions) 
     const { append: ap, stop: s } = chatFnsRef.current;
     s();
     streamAnnotationsSigRef.current = "";
+    streamVisibleKeysRef.current = null;
+    streamRemovalStartedRef.current = false;
     setProperties([]);
     setSearchHint(null);
     setSearchSummary(null);

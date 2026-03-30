@@ -80,7 +80,6 @@ def _refresh(engine, schema: str, table: str) -> None:
             pick_sql("city", "locality"),
             pick_sql("state", "state_code", "region"),
             pick_sql("zipcode", "zip", "postal_code"),
-            pick_sql("amenities", "community_amenities", "apartment_amenities", "building_amenities"),
             pick_sql("description", "summary", "about"),
         ):
             if name:

@@ -1,11 +1,18 @@
 #!/usr/bin/env -S python3 -u
+"""Legacy: copy amenity *columns* from ``listings`` into ``listing_amenities``.
+
+After migrations drop amenity columns from ``listings``, this script exits with
+“No amenity columns found”. Populate ``listing_amenities`` from vendor pages via
+``scripts/backfill_listing_amenities.py``, then embed with
+``scripts/backfill_listing_amenity_embeddings.py``.
+"""
+
 from __future__ import annotations
 
 import ast
-import hashlib
 import json
 import os
-import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -14,11 +21,14 @@ from dotenv import load_dotenv
 from psycopg2.extras import execute_values
 from sqlalchemy import create_engine, text
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
+_SCRIPTS = Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+
+import listing_amenities_upsert as lau
+
 ENV_FILE = REPO_ROOT / "api" / ".env"
-_WHITESPACE_RE = re.compile(r"\s+")
-_PUNCT_SPACE_RE = re.compile(r"[^\w]+")
 
 
 def _qtable(schema: str | None, table: str) -> str:
@@ -33,13 +43,6 @@ def _psycopg_dsn(database_url: str) -> str:
         if u.startswith(prefix):
             return "postgresql://" + u[len(prefix) :]
     return u
-
-
-def _normalize_amenity_text(value: str) -> str:
-    t = value.strip().lower()
-    t = _PUNCT_SPACE_RE.sub(" ", t)
-    t = _WHITESPACE_RE.sub(" ", t).strip()
-    return t
 
 
 def _parse_amenity_blob(raw: Any) -> list[str]:
@@ -71,11 +74,6 @@ def _parse_amenity_blob(raw: Any) -> list[str]:
     return [txt]
 
 
-def _source_hash(raw: str, norm: str, source_field: str) -> str:
-    base = f"{source_field}\x1f{raw}\x1f{norm}"
-    return hashlib.sha256(base.encode("utf-8")).hexdigest()
-
-
 def _table_columns(engine, schema: str, table: str) -> set[str]:
     with engine.connect() as conn:
         rows = conn.execute(
@@ -102,7 +100,12 @@ def _pick(cols: set[str], *candidates: str) -> str | None:
 def main() -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Sync listings amenity columns into listing_amenities")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Legacy: sync listings amenity columns into listing_amenities "
+            "(no-op if listings amenity columns were dropped)."
+        )
+    )
     parser.add_argument("--batch-size", type=int, default=800, help="Rows per batched INSERT")
     parser.add_argument("--progress-every", type=int, default=2000, help="Log progress every N listing rows")
     args = parser.parse_args()
@@ -120,6 +123,8 @@ def main() -> int:
     table = (os.environ.get("LISTINGS_TABLE_NAME") or "listings").strip() or "listings"
     schema = (os.environ.get("LISTINGS_TABLE_SCHEMA") or "").strip() or "public"
     qtable = _qtable(schema, table)
+    amenity_table = (os.environ.get("LISTING_AMENITIES_TABLE_NAME") or "listing_amenities").strip() or "listing_amenities"
+    q_amenity = _qtable(schema, amenity_table)
     engine = create_engine(db_url, future=True)
 
     cols = _table_columns(engine, schema, table)
@@ -140,45 +145,19 @@ def main() -> int:
         if c in cols
     ]
     if not amenity_cols:
-        print("No amenity columns found; nothing to sync.")
+        print(
+            "No amenity columns found on listings; nothing to sync. "
+            "(Amenity data should be scraped into listing_amenities via scripts/backfill_listing_amenities.py.)",
+            flush=True,
+        )
         return 0
 
     print(
-        f"listing_amenities sync: scanning {qtable} (columns: {listing_id_col}, {', '.join(amenity_cols)})…",
+        f"listing_amenities sync (legacy): scanning {qtable} (columns: {listing_id_col}, {', '.join(amenity_cols)})…",
         flush=True,
     )
     select_cols = ", ".join([f'"{listing_id_col}"'] + [f'"{c}"' for c in amenity_cols])
-    upsert_sql = """
-        INSERT INTO listing_amenities (
-          listing_id,
-          amenity_text_raw,
-          amenity_text_norm,
-          source_field,
-          amenity_embedding_source_hash,
-          updated_at
-        ) VALUES %s
-        ON CONFLICT (listing_id, amenity_text_norm, source_field)
-        DO UPDATE SET
-          amenity_text_raw = EXCLUDED.amenity_text_raw,
-          source_field = EXCLUDED.source_field,
-          updated_at = EXCLUDED.updated_at,
-          amenity_embedding_source_hash = EXCLUDED.amenity_embedding_source_hash,
-          amenity_embedding = CASE
-            WHEN listing_amenities.amenity_embedding_source_hash IS DISTINCT FROM EXCLUDED.amenity_embedding_source_hash
-              THEN NULL
-            ELSE listing_amenities.amenity_embedding
-          END,
-          amenity_embedding_model = CASE
-            WHEN listing_amenities.amenity_embedding_source_hash IS DISTINCT FROM EXCLUDED.amenity_embedding_source_hash
-              THEN NULL
-            ELSE listing_amenities.amenity_embedding_model
-          END,
-          amenity_embedding_updated_at = CASE
-            WHEN listing_amenities.amenity_embedding_source_hash IS DISTINCT FROM EXCLUDED.amenity_embedding_source_hash
-              THEN NULL
-            ELSE listing_amenities.amenity_embedding_updated_at
-          END
-        """
+    upsert_sql = lau.upsert_sql_for_table(q_amenity)
 
     # One row per (listing, normalized text, source column) so community vs apartment both persist.
     seen_pairs: set[tuple[str, str, str]] = set()
@@ -229,14 +208,14 @@ def main() -> int:
                     continue
                 for source_col in amenity_cols:
                     for raw_amenity in _parse_amenity_blob(row[col_index[source_col]]):
-                        norm = _normalize_amenity_text(raw_amenity)
+                        norm = lau.normalize_amenity_text(raw_amenity)
                         if not norm:
                             continue
                         key = (listing_id, norm, source_col)
                         if key in seen_pairs:
                             continue
                         seen_pairs.add(key)
-                        h = _source_hash(raw_amenity, norm, source_col)
+                        h = lau.source_hash(raw_amenity, norm, source_col)
                         batch.append((listing_id, raw_amenity, norm, source_col, h))
                         if len(batch) >= args.batch_size:
                             flush_batch(upsert_cur)

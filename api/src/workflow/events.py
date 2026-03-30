@@ -152,10 +152,18 @@ class SearchStatsData(BaseModel):
     total_ms: int | None = Field(default=None, ge=0)
     semantic_candidates: int | None = Field(default=None, ge=0)
     amenity_scored_count: int | None = Field(default=None, ge=0)
+    db_budget_exhausted: bool | None = Field(default=None)
+    amenity_budget_exhausted: bool | None = Field(default=None)
+    breakdown_deferred: bool | None = Field(default=None)
+    breakdown_ready: bool | None = Field(default=None)
+    breakdown_budget_exhausted: bool | None = Field(default=None)
     validated_kept_count: int | None = Field(default=None, ge=0)
     validated_dropped_count: int | None = Field(default=None, ge=0)
     validation_cache_hits: int | None = Field(default=None, ge=0)
     validation_cache_misses: int | None = Field(default=None, ge=0)
+    validation_completed_count: int | None = Field(default=None, ge=0)
+    validation_pending_count: int | None = Field(default=None, ge=0)
+    validation_budget_exhausted: bool | None = Field(default=None)
 
 
 class SearchPlanData(BaseModel):
