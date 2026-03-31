@@ -26,6 +26,7 @@ import {
   useToggleFavorite,
   useUpsertPropertyNote,
 } from "@/lib/properties/api";
+import { shareListingUrl } from "@/lib/properties/shareListingUrl";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
 
 interface PropertyDetailSheetProps {
@@ -73,8 +74,7 @@ export function PropertyDetailSheet({
   const shareListing = async () => {
     cacheProperty(propertyKey, property);
     const absoluteUrl = `${window.location.origin}${fullDetailsPath}`;
-    await navigator.clipboard.writeText(absoluteUrl);
-    toast.success("Copied property link");
+    await shareListingUrl({ url: absoluteUrl, title: property.name });
   };
 
   const onSaveFavorite = async () => {

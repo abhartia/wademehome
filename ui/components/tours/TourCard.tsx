@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   XCircle,
   CalendarPlus,
+  Loader2,
 } from "lucide-react";
 import { PropertyImage } from "@/components/ui/property-image";
 
@@ -45,6 +46,7 @@ interface TourCardProps {
   onMarkComplete?: () => void;
   onCancel?: () => void;
   onRemove?: () => void;
+  isRemoving?: boolean;
 }
 
 export function TourCard({
@@ -55,6 +57,7 @@ export function TourCard({
   onMarkComplete,
   onCancel,
   onRemove,
+  isRemoving = false,
 }: TourCardProps) {
   const { property, status, scheduledDate, scheduledTime, note } = tour;
   const cfg = statusConfig[status];
@@ -148,9 +151,19 @@ export function TourCard({
                   <CalendarPlus className="h-3 w-3" />
                   Schedule Tour
                 </Button>
-                <Button size="sm" variant="ghost" onClick={onRemove} className="h-7 gap-1 px-2 text-xs text-destructive">
-                  <Trash2 className="h-3 w-3" />
-                  Remove
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onRemove}
+                  disabled={isRemoving}
+                  className="h-7 gap-1 px-2 text-xs text-destructive"
+                >
+                  {isRemoving ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3 w-3" />
+                  )}
+                  {isRemoving ? "Removing..." : "Remove"}
                 </Button>
               </>
             )}

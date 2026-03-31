@@ -30,7 +30,7 @@ interface ToursContextValue {
   ) => void;
   updateTour: (tourId: string, partial: Partial<Tour>) => void;
   updateNote: (tourId: string, note: TourNote) => void;
-  removeTour: (tourId: string) => void;
+  removeTour: (tourId: string) => Promise<void>;
   getTourByPropertyId: (propertyId: string) => Tour | undefined;
 }
 
@@ -156,9 +156,9 @@ export function ToursProvider({ children }: { children: React.ReactNode }) {
     });
   }, [upsertNoteMutation, user]);
 
-  const removeTour = useCallback((tourId: string) => {
+  const removeTour = useCallback(async (tourId: string) => {
     if (!user) return;
-    deleteTourMutation.mutate({ path: { tour_id: tourId } });
+    await deleteTourMutation.mutateAsync({ path: { tour_id: tourId } });
   }, [deleteTourMutation, user]);
 
   const getTourByPropertyId = useCallback(

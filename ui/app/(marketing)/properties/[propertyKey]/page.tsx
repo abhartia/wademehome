@@ -32,6 +32,7 @@ import {
 } from "@/lib/properties/api";
 import { formatPropertyRangeLabel } from "@/lib/properties/formatPropertyRangeLabel";
 import { getCachedProperty, cacheProperty } from "@/lib/properties/propertyStorage";
+import { shareListingUrl } from "@/lib/properties/shareListingUrl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -277,8 +278,7 @@ export default function PropertyDetailsPage() {
             <Button
               variant="outline"
               onClick={async () => {
-                await navigator.clipboard.writeText(window.location.href);
-                toast.success("Copied link");
+                await shareListingUrl({ url: window.location.href, title: property.name });
               }}
             >
               Share

@@ -26,6 +26,7 @@ export default function ToursPage() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesTour, setNotesTour] = useState<Tour | null>(null);
   const [notesReadOnly, setNotesReadOnly] = useState(false);
+  const [removingTourIds, setRemovingTourIds] = useState<Set<string>>(new Set());
 
   const upcoming = tours
     .filter((t) => t.status === "scheduled")
@@ -55,6 +56,23 @@ export default function ToursPage() {
     setNotesTour(tour);
     setNotesReadOnly(readOnly);
     setNotesOpen(true);
+  };
+
+  const handleRemoveTour = async (tourId: string) => {
+    setRemovingTourIds((prev) => {
+      const next = new Set(prev);
+      next.add(tourId);
+      return next;
+    });
+    try {
+      await removeTour(tourId);
+    } finally {
+      setRemovingTourIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tourId);
+        return next;
+      });
+    }
   };
 
   const allCompleted =
@@ -239,7 +257,8 @@ export default function ToursPage() {
                   onSchedule={() =>
                     openSchedule(tour.property, tour.id)
                   }
-                  onRemove={() => removeTour(tour.id)}
+                  onRemove={() => handleRemoveTour(tour.id)}
+                  isRemoving={removingTourIds.has(tour.id)}
                 />
               ))
             )}

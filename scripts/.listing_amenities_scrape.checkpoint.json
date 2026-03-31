@@ -1,9 +1,9 @@
 {
-  "mode_signature": "1ade6b8eb1ba58f5c6ccde0c",
-  "processed": 3,
-  "queue_total": 3,
-  "parsed_ok": 3,
-  "parsed_none": 0,
-  "last_key": "RentCafe|https://www.rentcafe.com/apartments/al/auburn/447/w/longleaf/dr/unit/13060/default.aspx",
-  "updated_at": "2026-03-30T16:51:53Z"
+  "mode_signature": "cc13ce9a5e0798b088e4f360",
+  "processed": 4,
+  "queue_total": 4,
+  "parsed_ok": 1,
+  "parsed_none": 3,
+  "last_key": "DONE",
+  "updated_at": "2026-03-30T19:32:48Z"
 }

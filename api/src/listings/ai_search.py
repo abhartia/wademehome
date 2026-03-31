@@ -597,8 +597,19 @@ def _build_criteria(
 
     city_col = _pick_column(cols, "city", "locality")
     if city_col and plan.city:
-        params["city"] = plan.city.strip().lower()
-        criteria.append(("city", f"City: {plan.city.strip()}", f'LOWER(TRIM("{city_col}"::text)) = :city'))
+        city_norm = plan.city.strip().lower()
+        params["city"] = city_norm
+        # Listing rows often smuggle unit/neighborhood prefixes into `city` (e.g. "Unit 24, Lakeside").
+        # Require the planned city as a substring so ZIP/state + FTS still match real rows.
+        params["city_like"] = f"%{city_norm}%"
+        criteria.append(
+            (
+                "city",
+                f"City: {plan.city.strip()}",
+                f'(LOWER(TRIM("{city_col}"::text)) = :city OR '
+                f'LOWER("{city_col}"::text) LIKE :city_like)',
+            )
+        )
 
     state_col = _pick_column(cols, "state", "state_code", "region")
     if state_col and plan.state:

@@ -301,41 +301,220 @@ def parse_entrata_jonah_amenities_html(html: str) -> tuple[list[str], list[str]]
     return (comm, apt)
 
 
+_GREYSTAR_HIGHLIGHT_META: dict[str, tuple[str, str]] = {
+    # API boolean key -> (display label, "community" | "apartment")
+    "airCon": ("Air Conditioning", "apartment"),
+    "dishwasher": ("Dishwasher", "apartment"),
+    "patioBalcony": ("Patio/Balcony", "apartment"),
+    "walkInClosets": ("Spacious Closets", "apartment"),
+    "washerDryer": ("Washer/Dryer", "apartment"),
+    "pools": ("Pool", "community"),
+    "fitness": ("Fitness Center", "community"),
+    "pets": ("Pet Friendly", "community"),
+    "playground": ("Playground", "community"),
+    "garages": ("Garages", "community"),
+    "limitedAccess": ("Gated Access", "community"),
+    "smokeFree": ("Smoke Free", "community"),
+    "eco": ("Eco-friendly", "community"),
+}
+
+# DOM labels (Building amenities) split when JSON lists are empty.
+_GREYSTAR_DOM_APARTMENT_MARKERS = (
+    "air conditioning",
+    "dishwasher",
+    "spacious closet",
+    "walk-in",
+    "washer",
+    "dryer",
+    "w/d",
+    "patio",
+    "balcony",
+)
+
+_GREYSTAR_DOM_SKIP_LABELS = frozenset(
+    ("highlights", "building amenities", "community amenities", "amenities")
+)
+
+
+def _greystar_is_placeholder_amenity(s: str) -> bool:
+    t = s.strip().lower()
+    if not t:
+        return True
+    if "coming soon" in t:
+        return True
+    if t in {"n/a", "tbd", "—", "-", "none", "tba"}:
+        return True
+    return False
+
+
+def _greystar_norm_str_list(xs: object) -> list[str]:
+    if not isinstance(xs, list):
+        return []
+    out: list[str] = []
+    for x in xs:
+        if isinstance(x, str) and x.strip() and not _greystar_is_placeholder_amenity(x):
+            out.append(x.strip())
+    return out
+
+
+def _greystar_amenities_from_highlights(data: dict) -> tuple[list[str], list[str]] | None:
+    hl = data.get("highlights")
+    if not isinstance(hl, dict):
+        return None
+    comm: list[str] = []
+    apt: list[str] = []
+    for key, (label, bucket) in _GREYSTAR_HIGHLIGHT_META.items():
+        if hl.get(key) is not True:
+            continue
+        if bucket == "community":
+            comm.append(label)
+        else:
+            apt.append(label)
+    if not comm and not apt:
+        return None
+    return (comm, apt)
+
+
+def _greystar_bucket_for_dom_line(text: str) -> str:
+    tl = text.strip().lower()
+    if any(m in tl for m in _GREYSTAR_DOM_APARTMENT_MARKERS):
+        return "apartment"
+    return "community"
+
+
+def _greystar_find_amenities_heading(soup: BeautifulSoup):
+    for hn in ("h2", "h3", "h4"):
+        for h in soup.find_all(hn):
+            if h.find_parent(["nav", "header", "footer"]):
+                continue
+            t = h.get_text(strip=True).lower()
+            if t in ("building amenities", "community amenities"):
+                return h
+            if "amenit" in t and "building" in t:
+                return h
+            if t == "amenities and features":
+                return h
+    return None
+
+
+def _greystar_bucket_lines(lines: list[str]) -> tuple[list[str], list[str]] | None:
+    comm: list[str] = []
+    apt: list[str] = []
+    for line in lines:
+        if _greystar_bucket_for_dom_line(line) == "apartment":
+            apt.append(line)
+        else:
+            comm.append(line)
+    if not comm and not apt:
+        return None
+    return (comm, apt)
+
+
+def _greystar_lines_from_icon_row_dom(root) -> list[str]:
+    texts: list[str] = []
+    for div in root.select("div[class*='icon-text']"):
+        sp = div.select_one("span, p")
+        if not sp:
+            continue
+        line = sp.get_text(" ", strip=True)
+        if not line or len(line) > 200 or line.lower().startswith("http"):
+            continue
+        tl = line.lower()
+        if tl in _GREYSTAR_DOM_SKIP_LABELS:
+            continue
+        texts.append(line)
+    return texts
+
+
+def _greystar_amenities_from_dom(soup: BeautifulSoup) -> tuple[list[str], list[str]] | None:
+    """
+    "Building amenities" plus ``ul`` items and/or ``div.icon-text`` rows (some templates
+    ship empty ``ul`` and rely on icon rows in SSR).
+    """
+    heading = _greystar_find_amenities_heading(soup)
+    if heading is None:
+        return None
+    section = heading.find_parent("section")
+    root = section if section is not None else heading.parent
+    if root is None:
+        return None
+    texts: list[str] = []
+    ul = root.find("ul")
+    if ul is not None:
+        for li in ul.find_all("li", recursive=False):
+            line = li.get_text(" ", strip=True)
+            if line and len(line) < 200 and not line.lower().startswith("http"):
+                texts.append(line)
+    if not texts:
+        texts = _greystar_lines_from_icon_row_dom(root)
+    if not texts:
+        return None
+    return _greystar_bucket_lines(texts)
+
+
+def _greystar_parse_amenities_component_data(data: dict) -> tuple[list[str], list[str]] | None:
+    comm = _greystar_norm_str_list(data.get("amenities"))
+    apt = _greystar_norm_str_list(data.get("features"))
+    if comm or apt:
+        return (comm, apt)
+    return _greystar_amenities_from_highlights(data)
+
+
+def _greystar_property_highlights_from_props(component_props: dict) -> dict | None:
+    """``PropertyDetails.property.highlights`` when PD-amenities has no usable lists/highlights."""
+    best: dict | None = None
+    n_true = 0
+    for comp in component_props.values():
+        if not isinstance(comp, dict) or comp.get("componentName") != "PropertyDetails":
+            continue
+        prop = (comp.get("data") or {}).get("property") or {}
+        hl = prop.get("highlights")
+        if not isinstance(hl, dict):
+            continue
+        c = sum(1 for v in hl.values() if v is True)
+        if c > n_true:
+            n_true = c
+            best = hl
+    return best
+
+
+def _greystar_gather_from_next_props(component_props: dict) -> tuple[list[str], list[str]] | None:
+    for comp in component_props.values():
+        if not isinstance(comp, dict) or comp.get("componentName") != "PropertyDetailsAmenities":
+            continue
+        out = _greystar_parse_amenities_component_data(comp.get("data") or {})
+        if out is not None:
+            return out
+    phl = _greystar_property_highlights_from_props(component_props)
+    if phl is not None:
+        return _greystar_amenities_from_highlights({"highlights": phl})
+    return None
+
+
 def parse_greystar_amenities_from_html(html: str) -> tuple[list[str], list[str]] | None:
     """
     Greystar consumer sites expose ``PropertyDetailsAmenities`` inside ``__NEXT_DATA__``:
     ``data.amenities`` (community) and ``data.features`` (apartment), same as
     ``greystar_scraper.scrape_property_page``.
+
+    Newer pages often leave those lists empty and only set ``data.highlights`` booleans,
+    or render rows under "Building amenities". Falls back to ``PropertyDetails.property.highlights``,
+    then DOM (``ul`` or ``icon-text`` rows).
     """
     soup = BeautifulSoup(html, "html.parser")
     script_tag = soup.find("script", id="__NEXT_DATA__", attrs={"type": "application/json"})
-    if not script_tag or not script_tag.string:
-        return None
-    try:
-        full_data = json.loads(script_tag.string)
-    except (json.JSONDecodeError, TypeError):
-        return None
-    component_props = full_data.get("props", {}).get("pageProps", {}).get("componentProps", {})
-    comm_raw = None
-    apt_raw = None
-    for comp in component_props.values():
-        if not isinstance(comp, dict):
-            continue
-        if comp.get("componentName") == "PropertyDetailsAmenities":
-            data = comp.get("data") or {}
-            comm_raw = data.get("amenities")
-            apt_raw = data.get("features")
-            break
-    if comm_raw is None or apt_raw is None:
-        return None
-    if not isinstance(comm_raw, list) or not isinstance(apt_raw, list):
-        return None
+    if script_tag and script_tag.string:
+        try:
+            full_data = json.loads(script_tag.string)
+        except (json.JSONDecodeError, TypeError):
+            full_data = {}
+        else:
+            component_props = full_data.get("props", {}).get("pageProps", {}).get("componentProps", {})
+            out = _greystar_gather_from_next_props(component_props)
+            if out is not None:
+                return out
 
-    def _norm(xs: list) -> list[str]:
-        out: list[str] = []
-        for x in xs:
-            if isinstance(x, str) and x.strip():
-                out.append(x.strip())
-        return out
-
-    return (_norm(comm_raw), _norm(apt_raw))
+    dom = _greystar_amenities_from_dom(soup)
+    if dom is not None:
+        return dom
+    return None

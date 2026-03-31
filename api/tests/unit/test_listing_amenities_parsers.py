@@ -85,3 +85,46 @@ def test_parse_greystar_amenities_fixture():
     html = (FIXTURES / "greystar_next_data_sample.html").read_text(encoding="utf-8")
     out = lap.parse_greystar_amenities_from_html(html)
     assert out == (["Pool"], ["W/D"])
+
+
+def test_parse_greystar_highlights_when_lists_empty():
+    html = (FIXTURES / "greystar_highlights_only.html").read_text(encoding="utf-8")
+    out = lap.parse_greystar_amenities_from_html(html)
+    assert out is not None
+    comm, apt = out
+    assert set(comm) == {"Pool", "Fitness Center", "Pet Friendly", "Smoke Free"}
+    assert set(apt) == {"Air Conditioning", "Patio/Balcony"}
+
+
+def test_parse_greystar_placeholder_lists_fall_through_to_highlights():
+    html = """<!DOCTYPE html><html><body>
+    <script id="__NEXT_DATA__" type="application/json">
+    {"props":{"pageProps":{"componentProps":{"x":{"componentName":"PropertyDetailsAmenities",
+    "data":{"amenities":["Information coming soon!"],"features":["Information coming soon!"],
+    "highlights":{"smokeFree":true}}}}}}}
+    </script></body></html>"""
+    out = lap.parse_greystar_amenities_from_html(html)
+    assert out == (["Smoke Free"], [])
+
+
+def test_parse_greystar_dom_when_no_next_component():
+    html = (FIXTURES / "greystar_dom_only.html").read_text(encoding="utf-8")
+    out = lap.parse_greystar_amenities_from_html(html)
+    assert out == (["Pool"], ["Air Conditioning"])
+
+
+def test_parse_greystar_uses_property_highlights_when_amenities_component_blank():
+    """PD-amenities empty/false; PropertyDetails.property.highlights may still be set."""
+    html = """<!DOCTYPE html><html><body>
+    <script id="__NEXT_DATA__" type="application/json">
+    {"props":{"pageProps":{"componentProps":{
+    "a":{"componentName":"PropertyDetailsAmenities","data":{"amenities":[],"features":[],
+    "highlights":{"airCon":false,"dishwasher":false,"pools":false,"fitness":false,"pets":false}}},
+    "p":{"componentName":"PropertyDetails","data":{"property":{"highlights":{"pools":true,"pets":true,"airCon":true}}}}
+    }}}}
+    </script></body></html>"""
+    out = lap.parse_greystar_amenities_from_html(html)
+    assert out is not None
+    comm, apt = out
+    assert set(comm) == {"Pool", "Pet Friendly"}
+    assert apt == ["Air Conditioning"]

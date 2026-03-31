@@ -1,3 +1,5 @@
+import { Toaster } from "@/components/ui/sonner";
+
 /**
  * Public / marketing routes only. Authenticated app chrome lives in `(app)/layout.tsx` (wadecv-style route groups).
  */
@@ -6,5 +8,10 @@ export default function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <main className="min-h-screen">{children}</main>;
+  return (
+    <main className="min-h-screen">
+      {children}
+      <Toaster richColors closeButton />
+    </main>
+  );
 }

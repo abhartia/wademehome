@@ -1,8 +1,10 @@
 "use client";
 
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
-import { Building2 } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 type Variant = "page" | "sheet";
 
@@ -21,6 +23,36 @@ export function PropertyImageGallery({
 }) {
   const urls = property.images_urls?.filter(Boolean) ?? [];
   const [failed, setFailed] = useState<Record<number, boolean>>({});
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const openAt = useCallback((index: number) => {
+    setActiveIndex(index);
+    setLightboxOpen(true);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setActiveIndex((i) => (i - 1 + urls.length) % urls.length);
+  }, [urls.length]);
+
+  const goNext = useCallback(() => {
+    setActiveIndex((i) => (i + 1) % urls.length);
+  }, [urls.length]);
+
+  useEffect(() => {
+    if (!lightboxOpen || urls.length <= 1) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goNext();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxOpen, urls.length, goPrev, goNext]);
 
   if (urls.length === 0) {
     return (
@@ -54,6 +86,12 @@ export function PropertyImageGallery({
             <Building2 className="h-14 w-14 opacity-40" />
           </div>
         )}
+        <button
+          type="button"
+          className="absolute inset-0 z-10 cursor-zoom-in rounded-lg bg-transparent text-left ring-offset-background transition-colors hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          onClick={() => openAt(0)}
+          aria-label={`Enlarge photo 1 of ${urls.length}`}
+        />
       </div>
       {rest.length > 0 ? (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -79,11 +117,79 @@ export function PropertyImageGallery({
                     <Building2 className="h-8 w-8 text-muted-foreground/35" />
                   </div>
                 )}
+                <button
+                  type="button"
+                  className="absolute inset-0 z-10 cursor-zoom-in rounded-md bg-transparent ring-offset-background transition-colors hover:bg-black/[0.05] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  onClick={() => openAt(idx)}
+                  aria-label={`Enlarge photo ${idx + 1} of ${urls.length}`}
+                />
               </div>
             );
           })}
         </div>
       ) : null}
+
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent
+          className="max-h-[95vh] w-[min(96vw,1200px)] max-w-[min(96vw,1200px)] gap-3 border-0 bg-transparent p-3 shadow-none sm:max-w-[min(96vw,1200px)]"
+          showCloseButton
+        >
+          <DialogTitle className="sr-only">
+            {property.name} — photo {activeIndex + 1} of {urls.length}
+          </DialogTitle>
+          <div className="relative flex min-h-[min(85vh,800px)] w-full items-center justify-center rounded-lg bg-black/20 p-2">
+            {!failed[activeIndex] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={urls[activeIndex]}
+                alt=""
+                className="max-h-[85vh] w-full object-contain"
+                decoding="async"
+                onError={() => setFailed((f) => ({ ...f, [activeIndex]: true }))}
+              />
+            ) : (
+              <div className="flex min-h-[40vh] w-full items-center justify-center text-muted-foreground">
+                <Building2 className="h-20 w-20 opacity-40" aria-hidden />
+              </div>
+            )}
+            {urls.length > 1 ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="absolute left-1 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full shadow-md"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
+                  }}
+                  aria-label="Previous photo"
+                >
+                  <ChevronLeft className="h-5 w-5" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full shadow-md"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
+                  }}
+                  aria-label="Next photo"
+                >
+                  <ChevronRight className="h-5 w-5" aria-hidden />
+                </Button>
+              </>
+            ) : null}
+          </div>
+          {urls.length > 1 ? (
+            <p className="text-center text-sm text-foreground drop-shadow-sm">
+              {activeIndex + 1} / {urls.length}
+            </p>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
