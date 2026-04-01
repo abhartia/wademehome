@@ -122,6 +122,17 @@ class PropertyDataItem(BaseModel):
         default=None,
         description="Optional validator confidence in [0,1].",
     )
+    concessions: str | None = Field(
+        default=None,
+        description=(
+            "Promo / special-offer lines when present: listing_amenities rows, other special columns, "
+            "or amenity text that matches typical concession patterns (e.g. '1 month free')."
+        ),
+    )
+    available_date: str | None = Field(
+        default=None,
+        description="Earliest move-in / availability label when present in source data.",
+    )
 
 class PropertyDataList(BaseModel):
     properties: list[PropertyDataItem]

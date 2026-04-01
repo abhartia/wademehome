@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 import { authMeQueryKey } from "@/lib/api/authSessionQuery";
 import {
   loginAuthLoginPostMutation,
@@ -19,11 +21,18 @@ import { getApiErrorMessage } from "@/lib/api/errors";
 export default function LoginPage() {
   const router = useRouter();
   const { refresh, user, loading } = useAuth();
+  const { journeyStage } = useUserProfile();
+  const journeyStageRef = useRef(journeyStage);
+  journeyStageRef.current = journeyStage;
 
   useEffect(() => {
     if (loading || !user) return;
-    router.replace(user.onboarding_completed ? "/app" : "/onboarding");
-  }, [loading, user, router]);
+    router.replace(
+      user.onboarding_completed
+        ? defaultAppLandingPath(journeyStage)
+        : "/onboarding",
+    );
+  }, [loading, user, router, journeyStage]);
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +48,7 @@ export default function LoginPage() {
       if (!data?.user?.onboarding_completed) {
         router.replace("/onboarding");
       } else {
-        router.replace("/app");
+        router.replace(defaultAppLandingPath(journeyStageRef.current));
       }
     },
   });

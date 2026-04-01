@@ -4679,6 +4679,290 @@
         }
       }
     },
+    "/property-manager/report-subscriptions": {
+      "get": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "List Report Subscriptions",
+        "operationId": "list_report_subscriptions_property_manager_report_subscriptions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportSubscriptionResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Report Subscriptions Property Manager Report Subscriptions Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Create Report Subscription",
+        "operationId": "create_report_subscription_property_manager_report_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportSubscriptionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/property-manager/report-subscriptions/{subscription_id}": {
+      "patch": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Patch Report Subscription",
+        "operationId": "patch_report_subscription_property_manager_report_subscriptions__subscription_id__patch",
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportSubscriptionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Delete Report Subscription",
+        "operationId": "delete_report_subscription_property_manager_report_subscriptions__subscription_id__delete",
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/property-manager/report-subscriptions/preview": {
+      "post": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Preview Report Payload",
+        "operationId": "preview_report_payload_property_manager_report_subscriptions_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearbyListingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/property-manager/report-subscriptions/{subscription_id}/send-now": {
+      "post": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Send Report Subscription Now",
+        "operationId": "send_report_subscription_now_property_manager_report_subscriptions__subscription_id__send_now_post",
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/property-manager/reports/send-weekly": {
+      "post": {
+        "tags": [
+          "internal-property-manager"
+        ],
+        "summary": "Send Weekly Reports",
+        "operationId": "send_weekly_reports_internal_property_manager_reports_send_weekly_post",
+        "parameters": [
+          {
+            "name": "x-internal-cron-secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Cron-Secret"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklySendResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/listings/chat": {
       "post": {
         "summary": "Listing Chat",
@@ -9216,6 +9500,30 @@
             ],
             "title": "Validation Confidence",
             "description": "Optional validator confidence in [0,1]."
+          },
+          "concessions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concessions",
+            "description": "Promotional concession text when present in inventory (e.g. '1 month free')."
+          },
+          "available_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Date",
+            "description": "Earliest move-in / availability label when present in source data."
           }
         },
         "type": "object",
@@ -9357,6 +9665,215 @@
         },
         "type": "object",
         "title": "QualityMetrics"
+      },
+      "ReportPreviewRequest": {
+        "properties": {
+          "center_latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "type": "number",
+            "maximum": 50.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Radius Miles",
+            "default": 2
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "center_latitude",
+          "center_longitude"
+        ],
+        "title": "ReportPreviewRequest"
+      },
+      "ReportSubscriptionCreate": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "center_latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "type": "number",
+            "maximum": 50.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Radius Miles",
+            "default": 2
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "center_latitude",
+          "center_longitude"
+        ],
+        "title": "ReportSubscriptionCreate"
+      },
+      "ReportSubscriptionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "center_latitude": {
+            "type": "string",
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "type": "string",
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "type": "string",
+            "title": "Radius Miles"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "last_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sent At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "center_latitude",
+          "center_longitude",
+          "radius_miles",
+          "is_active",
+          "last_sent_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ReportSubscriptionResponse"
+      },
+      "ReportSubscriptionUpdate": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "center_latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 50.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Radius Miles"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "ReportSubscriptionUpdate"
       },
       "ResendVerificationRequest": {
         "properties": {
@@ -11153,6 +11670,24 @@
           "token"
         ],
         "title": "VerifyEmailRequest"
+      },
+      "WeeklySendResponse": {
+        "properties": {
+          "sent": {
+            "type": "integer",
+            "title": "Sent"
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sent",
+          "failed"
+        ],
+        "title": "WeeklySendResponse"
       },
       "ZipBucketRow": {
         "properties": {

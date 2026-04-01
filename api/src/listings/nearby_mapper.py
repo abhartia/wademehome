@@ -156,6 +156,35 @@ def _address_from_row(row: Mapping[str, Any]) -> str:
     return "Address on request"
 
 
+# Lines that often carry move-in / promo language after amenities were normalized to tokens.
+_CONCESSION_AMENITY_LINE = re.compile(
+    r"(?i)(month|week|weeks|mos|mo)s?.{0,8}free"
+    r"|free.{0,8}(month|rent)"
+    r"|concession|special.{0,12}offer|move-?in|look.{0,6}lease"
+    r"|waived|no.{0,4}deposit|\$\s*[\d,]+"
+)
+
+
+def _infer_concessions_from_amenity_lines(lines: list[str]) -> str | None:
+    hits: list[str] = []
+    for line in lines:
+        t = line.strip()
+        if not t:
+            continue
+        if _CONCESSION_AMENITY_LINE.search(t):
+            hits.append(t)
+    if not hits:
+        return None
+    out: list[str] = []
+    seen: set[str] = set()
+    for h in hits:
+        k = h.casefold()
+        if k not in seen:
+            seen.add(k)
+            out.append(h)
+    return "; ".join(out[:10])
+
+
 def _amenities_merged(row: Mapping[str, Any]) -> list[str]:
     """Greystar-style and generic inventory columns."""
     chunks: list[list[str]] = []
@@ -337,6 +366,64 @@ def row_to_property_data_item(row: Mapping[str, Any]) -> PropertyDataItem:
     state_s = state_v.strip() if isinstance(state_v, str) and state_v.strip() else None
     zip_s = zip_v.strip() if isinstance(zip_v, str) and zip_v.strip() else None
 
+    conc_raw = _get_ci(
+        row,
+        "concessions",
+        "concession",
+        "specials",
+        "move_in_special",
+        "special_offer",
+        "special_offers",
+        "leasing_special",
+        "leasing_specials",
+        "rent_special",
+        "promotion",
+        "promotions",
+        "incentive",
+        "incentives",
+        "offer_text",
+        "lease_concession",
+    )
+    if isinstance(conc_raw, str) and conc_raw.strip():
+        concessions = conc_raw.strip()
+    elif conc_raw not in (None, ""):
+        concessions = str(conc_raw).strip() or None
+    else:
+        concessions = None
+
+    if not concessions:
+        from_amenities = _infer_concessions_from_amenity_lines(amenities)
+        if from_amenities:
+            concessions = from_amenities
+
+    avail_raw = _get_ci(
+        row,
+        "available_date",
+        "available_on",
+        "available_at",
+        "date_available",
+        "move_in_date",
+        "earliest_move_in",
+    )
+    if isinstance(avail_raw, str) and avail_raw.strip():
+        available_date = avail_raw.strip()
+    elif avail_raw not in (None, ""):
+        available_date = str(avail_raw).strip() or None
+    else:
+        available_date = None
+
+    if not available_date:
+        status_raw = _get_ci(
+            row,
+            "availability_status",
+            "unit_availability",
+            "availability",
+        )
+        if isinstance(status_raw, str) and status_raw.strip():
+            s = status_raw.strip()
+            if s.lower() not in ("nan", "none", "null"):
+                available_date = s
+
     return PropertyDataItem(
         name=_name_from_row(row),
         address=_address_from_row(row),
@@ -352,4 +439,6 @@ def row_to_property_data_item(row: Mapping[str, Any]) -> PropertyDataItem:
         main_amenities=main,
         amenities=amenities,
         match_reason=None,
+        concessions=concessions,
+        available_date=available_date,
     )

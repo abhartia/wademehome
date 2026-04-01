@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 import { normalizePathname } from "@/lib/routes/marketingPaths";
 import { useEffect } from "react";
 
@@ -25,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { journeyStage } = useUserProfile();
   const path = normalizePathname(pathname);
 
   useEffect(() => {
@@ -36,13 +39,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
     if (user.onboarding_completed && path === "/onboarding") {
-      router.replace("/app");
+      router.replace(defaultAppLandingPath(journeyStage));
       return;
     }
     if (!user.onboarding_completed && path !== "/onboarding") {
       router.replace("/onboarding");
     }
-  }, [loading, user, path, router]);
+  }, [loading, user, path, router, journeyStage]);
 
   if (loading || !user) return null;
 

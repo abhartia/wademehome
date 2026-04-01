@@ -27,16 +27,7 @@ import {
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { Badge } from "@/components/ui/badge";
 import { BrandLogo } from "@/components/branding/BrandLogo";
-import { JourneyStage } from "@/lib/types/userProfile";
-
-const STAGE_EMPHASIS: Partial<Record<JourneyStage, string>> = {
-  searching: "/search",
-  touring: "/tours",
-  applying: "/profile",
-  "lease-signed": "/move-in",
-  moving: "/move-in",
-  "moved-in": "/profile",
-};
+import { JOURNEY_STAGE_DEFAULT_PATH } from "@/lib/defaultAppLandingPath";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -49,7 +40,7 @@ export function AppSidebar() {
     journeyStage === "moved-in";
 
   const emphasizedHref = journeyStage
-    ? STAGE_EMPHASIS[journeyStage]
+    ? JOURNEY_STAGE_DEFAULT_PATH[journeyStage]
     : undefined;
 
   const coreItems = [

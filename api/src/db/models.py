@@ -29,6 +29,7 @@ class UserRole(str, Enum):
     user = "user"
     admin = "admin"
     landlord = "landlord"
+    property_manager = "property_manager"
 
 
 class JourneyStage(str, Enum):
@@ -189,6 +190,44 @@ class Users(Base):
     landlord_properties: Mapped[list["LandlordProperties"]] = relationship(
         back_populates="owner"
     )
+    property_manager_report_subscriptions: Mapped[list["PropertyManagerReportSubscriptions"]] = (
+        relationship(back_populates="user")
+    )
+
+
+class PropertyManagerReportSubscriptions(Base):
+    """Weekly competitive-set email opt-in for property_manager users."""
+
+    __tablename__ = "property_manager_report_subscriptions"
+    __table_args__ = (
+        UniqueConstraint("user_id", "label", name="uq_pm_report_sub_user_label"),
+        Index("ix_pm_report_sub_user_id", "user_id"),
+        Index("ix_pm_report_sub_active", "is_active"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    label: Mapped[str] = mapped_column(String(255), nullable=False)
+    center_latitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
+    center_longitude: Mapped[Decimal] = mapped_column(Numeric(11, 7), nullable=False)
+    radius_miles: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False, default=Decimal("2"))
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    last_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    user: Mapped["Users"] = relationship(back_populates="property_manager_report_subscriptions")
 
 
 class UserSessions(Base):

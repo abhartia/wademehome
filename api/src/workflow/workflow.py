@@ -12,7 +12,12 @@ from llama_index.server.models.ui import UIEvent
 
 from core.config import Config
 from core.logger import get_logger
-from listings.ai_search import embed_query_text, extract_query_plan, run_fast_search
+from listings.ai_search import (
+    compute_deferred_breakdown,
+    embed_query_text,
+    extract_query_plan,
+    run_fast_search,
+)
 from workflow.events import (
     PropertyDataList,
     SearchFilterBreakdownData,
@@ -111,6 +116,8 @@ def _validation_prompt(user_msg: str, item) -> str:
         f"Main amenities: {', '.join(item.main_amenities[:10])}\n\n"
         "Return JSON only with keys:\n"
         '{"relevant": boolean, "explanation": string, "confidence": number}\n'
+        "Hard constraints are explicit location, rent, bedrooms, and literal must-not phrases in the query. "
+        "Subjective preferences (noise, crime, neighborhood safety) are soft—do not treat their absence from the listing as a contradiction.\n"
         "Use confidence in [0,1]. Keep explanation under 140 chars."
     )
 
@@ -137,8 +144,12 @@ async def _validate_listing_with_llm(
                 ChatMessage(
                     role="system",
                     content=(
-                        "You are a strict rental-listing relevance checker. "
-                        "Return valid JSON only."
+                        "You are a rental-listing relevance checker. Return valid JSON only. "
+                        "Mark relevant=true when the listing clearly matches the user’s explicit location, "
+                        "rent, and bedroom constraints. Do not mark irrelevant solely because the listing omits "
+                        "discussion of noise, crime, or neighborhood safety, or because subjective preferences "
+                        "cannot be verified from the text. Mark irrelevant when the listing clearly contradicts "
+                        "a hard constraint or is the wrong market (e.g. wrong city or wildly wrong rent/beds)."
                     ),
                 ),
                 ChatMessage(role="user", content=_validation_prompt(user_msg, item)),
@@ -307,6 +318,21 @@ class ListingFetcherWorkflow(Workflow):
             validated_items = [it for it in items if it.validation_status != "rejected"]
             validation_ms = int((time.perf_counter() - validation_t0) * 1000)
             search_result.properties = PropertyDataList(properties=validated_items)
+
+            # run_fast_search defers per-criterion counts (FTS path). Full-table SQL criteria
+            # differ slightly from FTS + post-filters but show which constraints dominate.
+            if not breakdown_items:
+                def_items, def_matched, def_breakdown_ms, def_budget_exhausted = (
+                    await asyncio.to_thread(compute_deferred_breakdown, plan)
+                )
+                breakdown_items = list(def_items)
+                if matched_count is None:
+                    matched_count = def_matched
+                breakdown_ms = def_breakdown_ms
+                breakdown_ready = True
+                breakdown_deferred = False
+                breakdown_budget_exhausted = def_budget_exhausted
+
             if breakdown_items:
                 ctx.write_event_to_stream(
                     UIEvent(

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Listings inventory columns",
-  "description": "Canonical shape for rental unit rows loaded from units.parquet (Greystar pipeline: greystar_scraper → units.parquet → scripts/load_listings_from_parquet.py → Postgres LISTINGS_TABLE_NAME). Runtime tables may include extra columns; the API resolves aliases case-insensitively via information_schema.",
+  "description": "Canonical shape for rental unit rows loaded from units.parquet (Greystar pipeline: greystar_scraper → units.parquet → scripts/load_listings_from_parquet.py → Postgres LISTINGS_TABLE_NAME). Amenity and promo lines are also stored in listing_amenities. Runtime tables may include extra columns; the API resolves aliases case-insensitively via information_schema.",
   "primarySource": "greystar_scraper/greystar_scraper.py (units DataFrame columns)",
   "defaultParquetPaths": [
     "data/stage=processed/units.parquet",
@@ -50,6 +50,11 @@
       "description": "First image URL for prompts and legacy consumers",
       "parquetNames": [],
       "sqlAliases": ["image_url", "primary_image_url", "photo_url", "thumbnail_url"]
+    },
+    "available_date": {
+      "description": "Move-in / availability label when present",
+      "parquetNames": [],
+      "sqlAliases": ["available_date", "available_on", "date_available", "move_in_date", "earliest_move_in"]
     }
   }
 }

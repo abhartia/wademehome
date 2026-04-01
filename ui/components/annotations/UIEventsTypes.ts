@@ -39,6 +39,10 @@ export interface PropertyDataItem {
   validation_confidence?: number | null;
   latitude?: number;
   longitude?: number;
+  /** Promotional text when inventory includes it (e.g. "1 month free"). */
+  concessions?: string | null;
+  /** Move-in / availability label when present in source data. */
+  available_date?: string | null;
 }
 
 export interface UIPropertyListingAnnotation {

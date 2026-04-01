@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useAnalyticsConsent } from "@/components/providers/AnalyticsConsentProvider";
 import { UserProfile } from "@/lib/types/userProfile";
 import { trackOnboardingEvent } from "@/lib/analytics/ga";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/branding/BrandLogo";
@@ -650,7 +651,10 @@ export function OnboardingChat() {
             onboardingCompleted: true,
           }),
         });
-        setTimeout(() => router.push("/app"), 1500);
+        setTimeout(
+          () => router.push(defaultAppLandingPath("searching")),
+          1500,
+        );
       } catch (e) {
         const message =
           e instanceof Error ? e.message : "Could not save onboarding to the server.";

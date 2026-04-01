@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 import { authMeQueryKey } from "@/lib/api/authSessionQuery";
 import { verifyEmailRouteAuthVerifyEmailPostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { getApiErrorMessage } from "@/lib/api/errors";
@@ -13,6 +15,9 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const params = useSearchParams();
   const { refresh } = useAuth();
+  const { journeyStage } = useUserProfile();
+  const journeyStageRef = useRef(journeyStage);
+  journeyStageRef.current = journeyStage;
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("Verifying your email…");
 
@@ -27,7 +32,7 @@ export default function VerifyEmailPage() {
       if (!data?.user?.onboarding_completed) {
         router.replace("/onboarding");
       } else {
-        router.replace("/app");
+        router.replace(defaultAppLandingPath(journeyStageRef.current));
       }
     },
     onError: (err) => {

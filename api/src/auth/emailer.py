@@ -128,3 +128,12 @@ def send_tour_request_email(
             f"<p><strong>Message:</strong><br/>{message_line}</p>"
         ),
     )
+
+
+def send_property_manager_weekly_report_email(
+    *,
+    to_email: str,
+    subject: str,
+    html_body: str,
+) -> None:
+    _post_resend(to=[to_email], subject=subject, html=html_body)

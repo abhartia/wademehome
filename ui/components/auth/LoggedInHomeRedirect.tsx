@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 import { normalizePathname } from "@/lib/routes/marketingPaths";
 
 /**
@@ -14,6 +16,7 @@ export function LoggedInHomeRedirect() {
   const path = normalizePathname(pathname);
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
+  const { journeyStage } = useUserProfile();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,8 +32,8 @@ export function LoggedInHomeRedirect() {
       router.replace(`/search?q=${encodeURIComponent(q)}`);
       return;
     }
-    router.replace("/app");
-  }, [path, loading, user, router, searchParams]);
+    router.replace(defaultAppLandingPath(journeyStage));
+  }, [path, loading, user, router, searchParams, journeyStage]);
 
   return null;
 }

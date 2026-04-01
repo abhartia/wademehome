@@ -13,6 +13,7 @@ from sqlalchemy import inspect, text
 from core.config import Config
 from core.logger import get_logger
 from listings.mapbox_client import driving_durations_minutes, forward_geocode, search_category_nearby
+from listings.listing_amenities_concessions import merge_concession_snippets_from_listing_amenities
 from listings.listings_table_cache import cached_execute_all, cached_execute_first
 from listings.market_snapshot import build_market_snapshot_sql, extract_zip_from_address, normalize_us_zip_query
 from listings.nearby_mapper import row_to_property_data_item
@@ -179,6 +180,36 @@ def _nearby_projection(cols: set[str]) -> str:
         "source_url",
         "sourceurl",
         "url",
+        "concession",
+        "specials",
+        "move_in_special",
+        "special_offer",
+        "special_offers",
+        "leasing_special",
+        "leasing_specials",
+        "rent_special",
+        "promotion",
+        "promotions",
+        "incentive",
+        "incentives",
+        "offer_text",
+        "lease_concession",
+        "available_date",
+        "available_on",
+        "available_at",
+        "date_available",
+        "move_in_date",
+        "earliest_move_in",
+        "availability",
+        "availability_status",
+        "unit_availability",
+        # Needed for concession inference when dedicated columns are empty (Greystar / many loaders).
+        "amenities",
+        "amenity_list",
+        "features",
+        "apartment_amenities",
+        "community_amenities",
+        "building_amenities",
     )
     chosen = [c for c in wanted if c in cols]
     if not chosen:
@@ -204,6 +235,196 @@ def _validate_bbox(west: float, south: float, east: float, north: float) -> None
             status_code=422,
             detail="Map area too large; zoom in further to load listings for the visible region.",
         )
+
+
+def _run_nearby_radius_query(
+    conn: Any,
+    *,
+    qtable: str,
+    cols: set[str],
+    select_cols: str,
+    hav_inner: str,
+    q_lat: float,
+    q_lng: float,
+    radius_miles: float,
+    limit: int,
+    include_total: bool,
+) -> tuple[list[Any], int, bool]:
+    """Radius-mode SQL; returns raw rows, total_in_scope (or 0), used_global_fallback."""
+    params: dict[str, Any] = {
+        "lat": q_lat,
+        "lng": q_lng,
+        "limit": limit,
+        "prefetch_limit": min(max(limit * 20, limit), 2500),
+        "radius": radius_miles,
+        "radius_m": float(radius_miles) * 1609.344,
+    }
+    if "geog" in cols:
+        total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
+        select_sql = text(
+            f"""
+            SELECT
+              {select_cols},
+              {total_value_expr} AS total_in_scope,
+              ST_Distance(
+                t_inner.geog,
+                ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+              ) / 1609.344 AS d_mi
+            FROM {qtable} AS t_inner
+            WHERE t_inner.geog IS NOT NULL
+              AND ST_DWithin(
+                t_inner.geog,
+                ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+                :radius_m
+              )
+            ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+            LIMIT :prefetch_limit
+            """
+        )
+    else:
+        total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
+        select_sql = text(
+            f"""
+            SELECT
+              {select_cols},
+              {total_value_expr} AS total_in_scope,
+              ({hav_inner}) AS d_mi
+            FROM {qtable} AS t_inner
+            WHERE t_inner.latitude IS NOT NULL
+              AND t_inner.longitude IS NOT NULL
+              AND ({hav_inner}) <= :radius
+            ORDER BY ({hav_inner}) ASC
+            LIMIT :prefetch_limit
+            """
+        )
+    rows = cached_execute_all(conn, select_sql, params)
+    if rows:
+        total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
+        used_fallback = False
+        return rows, total, used_fallback
+
+    logger.info(
+        "listings/nearby: 0 within radius=%s mi of (%s,%s); returning %s nearest buildings",
+        radius_miles,
+        q_lat,
+        q_lng,
+        limit,
+    )
+    fallback_sql = text(
+        f"""
+        SELECT
+          {select_cols},
+          ({hav_inner}) AS d_mi
+        FROM {qtable} AS t_inner
+        WHERE t_inner.latitude IS NOT NULL
+          AND t_inner.longitude IS NOT NULL
+        ORDER BY ({hav_inner}) ASC
+        LIMIT :prefetch_limit
+        """
+    )
+    rows = cached_execute_all(conn, fallback_sql, params)
+    return rows, 0, bool(rows)
+
+
+def fetch_nearby_listings_radius(
+    latitude: float,
+    longitude: float,
+    radius_miles: float,
+    limit: int,
+) -> NearbyListingsResponse:
+    """
+    Same behavior as GET /listings/nearby in radius mode (for weekly reports and internal callers).
+    """
+    t0 = time.perf_counter()
+    include_total = (Config.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        return _empty_response(radius_miles, limit, used_bbox=False)
+
+    if engine.dialect.name != "postgresql":
+        logger.warning("listings/nearby: unsupported dialect %s", engine.dialect.name)
+        return _empty_response(radius_miles, limit, used_bbox=False)
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+    hav_inner = _haversine_mi_sql(table_alias="t_inner")
+
+    has_geog = False
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                return _empty_response(radius_miles, limit, used_bbox=False)
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            has_geog = "geog" in cols
+            select_cols = _nearby_projection(cols)
+            rows, total, used_fallback = _run_nearby_radius_query(
+                conn,
+                qtable=qtable,
+                cols=cols,
+                select_cols=select_cols,
+                hav_inner=hav_inner,
+                q_lat=latitude,
+                q_lng=longitude,
+                radius_miles=radius_miles,
+                limit=limit,
+                include_total=include_total,
+            )
+
+        deduped_rows: list[dict[str, Any]] = []
+        seen_buildings: set[str] = set()
+        for row in rows:
+            row_dict = dict(row)
+            bkey = _building_key_from_row(row_dict)
+            if bkey in seen_buildings:
+                continue
+            seen_buildings.add(bkey)
+            deduped_rows.append(row_dict)
+            if len(deduped_rows) >= limit:
+                break
+
+        merge_concession_snippets_from_listing_amenities(deduped_rows)
+
+        properties: list[PropertyDataItem] = []
+        for row_dict in deduped_rows:
+            try:
+                row_dict.pop("d_mi", None)
+                row_dict.pop("total_in_scope", None)
+                properties.append(row_to_property_data_item(row_dict))
+            except Exception:
+                logger.exception("listings/nearby: skip row that failed to map")
+
+        if not include_total:
+            total = len(properties)
+
+        resp = NearbyListingsResponse(
+            properties=properties,
+            total_in_radius=total,
+            radius_miles=radius_miles,
+            limit=limit,
+            used_global_nearest_fallback=used_fallback,
+            used_bbox=False,
+        )
+        logger.info(
+            "listings/nearby radius(fetch) timing: total_ms=%s returned=%s total_in_scope=%s fallback=%s geog=%s",
+            int((time.perf_counter() - t0) * 1000),
+            len(properties),
+            total,
+            used_fallback,
+            has_geog,
+        )
+        return resp
+    except Exception:
+        logger.exception("listings/nearby: fetch radius failed")
+        return _empty_response(radius_miles, limit, used_bbox=False)
 
 
 @router.get("/nearby", response_model=NearbyListingsResponse)
@@ -370,73 +591,18 @@ def get_nearby_listings(
                     total = 0
                     used_fallback = bool(rows)
             else:
-                params["radius"] = radius_miles
-                params["radius_m"] = float(radius_miles) * 1609.344
-                if "geog" in cols:
-                    total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
-                    select_sql = text(
-                        f"""
-                        SELECT
-                          {select_cols},
-                          {total_value_expr} AS total_in_scope,
-                          ST_Distance(
-                            t_inner.geog,
-                            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
-                          ) / 1609.344 AS d_mi
-                        FROM {qtable} AS t_inner
-                        WHERE t_inner.geog IS NOT NULL
-                          AND ST_DWithin(
-                            t_inner.geog,
-                            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
-                            :radius_m
-                          )
-                        ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
-                        LIMIT :prefetch_limit
-                        """
-                    )
-                else:
-                    total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
-                    select_sql = text(
-                        f"""
-                        SELECT
-                          {select_cols},
-                          {total_value_expr} AS total_in_scope,
-                          ({hav_inner}) AS d_mi
-                        FROM {qtable} AS t_inner
-                        WHERE t_inner.latitude IS NOT NULL
-                          AND t_inner.longitude IS NOT NULL
-                          AND ({hav_inner}) <= :radius
-                        ORDER BY ({hav_inner}) ASC
-                        LIMIT :prefetch_limit
-                        """
-                    )
-                rows = cached_execute_all(conn, select_sql, params)
-                if rows:
-                    total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
-                    used_fallback = False
-                else:
-                    logger.info(
-                        "listings/nearby: 0 within radius=%s mi of (%s,%s); returning %s nearest buildings",
-                        radius_miles,
-                        q_lat,
-                        q_lng,
-                        limit,
-                    )
-                    fallback_sql = text(
-                        f"""
-                        SELECT
-                          {select_cols},
-                          ({hav_inner}) AS d_mi
-                        FROM {qtable} AS t_inner
-                        WHERE t_inner.latitude IS NOT NULL
-                          AND t_inner.longitude IS NOT NULL
-                        ORDER BY ({hav_inner}) ASC
-                        LIMIT :prefetch_limit
-                        """
-                    )
-                    rows = cached_execute_all(conn, fallback_sql, params)
-                    total = 0
-                    used_fallback = bool(rows)
+                rows, total, used_fallback = _run_nearby_radius_query(
+                    conn,
+                    qtable=qtable,
+                    cols=cols,
+                    select_cols=select_cols,
+                    hav_inner=hav_inner,
+                    q_lat=q_lat,
+                    q_lng=q_lng,
+                    radius_miles=radius_miles,
+                    limit=limit,
+                    include_total=include_total,
+                )
 
         # Keep one listing per building while preserving nearest-first ordering.
         deduped_rows: list[dict[str, Any]] = []
@@ -450,6 +616,8 @@ def get_nearby_listings(
             deduped_rows.append(row_dict)
             if len(deduped_rows) >= limit:
                 break
+
+        merge_concession_snippets_from_listing_amenities(deduped_rows)
 
         properties: list[PropertyDataItem] = []
         for row_dict in deduped_rows:

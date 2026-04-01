@@ -120,3 +120,70 @@ def test_images_urls_column_takes_priority_over_images() -> None:
         "https://a.example.com/x.jpg",
         "https://a.example.com/y.jpg",
     ]
+
+
+def test_concessions_from_dedicated_column() -> None:
+    p = row_to_property_data_item(
+        {
+            "name": "A",
+            "address": "B",
+            "latitude": 1.0,
+            "longitude": 2.0,
+            "leasing_specials": "One month free on select units",
+        }
+    )
+    assert p.concessions == "One month free on select units"
+
+
+def test_concessions_inferred_from_apartment_amenities_json() -> None:
+    p = row_to_property_data_item(
+        {
+            "name": "A",
+            "address": "B",
+            "latitude": 1.0,
+            "longitude": 2.0,
+            "apartment_amenities": '["Hardwood floors", "One month free on 12+ month leases"]',
+        }
+    )
+    assert p.concessions
+    assert "month free" in (p.concessions or "").lower()
+
+
+def test_concessions_inferred_from_amenities_when_no_column() -> None:
+    p = row_to_property_data_item(
+        {
+            "name": "A",
+            "address": "B",
+            "latitude": 1.0,
+            "longitude": 2.0,
+            "amenities": "Gym, Pool, 2 months free on 13+ month leases, Doorman",
+        }
+    )
+    assert p.concessions
+    assert "2 months free" in (p.concessions or "").lower()
+
+
+def test_available_date_from_available_at() -> None:
+    p = row_to_property_data_item(
+        {
+            "name": "A",
+            "address": "B",
+            "latitude": 1.0,
+            "longitude": 2.0,
+            "available_at": "2025-03-01",
+        }
+    )
+    assert p.available_date == "2025-03-01"
+
+
+def test_available_date_falls_back_to_availability_status() -> None:
+    p = row_to_property_data_item(
+        {
+            "name": "A",
+            "address": "B",
+            "latitude": 1.0,
+            "longitude": 2.0,
+            "availability_status": "available",
+        }
+    )
+    assert p.available_date == "available"

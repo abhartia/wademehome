@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,11 +20,16 @@ import { getApiErrorMessage } from "@/lib/api/errors";
 export default function SignupPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { journeyStage } = useUserProfile();
 
   useEffect(() => {
     if (loading || !user) return;
-    router.replace(user.onboarding_completed ? "/app" : "/onboarding");
-  }, [loading, user, router]);
+    router.replace(
+      user.onboarding_completed
+        ? defaultAppLandingPath(journeyStage)
+        : "/onboarding",
+    );
+  }, [loading, user, router, journeyStage]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

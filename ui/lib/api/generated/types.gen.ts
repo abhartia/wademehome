@@ -2645,6 +2645,16 @@ export type PropertyDataItem = {
      * Optional validator confidence in [0,1].
      */
     validation_confidence?: number | null;
+    /**
+     * Concessions
+     * Promotional concession text when present in inventory (e.g. '1 month free').
+     */
+    concessions?: string | null;
+    /**
+     * Available Date
+     * Earliest move-in / availability label when present in source data.
+     */
+    available_date?: string | null;
 };
 
 /**
@@ -2710,6 +2720,122 @@ export type QualityMetrics = {
      * Availability Stale Rows
      */
     availability_stale_rows?: number | null;
+};
+
+/**
+ * ReportPreviewRequest
+ */
+export type ReportPreviewRequest = {
+    /**
+     * Center Latitude
+     */
+    center_latitude: number;
+    /**
+     * Center Longitude
+     */
+    center_longitude: number;
+    /**
+     * Radius Miles
+     */
+    radius_miles?: number;
+    /**
+     * Limit
+     */
+    limit?: number;
+};
+
+/**
+ * ReportSubscriptionCreate
+ */
+export type ReportSubscriptionCreate = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Center Latitude
+     */
+    center_latitude: number;
+    /**
+     * Center Longitude
+     */
+    center_longitude: number;
+    /**
+     * Radius Miles
+     */
+    radius_miles?: number;
+    /**
+     * Is Active
+     */
+    is_active?: boolean;
+};
+
+/**
+ * ReportSubscriptionResponse
+ */
+export type ReportSubscriptionResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Center Latitude
+     */
+    center_latitude: string;
+    /**
+     * Center Longitude
+     */
+    center_longitude: string;
+    /**
+     * Radius Miles
+     */
+    radius_miles: string;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+    /**
+     * Last Sent At
+     */
+    last_sent_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * ReportSubscriptionUpdate
+ */
+export type ReportSubscriptionUpdate = {
+    /**
+     * Label
+     */
+    label?: string | null;
+    /**
+     * Center Latitude
+     */
+    center_latitude?: number | null;
+    /**
+     * Center Longitude
+     */
+    center_longitude?: number | null;
+    /**
+     * Radius Miles
+     */
+    radius_miles?: number | null;
+    /**
+     * Is Active
+     */
+    is_active?: boolean | null;
 };
 
 /**
@@ -3846,6 +3972,20 @@ export type VerifyEmailRequest = {
      * Token
      */
     token: string;
+};
+
+/**
+ * WeeklySendResponse
+ */
+export type WeeklySendResponse = {
+    /**
+     * Sent
+     */
+    sent: number;
+    /**
+     * Failed
+     */
+    failed: number;
 };
 
 /**
@@ -6878,6 +7018,194 @@ export type GetInventoryAnalyticsAdminInventoryAnalyticsGetResponses = {
 };
 
 export type GetInventoryAnalyticsAdminInventoryAnalyticsGetResponse = GetInventoryAnalyticsAdminInventoryAnalyticsGetResponses[keyof GetInventoryAnalyticsAdminInventoryAnalyticsGetResponses];
+
+export type ListReportSubscriptionsPropertyManagerReportSubscriptionsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/property-manager/report-subscriptions';
+};
+
+export type ListReportSubscriptionsPropertyManagerReportSubscriptionsGetResponses = {
+    /**
+     * Response List Report Subscriptions Property Manager Report Subscriptions Get
+     * Successful Response
+     */
+    200: Array<ReportSubscriptionResponse>;
+};
+
+export type ListReportSubscriptionsPropertyManagerReportSubscriptionsGetResponse = ListReportSubscriptionsPropertyManagerReportSubscriptionsGetResponses[keyof ListReportSubscriptionsPropertyManagerReportSubscriptionsGetResponses];
+
+export type CreateReportSubscriptionPropertyManagerReportSubscriptionsPostData = {
+    body: ReportSubscriptionCreate;
+    path?: never;
+    query?: never;
+    url: '/property-manager/report-subscriptions';
+};
+
+export type CreateReportSubscriptionPropertyManagerReportSubscriptionsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateReportSubscriptionPropertyManagerReportSubscriptionsPostError = CreateReportSubscriptionPropertyManagerReportSubscriptionsPostErrors[keyof CreateReportSubscriptionPropertyManagerReportSubscriptionsPostErrors];
+
+export type CreateReportSubscriptionPropertyManagerReportSubscriptionsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReportSubscriptionResponse;
+};
+
+export type CreateReportSubscriptionPropertyManagerReportSubscriptionsPostResponse = CreateReportSubscriptionPropertyManagerReportSubscriptionsPostResponses[keyof CreateReportSubscriptionPropertyManagerReportSubscriptionsPostResponses];
+
+export type DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Subscription Id
+         */
+        subscription_id: string;
+    };
+    query?: never;
+    url: '/property-manager/report-subscriptions/{subscription_id}';
+};
+
+export type DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteError = DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteErrors[keyof DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteErrors];
+
+export type DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteResponse = DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteResponses[keyof DeleteReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdDeleteResponses];
+
+export type PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchData = {
+    body: ReportSubscriptionUpdate;
+    path: {
+        /**
+         * Subscription Id
+         */
+        subscription_id: string;
+    };
+    query?: never;
+    url: '/property-manager/report-subscriptions/{subscription_id}';
+};
+
+export type PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchError = PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchErrors[keyof PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchErrors];
+
+export type PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReportSubscriptionResponse;
+};
+
+export type PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchResponse = PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchResponses[keyof PatchReportSubscriptionPropertyManagerReportSubscriptionsSubscriptionIdPatchResponses];
+
+export type PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostData = {
+    body: ReportPreviewRequest;
+    path?: never;
+    query?: never;
+    url: '/property-manager/report-subscriptions/preview';
+};
+
+export type PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostError = PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostErrors[keyof PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostErrors];
+
+export type PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: NearbyListingsResponse;
+};
+
+export type PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostResponse = PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostResponses[keyof PreviewReportPayloadPropertyManagerReportSubscriptionsPreviewPostResponses];
+
+export type SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostData = {
+    body?: never;
+    path: {
+        /**
+         * Subscription Id
+         */
+        subscription_id: string;
+    };
+    query?: never;
+    url: '/property-manager/report-subscriptions/{subscription_id}/send-now';
+};
+
+export type SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostError = SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostErrors[keyof SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostErrors];
+
+export type SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReportSubscriptionResponse;
+};
+
+export type SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostResponse = SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostResponses[keyof SendReportSubscriptionNowPropertyManagerReportSubscriptionsSubscriptionIdSendNowPostResponses];
+
+export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Internal-Cron-Secret
+         */
+        'x-internal-cron-secret'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/internal/property-manager/reports/send-weekly';
+};
+
+export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostError = SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostErrors[keyof SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostErrors];
+
+export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: WeeklySendResponse;
+};
+
+export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponse = SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponses[keyof SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponses];
 
 export type ListingChatListingsChatPostData = {
     body: ChatRequest;

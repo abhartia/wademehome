@@ -131,6 +131,17 @@ def get_current_admin_user(user: Users = Depends(get_current_user)) -> Users:
     return user
 
 
+def get_current_property_manager_or_admin(user: Users = Depends(get_current_user)) -> Users:
+    raw = user.role.value if isinstance(user.role, UserRole) else str(user.role)
+    r = str(raw).strip().lower()
+    if r not in (UserRole.property_manager.value, UserRole.admin.value):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Property manager or admin only",
+        )
+    return user
+
+
 @router.post("/signup", response_model=SignupResponse)
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     email = payload.email.lower().strip()

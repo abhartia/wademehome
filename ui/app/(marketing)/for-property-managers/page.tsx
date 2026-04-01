@@ -11,11 +11,11 @@ const contactEmail = "support@wademehome.com";
 export const metadata: Metadata = {
   title: "For property managers | Wade Me Home",
   description:
-    "Partner with Wade Me Home to reach renters with reliable search and lifecycle tools. Listings and integration options for property managers.",
+    "Competitive rent and concession intelligence near your asset, plus optional weekly email snapshots. Partnerships for listings and integrations.",
   openGraph: {
     title: "For property managers | Wade Me Home",
     description:
-      "How to get your communities and listings in front of renters on Wade Me Home.",
+      "Market intelligence for leasing teams and pathways to list on Wade Me Home.",
   },
 };
 
@@ -28,15 +28,34 @@ export default function ForPropertyManagersPage() {
           <header className="space-y-3">
             <Badge variant="outline">Property managers</Badge>
             <h1 className="text-3xl font-bold tracking-tight">
-              List your properties on Wade Me Home
+              Pricing intelligence and renter reach
             </h1>
             <p className="text-sm text-muted-foreground">
-              Wade Me Home helps renters move through the full rental lifecycle—from
-              discovery and touring to applications, guarantors, and move-in. We are
-              building toward partnerships with listing feeds and property management
-              tools so your inventory can reach qualified renters efficiently.
+              Wade Me Home combines inventory-backed search with tools for leasing teams.
+              Explore nearby buildings—rents, concessions when available, and listing
+              links—around any address. Opt in to a weekly email with the same snapshot
+              so your team does not have to re-check competitor sites by hand.
             </p>
           </header>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Competitive analysis (invite)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                The property manager workspace is available to invited accounts. Ask your
+                Wade Me Home contact to enable the <span className="text-foreground">property_manager</span> role,
+                then sign in and open Competitive analysis.
+              </p>
+              <Button asChild variant="secondary">
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button asChild variant="outline" className="ml-2">
+                <Link href="/property-manager/analysis">Open analysis (signed in)</Link>
+              </Button>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

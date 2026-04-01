@@ -39,6 +39,8 @@ from movein.router import router as movein_router
 from roommates.router import router as roommates_router
 from landlord.router import router as landlord_router
 from admin.router import router as admin_router
+from property_manager.router import internal_router as pm_internal_router
+from property_manager.router import router as pm_router
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -67,6 +69,8 @@ app.include_router(movein_router)
 app.include_router(roommates_router)
 app.include_router(landlord_router)
 app.include_router(admin_router)
+app.include_router(pm_router)
+app.include_router(pm_internal_router)
 
 
 _TIMED_PATH_PREFIXES: tuple[str, ...] = (

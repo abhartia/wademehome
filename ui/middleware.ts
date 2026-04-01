@@ -22,6 +22,7 @@ const PROTECTED_PREFIXES = [
   "/guarantor",
   "/move-in",
   "/landlord",
+  "/property-manager",
 ];
 
 export function middleware(request: NextRequest) {

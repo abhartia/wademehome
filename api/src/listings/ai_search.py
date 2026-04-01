@@ -39,6 +39,13 @@ _GEO_NEIGHBORHOOD_TAIL = re.compile(
     re.I,
 )
 
+# Listing text rarely states crime/noise/safety honestly; hard NOT patterns create false positives/negatives.
+_SUBJECTIVE_MUST_NOT_RE = re.compile(
+    r"(high\s*crime|low\s*(?:income|crime)|\bcrime\b|\bnoisy\b|\bnoise\b|"
+    r"\bsafe\b|\bsafety\b|\bunsafe\b|\brough\b|\bsketchy\b|\bdangerous\b|\bghetto\b|\bshady\b)",
+    re.I,
+)
+
 _SOFT_MUST_HAVE_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"\bsubway\b", re.I),
     re.compile(r"\bmetro\b", re.I),
@@ -231,6 +238,21 @@ def _demote_must_have_to_soft(plan: SearchQueryPlan) -> list[str]:
     return demoted
 
 
+def _demote_subjective_must_not_to_soft(plan: SearchQueryPlan) -> list[str]:
+    """Move neighborhood vibe / safety wording out of hard exclusions into soft ranking."""
+    kept: list[str] = []
+    demoted: list[str] = []
+    for t in plan.must_not_have_terms:
+        if _SUBJECTIVE_MUST_NOT_RE.search(t):
+            demoted.append(t)
+            if t not in plan.soft_preferences:
+                plan.soft_preferences.append(t)
+        else:
+            kept.append(t)
+    plan.must_not_have_terms = kept
+    return demoted
+
+
 def _normalize_terms(items: list[str]) -> list[str]:
     out: list[str] = []
     seen: set[str] = set()
@@ -246,18 +268,106 @@ def _normalize_terms(items: list[str]) -> list[str]:
     return out
 
 
+def _synthetic_summary_bullets(plan: SearchQueryPlan) -> list[str]:
+    out: list[str] = []
+    loc_parts: list[str] = []
+    if plan.city and str(plan.city).strip():
+        loc_parts.append(str(plan.city).strip())
+    if plan.state and str(plan.state).strip():
+        loc_parts.append(str(plan.state).strip())
+    if loc_parts:
+        out.append("Location: " + ", ".join(loc_parts))
+    if plan.zip_code and str(plan.zip_code).strip():
+        out.append(f"ZIP: {str(plan.zip_code).strip()}")
+    mn, mx = plan.min_rent, plan.max_rent
+    if mn is not None and mx is not None:
+        out.append(f"Rent: ${float(mn):,.0f}–${float(mx):,.0f}")
+    elif mn is not None:
+        out.append(f"Rent: from ${float(mn):,.0f}")
+    elif mx is not None:
+        out.append(f"Rent: up to ${float(mx):,.0f}")
+    bmin, bmax = plan.min_bedrooms, plan.max_bedrooms
+    if bmin is not None or bmax is not None:
+        if bmin is not None and bmax is not None and float(bmin) == float(bmax):
+            out.append(f"Bedrooms: {int(float(bmin))}")
+        elif bmin is not None and bmax is not None:
+            out.append(f"Bedrooms: {float(bmin):g}–{float(bmax):g}")
+        elif bmin is not None:
+            out.append(f"Bedrooms: at least {float(bmin):g}")
+        else:
+            out.append(f"Bedrooms: up to {float(bmax):g}")
+    if plan.soft_preferences:
+        prefs = ", ".join(plan.soft_preferences[:5])
+        out.append(f"Preference: {prefs}")
+    if plan.must_not_have_terms:
+        excl = ", ".join(plan.must_not_have_terms[:5])
+        out.append(f"Exclude from listing text: {excl}")
+    return out
+
+
+def _synthetic_summary_headline(plan: SearchQueryPlan) -> str:
+    parts: list[str] = []
+    loc_parts: list[str] = []
+    if plan.city and str(plan.city).strip():
+        loc_parts.append(str(plan.city).strip())
+    if plan.state and str(plan.state).strip():
+        loc_parts.append(str(plan.state).strip())
+    if loc_parts:
+        parts.append(", ".join(loc_parts))
+    bmin, bmax = plan.min_bedrooms, plan.max_bedrooms
+    if bmin is not None and bmax is not None and float(bmin) == float(bmax):
+        n = int(float(bmin))
+        parts.append(f"{n} BR" if n != 1 else "1 BR")
+    elif bmin is not None or bmax is not None:
+        lo = f"{float(bmin):g}" if bmin is not None else "?"
+        hi = f"{float(bmax):g}" if bmax is not None else "?"
+        parts.append(f"{lo}–{hi} BR")
+    mn, mx = plan.min_rent, plan.max_rent
+    if mn is not None and mx is not None:
+        parts.append(f"${float(mn):,.0f}–${float(mx):,.0f}")
+    elif mn is not None:
+        parts.append(f"from ${float(mn):,.0f}")
+    elif mx is not None:
+        parts.append(f"up to ${float(mx):,.0f}")
+    return " · ".join(parts) if parts else ""
+
+
+def _ensure_plan_summary(plan: SearchQueryPlan) -> None:
+    hl = (plan.summary_headline or "").strip()
+    weak_headline = not hl or hl == "Property search"
+    raw_bullets = plan.summary_bullets or []
+    bullets = [b.strip() for b in raw_bullets if isinstance(b, str) and b.strip()]
+    weak_bullets = len(bullets) == 0
+
+    if weak_bullets:
+        bullets = _synthetic_summary_bullets(plan)
+    if weak_headline:
+        syn_h = _synthetic_summary_headline(plan)
+        if syn_h:
+            plan.summary_headline = syn_h
+        elif not hl:
+            plan.summary_headline = "Property search"
+    plan.summary_bullets = bullets[:5]
+
+
 def _normalize_plan(raw: SearchQueryPlan, user_msg: str) -> SearchQueryPlan:
     plan = raw.model_copy(deep=True)
     plan.must_have_terms = _normalize_terms(plan.must_have_terms)
     plan.must_not_have_terms = _normalize_terms(plan.must_not_have_terms)
     plan.soft_preferences = _normalize_terms(plan.soft_preferences)
-    demoted = _demote_must_have_to_soft(plan)
+    demoted_must = _demote_must_have_to_soft(plan)
+    demoted_subjective_not = _demote_subjective_must_not_to_soft(plan)
+    plan.soft_preferences = _normalize_terms(plan.soft_preferences)
     if not plan.semantic_query.strip():
         plan.semantic_query = user_msg.strip()
-    if demoted:
-        plan.semantic_query = f"{plan.semantic_query.strip()} {' '.join(demoted)}".strip()
-    if not plan.summary_headline.strip():
-        plan.summary_headline = "Property search"
+    extra_sem: list[str] = []
+    if demoted_must:
+        extra_sem.extend(demoted_must)
+    if demoted_subjective_not:
+        extra_sem.extend(demoted_subjective_not)
+    if extra_sem:
+        plan.semantic_query = f"{plan.semantic_query.strip()} {' '.join(extra_sem)}".strip()
+    _ensure_plan_summary(plan)
     plan.summary_bullets = [b.strip() for b in plan.summary_bullets if isinstance(b, str) and b.strip()][:5]
     return plan
 

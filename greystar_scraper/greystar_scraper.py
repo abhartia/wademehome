@@ -194,7 +194,6 @@ def flatten_units(prop_meta, units, url, scraped_at, extras=None):
             "community_amenities": json.dumps(extras.get("community_amenities", [])),
             "apartment_amenities": json.dumps(extras.get("apartment_amenities", [])),
             "fees": json.dumps(extras.get("fees", [])),
-            "concessions": None,  # no field available in Greystar
             "year_built": None,
             "total_units": None,
             "stories": None,
@@ -329,7 +328,7 @@ def enforce_unit_types(df):
         "address", "city", "state", "zipcode", "latitude", "longitude",
         "floor_plan", "unit_name", "unit_id", "rent_price", "rent_max", "beds", "baths",
         "sqft", "description", "images", "alternate_property_id", "year_built",
-        "total_units", "stories", "lease_term", "concessions", "email", "website",
+        "total_units", "stories", "lease_term", "email", "website",
         "deposit", "community_amenities", "apartment_amenities", "building_subtype",
         "floor_number", "fees"  # if used
     ]
@@ -383,7 +382,6 @@ def enforce_unit_types(df):
     df["total_units"] = df["total_units"].astype("string")
     df["stories"] = df["stories"].astype("string")
     df["lease_term"] = pd.to_numeric(df["lease_term"], errors="coerce").astype("Int64")
-    df["concessions"] = df["concessions"].astype("string")
     df["email"] = df["email"].astype("string")
     df["website"] = df["website"].astype("string")
     df["deposit"] = pd.to_numeric(df["deposit"], errors="coerce").astype("float64")

@@ -12,6 +12,7 @@ def _make_app() -> TestClient:
     return TestClient(app)
 
 
+@patch("listings.router.cached_execute_all")
 @patch("listings.router.Config.get")
 @patch("listings.router.listing_table_schema", None)
 @patch("listings.router.listing_table_name", "listings")
@@ -21,10 +22,16 @@ def test_nearby_returns_total_and_limits_rows(
     mock_engine: MagicMock,
     mock_inspect: MagicMock,
     mock_config_get: MagicMock,
+    mock_cached_execute_all: MagicMock,
 ) -> None:
-    mock_config_get.side_effect = lambda key, default=None: (
-        "postgresql://user:pass@localhost:5432/db" if key == "DATABASE_URL" else default
-    )
+    def _cfg(key: str, default=None):
+        if key == "DATABASE_URL":
+            return "postgresql://user:pass@localhost:5432/db"
+        if key == "LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT":
+            return "true"
+        return default
+
+    mock_config_get.side_effect = _cfg
 
     mock_engine.dialect.name = "postgresql"
 
@@ -40,8 +47,6 @@ def test_nearby_returns_total_and_limits_rows(
     ]
 
     conn = MagicMock()
-    count_result = MagicMock()
-    count_result.scalar.return_value = 42
     row = {
         "building_name": "Hi-Rise",
         "address": "1 Oak Ave",
@@ -53,11 +58,12 @@ def test_nearby_returns_total_and_limits_rows(
         "amenities": "Gym",
         "image_url": "https://example.com/i.jpg",
         "property_id": "p1",
+        "total_in_scope": 42,
+        "d_mi": 0.1,
     }
-    select_result = MagicMock()
-    select_result.mappings.return_value.all.return_value = [row]
+    mock_cached_execute_all.return_value = [row]
 
-    conn.execute.side_effect = [cols_result, count_result, select_result]
+    conn.execute.side_effect = [cols_result]
 
     cm = MagicMock()
     cm.__enter__.return_value = conn
@@ -80,6 +86,7 @@ def test_nearby_returns_total_and_limits_rows(
     assert data["used_global_nearest_fallback"] is False
 
 
+@patch("listings.router.cached_execute_all")
 @patch("listings.router.Config.get")
 @patch("listings.router.listing_table_schema", None)
 @patch("listings.router.listing_table_name", "listings")
@@ -89,10 +96,16 @@ def test_nearby_global_nearest_when_none_in_radius(
     mock_engine: MagicMock,
     mock_inspect: MagicMock,
     mock_config_get: MagicMock,
+    mock_cached_execute_all: MagicMock,
 ) -> None:
-    mock_config_get.side_effect = lambda key, default=None: (
-        "postgresql://user:pass@localhost:5432/db" if key == "DATABASE_URL" else default
-    )
+    def _cfg(key: str, default=None):
+        if key == "DATABASE_URL":
+            return "postgresql://user:pass@localhost:5432/db"
+        if key == "LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT":
+            return "true"
+        return default
+
+    mock_config_get.side_effect = _cfg
     mock_engine.dialect.name = "postgresql"
     mock_inspect.return_value = MagicMock(has_table=MagicMock(return_value=True))
 
@@ -112,16 +125,14 @@ def test_nearby_global_nearest_when_none_in_radius(
         "beds": 2.0,
         "image_url": "https://example.com/x.jpg",
         "property_id": "far1",
+        "total_in_scope": 0,
+        "d_mi": 500.0,
     }
-    count_in_radius = MagicMock()
-    count_in_radius.scalar.return_value = 0
-    count_any = MagicMock()
-    count_any.scalar.return_value = 99
-    select_result = MagicMock()
-    select_result.mappings.return_value.all.return_value = [row]
+
+    mock_cached_execute_all.side_effect = [[], [row]]
 
     conn = MagicMock()
-    conn.execute.side_effect = [cols_result, count_in_radius, count_any, select_result]
+    conn.execute.side_effect = [cols_result]
     cm = MagicMock()
     cm.__enter__.return_value = conn
     cm.__exit__.return_value = None

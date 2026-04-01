@@ -34,6 +34,13 @@ import type { NearbyListingsResponse } from "@/lib/listings/useNearbyListings";
 import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
 
 const MIN_QUERY_CHARS = 2;
+const DEFAULT_STREAM_SEARCH_HEADLINE = "Property search";
+
+function streamSearchSummaryIsUseful(headline: string, bullets: string[]): boolean {
+  const h = headline.trim();
+  const nonEmptyBullets = bullets.filter((b) => Boolean(b?.trim()));
+  return nonEmptyBullets.length > 0 || (h.length > 0 && h !== DEFAULT_STREAM_SEARCH_HEADLINE);
+}
 
 const EMPTY_PROPERTY_LIST: PropertyDataItem[] = [];
 
@@ -55,7 +62,7 @@ function NearbyListingsHeaderLine({
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
 }) {
   const awaitingData =
-    nearbyQuery.isPending ||
+    nearbyQuery.isLoading ||
     (nearbyQuery.isFetching && nearbyQuery.data === undefined && !nearbyQuery.isError);
 
   if (awaitingData) {
@@ -185,13 +192,19 @@ function GuestHomeSearchInner({
   const useAiSlice = listingSessionActive;
 
   const displaySearchSummary = useMemo(() => {
-    if (searchPlan && (searchPlan.summary_headline || searchPlan.summary_bullets.length > 0)) {
+    if (
+      searchPlan &&
+      streamSearchSummaryIsUseful(searchPlan.summary_headline, searchPlan.summary_bullets)
+    ) {
       return {
         headline: searchPlan.summary_headline,
         bullets: searchPlan.summary_bullets,
       };
     }
-    if (searchSummary && (searchSummary.headline || searchSummary.bullets.length > 0)) {
+    if (
+      searchSummary &&
+      streamSearchSummaryIsUseful(searchSummary.headline, searchSummary.bullets)
+    ) {
       return searchSummary;
     }
     const bullets = [
@@ -514,7 +527,6 @@ function GuestHomeSearchInner({
                 {nearbyListings.length !== searchStats.returned_count
                   ? ` · ${nearbyListings.length} shown with map coordinates`
                   : ""}
-                {searchStats.total_ms != null ? ` · ${searchStats.total_ms}ms total` : ""}
               </p>
             )}
           </div>
