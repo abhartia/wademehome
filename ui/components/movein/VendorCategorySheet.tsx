@@ -58,8 +58,8 @@ export function VendorCategorySheet({
     name: v.name,
     category: v.category as VendorCategory,
     initials: v.initials,
-    rating: v.rating,
-    reviewCount: v.review_count,
+    rating: v.rating ?? null,
+    reviewCount: v.review_count ?? null,
     phone: v.phone ?? "",
     website: v.website ?? "",
     coverageArea: v.coverage_area ?? "",
@@ -191,7 +191,7 @@ export function VendorCategorySheet({
             </label>
             {vendors.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                {!plan.targetAddress.trim() || plan.targetAddress === "—"
+                {!plan.targetAddress.trim()
                   ? "Add your new home address on the move-in setup page to see providers that serve that state."
                   : !plan.targetState
                     ? "We could not detect a U.S. state from your address. Try a fuller street address with city and state (ZIP helps)."
@@ -213,24 +213,30 @@ export function VendorCategorySheet({
                         {vendor.initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-sm font-medium">
                             {vendor.name}
                           </span>
-                          <span className="flex items-center gap-0.5 text-xs text-amber-500">
-                            <Star className="h-3 w-3 fill-amber-400" />
-                            {vendor.rating}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            ({vendor.reviewCount.toLocaleString()})
-                          </span>
+                          {vendor.rating != null &&
+                            vendor.reviewCount != null &&
+                            vendor.reviewCount > 0 && (
+                              <span className="flex items-center gap-0.5 text-xs text-amber-500">
+                                <Star className="h-3 w-3 fill-amber-400" />
+                                {vendor.rating}
+                                <span className="text-[10px] text-muted-foreground">
+                                  ({vendor.reviewCount.toLocaleString()})
+                                </span>
+                              </span>
+                            )}
                         </div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                          <span className="flex items-center gap-0.5">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {vendor.coverageArea}
-                          </span>
-                        </div>
+                        {vendor.coverageArea.trim() ? (
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                            <span className="flex items-center gap-0.5">
+                              <MapPin className="h-2.5 w-2.5" />
+                              {vendor.coverageArea}
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -241,16 +247,22 @@ export function VendorCategorySheet({
 
                     {isExpanded && (
                       <div className="border-t px-3 pb-3 pt-2">
-                        <div className="mb-2 flex items-center gap-3 text-[11px] text-muted-foreground">
-                          <span className="flex items-center gap-0.5">
-                            <Phone className="h-2.5 w-2.5" />
-                            {vendor.phone}
-                          </span>
-                          <span className="flex items-center gap-0.5">
-                            <Globe className="h-2.5 w-2.5" />
-                            {vendor.website}
-                          </span>
-                        </div>
+                        {(vendor.phone?.trim() || vendor.website?.trim()) ? (
+                          <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                            {vendor.phone?.trim() ? (
+                              <span className="flex items-center gap-0.5">
+                                <Phone className="h-2.5 w-2.5" />
+                                {vendor.phone}
+                              </span>
+                            ) : null}
+                            {vendor.website?.trim() ? (
+                              <span className="flex items-center gap-0.5">
+                                <Globe className="h-2.5 w-2.5" />
+                                {vendor.website}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
                         <div className="space-y-2">
                           {vendor.plans.map((plan) => (
                             <div
@@ -262,14 +274,6 @@ export function VendorCategorySheet({
                                   <span className="text-sm font-medium">
                                     {plan.name}
                                   </span>
-                                  {plan.popular && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="px-1 py-0 text-[9px]"
-                                    >
-                                      Popular
-                                    </Badge>
-                                  )}
                                 </div>
                                 <p className="mt-0.5 text-sm font-semibold">
                                   {plan.price}

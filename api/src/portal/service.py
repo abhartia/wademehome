@@ -466,7 +466,7 @@ def replace_movein(db: Session, user_id: uuid.UUID, payload: MoveInStatePayload)
     pl = payload.plan
     plan = UserMoveinPlans(
         user_id=user_id,
-        target_address=pl.target_address or "—",
+        target_address=(pl.target_address or "")[:255],
         move_date=_parse_date(pl.move_date),
         move_from_address=pl.move_from_address or None,
     )
@@ -482,7 +482,7 @@ def replace_movein(db: Session, user_id: uuid.UUID, payload: MoveInStatePayload)
                 id=oid,
                 movein_plan_id=pid,
                 vendor_id=o.vendor_id or None,
-                vendor_name=o.vendor_name or "—",
+                vendor_name=o.vendor_name or "",
                 plan_id=o.plan_id or None,
                 plan_name=o.plan_name or None,
                 category=o.category,

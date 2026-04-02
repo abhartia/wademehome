@@ -3,8 +3,9 @@
 
 After migrations drop amenity columns from ``listings``, this script exits with
 “No amenity columns found”. Populate ``listing_amenities`` from vendor pages via
-``scripts/backfill_listing_amenities.py``, then embed with
-``scripts/backfill_listing_amenity_embeddings.py``.
+``scripts/backfill_listing_amenities.py``. This legacy sync embeds each batch
+(reuses vectors from Postgres + embedding API for novel norms; same env as
+``scripts/backfill_listing_amenity_embeddings.py``).
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
 import listing_amenities_upsert as lau
+import listing_amenity_embedding_util as leu
 
 ENV_FILE = REPO_ROOT / "api" / ".env"
 
@@ -169,11 +171,12 @@ def main() -> int:
         nonlocal upserted, batch
         if not batch:
             return
+        rows = leu.materialize_upsert_rows_with_embeddings(upsert_cur, q_amenity, list(batch))
         execute_values(
             upsert_cur,
             upsert_sql,
-            batch,
-            template="(%s, %s, %s, %s, %s, NOW())",
+            rows,
+            template=lau.UPSERT_VALUES_TEMPLATE,
         )
         upserted += len(batch)
         batch = []

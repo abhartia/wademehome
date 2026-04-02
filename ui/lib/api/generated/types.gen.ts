@@ -3705,11 +3705,11 @@ export type VendorCatalogOut = {
     /**
      * Rating
      */
-    rating: number;
+    rating?: number | null;
     /**
      * Review Count
      */
-    review_count: number;
+    review_count?: number | null;
     /**
      * Phone
      */

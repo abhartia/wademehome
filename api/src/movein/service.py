@@ -64,7 +64,7 @@ def _ensure_plan(db: Session, user_id: uuid.UUID) -> UserMoveinPlans:
     ).scalar_one_or_none()
     if row:
         return row
-    row = UserMoveinPlans(user_id=user_id, target_address="—")
+    row = UserMoveinPlans(user_id=user_id, target_address="")
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -125,7 +125,7 @@ def patch_plan(db: Session, user_id: uuid.UUID, body: MoveInPlanPatch) -> MoveIn
     row = _ensure_plan(db, user_id)
     data = body.model_dump(exclude_unset=True)
     if "target_address" in data:
-        row.target_address = data["target_address"] or "—"
+        row.target_address = (data["target_address"] or "")[:255]
         row.target_state = resolve_target_state_from_address(row.target_address)
     if "move_date" in data:
         row.move_date = _parse_date(data["move_date"])
@@ -185,7 +185,10 @@ def patch_order(db: Session, user_id: uuid.UUID, order_id: uuid.UUID, body: Vend
         row.monthly_cost = _parse_decimal(data.pop("monthly_cost"))
     for key, val in data.items():
         if hasattr(row, key):
-            setattr(row, key, val or None)
+            if key == "vendor_name":
+                setattr(row, key, ((val if val is not None else "") or "")[:255])
+            else:
+                setattr(row, key, val or None)
     db.commit()
     db.refresh(row)
     return _order_out(row)
@@ -271,7 +274,7 @@ def list_vendor_catalog(
     target_state = (plan.target_state or "").strip().upper() or None
     if not target_state:
         addr = (plan.target_address or "").strip()
-        if addr and addr != "—":
+        if addr:
             resolved = resolve_target_state_from_address(addr)
             if resolved:
                 plan.target_state = resolved
@@ -301,7 +304,7 @@ def list_vendor_catalog(
                 name=vendor.name,
                 category=vendor.category,
                 initials=vendor.initials,
-                rating=float(vendor.rating),
+                rating=float(vendor.rating) if vendor.rating is not None else None,
                 review_count=vendor.review_count,
                 phone=vendor.phone or "",
                 website=vendor.website or "",

@@ -3,16 +3,20 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import time
 from pathlib import Path
 
 import psycopg2
 from dotenv import load_dotenv
-from openai import AzureOpenAI as AzureOpenAIClient
-from openai import OpenAI as OpenAIClient
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+_SCRIPTS = Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+
+import listing_amenity_embedding_util as leu
+
 ENV_FILE = REPO_ROOT / "api" / ".env"
 
 
@@ -22,52 +26,6 @@ def _psycopg_dsn(database_url: str) -> str:
         if u.startswith(prefix):
             return "postgresql://" + u[len(prefix) :]
     return u
-
-
-def _http_timeout_s() -> float:
-    raw = (os.environ.get("AMENITY_EMBED_HTTP_TIMEOUT_S") or "120").strip()
-    return max(10.0, float(raw))
-
-
-def _embed_many(
-    inputs: list[str],
-    *,
-    model: str,
-    dimensions: int,
-    azure_cfg: dict[str, str],
-) -> list[list[float]]:
-    timeout = _http_timeout_s()
-    if azure_cfg["endpoint"] and azure_cfg["api_key"] and azure_cfg["deployment"]:
-        client = AzureOpenAIClient(
-            api_key=azure_cfg["api_key"],
-            api_version=azure_cfg["api_version"],
-            azure_endpoint=azure_cfg["endpoint"].rstrip("/"),
-            timeout=timeout,
-        )
-        res = client.embeddings.create(model=azure_cfg["deployment"], input=inputs)
-        return [list(d.embedding) for d in res.data]
-
-    key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not key:
-        raise RuntimeError("OPENAI_API_KEY is required")
-    client = OpenAIClient(api_key=key, timeout=timeout)
-    res = client.embeddings.create(model=model, input=inputs, dimensions=dimensions)
-    return [list(d.embedding) for d in res.data]
-
-
-def _vec_literal(values: list[float]) -> str:
-    return "[" + ",".join(f"{v:.8f}" for v in values) + "]"
-
-
-def _vector_from_db(val: object) -> list[float]:
-    if isinstance(val, (list, tuple)):
-        return [float(x) for x in val]
-    s = str(val).strip()
-    if s.startswith("[") and s.endswith("]"):
-        s = s[1:-1]
-    if not s.strip():
-        return []
-    return [float(x.strip()) for x in s.split(",")]
 
 
 def _fmt_ms(ms: float) -> str:
@@ -92,7 +50,18 @@ def main() -> int:
     )
     parser.add_argument("--env-file", type=Path, default=ENV_FILE)
     parser.add_argument("--batch-size", type=int, default=128)
-    parser.add_argument("--max-rows", type=int, default=100000)
+    parser.add_argument(
+        "--max-rows",
+        type=int,
+        default=100000,
+        help="Stop after updating this many rows (ignored when --until-empty)",
+    )
+    parser.add_argument(
+        "--until-empty",
+        action="store_true",
+        help="Run until no rows are left with NULL amenity_embedding for the current model "
+        "(and no model-mismatch backlog). Requires OpenAI/Azure credentials.",
+    )
     parser.add_argument(
         "--no-session-cache",
         action="store_true",
@@ -113,7 +82,8 @@ def main() -> int:
 
     print(
         "amenity embedding backfill: loading env, batch_size="
-        f"{args.batch_size}, max_rows={args.max_rows}",
+        f"{args.batch_size}, max_rows={args.max_rows}"
+        f"{', until_empty=True' if args.until_empty else ''}",
         flush=True,
     )
     print(
@@ -136,14 +106,8 @@ def main() -> int:
     if not database_url:
         raise RuntimeError("DATABASE_URL missing")
 
-    model = (os.environ.get("OPENAI_EMBEDDING_MODEL") or "text-embedding-3-small").strip()
-    dimensions = int((os.environ.get("OPENAI_EMBEDDING_DIMENSIONS") or "1536").strip())
-    azure_cfg = {
-        "endpoint": (os.environ.get("AZURE_OPENAI_ENDPOINT") or "").strip(),
-        "api_key": (os.environ.get("AZURE_OPENAI_API_KEY") or "").strip(),
-        "deployment": (os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") or "").strip(),
-        "api_version": (os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-12-01-preview").strip(),
-    }
+    model, dimensions = leu.embedding_model_and_dimensions()
+    azure_cfg = leu.azure_embedding_config()
 
     norm_cache: dict[str, list[float]] = {}
     embedded_this_run = 0
@@ -216,8 +180,13 @@ def main() -> int:
         """
 
     try:
-        while embedded_this_run < args.max_rows:
-            lim = min(args.batch_size, args.max_rows - embedded_this_run)
+        while True:
+            if not args.until_empty and embedded_this_run >= args.max_rows:
+                break
+            if args.until_empty:
+                lim = args.batch_size
+            else:
+                lim = min(args.batch_size, args.max_rows - embedded_this_run)
             t_batch = time.perf_counter()
             t_sel = t_cache = t_api = t_upd = t_prep = 0.0
 
@@ -268,7 +237,7 @@ def main() -> int:
                     cur.execute(fetch_cached_sql, (need_lookup, model))
                     got = cur.fetchall()
                     for norm, emb_txt in got:
-                        norm_cache[norm] = _vector_from_db(emb_txt)
+                        norm_cache[norm] = leu.vector_from_db(emb_txt)
                     print(
                         f"[amenity-embed] batch {batch_num} | phase=cache_lookup_done "
                         f"rows={len(got)} | t={time.strftime('%H:%M:%S')}",
@@ -285,7 +254,7 @@ def main() -> int:
                     f"vectors={len(api_norms)} | t={time.strftime('%H:%M:%S')}",
                     flush=True,
                 )
-                new_vecs = _embed_many(
+                new_vecs = leu.embed_many(
                     api_norms,
                     model=model,
                     dimensions=dimensions,
@@ -299,7 +268,7 @@ def main() -> int:
             reused_vectors += len(unique_norms) - len(api_norms)
             t0 = time.perf_counter()
             embeddings = [norm_cache[n] for n in norms]
-            emb_strs = [_vec_literal(e) for e in embeddings]
+            emb_strs = [leu.vec_literal(e) for e in embeddings]
             t_prep = (time.perf_counter() - t0) * 1000
 
             print(

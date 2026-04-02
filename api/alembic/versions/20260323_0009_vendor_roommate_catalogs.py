@@ -94,19 +94,6 @@ def upgrade() -> None:
         ["target_city"],
     )
 
-    op.execute(
-        sa.text(
-            """
-            INSERT INTO roommate_candidate_catalog
-              (id, candidate_key, name, age, occupation, bio, avatar_initials, sleep_schedule, cleanliness_level, noise_level, guest_policy, smoking, target_city, max_budget, move_timeline, bedrooms_wanted, has_pets, pet_details, interests, university)
-            VALUES
-              (gen_random_uuid(), 'r1', 'Jordan Rivera', 24, 'Software Engineer', 'Fintech engineer, cooks often and keeps common spaces tidy.', 'JR', 'night-owl', 'tidy', 'moderate', 'sometimes', 'no', 'New York', '$2,000 - $3,000', '1-2 months', '2 bedrooms', false, '', '["Cooking","Music","Tech","Fitness"]', 'NYU'),
-              (gen_random_uuid(), 'r2', 'Priya Sharma', 22, 'Graduate Student', 'Data science student, early riser, calm weekday routine.', 'PS', 'early-bird', 'very-tidy', 'quiet', 'rarely', 'no', 'New York', '$1,500 - $2,000', '1-2 months', '2 bedrooms', false, '', '["Fitness","Reading","Hiking","Photography"]', 'Columbia'),
-              (gen_random_uuid(), 'r3', 'Marcus Chen', 26, 'UX Designer', 'Startup designer who likes social game nights and shared cooking.', 'MC', 'flexible', 'tidy', 'social', 'often', 'no', 'Austin', '$1,000 - $1,500', '1-2 months', '2 bedrooms', true, 'Cat', '["Gaming","Art","Cooking","Movies"]', null)
-            """
-        )
-    )
-
 
 def downgrade() -> None:
     op.drop_index("ix_roommate_candidate_catalog_target_city", table_name="roommate_candidate_catalog")

@@ -11,7 +11,7 @@ __all__ = ["resolve_target_state_from_address"]
 def resolve_target_state_from_address(address: str) -> str | None:
     """Return two-letter US state code or None when unset, non-US, or geocoding fails."""
     q = (address or "").strip()
-    if not q or q == "—":
+    if not q:
         return None
     token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
     if not token:

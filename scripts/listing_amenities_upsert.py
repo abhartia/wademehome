@@ -28,7 +28,10 @@ LISTING_AMENITIES_UPSERT_SQL = """
           amenity_text_norm,
           source_field,
           amenity_embedding_source_hash,
-          updated_at
+          updated_at,
+          amenity_embedding,
+          amenity_embedding_model,
+          amenity_embedding_updated_at
         ) VALUES %s
         ON CONFLICT (listing_id, amenity_text_norm, source_field)
         DO UPDATE SET
@@ -36,22 +39,13 @@ LISTING_AMENITIES_UPSERT_SQL = """
           source_field = EXCLUDED.source_field,
           updated_at = EXCLUDED.updated_at,
           amenity_embedding_source_hash = EXCLUDED.amenity_embedding_source_hash,
-          amenity_embedding = CASE
-            WHEN listing_amenities.amenity_embedding_source_hash IS DISTINCT FROM EXCLUDED.amenity_embedding_source_hash
-              THEN NULL
-            ELSE listing_amenities.amenity_embedding
-          END,
-          amenity_embedding_model = CASE
-            WHEN listing_amenities.amenity_embedding_source_hash IS DISTINCT FROM EXCLUDED.amenity_embedding_source_hash
-              THEN NULL
-            ELSE listing_amenities.amenity_embedding_model
-          END,
-          amenity_embedding_updated_at = CASE
-            WHEN listing_amenities.amenity_embedding_source_hash IS DISTINCT FROM EXCLUDED.amenity_embedding_source_hash
-              THEN NULL
-            ELSE listing_amenities.amenity_embedding_updated_at
-          END
+          amenity_embedding = EXCLUDED.amenity_embedding,
+          amenity_embedding_model = EXCLUDED.amenity_embedding_model,
+          amenity_embedding_updated_at = EXCLUDED.amenity_embedding_updated_at
         """
+
+
+UPSERT_VALUES_TEMPLATE = "(%s, %s, %s, %s, %s, NOW(), %s::vector, %s, NOW())"
 
 
 def upsert_sql_for_table(qtable_qualified: str) -> str:

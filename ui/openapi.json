@@ -11259,11 +11259,25 @@
             "title": "Initials"
           },
           "rating": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Rating"
           },
           "review_count": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Review Count"
           },
           "phone": {
@@ -11294,9 +11308,7 @@
           "id",
           "name",
           "category",
-          "initials",
-          "rating",
-          "review_count"
+          "initials"
         ],
         "title": "VendorCatalogOut"
       },

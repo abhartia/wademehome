@@ -14,8 +14,9 @@ export interface Vendor {
   name: string;
   category: VendorCategory;
   initials: string;
-  rating: number;
-  reviewCount: number;
+  /** Present only when sourced from real review data */
+  rating?: number | null;
+  reviewCount?: number | null;
   phone: string;
   website: string;
   coverageArea: string;

@@ -90,8 +90,8 @@ class VendorCatalogOut(BaseModel):
     name: str
     category: str
     initials: str
-    rating: float
-    review_count: int
+    rating: float | None = None
+    review_count: int | None = None
     phone: str = ""
     website: str = ""
     coverage_area: str = ""

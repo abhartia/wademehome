@@ -9,11 +9,11 @@ URL per unit). Source-only: nothing is written unless the parser returns structu
 (``None`` skips; empty lists still count as a successful parse but insert no rows).
 
 Uses the same normalization and ``amenity_embedding_source_hash`` as
-``sync_listing_amenities.py`` (via ``listing_amenities_upsert``). Run
-``scripts/backfill_listing_amenity_embeddings.py`` afterward for vectors.
+``sync_listing_amenities.py`` (via ``listing_amenities_upsert``). The DB writer resolves
+vectors from existing rows per ``amenity_text_norm`` + model, then calls the embedding API
+for novel norms (same env vars as ``scripts/backfill_listing_amenity_embeddings.py``).
 
-Example: ``python scripts/backfill_listing_amenities.py --company AppFolio`` then run the
-amenity embedding backfill script for new rows.
+Example: ``python scripts/backfill_listing_amenities.py --company AppFolio``
 
 Logging: UTC lines, ``--heartbeat-sec``, ``wait`` + STALL for HTTP, and a **DB writer thread**
 so upserts do not block the HTTP loop. Checkpoint defaults to
@@ -53,6 +53,7 @@ if str(_SCRIPTS) not in sys.path:
 
 import listing_amenities_upsert as lau
 
+import listing_amenity_embedding_util as leu
 import listing_amenities_parsers as lap
 
 # Reuse URL canonicalization + bad-html checks from description backfill.
@@ -179,8 +180,10 @@ def _db_writer_main(
     q: "queue.Queue[list[tuple[str, str, str, str, str]] | None]",
     db_url: str,
     upsert_sql: str,
+    q_amenity: str,
     batch_commit_every: int,
 ) -> None:
+    load_dotenv(ENV_FILE, override=True)
     wconn = psycopg2.connect(db_url)
     wcur = wconn.cursor()
     wcur.execute("SET statement_timeout = '120s'")
@@ -194,11 +197,12 @@ def _db_writer_main(
             return
         n = len(buf)
         _log(f"DB upsert: committing {n} listing_amenities row(s)…")
+        rows = leu.materialize_upsert_rows_with_embeddings(wcur, q_amenity, list(buf))
         execute_values(
             wcur,
             upsert_sql,
-            buf,
-            template="(%s, %s, %s, %s, %s, NOW())",
+            rows,
+            template=lau.UPSERT_VALUES_TEMPLATE,
         )
         wconn.commit()
         buf.clear()
@@ -213,11 +217,12 @@ def _db_writer_main(
             chunk = buf[:batch_commit_every]
             del buf[:batch_commit_every]
             _log(f"DB upsert: committing {len(chunk)} listing_amenities row(s)…")
+            rows = leu.materialize_upsert_rows_with_embeddings(wcur, q_amenity, list(chunk))
             execute_values(
                 wcur,
                 upsert_sql,
-                chunk,
-                template="(%s, %s, %s, %s, %s, NOW())",
+                rows,
+                template=lau.UPSERT_VALUES_TEMPLATE,
             )
             wconn.commit()
     wcur.close()
@@ -668,7 +673,7 @@ def main() -> int:
         write_q = queue.Queue()
         writer_thread = threading.Thread(
             target=_db_writer_main,
-            args=(write_q, db_url, upsert_sql, max(50, args.db_upsert_batch)),
+            args=(write_q, db_url, upsert_sql, q_amenity, max(50, args.db_upsert_batch)),
             name="listing-amenities-upsert-writer",
             daemon=False,
         )

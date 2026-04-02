@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -127,7 +128,38 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
 
   const patchPlanMut = useMutation({
     ...patchMoveInPlanMoveInPlanPatchMutation(),
-    onSuccess: refresh,
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: readMoveInPlanMoveInPlanGetQueryKey({}),
+      });
+      const previous = queryClient.getQueryData(
+        readMoveInPlanMoveInPlanGetQueryKey({}),
+      );
+      queryClient.setQueryData(
+        readMoveInPlanMoveInPlanGetQueryKey({}),
+        (old: typeof planData) =>
+          old
+            ? {
+                ...old,
+                ...Object.fromEntries(
+                  Object.entries(variables.body ?? {}).filter(
+                    ([, v]) => v !== undefined,
+                  ),
+                ),
+              }
+            : old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          readMoveInPlanMoveInPlanGetQueryKey({}),
+          context.previous,
+        );
+      }
+    },
+    onSettled: refresh,
   });
   const createOrderMut = useMutation({
     ...createMoveInOrderMoveInOrdersPostMutation(),
@@ -150,16 +182,34 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
     onSuccess: refresh,
   });
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const updatePlan = useCallback((partial: Partial<MoveInPlan>) => {
     if (!user) return;
-    patchPlanMut.mutate({
-      body: {
-        target_address: partial.targetAddress,
-        move_date: partial.moveDate,
-        move_from_address: partial.moveFromAddress,
-      },
-    });
-  }, [patchPlanMut, user]);
+    const body = {
+      target_address: partial.targetAddress,
+      move_date: partial.moveDate,
+      move_from_address: partial.moveFromAddress,
+    };
+    // Optimistically update cache immediately for responsive typing
+    queryClient.setQueryData(
+      readMoveInPlanMoveInPlanGetQueryKey({}),
+      (old: typeof planData) =>
+        old
+          ? {
+              ...old,
+              ...Object.fromEntries(
+                Object.entries(body).filter(([, v]) => v !== undefined),
+              ),
+            }
+          : old,
+    );
+    // Debounce the actual network request
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      patchPlanMut.mutate({ body });
+    }, 400);
+  }, [patchPlanMut, planData, queryClient, user]);
 
   const addOrder = useCallback(
     (order: Omit<VendorOrder, "id" | "createdAt">): string => {
