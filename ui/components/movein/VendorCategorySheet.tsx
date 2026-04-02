@@ -44,7 +44,7 @@ export function VendorCategorySheet({
   onOpenChange,
   category,
 }: VendorCategorySheetProps) {
-  const { getOrderByCategory, addOrder, updateOrder, removeOrder } =
+  const { plan, getOrderByCategory, addOrder, updateOrder, removeOrder } =
     useMoveIn();
   const [expandedVendor, setExpandedVendor] = useState<string | null>(null);
 
@@ -189,6 +189,15 @@ export function VendorCategorySheet({
             <label className="text-xs font-medium text-muted-foreground">
               {currentOrder ? "Switch Provider" : "Available Providers"}
             </label>
+            {vendors.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                {!plan.targetAddress.trim() || plan.targetAddress === "—"
+                  ? "Add your new home address on the move-in setup page to see providers that serve that state."
+                  : !plan.targetState
+                    ? "We could not detect a U.S. state from your address. Try a fuller street address with city and state (ZIP helps)."
+                    : "No catalog providers in this category for your state yet. Try again after we expand coverage, or contact a local provider directly."}
+              </p>
+            )}
             {vendors.map((vendor) => {
               const isExpanded = expandedVendor === vendor.id;
               return (

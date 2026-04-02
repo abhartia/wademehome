@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class MoveInPlanOut(BaseModel):
     target_address: str = ""
+    target_state: str = ""
     move_date: str = ""
     move_from_address: str = ""
 

@@ -38,6 +38,58 @@ def forward_geocode(address: str, token: str, *, timeout: float = 12.0) -> tuple
     return lat, lng
 
 
+def _feature_us_state_code(feature: dict[str, Any]) -> str | None:
+    """
+    Extract US state abbreviation from a Mapbox Geocoding feature's context
+    (region short_code like US-NY → NY). Requires country us in context.
+    """
+    ctx = feature.get("context")
+    country_lower: str | None = None
+    region_code: str | None = None
+    if isinstance(ctx, list):
+        for item in ctx:
+            if not isinstance(item, dict):
+                continue
+            iid = item.get("id")
+            if not isinstance(iid, str):
+                continue
+            short = item.get("short_code")
+            if not isinstance(short, str):
+                continue
+            s = short.strip().lower()
+            if iid.startswith("country."):
+                country_lower = s
+            elif iid.startswith("region."):
+                region_code = short.strip().upper()
+    if country_lower != "us" or not region_code:
+        return None
+    if region_code.startswith("US-"):
+        st = region_code[3:]
+        if len(st) == 2 and st.isalpha():
+            return st.upper()
+    if len(region_code) == 2 and region_code.isalpha():
+        return region_code.upper()
+    return None
+
+
+def forward_geocode_us_state(address: str, token: str, *, timeout: float = 12.0) -> str | None:
+    """Return US state abbreviation from Mapbox's best feature, or None."""
+    q = (address or "").strip()
+    if not q:
+        return None
+    path = urllib.parse.quote(q, safe="")
+    url = f"{_GEOCODE_BASE}/{path}.json?{urllib.parse.urlencode({'access_token': token, 'limit': 1})}"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+    except (urllib.error.URLError, json.JSONDecodeError, OSError):
+        return None
+    feats = data.get("features") or []
+    if not feats or not isinstance(feats[0], dict):
+        return None
+    return _feature_us_state_code(feats[0])
+
+
 def driving_durations_minutes(
     origin_lat: float,
     origin_lng: float,

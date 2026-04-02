@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from db.models import (
@@ -16,6 +16,7 @@ from db.models import (
     VendorCatalogPlan,
     VendorOrderStatus,
 )
+from movein.geocode import resolve_target_state_from_address
 from movein.schemas import (
     ChecklistItemCreate,
     ChecklistItemOut,
@@ -70,6 +71,20 @@ def _ensure_plan(db: Session, user_id: uuid.UUID) -> UserMoveinPlans:
     return row
 
 
+def set_move_from_address_if_empty(db: Session, user_id: uuid.UUID, address: str) -> bool:
+    """Set move_from_address only when unset. Returns True if the plan was updated."""
+    q = (address or "").strip()
+    if not q:
+        return False
+    row = _ensure_plan(db, user_id)
+    if (row.move_from_address or "").strip():
+        return False
+    row.move_from_address = q[:255]
+    db.commit()
+    db.refresh(row)
+    return True
+
+
 def _order_out(row: UserVendorOrders) -> VendorOrderOut:
     return VendorOrderOut(
         id=str(row.id),
@@ -100,6 +115,7 @@ def read_plan(db: Session, user_id: uuid.UUID) -> MoveInPlanOut:
     row = _ensure_plan(db, user_id)
     return MoveInPlanOut(
         target_address=row.target_address,
+        target_state=row.target_state or "",
         move_date=row.move_date.isoformat() if row.move_date else "",
         move_from_address=row.move_from_address or "",
     )
@@ -110,6 +126,7 @@ def patch_plan(db: Session, user_id: uuid.UUID, body: MoveInPlanPatch) -> MoveIn
     data = body.model_dump(exclude_unset=True)
     if "target_address" in data:
         row.target_address = data["target_address"] or "—"
+        row.target_state = resolve_target_state_from_address(row.target_address)
     if "move_date" in data:
         row.move_date = _parse_date(data["move_date"])
     if "move_from_address" in data:
@@ -245,8 +262,31 @@ def delete_checklist_item(db: Session, user_id: uuid.UUID, item_id: uuid.UUID) -
     db.commit()
 
 
-def list_vendor_catalog(db: Session, category: str | None = None) -> list[VendorCatalogOut]:
-    query = select(VendorCatalog)
+def list_vendor_catalog(
+    db: Session,
+    user_id: uuid.UUID,
+    category: str | None = None,
+) -> list[VendorCatalogOut]:
+    plan = _ensure_plan(db, user_id)
+    target_state = (plan.target_state or "").strip().upper() or None
+    if not target_state:
+        addr = (plan.target_address or "").strip()
+        if addr and addr != "—":
+            resolved = resolve_target_state_from_address(addr)
+            if resolved:
+                plan.target_state = resolved
+                db.commit()
+                db.refresh(plan)
+                target_state = resolved
+    if not target_state:
+        return []
+
+    query = select(VendorCatalog).where(
+        or_(
+            VendorCatalog.serves_nationwide.is_(True),
+            VendorCatalog.serves_states.overlap([target_state]),
+        )
+    )
     if category:
         query = query.where(VendorCatalog.category == category)
     vendors = db.execute(query.order_by(VendorCatalog.name.asc())).scalars().all()

@@ -19,7 +19,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -679,6 +679,7 @@ class UserMoveinPlans(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     target_address: Mapped[str] = mapped_column(String(255), nullable=False)
+    target_state: Mapped[str | None] = mapped_column(String(2), nullable=True)
     move_date: Mapped[date | None] = mapped_column(Date)
     move_from_address: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(
@@ -890,6 +891,8 @@ class VendorCatalog(Base):
     phone: Mapped[str | None] = mapped_column(String(64))
     website: Mapped[str | None] = mapped_column(String(255))
     coverage_area: Mapped[str | None] = mapped_column(String(255))
+    serves_nationwide: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    serves_states: Mapped[list[str] | None] = mapped_column(ARRAY(String(2)), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

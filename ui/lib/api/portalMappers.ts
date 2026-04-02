@@ -344,6 +344,7 @@ export function guarantorStateToApiPayload(
 type MoveInApi = {
   plan?: {
     target_address: string;
+    target_state?: string;
     move_date: string;
     move_from_address: string;
   };
@@ -373,6 +374,7 @@ export function moveInFromApi(data: unknown): {
   return {
     plan: {
       targetAddress: row.plan?.target_address ?? "",
+      targetState: row.plan?.target_state ?? "",
       moveDate: row.plan?.move_date ?? "",
       moveFromAddress: row.plan?.move_from_address ?? "",
     },

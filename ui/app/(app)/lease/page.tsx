@@ -16,7 +16,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { readLeaseDocumentPortalLeaseGetQueryKey } from "@/lib/api/generated/@tanstack/react-query.gen";
+import {
+  readLeaseDocumentPortalLeaseGetQueryKey,
+  readMoveInPlanMoveInPlanGetQueryKey,
+} from "@/lib/api/generated/@tanstack/react-query.gen";
 import {
   deleteLeaseDocumentPortalLeaseDelete,
   readLeaseDocumentPortalLeaseGet,
@@ -49,6 +52,9 @@ export default function LeasePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: readLeaseDocumentPortalLeaseGetQueryKey({}),
+      });
+      queryClient.invalidateQueries({
+        queryKey: readMoveInPlanMoveInPlanGetQueryKey({}),
       });
       toast.success("Lease uploaded. You can ask questions below.");
     },

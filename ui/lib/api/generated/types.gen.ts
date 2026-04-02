@@ -2050,6 +2050,10 @@ export type MoveInPlanOut = {
      */
     target_address?: string;
     /**
+     * Target State
+     */
+    target_state?: string;
+    /**
      * Move Date
      */
     move_date?: string;
@@ -2647,7 +2651,7 @@ export type PropertyDataItem = {
     validation_confidence?: number | null;
     /**
      * Concessions
-     * Promotional concession text when present in inventory (e.g. '1 month free').
+     * Promo / special-offer lines when present: listing_amenities rows, other special columns, or amenity text that matches typical concession patterns (e.g. '1 month free').
      */
     concessions?: string | null;
     /**

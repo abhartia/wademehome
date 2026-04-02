@@ -4,12 +4,16 @@ Scrape community/apartment amenities from vendor pages into ``listing_amenities`
 
 Rows with **no** ``listing_amenities`` for that ``listing_id`` are candidates. Work is deduped
 by ``(company, listing_url)`` (one HTTP fetch per URL; inserts apply to every ``listing_id`` on
-that URL). Source-only: nothing is written unless the parser returns structured lists
+that URL). Supported companies: RentCafe, RealPage, Entrata, Greystar, AppFolio (detail-page
+URL per unit). Source-only: nothing is written unless the parser returns structured lists
 (``None`` skips; empty lists still count as a successful parse but insert no rows).
 
 Uses the same normalization and ``amenity_embedding_source_hash`` as
 ``sync_listing_amenities.py`` (via ``listing_amenities_upsert``). Run
 ``scripts/backfill_listing_amenity_embeddings.py`` afterward for vectors.
+
+Example: ``python scripts/backfill_listing_amenities.py --company AppFolio`` then run the
+amenity embedding backfill script for new rows.
 
 Logging: UTC lines, ``--heartbeat-sec``, ``wait`` + STALL for HTTP, and a **DB writer thread**
 so upserts do not block the HTTP loop. Checkpoint defaults to
@@ -68,7 +72,7 @@ is_bad_html = _bld.is_bad_html
 
 ENV_FILE = REPO_ROOT / "api" / ".env"
 
-SUPPORTED_COMPANIES = ("RentCafe", "RealPage", "Entrata", "Greystar")
+SUPPORTED_COMPANIES = ("RentCafe", "RealPage", "Entrata", "Greystar", "AppFolio")
 
 _LOG_LOCK = threading.Lock()
 
@@ -291,9 +295,13 @@ def fetch_amenities(job: UrlJob, connect_timeout_s: int, read_timeout_s: int) ->
     if not parsed.scheme or not parsed.netloc:
         return None
 
-    use_cf = job.company in {"RentCafe", "RealPage", "Greystar"} or (
+    use_cf = job.company in {"RentCafe", "RealPage", "Greystar", "AppFolio"} or (
         job.listing_url
-        and ("rentcafe.com" in job.listing_url.lower() or "securecafe.com" in job.listing_url.lower())
+        and (
+            "rentcafe.com" in job.listing_url.lower()
+            or "securecafe.com" in job.listing_url.lower()
+            or ".appfolio.com" in job.listing_url.lower()
+        )
     )
 
     if job.company == "Greystar":
@@ -395,6 +403,23 @@ def fetch_amenities(job: UrlJob, connect_timeout_s: int, read_timeout_s: int) ->
                             return out
                 except Exception:
                     pass
+                break
+        return None
+
+    if job.company == "AppFolio":
+        cf = _get_thread_cf_session()
+        seed_url = job.listing_url.strip()
+        for attempt_url in normalize_listing_url_for_fetch(job.company, seed_url) or [seed_url]:
+            for attempt in range(3):
+                resp = cf.get(attempt_url, timeout=to, allow_redirects=True)
+                if int(resp.status_code) in {403, 429, 503}:
+                    time.sleep(1.5 + attempt)
+                    continue
+                if is_bad_html(int(resp.status_code), resp.text):
+                    break
+                out = lap.parse_appfolio_listing_detail_amenities_html(resp.text)
+                if out is not None:
+                    return out
                 break
         return None
 

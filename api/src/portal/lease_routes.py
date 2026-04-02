@@ -16,6 +16,8 @@ from auth.router import get_current_user, get_db
 from core.llm_factory import get_llm
 from core.logger import get_logger
 from db.models import UserLeaseDocuments, UserProfiles, Users
+from movein.lease_premises_extract import extract_premises_address_from_lease_text
+from movein.service import set_move_from_address_if_empty
 from portal.schemas import LeaseDocumentOut
 
 logger = get_logger(__name__)
@@ -129,6 +131,11 @@ async def upload_lease_document(
         db.add(row)
     db.commit()
     db.refresh(row)
+
+    extracted_addr = await extract_premises_address_from_lease_text(extracted)
+    if extracted_addr:
+        set_move_from_address_if_empty(db, user.id, extracted_addr)
+
     return LeaseDocumentOut(
         has_document=True,
         original_filename=row.original_filename,

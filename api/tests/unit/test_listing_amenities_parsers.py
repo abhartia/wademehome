@@ -113,6 +113,25 @@ def test_parse_greystar_dom_when_no_next_component():
     assert out == (["Pool"], ["Air Conditioning"])
 
 
+def test_parse_appfolio_detail_fixture():
+    html = (FIXTURES / "appfolio_detail_sample.html").read_text(encoding="utf-8")
+    out = lap.parse_appfolio_listing_detail_amenities_html(html)
+    assert out is not None
+    comm, apt = out
+    assert comm == ["Fitness Center"]
+    assert apt == [
+        "Off Street Parking",
+        "1 Car Detatched Garage",
+        "Washer/Dryer Hookups",
+        "Refrigerator",
+        "Stove",
+    ]
+
+
+def test_parse_appfolio_missing_returns_none():
+    assert lap.parse_appfolio_listing_detail_amenities_html("<html><body></body></html>") is None
+
+
 def test_parse_greystar_uses_property_highlights_when_amenities_component_blank():
     """PD-amenities empty/false; PropertyDetails.property.highlights may still be set."""
     html = """<!DOCTYPE html><html><body>

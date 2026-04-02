@@ -97,33 +97,6 @@ def upgrade() -> None:
     op.execute(
         sa.text(
             """
-            INSERT INTO vendor_catalog (id, vendor_key, name, category, initials, rating, review_count, phone, website, coverage_area)
-            VALUES
-              (gen_random_uuid(), 'v-coned', 'Con Edison', 'electric', 'CE', 3.8, 12400, '(800) 752-6633', 'coned.com', 'NYC, Westchester'),
-              (gen_random_uuid(), 'v-fios', 'Verizon Fios', 'internet', 'VF', 4.2, 18600, '(800) 837-4966', 'verizon.com/fios', 'NYC, NJ, CT'),
-              (gen_random_uuid(), 'v-flatrate', 'FlatRate Moving', 'movers', 'FR', 4.4, 3200, '(212) 988-1543', 'flatrate.com', 'NYC metro area')
-            """
-        )
-    )
-    op.execute(
-        sa.text(
-            """
-            INSERT INTO vendor_catalog_plans (id, vendor_id, plan_key, name, price, price_unit, features, popular)
-            SELECT gen_random_uuid(), v.id, p.plan_key, p.name, p.price, p.price_unit, p.features::json, p.popular
-            FROM vendor_catalog v
-            JOIN (
-              VALUES
-                ('v-coned','p-coned-std','Standard Residential','$0.22','/kWh','["Default supply rate","No contract required","Budget billing available"]',true),
-                ('v-fios','p-fios-300','300 Mbps','$49.99','/mo','["Fiber optic","No data caps","Free router included"]',true),
-                ('v-flatrate','p-flat-full','Full Service','$150','/hr','["Packing + unpacking","Disassembly + reassembly","3 hr minimum"]',true)
-            ) AS p(vendor_key, plan_key, name, price, price_unit, features, popular)
-              ON p.vendor_key = v.vendor_key
-            """
-        )
-    )
-    op.execute(
-        sa.text(
-            """
             INSERT INTO roommate_candidate_catalog
               (id, candidate_key, name, age, occupation, bio, avatar_initials, sleep_schedule, cleanliness_level, noise_level, guest_policy, smoking, target_city, max_budget, move_timeline, bedrooms_wanted, has_pets, pet_details, interests, university)
             VALUES

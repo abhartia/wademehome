@@ -46,6 +46,8 @@ export interface VendorOrder {
 
 export interface MoveInPlan {
   targetAddress: string;
+  /** Two-letter US state from server geocode when available */
+  targetState: string;
   moveDate: string;
   moveFromAddress: string;
 }

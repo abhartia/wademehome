@@ -27,6 +27,7 @@ import {
   readMoveInOrdersMoveInOrdersGetQueryKey,
   readMoveInPlanMoveInPlanGetOptions,
   readMoveInPlanMoveInPlanGetQueryKey,
+  readVendorCatalogMoveInVendorsGetQueryKey,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
 
 interface MoveInProgress {
@@ -77,6 +78,7 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
   const plan = useMemo<MoveInPlan>(
     () => ({
       targetAddress: planData?.target_address ?? "",
+      targetState: planData?.target_state ?? "",
       moveDate: planData?.move_date ?? "",
       moveFromAddress: planData?.move_from_address ?? "",
     }),
@@ -116,6 +118,10 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
       queryClient.invalidateQueries({ queryKey: readMoveInPlanMoveInPlanGetQueryKey({}) }),
       queryClient.invalidateQueries({ queryKey: readMoveInOrdersMoveInOrdersGetQueryKey({}) }),
       queryClient.invalidateQueries({ queryKey: readMoveInChecklistMoveInChecklistGetQueryKey({}) }),
+      queryClient.invalidateQueries({
+        queryKey: readVendorCatalogMoveInVendorsGetQueryKey({}),
+        exact: false,
+      }),
     ]);
   }, [queryClient]);
 

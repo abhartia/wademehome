@@ -126,6 +126,11 @@ def main() -> int:
         "embeddings or the current model are selected).",
         flush=True,
     )
+    print(
+        "amenity embedding backfill: OpenAI/Azure embedding API is called once per distinct "
+        "amenity_text_norm per batch; duplicates reuse vectors from this session or Postgres.",
+        flush=True,
+    )
     load_dotenv(args.env_file, override=True)
     database_url = (os.environ.get("DATABASE_URL") or "").strip()
     if not database_url:

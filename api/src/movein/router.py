@@ -115,6 +115,5 @@ def read_vendor_catalog(
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    _ = user
-    return VendorCatalogListResponse(vendors=list_vendor_catalog(db, category))
+    return VendorCatalogListResponse(vendors=list_vendor_catalog(db, user.id, category))
 

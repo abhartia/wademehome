@@ -8358,6 +8358,11 @@
             "title": "Target Address",
             "default": ""
           },
+          "target_state": {
+            "type": "string",
+            "title": "Target State",
+            "default": ""
+          },
           "move_date": {
             "type": "string",
             "title": "Move Date",
@@ -9511,7 +9516,7 @@
               }
             ],
             "title": "Concessions",
-            "description": "Promotional concession text when present in inventory (e.g. '1 month free')."
+            "description": "Promo / special-offer lines when present: listing_amenities rows, other special columns, or amenity text that matches typical concession patterns (e.g. '1 month free')."
           },
           "available_date": {
             "anyOf": [

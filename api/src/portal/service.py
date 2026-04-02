@@ -8,6 +8,7 @@ from typing import Any
 from sqlalchemy import asc, delete, select
 from sqlalchemy.orm import Session
 
+from movein.geocode import resolve_target_state_from_address
 from db.models import (
     GuarantorRequests,
     GuarantorRequestStatus,
@@ -400,7 +401,12 @@ def get_movein_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
     ).scalars().all()
     if not plans:
         return {
-            "plan": {"target_address": "", "move_date": "", "move_from_address": ""},
+            "plan": {
+                "target_address": "",
+                "target_state": "",
+                "move_date": "",
+                "move_from_address": "",
+            },
             "orders": [],
             "checklist": [],
         }
@@ -415,6 +421,7 @@ def get_movein_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
     return {
         "plan": {
             "target_address": plan.target_address,
+            "target_state": plan.target_state or "",
             "move_date": plan.move_date.isoformat() if plan.move_date else "",
             "move_from_address": plan.move_from_address or "",
         },
@@ -463,6 +470,7 @@ def replace_movein(db: Session, user_id: uuid.UUID, payload: MoveInStatePayload)
         move_date=_parse_date(pl.move_date),
         move_from_address=pl.move_from_address or None,
     )
+    plan.target_state = resolve_target_state_from_address(plan.target_address)
     db.add(plan)
     db.flush()
     pid = plan.id

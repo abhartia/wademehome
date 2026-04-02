@@ -518,3 +518,134 @@ def parse_greystar_amenities_from_html(html: str) -> tuple[list[str], list[str]]
     if dom is not None:
         return dom
     return None
+
+
+_APPFOLIO_SKIP_HEADINGS = frozenset(
+    {
+        "utilities included",
+        "utilities",
+        "pet policy",
+        "pets",
+        "rental terms",
+        "contact",
+        "application",
+        "similar listings",
+        "availability",
+    }
+)
+
+
+def _appfolio_li_texts_from_ul(ul) -> list[str]:
+    items: list[str] = []
+    for li in ul.find_all("li", recursive=False):
+        t = li.get_text(" ", strip=True)
+        if t and len(t) < 220 and not t.lower().startswith("http"):
+            items.append(t)
+    if items:
+        return items
+    for li in ul.find_all("li", recursive=True):
+        t = li.get_text(" ", strip=True)
+        if t and len(t) < 220 and not t.lower().startswith("http"):
+            items.append(t)
+    return items
+
+
+def _appfolio_first_ul_after_heading(h) -> object | None:
+    """Next sibling ``ul`` or first ``ul`` inside following wrapper elements until next h2–h4."""
+    cur = h.find_next_sibling()
+    while cur is not None:
+        name = getattr(cur, "name", None)
+        if name in ("h2", "h3", "h4"):
+            break
+        if name == "ul":
+            return cur
+        if name and hasattr(cur, "find"):
+            ul = cur.find("ul", recursive=False)
+            if ul is not None:
+                return ul
+            ul = cur.find("ul", recursive=True)
+            if ul is not None and not ul.find_parent(["nav", "header", "footer"]):
+                return ul
+        cur = cur.find_next_sibling()
+    return None
+
+
+def _appfolio_bucket_for_heading(title_raw: str) -> str | None:
+    """Return ``community``, ``apartment``, or ``None`` (not an amenity section)."""
+    t = title_raw.strip().lower()
+    if not t or t in _APPFOLIO_SKIP_HEADINGS:
+        return None
+    if t == "amenities":
+        return "apartment"
+    if t == "appliances":
+        return "apartment"
+    community_exact = (
+        "community amenities",
+        "property amenities",
+        "building amenities",
+        "community features",
+    )
+    if t in community_exact:
+        return "community"
+    apartment_exact = (
+        "unit amenities",
+        "apartment amenities",
+        "residence amenities",
+        "in-home amenities",
+        "suite amenities",
+    )
+    if t in apartment_exact:
+        return "apartment"
+    if "amenit" in t or "feature" in t:
+        if any(x in t for x in ("community", "property", "building")):
+            return "community"
+        if any(x in t for x in ("unit", "apartment", "residence", "suite", "in-home")):
+            return "apartment"
+    return None
+
+
+def _appfolio_dedupe_preserve(xs: list[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for x in xs:
+        k = x.strip().lower()
+        if k and k not in seen:
+            seen.add(k)
+            out.append(x.strip())
+    return out
+
+
+def parse_appfolio_listing_detail_amenities_html(html: str) -> tuple[list[str], list[str]] | None:
+    """
+    AppFolio ``/listings/detail/{uuid}`` pages: ``h2``/``h3`` sections such as
+    **Amenities** and **Appliances** (unit-level); optional **Community** / **Property**
+    amenity headings. Skips **Utilities Included**, **Pet Policy**, **Rental Terms**, etc.
+
+    Returns ``None`` when no recognized amenity sections produce items.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    comm: list[str] = []
+    apt: list[str] = []
+    for hn in ("h2", "h3", "h4"):
+        for h in soup.find_all(hn):
+            if h.find_parent(["nav", "header", "footer"]):
+                continue
+            title = h.get_text(strip=True)
+            bucket = _appfolio_bucket_for_heading(title)
+            if bucket is None:
+                continue
+            ul = _appfolio_first_ul_after_heading(h)
+            if ul is None:
+                continue
+            items = _appfolio_li_texts_from_ul(ul)
+            if not items:
+                continue
+            if bucket == "community":
+                comm.extend(items)
+            else:
+                apt.extend(items)
+    comm = _appfolio_dedupe_preserve(comm)
+    apt = _appfolio_dedupe_preserve(apt)
+    if not comm and not apt:
+        return None
+    return (comm, apt)
