@@ -28,6 +28,7 @@ from movein.service import (
     list_checklist,
     list_orders,
     list_vendor_catalog,
+    list_vendor_catalog_public,
     patch_checklist_item,
     patch_order,
     patch_plan,
@@ -116,4 +117,14 @@ def read_vendor_catalog(
     db: Session = Depends(get_db),
 ):
     return VendorCatalogListResponse(vendors=list_vendor_catalog(db, user.id, category))
+
+
+@router.get("/vendors/public", response_model=VendorCatalogListResponse)
+def read_vendor_catalog_public(
+    state: str = Query(..., min_length=2, max_length=2),
+    category: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    """Public endpoint — no auth required. Returns vendors available in the given state."""
+    return VendorCatalogListResponse(vendors=list_vendor_catalog_public(db, state, category))
 

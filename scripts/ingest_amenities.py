@@ -106,19 +106,40 @@ def pre_cache_embeddings(conn, norms_needed: list[str] | None = None) -> tuple[d
 
 
 def embed_via_openai(texts: list[str], model: str = None, dimensions: int = 1536) -> list[list[float]]:
-    """Call OpenAI embedding API for novel norms."""
-    from openai import OpenAI
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    """Call OpenAI or Azure OpenAI embedding API for novel norms."""
+    from openai import OpenAI, AzureOpenAI
+
     model = model or os.environ.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
     dimensions = int(os.environ.get("OPENAI_EMBEDDING_DIMENSIONS", dimensions))
 
+    azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT", "").strip()
+    azure_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
+
+    if azure_endpoint and azure_key:
+        # Use Azure OpenAI
+        client = AzureOpenAI(
+            azure_endpoint=azure_endpoint,
+            api_key=azure_key,
+            api_version="2024-02-01",
+        )
+        # Azure uses deployment name, not model name
+        deploy = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", model)
+    else:
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        deploy = model
+
     all_embeddings = []
-    batch_size = 100
+    batch_size = 50  # Smaller batches for Azure
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
-        resp = client.embeddings.create(input=batch, model=model, dimensions=dimensions)
-        for item in resp.data:
-            all_embeddings.append(item.embedding)
+        try:
+            resp = client.embeddings.create(input=batch, model=deploy, dimensions=dimensions)
+            for item in resp.data:
+                all_embeddings.append(item.embedding)
+        except Exception as exc:
+            print(f"  Embedding batch {i//batch_size + 1} failed: {exc}", flush=True)
+            # Return what we have so far
+            break
     return all_embeddings
 
 

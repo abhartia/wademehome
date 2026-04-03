@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PropertyListingsMap } from "@/components/annotations/PropertyListings/PropertyListingsMap";
@@ -8,9 +8,7 @@ import { PropertyList } from "@/components/annotations/PropertyListings/Property
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { GuestPropertyDetailSheet } from "@/components/properties/GuestPropertyDetailSheet";
 import { Button } from "@/components/ui/button";
-import { BrandLogo } from "@/components/branding/BrandLogo";
 import { Input } from "@/components/ui/input";
-import { PublicSiteMenu } from "@/components/navigation/PublicSiteMenu";
 import { Card, CardContent } from "@/components/ui/card";
 import { GuestHomeListingChatRuntime } from "./GuestHomeListingChatRuntime";
 import { DEFAULT_NEARBY_LIMIT, useNearbyListings } from "@/lib/listings/useNearbyListings";
@@ -575,7 +573,7 @@ function GuestHomeSearchInner({
   );
 }
 
-export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
+export function GuestHomeSearchClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -773,28 +771,6 @@ export function GuestHomeSearchClient({ intro }: { intro: ReactNode }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="relative z-50 shrink-0 border-b border-border/70 bg-background px-3 py-2.5 sm:px-4">
-        <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
-          <div className="flex shrink-0 items-center gap-2">
-            <BrandLogo className="h-7 w-7 shrink-0 text-primary" />
-            <span className="max-w-[9rem] truncate font-semibold text-foreground sm:max-w-none">
-              Wade Me Home
-            </span>
-          </div>
-          <span className="h-6 w-px shrink-0 bg-border/90" aria-hidden />
-          <div className="min-w-0 flex-1">{intro}</div>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <PublicSiteMenu />
-            <Button asChild variant="outline">
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign up</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
       {/*
         Keep a single subtree: toggling listingSessionActive must not swap GuestHomeSearchInner
         between two parents, or the search Input remounts and loses focus when the draft query

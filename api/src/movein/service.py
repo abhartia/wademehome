@@ -265,6 +265,56 @@ def delete_checklist_item(db: Session, user_id: uuid.UUID, item_id: uuid.UUID) -
     db.commit()
 
 
+def list_vendor_catalog_public(
+    db: Session,
+    state: str,
+    category: str | None = None,
+) -> list[VendorCatalogOut]:
+    """Public (no auth) vendor catalog filtered by state code."""
+    target_state = state.strip().upper()
+    if len(target_state) != 2:
+        return []
+    query = select(VendorCatalog).where(
+        or_(
+            VendorCatalog.serves_nationwide.is_(True),
+            VendorCatalog.serves_states.overlap([target_state]),
+        )
+    )
+    if category:
+        query = query.where(VendorCatalog.category == category)
+    vendors = db.execute(query.order_by(VendorCatalog.name.asc())).scalars().all()
+    out: list[VendorCatalogOut] = []
+    for vendor in vendors:
+        plans = db.execute(
+            select(VendorCatalogPlan).where(VendorCatalogPlan.vendor_id == vendor.id)
+        ).scalars().all()
+        out.append(
+            VendorCatalogOut(
+                id=vendor.vendor_key,
+                name=vendor.name,
+                category=vendor.category,
+                initials=vendor.initials,
+                rating=float(vendor.rating) if vendor.rating is not None else None,
+                review_count=vendor.review_count,
+                phone=vendor.phone or "",
+                website=vendor.website or "",
+                coverage_area=vendor.coverage_area or "",
+                plans=[
+                    VendorPlanOut(
+                        id=p.plan_key,
+                        name=p.name,
+                        price=p.price,
+                        price_unit=p.price_unit,
+                        features=list(p.features or []),
+                        popular=p.popular,
+                    )
+                    for p in plans
+                ],
+            )
+        )
+    return out
+
+
 def list_vendor_catalog(
     db: Session,
     user_id: uuid.UUID,

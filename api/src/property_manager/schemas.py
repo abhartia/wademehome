@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -187,3 +187,75 @@ class InsightsResponse(BaseModel):
     center_longitude: float
     radius_miles: float
     generated_at: datetime
+
+
+# ── Trends / time-series ───────────────────────────────────────────────
+
+
+class MarketSnapshotPoint(BaseModel):
+    snapshot_week: date
+    median_rent: float | None = None
+    p25_rent: float | None = None
+    p75_rent: float | None = None
+    sample_size: int = 0
+    vacancy_rate_pct: float | None = None
+    available_units: int | None = None
+    total_units: int | None = None
+
+
+class BuildingSnapshotPoint(BaseModel):
+    snapshot_week: date
+    property_id: str
+    property_name: str | None = None
+    address: str | None = None
+    median_rent: float | None = None
+    rent_per_sqft: float | None = None
+    unit_count: int | None = None
+    available_units: int | None = None
+
+
+class BuildingDelta(BaseModel):
+    property_id: str
+    property_name: str | None = None
+    address: str | None = None
+    current_rent: float | None = None
+    previous_rent: float | None = None
+    rent_change: float | None = None
+    rent_change_pct: float | None = None
+    current_vacancy: int | None = None
+    previous_vacancy: int | None = None
+    is_new: bool = False
+
+
+class MetricDelta(BaseModel):
+    current: float | None = None
+    previous: float | None = None
+    change: float | None = None
+    change_pct: float | None = None
+
+
+class MarketDeltas(BaseModel):
+    median_rent: MetricDelta | None = None
+    vacancy_rate_pct: MetricDelta | None = None
+    sample_size: MetricDelta | None = None
+
+
+class TrendsResponse(BaseModel):
+    market_history: list[MarketSnapshotPoint] = Field(default_factory=list)
+    market_deltas: MarketDeltas | None = None
+    building_deltas: list[BuildingDelta] = Field(default_factory=list)
+    weeks_of_data: int = 0
+
+
+class BuildingTrendsRequest(BaseModel):
+    center_latitude: float = Field(ge=-90, le=90)
+    center_longitude: float = Field(ge=-180, le=180)
+    radius_miles: float = Field(default=2, gt=0, le=50)
+    property_id: str
+    weeks: int = Field(default=12, ge=1, le=52)
+
+
+class BuildingTrendsResponse(BaseModel):
+    property_id: str
+    property_name: str | None = None
+    snapshots: list[BuildingSnapshotPoint] = Field(default_factory=list)

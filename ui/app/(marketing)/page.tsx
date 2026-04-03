@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { LoggedInHomeRedirect } from "@/components/auth/LoggedInHomeRedirect";
-import { GuestHomeSearchClient } from "./GuestHomeSearchClient";
-import {
-  GuestHomeIntroDisclosure,
-  GuestHomeStructuredData,
-} from "@/components/landing/GuestHomeIndexableIntro";
+import { GuestHomeStructuredData } from "@/components/landing/GuestHomeIndexableIntro";
 import {
   GUEST_HOME_META_DESCRIPTION,
   guestHomeSiteOrigin,
 } from "@/lib/landing/guestHomeCopy";
+import { GuestHomeTabs } from "./GuestHomeTabs";
 
 export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(guestHomeSiteOrigin());
@@ -52,7 +49,7 @@ export default function HomePage() {
     <div className="flex h-screen flex-col">
       <LoggedInHomeRedirect />
       <GuestHomeStructuredData />
-      <GuestHomeSearchClient intro={<GuestHomeIntroDisclosure />} />
+      <GuestHomeTabs />
     </div>
   );
 }

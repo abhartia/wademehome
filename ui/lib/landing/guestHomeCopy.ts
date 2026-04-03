@@ -16,6 +16,16 @@ export const GUEST_HOME_BULLETS = [
 export const GUEST_HOME_META_DESCRIPTION =
   "Wade Me Home: map search, AI-assisted listings, and tours through move-in. Your account supports your whole stay and your next move, not only this search.";
 
+/* ── Move-in tab copy ── */
+
+export const GUEST_MOVEIN_H1 = "Set up utilities, compare vendors, and move in without the chaos";
+
+export const GUEST_MOVEIN_LEAD =
+  "Compare real electricity, gas, internet, and moving providers by state. Track every move-in task in one checklist and document your apartment's condition to protect your security deposit.";
+
+export const GUEST_MOVEIN_META_DESCRIPTION =
+  "Wade Me Home: compare utility providers, book movers, and document move-in condition. Free tools for renters setting up a new apartment.";
+
 export function guestHomeSiteOrigin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
 }

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import re
 import statistics
 import uuid
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any
 
@@ -16,7 +17,7 @@ from sqlalchemy.orm import Session
 from auth.emailer import send_property_manager_weekly_report_email
 from core.config import Config
 from core.logger import get_logger
-from db.models import PropertyManagerReportSubscriptions, Users
+from db.models import PmBuildingSnapshots, PmMarketSnapshots, PropertyManagerReportSubscriptions, Users
 from listings.router import fetch_nearby_listings_radius, fetch_poi_nearby
 from listings.schemas import MarketSnapshotResponse, NearbyListingsResponse, PoiNearbyResponse
 from property_manager.ai_insights import generate_ai_summary
@@ -25,17 +26,24 @@ from property_manager.schemas import (
     AmenityAnalysis,
     AmenityFrequency,
     BedroomSupply,
+    BuildingDelta,
     BuildingFinancialProfile,
     BuildingFinancials,
+    BuildingSnapshotPoint,
+    BuildingTrendsResponse,
     CompetitorPosition,
     DemographicsOut,
     FeeCategoryStats,
     FeeIntelligence,
     InsightsResponse,
+    MarketDeltas,
+    MarketSnapshotPoint,
+    MetricDelta,
     ReportSubscriptionCreate,
     ReportSubscriptionResponse,
     ReportSubscriptionUpdate,
     SupplyPressure,
+    TrendsResponse,
 )
 from workflow.utils import engine, listing_table_name, listing_table_schema
 
@@ -175,7 +183,74 @@ def _insights_html_section(insights: InsightsResponse) -> str:
     return "\n".join(parts)
 
 
-def build_report_html(*, label: str, nearby: NearbyListingsResponse, insights: InsightsResponse | None = None) -> str:
+def _delta_badge_html(label: str, current: float | None, previous: float | None, fmt: str = "dollar") -> str:
+    """Render a single metric delta as inline HTML for email."""
+    if current is None:
+        return ""
+    if previous is None or previous == 0:
+        if fmt == "dollar":
+            return f"<strong>{label}:</strong> ${current:,.0f}"
+        elif fmt == "pct":
+            return f"<strong>{label}:</strong> {current:.1f}%"
+        return f"<strong>{label}:</strong> {current:,.0f}"
+
+    change = current - previous
+    change_pct = change / previous * 100 if previous != 0 else 0
+    arrow = "&#9650;" if change > 0 else "&#9660;" if change < 0 else "&#8212;"
+    color = "#dc2626" if change > 0 else "#16a34a" if change < 0 else "#666"
+
+    if fmt == "dollar":
+        val = f"${current:,.0f}"
+        delta = f"{arrow} {change_pct:+.1f}%"
+    elif fmt == "pct":
+        val = f"{current:.1f}%"
+        delta = f"{arrow} {change:+.1f}pp"
+    else:
+        val = f"{current:,.0f}"
+        delta = f"{arrow} {change:+.0f}"
+
+    return f'<strong>{label}:</strong> {val} <span style="color:{color};font-size:12px;">({delta})</span>'
+
+
+def _building_movers_html(building_deltas: list[BuildingDelta]) -> str:
+    """Render the top building movers section for email."""
+    if not building_deltas:
+        return ""
+    # Show top 5 biggest movers + any new buildings (up to 3)
+    movers = [d for d in building_deltas if d.rent_change_pct is not None and d.rent_change_pct != 0][:5]
+    new_buildings = [d for d in building_deltas if d.is_new][:3]
+
+    if not movers and not new_buildings:
+        return ""
+
+    parts = ['<p style="font-size:13px;margin-bottom:4px;"><strong>Notable changes this week:</strong></p>']
+    parts.append('<ul style="font-size:13px;margin:0 0 12px 0;padding-left:20px;">')
+    for d in movers:
+        name = html.escape(d.property_name or d.address or d.property_id)
+        prev_str = f"${d.previous_rent:,.0f}" if d.previous_rent else "N/A"
+        cur_str = f"${d.current_rent:,.0f}" if d.current_rent else "N/A"
+        color = "#dc2626" if (d.rent_change_pct or 0) > 0 else "#16a34a"
+        pct_str = f"{d.rent_change_pct:+.1f}%" if d.rent_change_pct else ""
+        parts.append(
+            f'<li>{name}: {prev_str} &rarr; {cur_str} '
+            f'<span style="color:{color};">({pct_str})</span></li>'
+        )
+    for d in new_buildings:
+        name = html.escape(d.property_name or d.address or d.property_id)
+        rent_str = f" &mdash; ${d.current_rent:,.0f}/mo" if d.current_rent else ""
+        parts.append(f'<li><span style="color:#2563eb;">NEW:</span> {name}{rent_str}</li>')
+    parts.append("</ul>")
+    return "\n".join(parts)
+
+
+def build_report_html(
+    *,
+    label: str,
+    nearby: NearbyListingsResponse,
+    insights: InsightsResponse | None = None,
+    market_deltas: MarketDeltas | None = None,
+    building_deltas: list[BuildingDelta] | None = None,
+) -> str:
     rows_html = []
     for p in nearby.properties:
         name = html.escape(p.name or "")
@@ -204,12 +279,43 @@ def build_report_html(*, label: str, nearby: NearbyListingsResponse, insights: I
             "globally (same behavior as search).</em></p>"
         )
     insights_section = _insights_html_section(insights) if insights else ""
+
+    # Week-over-week deltas summary
+    deltas_section = ""
+    if market_deltas:
+        badges = []
+        if market_deltas.median_rent:
+            badges.append(_delta_badge_html("Median rent", market_deltas.median_rent.current, market_deltas.median_rent.previous, "dollar"))
+        if market_deltas.vacancy_rate_pct:
+            badges.append(_delta_badge_html("Vacancy", market_deltas.vacancy_rate_pct.current, market_deltas.vacancy_rate_pct.previous, "pct"))
+        if market_deltas.sample_size:
+            badges.append(_delta_badge_html("Supply", market_deltas.sample_size.current, market_deltas.sample_size.previous, "int"))
+        if badges:
+            deltas_section = (
+                '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:10px 14px;'
+                'margin:12px 0;font-family:sans-serif;font-size:13px;">'
+                '<strong style="font-size:14px;">Week-over-Week</strong><br/>'
+                + " &nbsp;&middot;&nbsp; ".join(badges)
+                + "</div>"
+            )
+
+    # Building movers
+    movers_section = _building_movers_html(building_deltas or [])
+
+    # Footer
+    if market_deltas:
+        footer = "Powered by Wade Me Home — tracking your market weekly."
+    else:
+        footer = "Trends will appear after 2+ weekly snapshots. Powered by Wade Me Home."
+
     return f"""
     <html><body>
     <h2>Weekly competitive snapshot</h2>
     <p><strong>{html.escape(label)}</strong></p>
     <p>Radius: {nearby.radius_miles} mi &middot; Showing up to {nearby.limit} buildings &middot; \
 Total in scope (when available): {nearby.total_in_radius}</p>
+    {deltas_section}
+    {movers_section}
     {insights_section}
     {fallback_note}
     <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
@@ -219,8 +325,7 @@ Total in scope (when available): {nearby.total_in_radius}</p>
     </tr></thead>
     <tbody>{body_rows}</tbody>
     </table>
-    <p style="color:#666;font-size:12px;">This is a point-in-time snapshot from Wade Me Home inventory. \
-Week-over-week price change alerts require a future data pipeline update.</p>
+    <p style="color:#666;font-size:12px;">{footer}</p>
     </body></html>
     """
 
@@ -252,12 +357,32 @@ def send_subscription_report_now(
     s_lng = float(sub.center_longitude)
     s_radius = float(sub.radius_miles)
     nearby = fetch_nearby_listings_radius(s_lat, s_lng, s_radius, LISTING_LIMIT_REPORT)
+
+    # Fetch existing trend data to pass into AI summary
+    ai_trend_data = _build_ai_trend_payload(s_lat, s_lng, s_radius)
+
     try:
-        insights = build_insights(s_lat, s_lng, s_radius)
+        insights = build_insights(s_lat, s_lng, s_radius, trend_data=ai_trend_data)
     except Exception:
         logger.warning("insights generation failed for subscription %s", sub.id)
         insights = None
-    html_body = build_report_html(label=sub.label, nearby=nearby, insights=insights)
+
+    # Archive snapshots and compute deltas for email
+    market_deltas: MarketDeltas | None = None
+    building_deltas: list[BuildingDelta] = []
+    if insights:
+        try:
+            archive_snapshots(db, s_lat, s_lng, s_radius, insights)
+            history = get_market_history(s_lat, s_lng, s_radius, weeks=2)
+            market_deltas = compute_market_deltas(history)
+            building_deltas = get_buildings_latest_vs_previous(s_lat, s_lng, s_radius)
+        except Exception:
+            logger.warning("snapshot archiving failed for subscription %s", sub.id)
+
+    html_body = build_report_html(
+        label=sub.label, nearby=nearby, insights=insights,
+        market_deltas=market_deltas, building_deltas=building_deltas,
+    )
     subject = f"Weekly comps: {sub.label}"
     send_property_manager_weekly_report_email(
         to_email=user.email,
@@ -292,12 +417,32 @@ def send_weekly_reports_for_all_active(db: Session) -> tuple[int, int]:
             s_lng = float(sub.center_longitude)
             s_radius = float(sub.radius_miles)
             nearby = fetch_nearby_listings_radius(s_lat, s_lng, s_radius, LISTING_LIMIT_REPORT)
+
+            # Fetch existing trend data to pass into AI summary
+            ai_trend_data = _build_ai_trend_payload(s_lat, s_lng, s_radius)
+
             try:
-                insights = build_insights(s_lat, s_lng, s_radius)
+                insights = build_insights(s_lat, s_lng, s_radius, trend_data=ai_trend_data)
             except Exception:
                 logger.warning("insights failed for weekly sub %s", sub.id)
                 insights = None
-            html_body = build_report_html(label=sub.label, nearby=nearby, insights=insights)
+
+            # Archive snapshots and compute deltas for email
+            market_deltas: MarketDeltas | None = None
+            building_deltas: list[BuildingDelta] = []
+            if insights:
+                try:
+                    archive_snapshots(db, s_lat, s_lng, s_radius, insights)
+                    history = get_market_history(s_lat, s_lng, s_radius, weeks=2)
+                    market_deltas = compute_market_deltas(history)
+                    building_deltas = get_buildings_latest_vs_previous(s_lat, s_lng, s_radius)
+                except Exception:
+                    logger.warning("snapshot archiving failed for weekly sub %s", sub.id)
+
+            html_body = build_report_html(
+                label=sub.label, nearby=nearby, insights=insights,
+                market_deltas=market_deltas, building_deltas=building_deltas,
+            )
             subject = f"Weekly comps: {sub.label}"
             send_property_manager_weekly_report_email(
                 to_email=user.email,
@@ -312,6 +457,9 @@ def send_weekly_reports_for_all_active(db: Session) -> tuple[int, int]:
             logger.exception("weekly report failed for subscription %s", sub.id)
             failed += 1
             db.rollback()
+
+    # Retention cleanup
+    cleanup_old_snapshots(db)
 
     return sent, failed
 
@@ -802,7 +950,7 @@ def _demographics_out(demo: CensusDemographics | None) -> DemographicsOut | None
     )
 
 
-def build_insights(lat: float, lng: float, radius_miles: float) -> InsightsResponse:
+def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict[str, Any] | None = None) -> InsightsResponse:
     """Orchestrate all insight modules into a single response."""
     # 1. Nearby listings (for property list + zip extraction)
     nearby = fetch_nearby_listings_radius(lat, lng, radius_miles, 150)
@@ -859,6 +1007,7 @@ def build_insights(lat: float, lng: float, radius_miles: float) -> InsightsRespo
     ai_summary = generate_ai_summary(
         market, demographics_out, competitors, fee_intel, supply, amenities,
         building_financials=building_financials,
+        trend_data=trend_data,
     )
 
     return InsightsResponse(
@@ -876,3 +1025,450 @@ def build_insights(lat: float, lng: float, radius_miles: float) -> InsightsRespo
         radius_miles=radius_miles,
         generated_at=datetime.now(timezone.utc),
     )
+
+
+# ── Time-series snapshot archiving ─────────────────────────────────────
+
+
+def _snapshot_week_monday() -> date:
+    """Return Monday of the current ISO week."""
+    today = date.today()
+    return today - __import__("datetime").timedelta(days=today.weekday())
+
+
+def _location_key(lat: float, lng: float, radius: float) -> str:
+    """Deterministic 32-char hex key for a (lat, lng, radius) triple."""
+    raw = f"{round(lat, 5)}|{round(lng, 5)}|{round(radius, 2)}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
+_AVAIL_STATUSES = frozenset({
+    "available", "available now", "available soon", "vacant",
+    "not yet leased", "ready", "open",
+})
+
+
+def archive_snapshots(
+    db: Session,
+    lat: float,
+    lng: float,
+    radius_miles: float,
+    insights: InsightsResponse,
+) -> None:
+    """Archive building-level and market-level snapshots for time-series tracking.
+
+    Uses location_key so identical locations from different subscriptions share data.
+    UPSERTs so calling multiple times in the same week is idempotent.
+    """
+    loc_key = _location_key(lat, lng, radius_miles)
+    week = _snapshot_week_monday()
+
+    # Fetch raw unit rows for building-level detail
+    detail_rows = _fetch_building_details_in_radius(lat, lng, radius_miles)
+
+    # ── Building-level snapshots ──────────────────────────────────────
+    buildings: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for r in detail_rows:
+        pid = r.get("property_id") or r.get("address") or "unknown"
+        buildings[pid].append(r)
+
+    for pid, units in buildings.items():
+        first = units[0]
+        rents = [u["rent_price"] for u in units if u.get("rent_price") and u["rent_price"] > 0]
+        sqfts = [u["sqft"] for u in units if u.get("sqft") and u["sqft"] > 0]
+        beds_set = sorted({int(u["beds"]) for u in units if u.get("beds") is not None})
+
+        med_rent = round(statistics.median(rents), 0) if rents else None
+        med_sqft = round(statistics.median(sqfts), 0) if sqfts else None
+        rps = round(med_rent / med_sqft, 2) if med_rent and med_sqft else None
+
+        avail_count = sum(
+            1 for u in units
+            if (u.get("availability_status") or "").strip().lower() in _AVAIL_STATUSES
+        )
+        beds_str = ", ".join(f"{b} BR" for b in beds_set) if beds_set else ""
+
+        # Collect fees for this building (first unit that has fees)
+        fees_snapshot = None
+        for u in units:
+            raw_fees = u.get("fees")
+            if raw_fees and isinstance(raw_fees, str) and raw_fees.strip().startswith("["):
+                try:
+                    fees_snapshot = json.loads(raw_fees)
+                    break
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        # Collect amenities for this building from listing_amenities table
+        listing_ids = [u["listing_id"] for u in units if u.get("listing_id")]
+        amenities_snapshot = _fetch_building_amenities(listing_ids) if listing_ids else None
+
+        db.execute(
+            text("""
+                INSERT INTO pm_building_snapshots
+                    (id, location_key, snapshot_week, property_id, property_name, address,
+                     median_rent, median_sqft, rent_per_sqft, unit_count, available_units,
+                     beds_available, fees_json, amenities_json)
+                VALUES
+                    (gen_random_uuid(), :loc_key, :week, :pid, :pname, :addr,
+                     :med_rent, :med_sqft, :rps, :unit_count, :avail,
+                     :beds, :fees::jsonb, :amenities::jsonb)
+                ON CONFLICT (location_key, snapshot_week, property_id) DO UPDATE SET
+                    property_name = EXCLUDED.property_name,
+                    address = EXCLUDED.address,
+                    median_rent = EXCLUDED.median_rent,
+                    median_sqft = EXCLUDED.median_sqft,
+                    rent_per_sqft = EXCLUDED.rent_per_sqft,
+                    unit_count = EXCLUDED.unit_count,
+                    available_units = EXCLUDED.available_units,
+                    beds_available = EXCLUDED.beds_available,
+                    fees_json = EXCLUDED.fees_json,
+                    amenities_json = EXCLUDED.amenities_json,
+                    captured_at = now()
+            """),
+            {
+                "loc_key": loc_key,
+                "week": week,
+                "pid": pid,
+                "pname": first.get("property_name") or first.get("address") or "Unknown",
+                "addr": first.get("address") or "",
+                "med_rent": med_rent,
+                "med_sqft": med_sqft,
+                "rps": rps,
+                "unit_count": len(units),
+                "avail": avail_count,
+                "beds": beds_str,
+                "fees": json.dumps(fees_snapshot) if fees_snapshot else None,
+                "amenities": json.dumps(amenities_snapshot) if amenities_snapshot else None,
+            },
+        )
+
+    # ── Market-level snapshot ─────────────────────────────────────────
+    mkt = insights.market
+    sp = insights.supply_pressure
+    bed_vac = {
+        b.beds: {"total": b.total, "available": b.available, "vacancy_pct": b.vacancy_pct}
+        for b in (sp.by_bedroom or [])
+    } if sp.by_bedroom else None
+
+    db.execute(
+        text("""
+            INSERT INTO pm_market_snapshots
+                (id, location_key, snapshot_week, median_rent, p25_rent, p75_rent,
+                 sample_size, vacancy_rate_pct, available_units, total_units,
+                 bedroom_vacancy_json, center_latitude, center_longitude, radius_miles)
+            VALUES
+                (gen_random_uuid(), :loc_key, :week, :med_rent, :p25, :p75,
+                 :sample, :vac, :avail, :total,
+                 :bed_vac::jsonb, :lat, :lng, :radius)
+            ON CONFLICT (location_key, snapshot_week) DO UPDATE SET
+                median_rent = EXCLUDED.median_rent,
+                p25_rent = EXCLUDED.p25_rent,
+                p75_rent = EXCLUDED.p75_rent,
+                sample_size = EXCLUDED.sample_size,
+                vacancy_rate_pct = EXCLUDED.vacancy_rate_pct,
+                available_units = EXCLUDED.available_units,
+                total_units = EXCLUDED.total_units,
+                bedroom_vacancy_json = EXCLUDED.bedroom_vacancy_json,
+                captured_at = now()
+        """),
+        {
+            "loc_key": loc_key,
+            "week": week,
+            "med_rent": mkt.median_rent,
+            "p25": mkt.p25_rent,
+            "p75": mkt.p75_rent,
+            "sample": mkt.sample_size,
+            "vac": sp.vacancy_rate_pct,
+            "avail": sp.available_units,
+            "total": sp.total_units,
+            "bed_vac": json.dumps(bed_vac) if bed_vac else None,
+            "lat": lat,
+            "lng": lng,
+            "radius": radius_miles,
+        },
+    )
+
+    try:
+        db.commit()
+    except Exception:
+        logger.exception("Failed to archive snapshots for location_key=%s", loc_key)
+        db.rollback()
+
+
+def _fetch_building_amenities(listing_ids: list[str]) -> list[str] | None:
+    """Fetch distinct amenities for a set of listing_ids from listing_amenities table."""
+    if not listing_ids:
+        return None
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("""
+                    SELECT DISTINCT normalized_name
+                    FROM listing_amenities
+                    WHERE listing_id = ANY(:ids) AND normalized_name IS NOT NULL
+                    ORDER BY normalized_name
+                """),
+                {"ids": listing_ids},
+            ).fetchall()
+            return [r[0] for r in rows] if rows else None
+    except Exception:
+        logger.debug("Failed to fetch building amenities", exc_info=True)
+        return None
+
+
+# ── Trend queries ──────────────────────────────────────────────────────
+
+
+def get_market_history(
+    lat: float, lng: float, radius: float, weeks: int = 12,
+) -> list[MarketSnapshotPoint]:
+    """Return market-level snapshots for a location, newest first."""
+    loc_key = _location_key(lat, lng, radius)
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("""
+                    SELECT snapshot_week, median_rent, p25_rent, p75_rent,
+                           sample_size, vacancy_rate_pct, available_units, total_units
+                    FROM pm_market_snapshots
+                    WHERE location_key = :loc_key
+                    ORDER BY snapshot_week DESC
+                    LIMIT :lim
+                """),
+                {"loc_key": loc_key, "lim": weeks},
+            ).mappings().all()
+            return [
+                MarketSnapshotPoint(
+                    snapshot_week=r["snapshot_week"],
+                    median_rent=r["median_rent"],
+                    p25_rent=r["p25_rent"],
+                    p75_rent=r["p75_rent"],
+                    sample_size=r["sample_size"] or 0,
+                    vacancy_rate_pct=r["vacancy_rate_pct"],
+                    available_units=r["available_units"],
+                    total_units=r["total_units"],
+                )
+                for r in rows
+            ]
+    except Exception:
+        logger.exception("get_market_history failed")
+        return []
+
+
+def get_building_history(
+    lat: float, lng: float, radius: float, property_id: str, weeks: int = 12,
+) -> BuildingTrendsResponse:
+    """Return per-building snapshots for a specific building, newest first."""
+    loc_key = _location_key(lat, lng, radius)
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("""
+                    SELECT snapshot_week, property_id, property_name, address,
+                           median_rent, rent_per_sqft, unit_count, available_units
+                    FROM pm_building_snapshots
+                    WHERE location_key = :loc_key AND property_id = :pid
+                    ORDER BY snapshot_week DESC
+                    LIMIT :lim
+                """),
+                {"loc_key": loc_key, "pid": property_id, "lim": weeks},
+            ).mappings().all()
+            snapshots = [
+                BuildingSnapshotPoint(
+                    snapshot_week=r["snapshot_week"],
+                    property_id=r["property_id"],
+                    property_name=r["property_name"],
+                    address=r["address"],
+                    median_rent=r["median_rent"],
+                    rent_per_sqft=r["rent_per_sqft"],
+                    unit_count=r["unit_count"],
+                    available_units=r["available_units"],
+                )
+                for r in rows
+            ]
+            name = snapshots[0].property_name if snapshots else None
+            return BuildingTrendsResponse(
+                property_id=property_id,
+                property_name=name,
+                snapshots=snapshots,
+            )
+    except Exception:
+        logger.exception("get_building_history failed")
+        return BuildingTrendsResponse(property_id=property_id, snapshots=[])
+
+
+def get_buildings_latest_vs_previous(
+    lat: float, lng: float, radius: float,
+) -> list[BuildingDelta]:
+    """Compare latest and previous week building snapshots to compute deltas."""
+    loc_key = _location_key(lat, lng, radius)
+    try:
+        with engine.connect() as conn:
+            # Get the two most recent distinct snapshot_weeks
+            week_rows = conn.execute(
+                text("""
+                    SELECT DISTINCT snapshot_week
+                    FROM pm_building_snapshots
+                    WHERE location_key = :loc_key
+                    ORDER BY snapshot_week DESC
+                    LIMIT 2
+                """),
+                {"loc_key": loc_key},
+            ).fetchall()
+            if not week_rows:
+                return []
+
+            latest_week = week_rows[0][0]
+            prev_week = week_rows[1][0] if len(week_rows) >= 2 else None
+
+            # Fetch latest week buildings
+            latest_rows = conn.execute(
+                text("""
+                    SELECT property_id, property_name, address, median_rent, available_units
+                    FROM pm_building_snapshots
+                    WHERE location_key = :loc_key AND snapshot_week = :week
+                """),
+                {"loc_key": loc_key, "week": latest_week},
+            ).mappings().all()
+
+            # Fetch previous week buildings
+            prev_map: dict[str, dict] = {}
+            if prev_week:
+                prev_rows = conn.execute(
+                    text("""
+                        SELECT property_id, median_rent, available_units
+                        FROM pm_building_snapshots
+                        WHERE location_key = :loc_key AND snapshot_week = :week
+                    """),
+                    {"loc_key": loc_key, "week": prev_week},
+                ).mappings().all()
+                prev_map = {r["property_id"]: dict(r) for r in prev_rows}
+
+            deltas: list[BuildingDelta] = []
+            for r in latest_rows:
+                pid = r["property_id"]
+                prev = prev_map.get(pid)
+                cur_rent = r["median_rent"]
+                prev_rent = prev["median_rent"] if prev else None
+
+                rent_change: float | None = None
+                rent_change_pct: float | None = None
+                if cur_rent is not None and prev_rent is not None and prev_rent > 0:
+                    rent_change = round(cur_rent - prev_rent, 0)
+                    rent_change_pct = round((cur_rent - prev_rent) / prev_rent * 100, 1)
+
+                deltas.append(BuildingDelta(
+                    property_id=pid,
+                    property_name=r["property_name"],
+                    address=r["address"],
+                    current_rent=cur_rent,
+                    previous_rent=prev_rent,
+                    rent_change=rent_change,
+                    rent_change_pct=rent_change_pct,
+                    current_vacancy=r["available_units"],
+                    previous_vacancy=prev["available_units"] if prev else None,
+                    is_new=prev is None and prev_week is not None,
+                ))
+
+            # Sort by absolute rent change percentage (biggest movers first)
+            deltas.sort(key=lambda d: abs(d.rent_change_pct) if d.rent_change_pct is not None else 0, reverse=True)
+            return deltas
+    except Exception:
+        logger.exception("get_buildings_latest_vs_previous failed")
+        return []
+
+
+def _compute_single_delta(current: float | None, previous: float | None) -> MetricDelta | None:
+    """Compute a single metric delta."""
+    if current is None:
+        return None
+    if previous is None:
+        return MetricDelta(current=current)
+    change = round(current - previous, 2)
+    change_pct = round(change / previous * 100, 1) if previous != 0 else None
+    return MetricDelta(current=current, previous=previous, change=change, change_pct=change_pct)
+
+
+def compute_market_deltas(snapshots: list[MarketSnapshotPoint]) -> MarketDeltas | None:
+    """Compute WoW deltas from the two most recent market snapshots."""
+    if len(snapshots) < 2:
+        return None
+    curr, prev = snapshots[0], snapshots[1]
+    return MarketDeltas(
+        median_rent=_compute_single_delta(curr.median_rent, prev.median_rent),
+        vacancy_rate_pct=_compute_single_delta(curr.vacancy_rate_pct, prev.vacancy_rate_pct),
+        sample_size=_compute_single_delta(
+            float(curr.sample_size) if curr.sample_size else None,
+            float(prev.sample_size) if prev.sample_size else None,
+        ),
+    )
+
+
+def get_trends(lat: float, lng: float, radius: float, weeks: int = 12) -> TrendsResponse:
+    """Build the full trends response for a location."""
+    history = get_market_history(lat, lng, radius, weeks)
+    deltas = compute_market_deltas(history) if len(history) >= 2 else None
+    building_deltas = get_buildings_latest_vs_previous(lat, lng, radius)
+    return TrendsResponse(
+        market_history=history,
+        market_deltas=deltas,
+        building_deltas=building_deltas,
+        weeks_of_data=len(history),
+    )
+
+
+def _build_ai_trend_payload(lat: float, lng: float, radius: float) -> dict[str, Any] | None:
+    """Build a compact trend summary dict for the AI prompt, or None if insufficient data."""
+    history = get_market_history(lat, lng, radius, weeks=4)
+    if len(history) < 2:
+        return None
+
+    curr, prev = history[0], history[1]
+    rent_change_pct: float | None = None
+    rent_dir = "stable"
+    if curr.median_rent and prev.median_rent and prev.median_rent > 0:
+        rent_change_pct = round((curr.median_rent - prev.median_rent) / prev.median_rent * 100, 1)
+        if rent_change_pct > 1:
+            rent_dir = "rising"
+        elif rent_change_pct < -1:
+            rent_dir = "falling"
+
+    vac_dir = "stable"
+    if curr.vacancy_rate_pct is not None and prev.vacancy_rate_pct is not None:
+        vac_diff = curr.vacancy_rate_pct - prev.vacancy_rate_pct
+        if vac_diff > 0.5:
+            vac_dir = "loosening"
+        elif vac_diff < -0.5:
+            vac_dir = "tightening"
+
+    # Top building movers
+    building_deltas = get_buildings_latest_vs_previous(lat, lng, radius)
+    top_movers = [
+        {"name": d.property_name or d.address or d.property_id, "rent_change_pct": d.rent_change_pct}
+        for d in building_deltas[:5]
+        if d.rent_change_pct is not None and abs(d.rent_change_pct) > 1
+    ]
+
+    return {
+        "weeks_of_data": len(history),
+        "rent_direction": rent_dir,
+        "rent_change_pct": rent_change_pct,
+        "vacancy_direction": vac_dir,
+        "recent_rents": [
+            {"week": str(h.snapshot_week), "median": h.median_rent}
+            for h in history[:4]
+        ],
+        "top_movers": top_movers,
+    }
+
+
+def cleanup_old_snapshots(db: Session) -> None:
+    """Delete snapshots older than 53 weeks."""
+    try:
+        db.execute(text("DELETE FROM pm_building_snapshots WHERE captured_at < now() - interval '53 weeks'"))
+        db.execute(text("DELETE FROM pm_market_snapshots WHERE captured_at < now() - interval '53 weeks'"))
+        db.commit()
+    except Exception:
+        logger.exception("cleanup_old_snapshots failed")
+        db.rollback()
