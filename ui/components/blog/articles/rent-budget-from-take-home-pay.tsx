@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function RentBudgetFromTakeHomePay() {
   return (
@@ -74,6 +75,7 @@ export default function RentBudgetFromTakeHomePay() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA />
     </div>
   );
 }

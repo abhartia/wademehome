@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function MoveOutSecurityDepositReturn() {
   return (
@@ -74,6 +75,7 @@ export default function MoveOutSecurityDepositReturn() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA variant="movein" />
     </div>
   );
 }

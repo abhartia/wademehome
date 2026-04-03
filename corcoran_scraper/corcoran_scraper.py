@@ -147,16 +147,21 @@ def parse_listing_from_api(item: dict, scraped_ts: str) -> tuple[dict | None, li
 
     listing_id = f"corcoran_{listing_id_raw}"
 
-    # Location is nested: location.address, location.city, etc.
+    # Location can be nested (location.address) or flat (address1, city, state)
     loc = item.get("location") or {}
-    address = loc.get("address") or loc.get("streetAddress") or ""
-    city = loc.get("city") or loc.get("addressLocality")
-    state = loc.get("state") or loc.get("addressRegion")
-    zipcode = loc.get("zipCode") or loc.get("postalCode")
-    neighborhood = loc.get("neighborhood") or item.get("neighborhood")
+    address = (item.get("address1") or loc.get("address") or loc.get("streetAddress") or "")
+    address2 = item.get("address2") or ""
+    if address2 and address2 not in address:
+        address = f"{address}, {address2}".strip(", ")
+    city = (item.get("city") or loc.get("city") or loc.get("addressLocality")
+            or item.get("boroughName"))
+    state = (item.get("state") or loc.get("state") or loc.get("addressRegion"))
+    zipcode = (item.get("zipCode") or loc.get("zipCode") or loc.get("postalCode"))
+    neighborhood = (item.get("neighborhoodName") or item.get("neighborhood")
+                    or loc.get("neighborhood"))
 
-    lat = _parse_float(loc.get("latitude") or item.get("latitude") or item.get("lat"))
-    lon = _parse_float(loc.get("longitude") or item.get("longitude") or item.get("lng"))
+    lat = _parse_float(item.get("latitude") or loc.get("latitude") or item.get("lat"))
+    lon = _parse_float(item.get("longitude") or loc.get("longitude") or item.get("lng"))
 
     # Price: maximumLeaseRate / minimumLeaseRate
     price = _parse_float(item.get("maximumLeaseRate") or item.get("minimumLeaseRate")
@@ -171,13 +176,16 @@ def parse_listing_from_api(item: dict, scraped_ts: str) -> tuple[dict | None, li
                      or item.get("propertyName") or "")
     description = item.get("description") or item.get("remarks") or ""
 
-    # Build listing URL from sourceKey or listingId
-    source_key = item.get("sourceKey") or ""
+    # Build listing URL: construct canonical slug from address
     listing_url = item.get("url") or item.get("listingUrl") or ""
-    if not listing_url and source_key:
-        listing_url = f"https://www.corcoran.com/listing/{source_key}"
-    elif not listing_url:
-        listing_url = f"https://www.corcoran.com/listing/{listing_id_raw}"
+    if not listing_url:
+        # Build slug: "30-05-astoria-boulevard-astoria-ny-11102"
+        slug_parts = [address, city or "", state or "", zipcode or ""]
+        slug = "-".join(re.sub(r"[^a-z0-9]+", "-", " ".join(slug_parts).lower()).strip("-").split("-"))
+        if slug and slug != "-":
+            listing_url = f"https://www.corcoran.com/listing/for-rent/{slug}/{listing_id_raw}/regionId/1"
+        else:
+            listing_url = f"https://www.corcoran.com/listing/for-rent/{listing_id_raw}"
     elif listing_url and not listing_url.startswith("http"):
         listing_url = f"https://www.corcoran.com{listing_url}"
 
@@ -463,7 +471,7 @@ def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict
 # ── Playwright fallback ──────────────────────────────────────────────────────
 
 
-def _wait_for_search_api(page, timeout: int = 15000):
+def _wait_for_search_api(page, timeout: int = 20000):
     """Wait for the Corcoran search/listings API response."""
     try:
         page.wait_for_response(
@@ -472,6 +480,9 @@ def _wait_for_search_api(page, timeout: int = 15000):
         )
     except Exception:
         pass  # Response may have already arrived; continue
+    # Extra settle time for async response processing
+    import time
+    time.sleep(1)
 
 
 def _extract_captured(
@@ -485,7 +496,19 @@ def _extract_captured(
     """Process captured API responses and return count of new listings extracted."""
     found = 0
     for captured in list(captured_api_responses):
-        listings = _extract_listings_from_response(captured["data"])
+        data = captured["data"]
+        url = captured.get("url", "")
+        # Direct extraction for search/listings API (has "items" array)
+        if isinstance(data, dict) and "items" in data and isinstance(data["items"], list):
+            listings = data["items"]
+            logger.debug("  Captured %s: %d items", url[:60], len(listings))
+        elif isinstance(data, dict) and "search/listings" in url:
+            # search/listings response without items key — log it
+            listings = _extract_listings_from_response(data)
+            logger.info("  search/listings fallback: %d items from %s (keys: %s)",
+                       len(listings), url[:60], sorted(data.keys())[:8])
+        else:
+            listings = _extract_listings_from_response(data)
         for item in listings:
             row, photos = parse_listing_from_api(item, scraped_ts)
             if row and row["listing_id"] not in seen_ids:
@@ -524,10 +547,10 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
         content_type = response.headers.get("content-type", "")
         if "json" not in content_type:
             return
-        if "search/listings" in url or "corcoranlabs.com/api" in url:
+        if "corcoranlabs.com" in url:
             try:
                 body = response.json()
-                if isinstance(body, dict) and ("items" in body or "results" in body):
+                if isinstance(body, dict):
                     captured_api_responses.append({"url": url, "data": body})
             except Exception:
                 pass
@@ -556,14 +579,35 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
 
                 try:
                     page.goto(url, wait_until="domcontentloaded", timeout=60000)
-                    _wait_for_search_api(page, timeout=15000)
                     time.sleep(2)
-                    # Scroll to trigger lazy loading
+                    # Scroll to trigger the search/listings API call
+                    page.evaluate("window.scrollTo(0, 500)")
+                    time.sleep(1)
                     page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    time.sleep(2)
+                    # Wait for the API response AFTER scrolling triggers it
+                    _wait_for_search_api(page, timeout=20000)
+                    time.sleep(1)
                 except Exception as exc:
                     logger.warning("Failed: %s: %s", url, exc)
                     break
+
+                # Also extract from __NEXT_DATA__ (has 6 initial SSR items)
+                if page_num == 1:
+                    try:
+                        nd_json = page.evaluate(
+                            '(() => { const el = document.getElementById("__NEXT_DATA__");'
+                            ' return el ? el.textContent : null; })()'
+                        )
+                        if nd_json:
+                            nd = json.loads(nd_json)
+                            for item in nd.get("props", {}).get("pageProps", {}).get("initialItems", []):
+                                row, photos = parse_listing_from_api(item, scraped_ts)
+                                if row and row["listing_id"] not in seen_ids:
+                                    seen_ids.add(row["listing_id"])
+                                    all_rows.append(row)
+                                    all_photos.extend(photos)
+                    except Exception:
+                        pass
 
                 # Process captured API responses
                 found = _extract_captured(

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function RentalListingsFeesNetEffectiveRent() {
   return (
@@ -73,6 +74,7 @@ export default function RentalListingsFeesNetEffectiveRent() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA variant="search" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function GuarantorsAndCoSigners() {
   return (
@@ -75,6 +76,7 @@ export default function GuarantorsAndCoSigners() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA />
     </div>
   );
 }

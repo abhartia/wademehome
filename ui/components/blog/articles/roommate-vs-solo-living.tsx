@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function RoommateVsSoloLiving() {
   return (
@@ -71,6 +72,7 @@ export default function RoommateVsSoloLiving() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA />
     </div>
   );
 }
