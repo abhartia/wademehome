@@ -180,6 +180,14 @@ def upload_photo(
     if room is None:
         raise HTTPException(status_code=404, detail="Room not found")
 
+    # Validate inputs before uploading to avoid orphaned blobs
+    captured_at = None
+    if body.captured_at:
+        try:
+            captured_at = datetime.fromisoformat(body.captured_at)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid captured_at format")
+
     # Determine file extension
     original_name = file.filename or "photo.jpg"
     ext = original_name.rsplit(".", 1)[-1] if "." in original_name else "jpg"
@@ -202,13 +210,6 @@ def upload_photo(
         raise
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to upload photo: {exc!s}") from exc
-
-    captured_at = None
-    if body.captured_at:
-        try:
-            captured_at = datetime.fromisoformat(body.captured_at)
-        except ValueError:
-            raise HTTPException(status_code=422, detail="Invalid captured_at format")
 
     photo = UserMoveinPhotos(
         id=photo_id,
