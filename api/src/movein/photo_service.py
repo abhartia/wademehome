@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-import os
 import uuid
 from datetime import datetime
 
+from azure.storage.blob import BlobServiceClient, ContentSettings
 from fastapi import HTTPException, UploadFile
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from core.config import Config
 from db.models import UserMoveinPhotoRooms, UserMoveinPhotos, UserMoveinPlans
 from movein.photo_schemas import (
     PhotoCreate,
@@ -20,7 +21,16 @@ from movein.photo_schemas import (
 )
 
 
-UPLOAD_ROOT = "uploads/movein-photos"
+def _blob_client():
+    """Return (BlobServiceClient, container_name) or raise 500 if not configured."""
+    conn = (Config.get("AZURE_BLOB_CONNECTION_STRING", "") or "").strip()
+    container = (Config.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or "").strip()
+    if not conn or not container:
+        raise HTTPException(
+            status_code=500,
+            detail="Azure Blob storage is not configured for move-in photos",
+        )
+    return BlobServiceClient.from_connection_string(conn), container
 
 
 def _ensure_plan(db: Session, user_id: uuid.UUID) -> UserMoveinPlans:
@@ -172,16 +182,24 @@ def upload_photo(
     original_name = file.filename or "photo.jpg"
     ext = original_name.rsplit(".", 1)[-1] if "." in original_name else "jpg"
     photo_id = uuid.uuid4()
-    relative_path = f"{UPLOAD_ROOT}/{plan.id}/{room_id}/{photo_id}.{ext}"
+    blob_name = f"movein-photos/{plan.id}/{room_id}/{photo_id}.{ext}"
 
-    # Save to disk
-    abs_path = os.path.join(os.getcwd(), relative_path)
-    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+    # Upload to Azure Blob Storage
     content = file.file.read()
-    with open(abs_path, "wb") as f:
-        f.write(content)
-
-    file_size = os.path.getsize(abs_path)
+    content_type = file.content_type or "image/jpeg"
+    try:
+        service_client, container = _blob_client()
+        blob = service_client.get_blob_client(container=container, blob=blob_name)
+        blob.upload_blob(
+            content,
+            overwrite=False,
+            content_settings=ContentSettings(content_type=content_type),
+        )
+        photo_url = blob.url
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to upload photo: {exc!s}") from exc
 
     captured_at = None
     if body.captured_at:
@@ -193,12 +211,12 @@ def upload_photo(
     photo = UserMoveinPhotos(
         id=photo_id,
         room_id=room_id,
-        photo_url=relative_path,
+        photo_url=photo_url,
         note=body.note,
         captured_at=captured_at,
         latitude=body.latitude,
         longitude=body.longitude,
-        file_size_bytes=file_size,
+        file_size_bytes=len(content),
     )
     db.add(photo)
     db.commit()
@@ -232,6 +250,25 @@ def patch_photo(
     return _photo_out(photo)
 
 
+def _delete_blob(photo_url: str) -> None:
+    """Best-effort delete of a blob by its full URL."""
+    try:
+        service_client, container = _blob_client()
+        # Extract blob name from the full URL
+        # URL format: https://<account>.blob.core.windows.net/<container>/<blob_name>
+        container_client = service_client.get_container_client(container)
+        # blob name is the path portion after the container segment
+        marker = f"/{container}/"
+        idx = photo_url.find(marker)
+        if idx == -1:
+            return
+        blob_name = photo_url[idx + len(marker):]
+        container_client.delete_blob(blob_name)
+    except Exception:
+        # Best-effort: don't fail the delete request if blob cleanup fails
+        pass
+
+
 def delete_photo(db: Session, user_id: uuid.UUID, photo_id: uuid.UUID) -> None:
     plan = _ensure_plan(db, user_id)
     photo = (
@@ -247,6 +284,7 @@ def delete_photo(db: Session, user_id: uuid.UUID, photo_id: uuid.UUID) -> None:
     )
     if photo is None:
         raise HTTPException(status_code=404, detail="Photo not found")
+    _delete_blob(photo.photo_url)
     db.delete(photo)
     db.commit()
 

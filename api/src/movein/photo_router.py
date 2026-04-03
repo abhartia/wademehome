@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import os
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
-from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
@@ -125,32 +123,3 @@ def delete_single_photo(
     return None
 
 
-@router.get("/file/{plan_id}/{room_id}/{filename}")
-def serve_photo(
-    plan_id: str,
-    room_id: str,
-    filename: str,
-    user: Users = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    from fastapi import HTTPException
-    from sqlalchemy import select
-
-    from db.models import UserMoveinPhotoRooms, UserMoveinPhotos, UserMoveinPlans
-
-    # Verify the photo belongs to the current user
-    plan = db.execute(
-        select(UserMoveinPlans).where(
-            UserMoveinPlans.id == plan_id,
-            UserMoveinPlans.user_id == user.id,
-        )
-    ).scalar_one_or_none()
-    if plan is None:
-        raise HTTPException(status_code=404, detail="Not found")
-
-    relative_path = f"uploads/movein-photos/{plan_id}/{room_id}/{filename}"
-    abs_path = os.path.join(os.getcwd(), relative_path)
-    if not os.path.isfile(abs_path):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    return FileResponse(abs_path)
