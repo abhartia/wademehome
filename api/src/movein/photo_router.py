@@ -133,12 +133,12 @@ def serve_photo(
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Backward-compat endpoint for photos uploaded to local disk before Azure migration."""
     from fastapi import HTTPException
     from sqlalchemy import select
 
-    from db.models import UserMoveinPhotoRooms, UserMoveinPhotos, UserMoveinPlans
+    from db.models import UserMoveinPlans
 
-    # Verify the photo belongs to the current user
     plan = db.execute(
         select(UserMoveinPlans).where(
             UserMoveinPlans.id == plan_id,
@@ -154,3 +154,5 @@ def serve_photo(
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(abs_path)
+
+

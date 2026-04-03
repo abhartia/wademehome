@@ -108,6 +108,10 @@ class Config:
     AUTH_MAGIC_LINK_MINUTES: str = env_manager.get("AUTH_MAGIC_LINK_MINUTES", "15") or "15"
     AUTH_VERIFY_EMAIL_HOURS: str = env_manager.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48"
 
+    # Azure Blob Storage (shared connection string, per-feature containers)
+    AZURE_BLOB_CONNECTION_STRING: str = env_manager.get("AZURE_BLOB_CONNECTION_STRING", "") or ""
+    AZURE_BLOB_MOVEIN_CONTAINER: str = env_manager.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or ""
+
     @classmethod
     def _refresh_values(cls) -> None:
         """Re-sync class attributes after .env reload (see env_manager.auto_reload)."""
@@ -208,6 +212,8 @@ class Config:
         cls.AUTH_SESSION_DAYS = env_manager.get("AUTH_SESSION_DAYS", "14") or "14"
         cls.AUTH_MAGIC_LINK_MINUTES = env_manager.get("AUTH_MAGIC_LINK_MINUTES", "15") or "15"
         cls.AUTH_VERIFY_EMAIL_HOURS = env_manager.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48"
+        cls.AZURE_BLOB_CONNECTION_STRING = env_manager.get("AZURE_BLOB_CONNECTION_STRING", "") or ""
+        cls.AZURE_BLOB_MOVEIN_CONTAINER = env_manager.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or ""
 
     @classmethod
     def get(cls, key: str, default: str | None = None) -> str | None:
