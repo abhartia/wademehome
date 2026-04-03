@@ -1,9 +1,9 @@
 {
-  "mode_signature": "2e6a934ea8d2e6aec3afb6ee",
-  "processed": 6620,
-  "queue_total": 6620,
-  "parsed_ok": 4464,
-  "parsed_none": 2156,
+  "mode_signature": "ac2694f6edc4a20a665b863d",
+  "processed": 500,
+  "queue_total": 500,
+  "parsed_ok": 316,
+  "parsed_none": 184,
   "last_key": "DONE",
-  "updated_at": "2026-04-01T18:15:38Z"
+  "updated_at": "2026-04-03T03:33:53Z"
 }

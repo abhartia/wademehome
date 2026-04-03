@@ -463,12 +463,46 @@ def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict
 # ── Playwright fallback ──────────────────────────────────────────────────────
 
 
+def _wait_for_search_api(page, timeout: int = 15000):
+    """Wait for the Corcoran search/listings API response."""
+    try:
+        page.wait_for_response(
+            lambda r: "search/listings" in r.url and r.status == 200,
+            timeout=timeout,
+        )
+    except Exception:
+        pass  # Response may have already arrived; continue
+
+
+def _extract_captured(
+    captured_api_responses: list[dict],
+    seen_ids: set[str],
+    all_rows: list[dict],
+    all_photos: list[dict],
+    scraped_ts: str,
+    env: str,
+) -> int:
+    """Process captured API responses and return count of new listings extracted."""
+    found = 0
+    for captured in list(captured_api_responses):
+        listings = _extract_listings_from_response(captured["data"])
+        for item in listings:
+            row, photos = parse_listing_from_api(item, scraped_ts)
+            if row and row["listing_id"] not in seen_ids:
+                seen_ids.add(row["listing_id"])
+                all_rows.append(row)
+                all_photos.extend(photos)
+                found += 1
+                if env == "local":
+                    save_raw_gz(env, item, row["listing_id"], scraped_ts.split()[0])
+    captured_api_responses.clear()
+    return found
+
+
 def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict]]:
     """
-    Use Playwright to render Corcoran search pages and capture listing data.
-    Strategy:
-      1. Intercept XHR/fetch responses containing listing JSON
-      2. Fall back to DOM scraping if API interception yields nothing
+    Use Playwright to render Corcoran search pages and intercept API responses.
+    Navigates to URL-based pages (?page=N) to trigger API calls from the SPA.
     """
     try:
         from playwright.sync_api import sync_playwright
@@ -483,20 +517,17 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
     captured_api_responses: list[dict] = []
 
     def on_response(response):
-        """Intercept API responses that contain listing data."""
+        """Intercept search/listings API responses."""
         url = response.url
         if response.status != 200:
             return
         content_type = response.headers.get("content-type", "")
-        if "json" not in content_type and "javascript" not in content_type:
+        if "json" not in content_type:
             return
-        # Look for search/listing API endpoints
-        if any(kw in url.lower() for kw in ("search", "listing", "property", "rental", "result")):
+        if "search/listings" in url or "corcoranlabs.com/api" in url:
             try:
                 body = response.json()
-                if isinstance(body, dict):
-                    captured_api_responses.append({"url": url, "data": body})
-                elif isinstance(body, list) and body:
+                if isinstance(body, dict) and ("items" in body or "results" in body):
                     captured_api_responses.append({"url": url, "data": body})
             except Exception:
                 pass
@@ -513,93 +544,38 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
         page = context.new_page()
         page.on("response", on_response)
 
-        pages_scraped = 0
         for search_url in NYC_SEARCH_URLS:
-            if pages_scraped >= max_pages:
-                break
+            region_total = 0
+            for page_num in range(1, max_pages + 1):
+                # Construct URL with page parameter
+                sep = "&" if "?" in search_url else "?"
+                url = f"{search_url}{sep}page={page_num}" if page_num > 1 else search_url
 
-            logger.info("Loading search page: %s", search_url)
-            try:
-                page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
-                # Wait for SPA to render
-                time.sleep(5)
-                # Scroll to trigger lazy loading
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
-                time.sleep(2)
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                time.sleep(3)
-            except Exception as exc:
-                logger.warning("Failed to load %s: %s", search_url, exc)
-                continue
+                logger.info("Loading: %s", url)
+                captured_api_responses.clear()
 
-            # Try extracting from intercepted API responses
-            for captured in captured_api_responses:
-                listings = _extract_listings_from_response(captured["data"])
-                for item in listings:
-                    row, photos = parse_listing_from_api(item, scraped_ts)
-                    if row and row["listing_id"] not in seen_ids:
-                        seen_ids.add(row["listing_id"])
-                        all_rows.append(row)
-                        all_photos.extend(photos)
-                        if env == "local":
-                            save_raw_gz(env, item, row["listing_id"], scraped_ts.split()[0])
-
-            captured_api_responses.clear()
-
-            # Fallback: DOM scraping
-            if not all_rows:
-                logger.info("No API data captured, falling back to DOM scraping")
-                html = page.content()
-                from bs4 import BeautifulSoup
-                soup = BeautifulSoup(html, "lxml")
-
-                # Look for listing cards by common patterns
-                cards = (
-                    soup.find_all(attrs={"data-testid": re.compile(r"listing|property|card", re.I)})
-                    or soup.find_all(class_=re.compile(r"listing.?card|property.?card|search.?result", re.I))
-                    or soup.find_all("article")
-                )
-                logger.info("Found %d DOM listing cards", len(cards))
-
-                for card in cards:
-                    row, photos = parse_listing_from_html(card, scraped_ts)
-                    if row and row["listing_id"] not in seen_ids:
-                        seen_ids.add(row["listing_id"])
-                        all_rows.append(row)
-                        all_photos.extend(photos)
-
-            # Try pagination — click "next" or scroll
-            for page_num in range(2, max_pages - pages_scraped + 1):
                 try:
-                    next_btn = page.query_selector(
-                        'button:has-text("Next"), a:has-text("Next"), '
-                        '[aria-label="Next page"], [data-testid*="next"]'
-                    )
-                    if not next_btn or not next_btn.is_visible():
-                        logger.info("No more pages for %s", search_url)
-                        break
-                    next_btn.click()
-                    page.wait_for_load_state("networkidle", timeout=30000)
+                    page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                    _wait_for_search_api(page, timeout=15000)
                     time.sleep(2)
-                    pages_scraped += 1
-
-                    for captured in captured_api_responses:
-                        listings = _extract_listings_from_response(captured["data"])
-                        for item in listings:
-                            row, photos = parse_listing_from_api(item, scraped_ts)
-                            if row and row["listing_id"] not in seen_ids:
-                                seen_ids.add(row["listing_id"])
-                                all_rows.append(row)
-                                all_photos.extend(photos)
-                                if env == "local":
-                                    save_raw_gz(env, item, row["listing_id"], scraped_ts.split()[0])
-                    captured_api_responses.clear()
-
+                    # Scroll to trigger lazy loading
+                    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    time.sleep(2)
                 except Exception as exc:
-                    logger.warning("Pagination failed on page %d: %s", page_num, exc)
+                    logger.warning("Failed: %s: %s", url, exc)
                     break
 
-            pages_scraped += 1
+                # Process captured API responses
+                found = _extract_captured(
+                    captured_api_responses, seen_ids, all_rows, all_photos, scraped_ts, env
+                )
+                region_total += found
+                logger.info("  Page %d: %d new (region total %d, overall %d)",
+                           page_num, found, region_total, len(all_rows))
+
+                if found == 0:
+                    logger.info("  No new listings on page %d, moving to next region", page_num)
+                    break
 
         browser.close()
 

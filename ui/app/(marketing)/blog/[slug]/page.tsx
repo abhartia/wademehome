@@ -8,6 +8,9 @@ import { Separator } from "@/components/ui/separator";
 
 type Props = { params: Promise<{ slug: string }> };
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
+
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
 }
@@ -44,8 +47,24 @@ export default async function BlogArticlePage({ params }: Props) {
   const Body = articleBodies[slug];
   if (!meta || !Body) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: meta.title,
+    description: meta.description,
+    datePublished: meta.publishedAt,
+    author: { "@type": "Organization", name: "Wade Me Home", url: baseUrl },
+    publisher: { "@type": "Organization", name: "Wade Me Home", url: baseUrl },
+    mainEntityOfPage: `${baseUrl}/blog/${slug}`,
+    keywords: meta.keywords?.join(", "),
+  };
+
   return (
     <div className="flex-1 overflow-y-auto">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article className="mx-auto max-w-3xl space-y-6 p-6">
         <div className="space-y-3">
           <Badge variant="outline">Guide</Badge>

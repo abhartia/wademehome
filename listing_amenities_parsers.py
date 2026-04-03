@@ -615,6 +615,84 @@ def _appfolio_dedupe_preserve(xs: list[str]) -> list[str]:
     return out
 
 
+# ── Corcoran ──────────────────────────────────────────────────────────────────
+
+_CORCORAN_INDOOR_LABELS = frozenset({
+    "indoor features", "interior features", "apartment features",
+    "unit features", "in-unit features",
+})
+_CORCORAN_BUILDING_LABELS = frozenset({
+    "building features", "building amenities", "community features",
+    "community amenities", "outdoor features", "common amenities",
+})
+
+
+def parse_corcoran_amenities(html: str) -> tuple[list[str], list[str]] | None:
+    """
+    Corcoran listing detail pages (Next.js with ``__NEXT_DATA__``).
+
+    ``listing.features`` is an array of ``{name, amenities: [str, ...]}`` groups.
+    Groups are classified as apartment-level (indoor/unit) or community-level
+    (building/outdoor/other) based on the ``name`` field.
+    """
+    apartment: list[str] = []
+    community: list[str] = []
+
+    # Strategy 1: __NEXT_DATA__ JSON
+    m = re.search(r'<script\s+id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
+    if m:
+        try:
+            data = json.loads(m.group(1))
+            features = (
+                data.get("props", {}).get("pageProps", {}).get("listing", {}).get("features")
+            )
+            if isinstance(features, list):
+                for group in features:
+                    if not isinstance(group, dict):
+                        continue
+                    name = (group.get("name") or "").strip().lower()
+                    items = group.get("amenities") or []
+                    items = [a.strip() for a in items if isinstance(a, str) and a.strip()]
+                    if not items:
+                        continue
+                    if name in _CORCORAN_INDOOR_LABELS:
+                        apartment.extend(items)
+                    elif name in _CORCORAN_BUILDING_LABELS:
+                        community.extend(items)
+                    elif "indoor" in name or "unit" in name or "apartment" in name:
+                        apartment.extend(items)
+                    elif "building" in name or "community" in name or "outdoor" in name:
+                        community.extend(items)
+                    else:
+                        # Default: "Other" and unrecognized groups go to apartment
+                        apartment.extend(items)
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
+    # Strategy 2: DOM fallback — look for amenity sections in rendered HTML
+    if not apartment and not community:
+        soup = BeautifulSoup(html, "html.parser")
+        for heading in soup.find_all(re.compile(r"^h[2-4]$")):
+            text = heading.get_text(strip=True).lower()
+            if "feature" not in text and "amenit" not in text:
+                continue
+            # Walk forward to find <ul> lists
+            sibling = heading.find_next_sibling()
+            while sibling and sibling.name not in ("h2", "h3", "h4", "section"):
+                if sibling.name == "ul":
+                    items = [li.get_text(strip=True) for li in sibling.find_all("li") if li.get_text(strip=True)]
+                    if "indoor" in text or "unit" in text or "apartment" in text:
+                        apartment.extend(items)
+                    else:
+                        community.extend(items)
+                    break
+                sibling = sibling.find_next_sibling()
+
+    if not apartment and not community:
+        return None
+    return (list(dict.fromkeys(community)), list(dict.fromkeys(apartment)))
+
+
 def parse_appfolio_listing_detail_amenities_html(html: str) -> tuple[list[str], list[str]] | None:
     """
     AppFolio ``/listings/detail/{uuid}`` pages: ``h2``/``h3`` sections such as

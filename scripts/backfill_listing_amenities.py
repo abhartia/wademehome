@@ -73,7 +73,7 @@ is_bad_html = _bld.is_bad_html
 
 ENV_FILE = REPO_ROOT / "api" / ".env"
 
-SUPPORTED_COMPANIES = ("RentCafe", "RealPage", "Entrata", "Greystar", "AppFolio")
+SUPPORTED_COMPANIES = ("RentCafe", "RealPage", "Entrata", "Greystar", "AppFolio", "Corcoran")
 
 _LOG_LOCK = threading.Lock()
 
@@ -426,6 +426,22 @@ def fetch_amenities(job: UrlJob, connect_timeout_s: int, read_timeout_s: int) ->
                 if out is not None:
                     return out
                 break
+        return None
+
+    if job.company == "Corcoran":
+        session = _get_thread_http_session()
+        seed_url = job.listing_url.strip()
+        for attempt in range(3):
+            resp = session.get(seed_url, timeout=to, allow_redirects=True)
+            if int(resp.status_code) in {403, 429, 503}:
+                time.sleep(1.5 + attempt)
+                continue
+            if is_bad_html(int(resp.status_code), resp.text):
+                break
+            out = lap.parse_corcoran_amenities(resp.text)
+            if out is not None:
+                return out
+            break
         return None
 
     return None

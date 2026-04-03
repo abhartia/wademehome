@@ -473,22 +473,20 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
     captured_api_responses: list[dict] = []
 
     def on_response(response):
-        """Intercept API responses containing listing data."""
+        """Intercept ALL core.api.elliman.com JSON responses."""
         url = response.url
         if response.status != 200:
             return
         content_type = response.headers.get("content-type", "")
         if "json" not in content_type:
             return
-        # Look for Elliman listing API calls
-        if any(kw in url.lower() for kw in ("listing/filter", "listing/search",
-                                              "search/listing", "listing/map")):
+        # Capture ALL Elliman API responses (not just listing/filter)
+        if "core.api.elliman.com" in url:
             try:
                 body = response.json()
-                if isinstance(body, dict):
+                if isinstance(body, (dict, list)):
                     captured_api_responses.append({"url": url, "data": body})
-                    logger.info("Captured API: %s (%d keys)", url[:80],
-                                len(body.get("listings", [])) or len(body))
+                    logger.info("Captured API: %s", url[:80])
             except Exception:
                 pass
 
@@ -508,15 +506,15 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
             logger.info("Loading: %s", search_url)
             try:
                 page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
-                # Wait for listing/filter specifically, then extra time for async responses
+                # Wait for any Elliman API response
                 try:
                     page.wait_for_response(
-                        lambda r: "listing/filter" in r.url and r.status == 200,
+                        lambda r: "core.api.elliman.com" in r.url and r.status == 200,
                         timeout=15000
                     )
                 except Exception:
                     pass
-                time.sleep(2)
+                time.sleep(3)
                 # Scroll to trigger more data
                 page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
                 time.sleep(1)
@@ -526,19 +524,51 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
                 logger.warning("Failed: %s: %s", search_url, exc)
                 continue
 
-        # Process ALL accumulated API responses from all pages
-        logger.info("Processing %d captured API responses...", len(captured_api_responses))
+            # Extract __NEXT_DATA__ from rendered HTML (Next.js hydration)
+            try:
+                next_data_json = page.evaluate("""
+                    (() => {
+                        const el = document.getElementById('__NEXT_DATA__');
+                        return el ? el.textContent : null;
+                    })()
+                """)
+                if next_data_json:
+                    next_data = json.loads(next_data_json)
+                    captured_api_responses.append({
+                        "url": f"__NEXT_DATA__:{search_url}",
+                        "data": next_data,
+                    })
+                    logger.info("  Captured __NEXT_DATA__ from %s", search_url)
+            except Exception as exc:
+                logger.debug("  __NEXT_DATA__ extraction failed: %s", exc)
+
+        # Process ALL accumulated API responses + __NEXT_DATA__
+        logger.info("Processing %d captured responses...", len(captured_api_responses))
         for captured in list(captured_api_responses):
             data = captured["data"]
             url = captured["url"]
             # Direct extraction for known Elliman API format
-            if isinstance(data, dict) and "listings" in data:
+            if isinstance(data, dict) and "listings" in data and isinstance(data["listings"], list):
                 listings = data["listings"]
-                logger.info("  Direct extract from %s: %d listings (totalCount=%s)",
+                logger.info("  Direct 'listings' key from %s: %d items (totalCount=%s)",
                            url[:60], len(listings), data.get("totalCount"))
+            # Handle clustered endpoint: groupedListings may contain individual listings
+            elif isinstance(data, dict) and "groupedListings" in data:
+                listings = []
+                for group in (data.get("groupedListings") or []):
+                    if isinstance(group, dict) and _looks_like_listing(group):
+                        listings.append(group)
+                    elif isinstance(group, list):
+                        listings.extend(g for g in group if isinstance(g, dict) and _looks_like_listing(g))
+                # Also check clusterMarkers for individual listing data
+                for marker in (data.get("clusterMarkers") or []):
+                    if isinstance(marker, dict) and _looks_like_listing(marker):
+                        listings.append(marker)
+                logger.info("  Clustered/grouped from %s: %d items", url[:60], len(listings))
             else:
                 listings = _extract_listings_from_response(data)
-                logger.info("  Heuristic extract from %s: %d items", url[:60], len(listings))
+                if listings:
+                    logger.info("  Heuristic from %s: %d items", url[:60], len(listings))
             for item in listings:
                 row, photos = parse_listing_from_api(item, scraped_ts)
                 if row and row["listing_id"] not in seen_ids:
