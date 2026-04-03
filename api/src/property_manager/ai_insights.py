@@ -64,6 +64,11 @@ Include these sections (skip any where data is insufficient):
    assessed income? What does value-per-unit tell us about asset \
    quality vs. rent levels? Note: in-place rents are *estimated* from \
    NYC DOF assessed market values using income capitalization.
+8. "Trend Analysis" — if trends data is provided, comment on the \
+   direction of rents and vacancy over recent weeks. Is the market \
+   tightening or loosening? Are rents accelerating or decelerating? \
+   Which specific competitors are making notable pricing moves? \
+   Only include this section when trends data is present in the input.
 """
 
 
@@ -75,6 +80,7 @@ def _build_data_payload(
     supply_pressure: SupplyPressure,
     amenities: AmenityAnalysis,
     building_financials: BuildingFinancials | None = None,
+    trend_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble the structured data dict sent to the LLM."""
     d: dict[str, Any] = {}
@@ -169,6 +175,9 @@ def _build_data_payload(
                 for b in (building_financials.buildings or [])[:10]
             ],
         }
+
+    if trend_data:
+        d["trends"] = trend_data
 
     return d
 
@@ -275,11 +284,13 @@ def generate_ai_summary(
     supply_pressure: SupplyPressure,
     amenities: AmenityAnalysis,
     building_financials: BuildingFinancials | None = None,
+    trend_data: dict[str, Any] | None = None,
 ) -> AiSummary | None:
     """Generate (or return cached) AI narrative summary. Returns None on failure."""
     data = _build_data_payload(
         market, demographics, competitors, fee_intelligence, supply_pressure, amenities,
         building_financials=building_financials,
+        trend_data=trend_data,
     )
 
     key = _cache_key(data)

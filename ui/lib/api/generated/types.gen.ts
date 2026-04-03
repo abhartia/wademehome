@@ -7627,6 +7627,117 @@ export type GetInsightsPropertyManagerInsightsPostResponses = {
 
 export type GetInsightsPropertyManagerInsightsPostResponse = GetInsightsPropertyManagerInsightsPostResponses[keyof GetInsightsPropertyManagerInsightsPostResponses];
 
+// ── Trends types ──────────────────────────────────────────────────────
+
+export type MarketSnapshotPoint = {
+    snapshot_week: string;
+    median_rent?: number | null;
+    p25_rent?: number | null;
+    p75_rent?: number | null;
+    sample_size?: number;
+    vacancy_rate_pct?: number | null;
+    available_units?: number | null;
+    total_units?: number | null;
+};
+
+export type BuildingSnapshotPoint = {
+    snapshot_week: string;
+    property_id: string;
+    property_name?: string | null;
+    address?: string | null;
+    median_rent?: number | null;
+    rent_per_sqft?: number | null;
+    unit_count?: number | null;
+    available_units?: number | null;
+};
+
+export type BuildingDelta = {
+    property_id: string;
+    property_name?: string | null;
+    address?: string | null;
+    current_rent?: number | null;
+    previous_rent?: number | null;
+    rent_change?: number | null;
+    rent_change_pct?: number | null;
+    current_vacancy?: number | null;
+    previous_vacancy?: number | null;
+    is_new?: boolean;
+};
+
+export type MetricDelta = {
+    current?: number | null;
+    previous?: number | null;
+    change?: number | null;
+    change_pct?: number | null;
+};
+
+export type MarketDeltas = {
+    median_rent?: MetricDelta | null;
+    vacancy_rate_pct?: MetricDelta | null;
+    sample_size?: MetricDelta | null;
+};
+
+export type TrendsResponse = {
+    market_history?: Array<MarketSnapshotPoint>;
+    market_deltas?: MarketDeltas | null;
+    building_deltas?: Array<BuildingDelta>;
+    weeks_of_data?: number;
+};
+
+export type BuildingTrendsRequest = {
+    center_latitude: number;
+    center_longitude: number;
+    radius_miles?: number;
+    property_id: string;
+    weeks?: number;
+};
+
+export type BuildingTrendsResponse = {
+    property_id: string;
+    property_name?: string | null;
+    snapshots?: Array<BuildingSnapshotPoint>;
+};
+
+export type GetTrendsPropertyManagerTrendsPostData = {
+    body: InsightsRequest;
+    path?: never;
+    query?: {
+        weeks?: number;
+    };
+    url: '/property-manager/trends';
+};
+
+export type GetTrendsPropertyManagerTrendsPostErrors = {
+    422: HttpValidationError;
+};
+
+export type GetTrendsPropertyManagerTrendsPostError = GetTrendsPropertyManagerTrendsPostErrors[keyof GetTrendsPropertyManagerTrendsPostErrors];
+
+export type GetTrendsPropertyManagerTrendsPostResponses = {
+    200: TrendsResponse;
+};
+
+export type GetTrendsPropertyManagerTrendsPostResponse = GetTrendsPropertyManagerTrendsPostResponses[keyof GetTrendsPropertyManagerTrendsPostResponses];
+
+export type GetBuildingTrendsPropertyManagerBuildingTrendsPostData = {
+    body: BuildingTrendsRequest;
+    path?: never;
+    query?: never;
+    url: '/property-manager/building-trends';
+};
+
+export type GetBuildingTrendsPropertyManagerBuildingTrendsPostErrors = {
+    422: HttpValidationError;
+};
+
+export type GetBuildingTrendsPropertyManagerBuildingTrendsPostError = GetBuildingTrendsPropertyManagerBuildingTrendsPostErrors[keyof GetBuildingTrendsPropertyManagerBuildingTrendsPostErrors];
+
+export type GetBuildingTrendsPropertyManagerBuildingTrendsPostResponses = {
+    200: BuildingTrendsResponse;
+};
+
+export type GetBuildingTrendsPropertyManagerBuildingTrendsPostResponse = GetBuildingTrendsPropertyManagerBuildingTrendsPostResponses[keyof GetBuildingTrendsPropertyManagerBuildingTrendsPostResponses];
+
 export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostData = {
     body?: never;
     headers?: {

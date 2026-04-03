@@ -10,12 +10,15 @@ from core.env_utils import env_manager
 from db.models import Users
 from listings.schemas import NearbyListingsResponse
 from property_manager.schemas import (
+    BuildingTrendsRequest,
+    BuildingTrendsResponse,
     InsightsRequest,
     InsightsResponse,
     ReportPreviewRequest,
     ReportSubscriptionCreate,
     ReportSubscriptionResponse,
     ReportSubscriptionUpdate,
+    TrendsResponse,
     WeeklySendResponse,
 )
 from property_manager import service as pm_service
@@ -94,12 +97,50 @@ def send_report_subscription_now(
 @router.post("/insights", response_model=InsightsResponse)
 def get_insights(
     payload: InsightsRequest,
+    db: Session = Depends(get_db),
     _: Users = Depends(get_current_property_manager_or_admin),
 ) -> InsightsResponse:
-    return pm_service.build_insights(
+    result = pm_service.build_insights(
         payload.center_latitude,
         payload.center_longitude,
         payload.radius_miles,
+    )
+    # Archive snapshot for time-series (fire-and-forget)
+    try:
+        pm_service.archive_snapshots(
+            db, payload.center_latitude, payload.center_longitude,
+            payload.radius_miles, result,
+        )
+    except Exception:
+        pass  # Non-critical; logged inside archive_snapshots
+    return result
+
+
+@router.post("/trends", response_model=TrendsResponse)
+def get_trends(
+    payload: InsightsRequest,
+    weeks: int = 12,
+    _: Users = Depends(get_current_property_manager_or_admin),
+) -> TrendsResponse:
+    return pm_service.get_trends(
+        payload.center_latitude,
+        payload.center_longitude,
+        payload.radius_miles,
+        min(weeks, 52),
+    )
+
+
+@router.post("/building-trends", response_model=BuildingTrendsResponse)
+def get_building_trends(
+    payload: BuildingTrendsRequest,
+    _: Users = Depends(get_current_property_manager_or_admin),
+) -> BuildingTrendsResponse:
+    return pm_service.get_building_history(
+        payload.center_latitude,
+        payload.center_longitude,
+        payload.radius_miles,
+        payload.property_id,
+        min(payload.weeks, 52),
     )
 
 

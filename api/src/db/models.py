@@ -9,6 +9,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum as SQLEnum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -19,7 +20,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -228,6 +229,63 @@ class PropertyManagerReportSubscriptions(Base):
     )
 
     user: Mapped["Users"] = relationship(back_populates="property_manager_report_subscriptions")
+
+
+class PmBuildingSnapshots(Base):
+    """Per-building weekly snapshots for time-series tracking, shared by location."""
+
+    __tablename__ = "pm_building_snapshots"
+    __table_args__ = (
+        UniqueConstraint("location_key", "snapshot_week", "property_id", name="uq_pm_bldg_snap_loc_week_pid"),
+        Index("ix_pm_bldg_snap_loc_pid_week", "location_key", "property_id", "snapshot_week"),
+        Index("ix_pm_bldg_snap_loc_week", "location_key", "snapshot_week"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    location_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    snapshot_week: Mapped[date] = mapped_column(Date, nullable=False)
+    property_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    property_name: Mapped[str | None] = mapped_column(String(500))
+    address: Mapped[str | None] = mapped_column(String(500))
+    median_rent: Mapped[float | None] = mapped_column(Float)
+    median_sqft: Mapped[float | None] = mapped_column(Float)
+    rent_per_sqft: Mapped[float | None] = mapped_column(Float)
+    unit_count: Mapped[int | None] = mapped_column(Integer)
+    available_units: Mapped[int | None] = mapped_column(Integer)
+    beds_available: Mapped[str | None] = mapped_column(String(100))
+    fees_json: Mapped[dict | None] = mapped_column(JSONB)
+    amenities_json: Mapped[list | None] = mapped_column(JSONB)
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class PmMarketSnapshots(Base):
+    """Area-level weekly market aggregates for time-series tracking, shared by location."""
+
+    __tablename__ = "pm_market_snapshots"
+    __table_args__ = (
+        UniqueConstraint("location_key", "snapshot_week", name="uq_pm_mkt_snap_loc_week"),
+        Index("ix_pm_mkt_snap_loc_week", "location_key", "snapshot_week"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    location_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    snapshot_week: Mapped[date] = mapped_column(Date, nullable=False)
+    median_rent: Mapped[float | None] = mapped_column(Float)
+    p25_rent: Mapped[float | None] = mapped_column(Float)
+    p75_rent: Mapped[float | None] = mapped_column(Float)
+    sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    vacancy_rate_pct: Mapped[float | None] = mapped_column(Float)
+    available_units: Mapped[int | None] = mapped_column(Integer)
+    total_units: Mapped[int | None] = mapped_column(Integer)
+    bedroom_vacancy_json: Mapped[dict | None] = mapped_column(JSONB)
+    center_latitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
+    center_longitude: Mapped[Decimal] = mapped_column(Numeric(11, 7), nullable=False)
+    radius_miles: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
 
 class UserSessions(Base):
@@ -695,6 +753,9 @@ class UserMoveinPlans(Base):
     user: Mapped["Users"] = relationship(back_populates="movein_plans")
     vendor_orders: Mapped[list["UserVendorOrders"]] = relationship(back_populates="movein_plan")
     checklist_items: Mapped[list["UserChecklistItems"]] = relationship(back_populates="movein_plan")
+    photo_rooms: Mapped[list["UserMoveinPhotoRooms"]] = relationship(
+        back_populates="plan", cascade="all, delete-orphan"
+    )
 
 
 class UserVendorOrders(Base):
@@ -771,6 +832,57 @@ class UserChecklistItems(Base):
 
     user: Mapped["Users"] = relationship(back_populates="checklist_items")
     movein_plan: Mapped["UserMoveinPlans"] = relationship(back_populates="checklist_items")
+
+
+class UserMoveinPhotoRooms(Base):
+    __tablename__ = "user_movein_photo_rooms"
+    __table_args__ = (Index("ix_user_movein_photo_rooms_movein_plan_id", "movein_plan_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    movein_plan_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user_movein_plans.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    room_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    room_label: Mapped[str] = mapped_column(String(128), nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    plan: Mapped["UserMoveinPlans"] = relationship(back_populates="photo_rooms")
+    photos: Mapped[list["UserMoveinPhotos"]] = relationship(
+        back_populates="room", cascade="all, delete-orphan"
+    )
+
+
+class UserMoveinPhotos(Base):
+    __tablename__ = "user_movein_photos"
+    __table_args__ = (Index("ix_user_movein_photos_room_id", "room_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    room_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user_movein_photo_rooms.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    photo_url: Mapped[str] = mapped_column(Text, nullable=False)
+    thumbnail_url: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
+    captured_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    latitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
+    longitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
+    file_size_bytes: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    room: Mapped["UserMoveinPhotoRooms"] = relationship(back_populates="photos")
 
 
 class RoommateProfiles(Base):
