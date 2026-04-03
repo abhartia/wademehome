@@ -28,6 +28,7 @@ import {
   YAxis,
 } from "recharts";
 import { PropertyListingsMap } from "@/components/annotations/PropertyListings/PropertyListingsMap";
+import { TrendsCard } from "./_components/TrendsCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -491,6 +492,9 @@ function PropertyManagerAnalysisPage() {
                   </CardContent>
                 </Card>
               ) : null}
+
+              {/* ── Market Trends (time-series) ── */}
+              <TrendsCard lat={lat} lng={lng} radius={DEFAULT_RADIUS} />
 
               {/* ── Row 1: Affordability & Demographics (full width) ── */}
               {demo ? (
