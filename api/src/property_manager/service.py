@@ -378,6 +378,7 @@ def send_subscription_report_now(
             building_deltas = get_buildings_latest_vs_previous(s_lat, s_lng, s_radius)
         except Exception:
             logger.warning("snapshot archiving failed for subscription %s", sub.id)
+            db.rollback()
 
     html_body = build_report_html(
         label=sub.label, nearby=nearby, insights=insights,
@@ -438,6 +439,7 @@ def send_weekly_reports_for_all_active(db: Session) -> tuple[int, int]:
                     building_deltas = get_buildings_latest_vs_previous(s_lat, s_lng, s_radius)
                 except Exception:
                     logger.warning("snapshot archiving failed for weekly sub %s", sub.id)
+                    db.rollback()
 
             html_body = build_report_html(
                 label=sub.label, nearby=nearby, insights=insights,
@@ -1399,8 +1401,8 @@ def compute_market_deltas(snapshots: list[MarketSnapshotPoint]) -> MarketDeltas 
         median_rent=_compute_single_delta(curr.median_rent, prev.median_rent),
         vacancy_rate_pct=_compute_single_delta(curr.vacancy_rate_pct, prev.vacancy_rate_pct),
         sample_size=_compute_single_delta(
-            float(curr.sample_size) if curr.sample_size else None,
-            float(prev.sample_size) if prev.sample_size else None,
+            float(curr.sample_size) if curr.sample_size is not None else None,
+            float(prev.sample_size) if prev.sample_size is not None else None,
         ),
     )
 
