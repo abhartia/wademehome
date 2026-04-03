@@ -1,0 +1,17 @@
+[
+  {
+    "url": "https://core.api.elliman.com/listing/filter",
+    "data": {
+      "totalCount": null,
+      "listings": []
+    }
+  },
+  {
+    "url": "https://core.api.elliman.com/listing/map/clustered",
+    "data": {
+      "totalCount": 0,
+      "clusterMarkers": [],
+      "groupedListings": []
+    }
+  }
+]

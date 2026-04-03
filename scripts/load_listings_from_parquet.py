@@ -213,21 +213,20 @@ def _load_via_execute_values(
     log("Converting rows for PostgreSQL driver...")
     rows = dataframe_rows_for_psycopg2(df)
 
-    raw = engine.raw_connection()
-    try:
-        cur = raw.cursor()
-        total = len(rows)
-        for i in range(0, total, chunk_size):
-            batch = rows[i : i + chunk_size]
-            execute_values(cur, insert_sql, batch, page_size=len(batch))
-            log(f"  inserted {min(i + chunk_size, total):,} / {total:,}")
-        raw.commit()
-        cur.close()
-    except Exception:
-        raw.rollback()
-        raise
-    finally:
-        raw.close()
+    with engine.connect() as sa_conn:
+        raw = sa_conn.connection.dbapi_connection
+        try:
+            cur = raw.cursor()
+            total = len(rows)
+            for i in range(0, total, chunk_size):
+                batch = rows[i : i + chunk_size]
+                execute_values(cur, insert_sql, batch, page_size=len(batch))
+                log(f"  inserted {min(i + chunk_size, total):,} / {total:,}")
+            raw.commit()
+            cur.close()
+        except Exception:
+            raw.rollback()
+            raise
 
 
 def _table_exists(engine, table_name: str, schema: str | None) -> bool:
@@ -403,6 +402,14 @@ def _load_via_execute_values_upsert(
             index=False,
             dtype=dtype,
         )
+    else:
+        # Filter parquet columns to only those present in the target table
+        db_cols = _get_table_columns(engine, table_name, schema)
+        if db_cols:
+            extra = set(c.lower() for c in df.columns) - db_cols
+            if extra:
+                log(f"Dropping {len(extra)} columns not in target table: {sorted(extra)}")
+                df = df.drop(columns=[c for c in df.columns if c.lower() in extra])
 
     cols_sql = ", ".join(f'"{c}"' for c in df.columns)
     update_cols = [c for c in df.columns if c != "listing_id"]
@@ -417,37 +424,37 @@ def _load_via_execute_values_upsert(
     log("Converting rows for PostgreSQL upsert...")
     rows = dataframe_rows_for_psycopg2(df)
 
-    raw = engine.raw_connection()
-    try:
+    # Use engine.connect() to get a pooled connection, then access underlying dbapi connection
+    with engine.connect() as sa_conn:
+        raw = sa_conn.connection.dbapi_connection
         try:
-            _ensure_listing_id_unique_index(raw, qtable=qtable, table_name=table_name)
-        except Exception as e:
-            raw.rollback()
-            err = str(e).lower()
-            if "duplicate key" in err or "duplicated" in err or "unique" in err:
-                log("Existing table has duplicate listing_id values; deduping in DB (keep one row per listing_id)...")
-                n = _dedupe_listing_ids_in_table(raw, qtable=qtable)
-                log(f"  removed {n:,} duplicate rows")
+            try:
                 _ensure_listing_id_unique_index(raw, qtable=qtable, table_name=table_name)
-            else:
-                raise SystemExit(
-                    f"Could not create unique index on listing_id: {e}"
-                ) from e
-        cur = raw.cursor()
-        total = len(rows)
-        for i in range(0, total, chunk_size):
-            batch = rows[i : i + chunk_size]
-            execute_values(cur, insert_sql, batch, page_size=len(batch))
-            log(f"  upserted {min(i + chunk_size, total):,} / {total:,}")
-        raw.commit()
-        cur.close()
-    except SystemExit:
-        raise
-    except Exception:
-        raw.rollback()
-        raise
-    finally:
-        raw.close()
+            except Exception as e:
+                raw.rollback()
+                err = str(e).lower()
+                if "duplicate key" in err or "duplicated" in err or "unique" in err:
+                    log("Existing table has duplicate listing_id values; deduping in DB (keep one row per listing_id)...")
+                    n = _dedupe_listing_ids_in_table(raw, qtable=qtable)
+                    log(f"  removed {n:,} duplicate rows")
+                    _ensure_listing_id_unique_index(raw, qtable=qtable, table_name=table_name)
+                else:
+                    raise SystemExit(
+                        f"Could not create unique index on listing_id: {e}"
+                    ) from e
+            cur = raw.cursor()
+            total = len(rows)
+            for i in range(0, total, chunk_size):
+                batch = rows[i : i + chunk_size]
+                execute_values(cur, insert_sql, batch, page_size=len(batch))
+                log(f"  upserted {min(i + chunk_size, total):,} / {total:,}")
+            raw.commit()
+            cur.close()
+        except SystemExit:
+            raise
+        except Exception:
+            raw.rollback()
+            raise
 
 
 def main() -> int:

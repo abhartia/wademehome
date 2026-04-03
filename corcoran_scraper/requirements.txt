@@ -1,0 +1,7 @@
+playwright
+requests
+pandas
+beautifulsoup4
+lxml
+pyarrow
+google-cloud-storage

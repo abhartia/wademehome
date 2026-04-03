@@ -4914,6 +4914,47 @@
         }
       }
     },
+    "/property-manager/insights": {
+      "post": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Get Insights",
+        "operationId": "get_insights_property_manager_insights_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsightsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/internal/property-manager/reports/send-weekly": {
       "post": {
         "tags": [
@@ -5034,6 +5075,99 @@
   },
   "components": {
     "schemas": {
+      "AiInsightSection": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "body"
+        ],
+        "title": "AiInsightSection"
+      },
+      "AiSummary": {
+        "properties": {
+          "headline": {
+            "type": "string",
+            "title": "Headline",
+            "default": ""
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/AiInsightSection"
+            },
+            "type": "array",
+            "title": "Sections"
+          }
+        },
+        "type": "object",
+        "title": "AiSummary"
+      },
+      "AmenityAnalysis": {
+        "properties": {
+          "total_buildings": {
+            "type": "integer",
+            "title": "Total Buildings"
+          },
+          "standard": {
+            "items": {
+              "$ref": "#/components/schemas/AmenityFrequency"
+            },
+            "type": "array",
+            "title": "Standard"
+          },
+          "differentiators": {
+            "items": {
+              "$ref": "#/components/schemas/AmenityFrequency"
+            },
+            "type": "array",
+            "title": "Differentiators"
+          },
+          "rare": {
+            "items": {
+              "$ref": "#/components/schemas/AmenityFrequency"
+            },
+            "type": "array",
+            "title": "Rare"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_buildings"
+        ],
+        "title": "AmenityAnalysis"
+      },
+      "AmenityFrequency": {
+        "properties": {
+          "amenity": {
+            "type": "string",
+            "title": "Amenity"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "pct_of_buildings": {
+            "type": "number",
+            "title": "Pct Of Buildings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amenity",
+          "count",
+          "pct_of_buildings"
+        ],
+        "title": "AmenityFrequency"
+      },
       "AuthResponse": {
         "properties": {
           "user": {
@@ -5045,6 +5179,34 @@
           "user"
         ],
         "title": "AuthResponse"
+      },
+      "BedroomSupply": {
+        "properties": {
+          "beds": {
+            "type": "string",
+            "title": "Beds"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "available": {
+            "type": "integer",
+            "title": "Available"
+          },
+          "vacancy_pct": {
+            "type": "number",
+            "title": "Vacancy Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "beds",
+          "total",
+          "available",
+          "vacancy_pct"
+        ],
+        "title": "BedroomSupply"
       },
       "Body_upload_guarantor_invite_documents_guarantor_invite__token__documents_post": {
         "properties": {
@@ -5078,6 +5240,291 @@
           "file"
         ],
         "title": "Body_upload_lease_document_portal_lease_upload_post"
+      },
+      "BuildingFinancialProfile": {
+        "properties": {
+          "bbl": {
+            "type": "string",
+            "title": "Bbl"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "owner_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Name"
+          },
+          "units_res": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Units Res"
+          },
+          "bldg_area_sqft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bldg Area Sqft"
+          },
+          "num_floors": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Floors"
+          },
+          "year_built": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year Built"
+          },
+          "bldg_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bldg Class"
+          },
+          "zone_dist": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Dist"
+          },
+          "assessed_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessed Total"
+          },
+          "market_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Value"
+          },
+          "value_per_unit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Per Unit"
+          },
+          "value_per_sqft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Per Sqft"
+          },
+          "estimated_noi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Noi"
+          },
+          "estimated_gross_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Gross Income"
+          },
+          "estimated_avg_in_place_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Avg In Place Rent"
+          },
+          "asking_vs_in_place_gap_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asking Vs In Place Gap Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bbl",
+          "address"
+        ],
+        "title": "BuildingFinancialProfile",
+        "description": "Financial profile for a single building derived from NYC public records."
+      },
+      "BuildingFinancials": {
+        "properties": {
+          "building_count": {
+            "type": "integer",
+            "title": "Building Count",
+            "default": 0
+          },
+          "total_units": {
+            "type": "integer",
+            "title": "Total Units",
+            "default": 0
+          },
+          "median_value_per_unit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Value Per Unit"
+          },
+          "median_value_per_sqft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Value Per Sqft"
+          },
+          "median_estimated_in_place_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Estimated In Place Rent"
+          },
+          "median_asking_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Asking Rent"
+          },
+          "median_asking_vs_in_place_gap_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Asking Vs In Place Gap Pct"
+          },
+          "cap_rate_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Rate Used"
+          },
+          "expense_ratio_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expense Ratio Used"
+          },
+          "buildings": {
+            "items": {
+              "$ref": "#/components/schemas/BuildingFinancialProfile"
+            },
+            "type": "array",
+            "title": "Buildings"
+          }
+        },
+        "type": "object",
+        "title": "BuildingFinancials",
+        "description": "Aggregate building financial data for a radius, from NYC DOF records."
       },
       "ChatAPIMessage": {
         "properties": {
@@ -5432,6 +5879,184 @@
         ],
         "title": "CommuteMatrixResponse"
       },
+      "CompetitorPosition": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "unit_count": {
+            "type": "integer",
+            "title": "Unit Count"
+          },
+          "median_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Rent"
+          },
+          "median_sqft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Sqft"
+          },
+          "rent_per_sqft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent Per Sqft"
+          },
+          "vs_median_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vs Median Pct"
+          },
+          "position_label": {
+            "type": "string",
+            "title": "Position Label",
+            "default": ""
+          },
+          "beds_available": {
+            "type": "string",
+            "title": "Beds Available",
+            "default": ""
+          },
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "address",
+          "unit_count"
+        ],
+        "title": "CompetitorPosition"
+      },
+      "DemographicsOut": {
+        "properties": {
+          "zip_code": {
+            "type": "string",
+            "title": "Zip Code"
+          },
+          "median_household_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Household Income"
+          },
+          "population": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Population"
+          },
+          "renter_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renter Pct"
+          },
+          "census_median_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Census Median Rent"
+          },
+          "affordability_ceiling": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affordability Ceiling"
+          },
+          "affordable_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affordable Pct"
+          },
+          "renter_pool_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renter Pool Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "zip_code"
+        ],
+        "title": "DemographicsOut"
+      },
       "FavoriteListResponse": {
         "properties": {
           "favorites": {
@@ -5518,6 +6143,92 @@
           "favorited"
         ],
         "title": "FavoriteToggleResponse"
+      },
+      "FeeCategoryStats": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "fee_type": {
+            "type": "string",
+            "title": "Fee Type",
+            "default": ""
+          },
+          "buildings_charging": {
+            "type": "integer",
+            "title": "Buildings Charging"
+          },
+          "pct_buildings": {
+            "type": "number",
+            "title": "Pct Buildings"
+          },
+          "median_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Amount"
+          },
+          "min_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Amount"
+          },
+          "max_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Amount"
+          },
+          "frequency": {
+            "type": "string",
+            "title": "Frequency",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "buildings_charging",
+          "pct_buildings"
+        ],
+        "title": "FeeCategoryStats"
+      },
+      "FeeIntelligence": {
+        "properties": {
+          "total_buildings_with_fees": {
+            "type": "integer",
+            "title": "Total Buildings With Fees"
+          },
+          "fee_categories": {
+            "items": {
+              "$ref": "#/components/schemas/FeeCategoryStats"
+            },
+            "type": "array",
+            "title": "Fee Categories"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_buildings_with_fees"
+        ],
+        "title": "FeeIntelligence"
       },
       "FileAnnotation": {
         "properties": {
@@ -5866,6 +6577,127 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "InsightsRequest": {
+        "properties": {
+          "center_latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "type": "number",
+            "maximum": 50.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Radius Miles",
+            "default": 2
+          }
+        },
+        "type": "object",
+        "required": [
+          "center_latitude",
+          "center_longitude"
+        ],
+        "title": "InsightsRequest"
+      },
+      "InsightsResponse": {
+        "properties": {
+          "market": {
+            "$ref": "#/components/schemas/MarketSnapshotResponse"
+          },
+          "demographics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DemographicsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "competitors": {
+            "items": {
+              "$ref": "#/components/schemas/CompetitorPosition"
+            },
+            "type": "array",
+            "title": "Competitors"
+          },
+          "fee_intelligence": {
+            "$ref": "#/components/schemas/FeeIntelligence"
+          },
+          "supply_pressure": {
+            "$ref": "#/components/schemas/SupplyPressure"
+          },
+          "amenities": {
+            "$ref": "#/components/schemas/AmenityAnalysis"
+          },
+          "neighborhood": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PoiNearbyResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ai_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "building_financials": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuildingFinancials"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "center_latitude": {
+            "type": "number",
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "type": "number",
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "type": "number",
+            "title": "Radius Miles"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "market",
+          "fee_intelligence",
+          "supply_pressure",
+          "amenities",
+          "center_latitude",
+          "center_longitude",
+          "radius_miles",
+          "generated_at"
+        ],
+        "title": "InsightsResponse"
       },
       "InventoryAnalyticsResponse": {
         "properties": {
@@ -10647,6 +11479,36 @@
           "rows_parse_failed"
         ],
         "title": "StalenessSummary"
+      },
+      "SupplyPressure": {
+        "properties": {
+          "total_units": {
+            "type": "integer",
+            "title": "Total Units"
+          },
+          "available_units": {
+            "type": "integer",
+            "title": "Available Units"
+          },
+          "vacancy_rate_pct": {
+            "type": "number",
+            "title": "Vacancy Rate Pct"
+          },
+          "by_bedroom": {
+            "items": {
+              "$ref": "#/components/schemas/BedroomSupply"
+            },
+            "type": "array",
+            "title": "By Bedroom"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_units",
+          "available_units",
+          "vacancy_rate_pct"
+        ],
+        "title": "SupplyPressure"
       },
       "TargetCoverageRow": {
         "properties": {

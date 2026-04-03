@@ -90,6 +90,9 @@ class Config:
     # Mapbox (server-side geocoding, matrix, POI search). Optional; endpoints return 503 if unset.
     MAPBOX_ACCESS_TOKEN: str = env_manager.get("MAPBOX_ACCESS_TOKEN", "")
 
+    # NYC Open Data (Socrata). Optional; unauthenticated requests are throttled.
+    SOCRATA_APP_TOKEN: str = env_manager.get("SOCRATA_APP_TOKEN", "")
+
     # Resend (magic link + verification email). Read from env / Azure App Settings.
     RESEND_API_KEY: str = env_manager.get("RESEND_API_KEY", "") or ""
     RESEND_FROM_EMAIL: str = env_manager.get("RESEND_FROM_EMAIL", "") or ""
@@ -191,6 +194,7 @@ class Config:
             env_manager.get("LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER", "false") or "false"
         )
         cls.MAPBOX_ACCESS_TOKEN = env_manager.get("MAPBOX_ACCESS_TOKEN", "") or ""
+        cls.SOCRATA_APP_TOKEN = env_manager.get("SOCRATA_APP_TOKEN", "") or ""
         cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""
         cls.RESEND_FROM_EMAIL = env_manager.get("RESEND_FROM_EMAIL", "") or ""
         cls.TOUR_REQUEST_OPS_EMAIL = env_manager.get("TOUR_REQUEST_OPS_EMAIL", "") or ""

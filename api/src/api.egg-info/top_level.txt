@@ -9,6 +9,7 @@ movein
 portal
 prompts
 properties
+property_manager
 roommates
 tours
 workflow

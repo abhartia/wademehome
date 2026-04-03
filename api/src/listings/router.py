@@ -798,6 +798,89 @@ def geocode_address(body: GeocodeBody) -> GeocodeResponse:
     return GeocodeResponse(latitude=lat, longitude=lng)
 
 
+def fetch_market_snapshot(
+    *,
+    zip_code: str | None = None,
+    city: str | None = None,
+    state: str | None = None,
+) -> MarketSnapshotResponse:
+    """Reusable market-snapshot query.  Importable by other modules."""
+    zip_t = normalize_us_zip_query(zip_code or "") if zip_code else None
+    city_t = (city or "").strip()
+    state_t = (state or "").strip()
+
+    scope: str
+    zip_out: str | None = None
+    city_out: str | None = None
+    state_out: str | None = None
+    if zip_t:
+        scope = f"ZIP {zip_t}"
+        zip_out = zip_t
+    elif city_t and state_t:
+        scope = f"{city_t}, {state_t}"
+        city_out = city_t
+        state_out = state_t
+    else:
+        return MarketSnapshotResponse(scope="Unknown", sample_size=0, bedroom_mix={})
+
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+
+    if engine.dialect.name != "postgresql":
+        return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            built = build_market_snapshot_sql(
+                qtable,
+                cols,
+                zip_code=zip_t,
+                city=city_t if not zip_t else None,
+                state=state_t if not zip_t else None,
+            )
+            if built is None:
+                return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+            sql, params = built
+            row = cached_execute_first(conn, sql, params)
+            if row is None:
+                return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+
+            sample = int(row["sample_size"] or 0)
+            mix_raw = row["bedroom_mix"]
+            bedroom_mix: dict[str, int] = {}
+            if isinstance(mix_raw, dict):
+                bedroom_mix = {str(k): int(v) for k, v in mix_raw.items() if v is not None}
+
+            def _f(name: str) -> float | None:
+                v = row.get(name)
+                if v is None:
+                    return None
+                try:
+                    return float(v)
+                except (TypeError, ValueError):
+                    return None
+
+            return MarketSnapshotResponse(
+                scope=scope, zip=zip_out, city=city_out, state=state_out,
+                sample_size=sample, median_rent=_f("p50"), p25_rent=_f("p25"), p75_rent=_f("p75"),
+                bedroom_mix=bedroom_mix,
+            )
+    except Exception:
+        logger.exception("fetch_market_snapshot failed")
+        return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+
+
 @router.get("/market-snapshot", response_model=MarketSnapshotResponse)
 def get_market_snapshot(
     zip_q: str | None = Query(
@@ -820,97 +903,16 @@ def get_market_snapshot(
     if not zip_t and address and not (city_t and state_t):
         zip_t = normalize_us_zip_query(extract_zip_from_address(address or "") or "")
 
-    scope: str
-    zip_out: str | None = None
-    city_out: str | None = None
-    state_out: str | None = None
-    if zip_t:
-        scope = f"ZIP {zip_t}"
-        zip_out = zip_t
-    elif city_t and state_t:
-        scope = f"{city_t}, {state_t}"
-        city_out = city_t
-        state_out = state_t
-    else:
+    if not zip_t and not (city_t and state_t):
         raise HTTPException(
             status_code=400,
             detail="Provide zip= (US postal code), or both city= and state=, or address= with a 5-digit ZIP.",
         )
 
-    qtable = _qualified_table()
-    db_url = (Config.get("DATABASE_URL") or "").strip()
-    if not db_url or not qtable:
-        raise HTTPException(status_code=503, detail="Listings database not configured")
-
-    if engine.dialect.name != "postgresql":
-        raise HTTPException(status_code=503, detail="Unsupported database dialect")
-
-    schema_kw = (listing_table_schema or "").strip() or None
-    schema_for_info = schema_kw if schema_kw else "public"
-    tname = (listing_table_name or "").strip()
-
-    try:
-        with engine.connect() as conn:
-            insp = inspect(conn)
-            if not insp.has_table(tname, schema=schema_kw):
-                raise HTTPException(status_code=503, detail="Listings table missing")
-
-            cols = _table_columns_lower(conn, schema_for_info, tname)
-            built = build_market_snapshot_sql(
-                qtable,
-                cols,
-                zip_code=zip_t,
-                city=city_t if not zip_t else None,
-                state=state_t if not zip_t else None,
-            )
-            if built is None:
-                raise HTTPException(
-                    status_code=501,
-                    detail="Could not build market query (need rent columns plus zip or city+state columns on listings).",
-                )
-            sql, params = built
-            row = cached_execute_first(conn, sql, params)
-            if row is None:
-                return MarketSnapshotResponse(
-                    scope=scope,
-                    zip=zip_out,
-                    city=city_out,
-                    state=state_out,
-                    sample_size=0,
-                    bedroom_mix={},
-                )
-
-            sample = int(row["sample_size"] or 0)
-            mix_raw = row["bedroom_mix"]
-            bedroom_mix: dict[str, int] = {}
-            if isinstance(mix_raw, dict):
-                bedroom_mix = {str(k): int(v) for k, v in mix_raw.items() if v is not None}
-
-            def _f(name: str) -> float | None:
-                v = row.get(name)
-                if v is None:
-                    return None
-                try:
-                    return float(v)
-                except (TypeError, ValueError):
-                    return None
-
-            return MarketSnapshotResponse(
-                scope=scope,
-                zip=zip_out,
-                city=city_out,
-                state=state_out,
-                sample_size=sample,
-                median_rent=_f("p50"),
-                p25_rent=_f("p25"),
-                p75_rent=_f("p75"),
-                bedroom_mix=bedroom_mix,
-            )
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("listings/market-snapshot failed")
-        raise HTTPException(status_code=500, detail="Market snapshot failed") from None
+    result = fetch_market_snapshot(zip_code=zip_t, city=city_t, state=state_t)
+    if result.sample_size == 0 and not zip_t and not (city_t and state_t):
+        raise HTTPException(status_code=400, detail="No data for this location")
+    return result
 
 
 @router.post("/commute-matrix", response_model=CommuteMatrixResponse)
@@ -949,20 +951,21 @@ _POI_CATEGORIES: tuple[tuple[str, str], ...] = (
 )
 
 
-@router.get("/poi-nearby", response_model=PoiNearbyResponse)
-def poi_nearby(
-    latitude: float = Query(..., ge=-90, le=90),
-    longitude: float = Query(..., ge=-180, le=180),
-) -> PoiNearbyResponse:
+def fetch_poi_nearby(latitude: float, longitude: float) -> PoiNearbyResponse:
+    """Reusable POI lookup.  Importable by other modules."""
     token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
     if not token:
-        raise HTTPException(status_code=503, detail="POI search unavailable")
+        return PoiNearbyResponse(latitude=latitude, longitude=longitude, items=[])
 
     items: list[PoiHit] = []
     for cat, mapbox_category_id in _POI_CATEGORIES:
-        hits = search_category_nearby(
-            latitude, longitude, mapbox_category_id, token, limit=6
-        )
+        try:
+            hits = search_category_nearby(
+                latitude, longitude, mapbox_category_id, token, limit=6
+            )
+        except Exception:
+            logger.warning("POI search failed for %s", cat)
+            hits = []
         nearest = hits[0] if hits else None
         name = None
         nlat = nlng = ndm = None
@@ -989,3 +992,16 @@ def poi_nearby(
         )
 
     return PoiNearbyResponse(latitude=latitude, longitude=longitude, items=items)
+
+
+@router.get("/poi-nearby", response_model=PoiNearbyResponse)
+def poi_nearby(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+) -> PoiNearbyResponse:
+    result = fetch_poi_nearby(latitude, longitude)
+    if not result.items:
+        token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
+        if not token:
+            raise HTTPException(status_code=503, detail="POI search unavailable")
+    return result

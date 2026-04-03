@@ -154,7 +154,7 @@ export default function AdminInventoryPage() {
   if (authLoading) {
     return (
       <div className="mx-auto max-w-6xl p-8 text-muted-foreground">
-        Checking session\u2026
+        Checking session…
       </div>
     );
   }
@@ -224,7 +224,7 @@ export default function AdminInventoryPage() {
       </header>
 
       {analyticsQuery.isLoading ? (
-        <p className="text-muted-foreground">Loading analytics\u2026</p>
+        <p className="text-muted-foreground">Loading analytics…</p>
       ) : null}
       {analyticsQuery.isError ? (
         <p className="text-destructive">
@@ -241,7 +241,7 @@ export default function AdminInventoryPage() {
                 <CardTitle>Listings (rows)</CardTitle>
                 <CardDescription>
                   In bbox, table {analyticsQuery.data.listings_table}
-                  {analyticsQuery.data.available_only !== false ? " \u00b7 available-only" : " \u00b7 all rows"}
+                  {analyticsQuery.data.available_only !== false ? " · available-only" : " · all rows"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-3xl font-semibold tabular-nums">
@@ -268,7 +268,7 @@ export default function AdminInventoryPage() {
                   <span className="font-medium tabular-nums">
                     {analyticsQuery.data.quality.rent_present_pct != null
                       ? `${analyticsQuery.data.quality.rent_present_pct}%`
-                      : "\u2014"}
+                      : "—"}
                   </span>
                 </div>
                 <div>
@@ -276,13 +276,13 @@ export default function AdminInventoryPage() {
                   <span className="font-medium tabular-nums">
                     {analyticsQuery.data.quality.image_present_pct != null
                       ? `${analyticsQuery.data.quality.image_present_pct}%`
-                      : "\u2014"}
+                      : "—"}
                   </span>
                 </div>
                 <div>
                   Duplicate listing_id rows:{" "}
                   <span className="font-medium tabular-nums">
-                    {analyticsQuery.data.quality.duplicate_listing_id_rows ?? "\u2014"}
+                    {analyticsQuery.data.quality.duplicate_listing_id_rows ?? "—"}
                   </span>
                 </div>
               </CardContent>
@@ -387,7 +387,7 @@ export default function AdminInventoryPage() {
           {cmsMarketOffPlatformAssumptions.length ? (
             <Card>
               <CardHeader>
-                <CardTitle>Source breakdown \u2014 where are the missing listings?</CardTitle>
+                <CardTitle>Source breakdown — where are the missing listings?</CardTitle>
                 <CardDescription>
                   Estimated non-overlapping slices of the gap. Edit{" "}
                   <code className="text-xs">nyc_metro_coverage_context.json</code> to refine.
@@ -412,7 +412,7 @@ export default function AdminInventoryPage() {
                             {s.citation_url ? (
                               <>
                                 {" "}
-                                <a href={s.citation_url} className="text-teal-700 underline dark:text-teal-300" target="_blank" rel="noreferrer">\u2197</a>
+                                <a href={s.citation_url} className="text-teal-700 underline dark:text-teal-300" target="_blank" rel="noreferrer">↗</a>
                               </>
                             ) : null}
                           </td>
@@ -429,7 +429,7 @@ export default function AdminInventoryPage() {
                             )}
                           </td>
                           <td className="p-2 text-xs text-muted-foreground break-words max-w-sm">
-                            {s.assumption_note ?? "\u2014"}
+                            {s.assumption_note ?? "—"}
                           </td>
                         </tr>
                       ))}
@@ -445,7 +445,7 @@ export default function AdminInventoryPage() {
             <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:underline">
               Proof: listings per property (same bbox)
               <span className="text-xs font-normal text-muted-foreground">
-                Mean \u2248{" "}
+                Mean ≈{" "}
                 {(
                   analyticsQuery.data.total_listing_rows /
                   Math.max(analyticsQuery.data.distinct_buildings, 1)
@@ -474,14 +474,14 @@ export default function AdminInventoryPage() {
                     <dd className="font-medium tabular-nums">
                       {analyticsQuery.data.listings_per_building_proof.mean_listings_per_building.toFixed(2)} /{" "}
                       {analyticsQuery.data.listings_per_building_proof.median_listings_per_building?.toFixed(2) ??
-                        "\u2014"}
+                        "—"}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Max listings, one building</dt>
                     <dd className="font-medium tabular-nums">
                       {analyticsQuery.data.listings_per_building_proof.max_listings_single_building?.toLocaleString() ??
-                        "\u2014"}
+                        "—"}
                     </dd>
                   </div>
                   {(analyticsQuery.data.listings_per_building_proof.rows_without_building_key ?? 0) > 0 ? (
@@ -500,10 +500,10 @@ export default function AdminInventoryPage() {
                   <ul className="space-y-1 tabular-nums">
                     <li>1 listing: {analyticsQuery.data.listings_per_building_proof.buildings_with_count_1}</li>
                     <li>
-                      2\u20135 listings: {analyticsQuery.data.listings_per_building_proof.buildings_with_count_2_to_5}
+                      2–5 listings: {analyticsQuery.data.listings_per_building_proof.buildings_with_count_2_to_5}
                     </li>
                     <li>
-                      6\u201315 listings: {analyticsQuery.data.listings_per_building_proof.buildings_with_count_6_to_15}
+                      6–15 listings: {analyticsQuery.data.listings_per_building_proof.buildings_with_count_6_to_15}
                     </li>
                     <li>
                       16+ listings: {analyticsQuery.data.listings_per_building_proof.buildings_with_count_16_plus}
@@ -543,19 +543,19 @@ export default function AdminInventoryPage() {
                                               rel="noreferrer"
                                             >
                                               {p.listing_url.length > 90
-                                                ? `${p.listing_url.slice(0, 90)}\u2026`
+                                                ? `${p.listing_url.slice(0, 90)}…`
                                                 : p.listing_url}
                                             </a>
                                           ) : (
-                                            <span>\u2014</span>
+                                            <span>—</span>
                                           )}
                                           {p.property_name ? (
-                                            <span className="text-foreground/80"> \u00b7 {p.property_name}</span>
+                                            <span className="text-foreground/80"> · {p.property_name}</span>
                                           ) : null}
                                           {p.latitude != null && p.longitude != null ? (
                                             <span className="tabular-nums">
                                               {" "}
-                                              \u00b7 {p.latitude.toFixed(5)}, {p.longitude.toFixed(5)}
+                                              · {p.latitude.toFixed(5)}, {p.longitude.toFixed(5)}
                                             </span>
                                           ) : null}
                                         </div>
@@ -583,7 +583,7 @@ export default function AdminInventoryPage() {
                 Rows with parsed timestamp:{" "}
                 {analyticsQuery.data.staleness.rows_with_timestamp.toLocaleString()}
                 {analyticsQuery.data.staleness.rows_parse_failed
-                  ? ` \u00b7 parse issues: ${analyticsQuery.data.staleness.rows_parse_failed}`
+                  ? ` · parse issues: ${analyticsQuery.data.staleness.rows_parse_failed}`
                   : ""}
               </CardDescription>
             </CardHeader>
@@ -591,22 +591,22 @@ export default function AdminInventoryPage() {
               <div>
                 <div className="text-muted-foreground">p50 / p90 age (h)</div>
                 <div className="font-medium tabular-nums">
-                  {analyticsQuery.data.staleness.age_hours_p50?.toFixed(1) ?? "\u2014"} /{" "}
-                  {analyticsQuery.data.staleness.age_hours_p90?.toFixed(1) ?? "\u2014"}
+                  {analyticsQuery.data.staleness.age_hours_p50?.toFixed(1) ?? "—"} /{" "}
+                  {analyticsQuery.data.staleness.age_hours_p90?.toFixed(1) ?? "—"}
                 </div>
               </div>
               <div>
                 <div className="text-muted-foreground">Min / max age (h)</div>
                 <div className="font-medium tabular-nums">
-                  {analyticsQuery.data.staleness.age_hours_min?.toFixed(1) ?? "\u2014"} /{" "}
-                  {analyticsQuery.data.staleness.age_hours_max?.toFixed(1) ?? "\u2014"}
+                  {analyticsQuery.data.staleness.age_hours_min?.toFixed(1) ?? "—"} /{" "}
+                  {analyticsQuery.data.staleness.age_hours_max?.toFixed(1) ?? "—"}
                 </div>
               </div>
               <div>
                 <div className="text-muted-foreground">&gt; 7d / &gt; 30d</div>
                 <div className="font-medium tabular-nums">
-                  {analyticsQuery.data.staleness.pct_older_than_7d?.toFixed(1) ?? "\u2014"}% /{" "}
-                  {analyticsQuery.data.staleness.pct_older_than_30d?.toFixed(1) ?? "\u2014"}%
+                  {analyticsQuery.data.staleness.pct_older_than_7d?.toFixed(1) ?? "—"}% /{" "}
+                  {analyticsQuery.data.staleness.pct_older_than_30d?.toFixed(1) ?? "—"}%
                 </div>
               </div>
             </CardContent>
@@ -731,7 +731,7 @@ export default function AdminInventoryPage() {
             {analyticsQuery.data.computed_at
               ? new Date(analyticsQuery.data.computed_at).toLocaleString()
               : ""}{" "}
-            \u00b7 bbox{" "}
+            · bbox{" "}
             {JSON.stringify(analyticsQuery.data.bbox)}
           </p>
         </>

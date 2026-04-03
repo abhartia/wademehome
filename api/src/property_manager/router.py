@@ -10,6 +10,8 @@ from core.env_utils import env_manager
 from db.models import Users
 from listings.schemas import NearbyListingsResponse
 from property_manager.schemas import (
+    InsightsRequest,
+    InsightsResponse,
     ReportPreviewRequest,
     ReportSubscriptionCreate,
     ReportSubscriptionResponse,
@@ -87,6 +89,18 @@ def send_report_subscription_now(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+
+
+@router.post("/insights", response_model=InsightsResponse)
+def get_insights(
+    payload: InsightsRequest,
+    _: Users = Depends(get_current_property_manager_or_admin),
+) -> InsightsResponse:
+    return pm_service.build_insights(
+        payload.center_latitude,
+        payload.center_longitude,
+        payload.radius_miles,
+    )
 
 
 internal_router = APIRouter(prefix="/internal/property-manager", tags=["internal-property-manager"])
