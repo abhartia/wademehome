@@ -134,6 +134,8 @@ def delete_room(db: Session, user_id: uuid.UUID, room_id: uuid.UUID) -> None:
     ).scalar_one_or_none()
     if room is None:
         raise HTTPException(status_code=404, detail="Room not found")
+    for photo in room.photos or []:
+        _delete_blob(photo.photo_url)
     db.delete(room)
     db.commit()
 
