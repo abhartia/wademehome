@@ -1463,6 +1463,40 @@ def _build_ai_trend_payload(lat: float, lng: float, radius: float) -> dict[str, 
     }
 
 
+def archive_snapshots_for_all_subscriptions(db: Session) -> int:
+    """Generate PM building + market snapshots for all active report subscriptions.
+
+    Intended to be called post-scrape (e.g. from the weekly pipeline) so that
+    fresh listing data is reflected in the snapshot time-series.  UPSERTs are
+    idempotent per (location_key, week).
+    """
+    subs = (
+        db.query(PropertyManagerReportSubscriptions)
+        .filter(PropertyManagerReportSubscriptions.is_active.is_(True))
+        .all()
+    )
+    if not subs:
+        logger.info("archive_snapshots_for_all_subscriptions: no active subscriptions")
+        return 0
+
+    count = 0
+    for sub in subs:
+        lat = float(sub.center_latitude)
+        lng = float(sub.center_longitude)
+        radius = float(sub.radius_miles)
+        try:
+            insights = build_insights(lat, lng, radius)
+            archive_snapshots(db, lat, lng, radius, insights)
+            count += 1
+        except Exception:
+            logger.exception(
+                "Snapshot failed for subscription %s (lat=%s, lng=%s, r=%s)",
+                sub.id, lat, lng, radius,
+            )
+    logger.info("archive_snapshots_for_all_subscriptions: %d/%d succeeded", count, len(subs))
+    return count
+
+
 def cleanup_old_snapshots(db: Session) -> None:
     """Delete snapshots older than 53 weeks."""
     try:

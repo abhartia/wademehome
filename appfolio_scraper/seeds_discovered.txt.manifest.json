@@ -3,20 +3,19 @@
   "valid_probed": 0,
   "nyc_filtered": true,
   "reasons": {
-    "HTTPSConnectionPool(host='airflow.appfolio.com', port=443): Max retries exceeded": 1,
     "HTTPSConnectionPool(host='cdn.appfolio.com', port=443): Max retries exceeded wit": 1,
+    "HTTPSConnectionPool(host='datahub.appfolio.com', port=443): Max retries exceeded": 1,
     "HTTPSConnectionPool(host='bizsys.appfolio.com', port=443): Max retries exceeded ": 1,
     "http_404": 16,
-    "HTTPSConnectionPool(host='datahub.appfolio.com', port=443): Max retries exceeded": 1,
-    "HTTPSConnectionPool(host='admin.appfolio.com', port=443): Max retries exceeded w": 1,
+    "HTTPSConnectionPool(host='airflow.appfolio.com', port=443): Max retries exceeded": 1,
     "HTTPSConnectionPool(host='demo.appfolio.com', port=443): Max retries exceeded wi": 1,
-    "http_400": 1,
+    "HTTPSConnectionPool(host='admin.appfolio.com', port=443): Max retries exceeded w": 1,
     "HTTPSConnectionPool(host='dev.appfolio.com', port=443): Max retries exceeded wit": 1,
-    "no_listings_detected": 22,
+    "http_400": 1,
+    "no_listings_detected": 23,
     "HTTPSConnectionPool(host='import.appfolio.com', port=443): Max retries exceeded ": 1,
     "HTTPSConnectionPool(host='marketing.appfolio.com', port=443): Max retries exceed": 1,
     "HTTPSConnectionPool(host='qa.appfolio.com', port=443): Max retries exceeded with": 1,
-    "HTTPSConnectionPool(host='stage.appfolio.com', port=443): Max retries exceeded w": 1,
-    "HTTPSConnectionPool(host='forums.appfolio.com', port=443): Max retries exceeded ": 1
+    "HTTPSConnectionPool(host='stage.appfolio.com', port=443): Max retries exceeded w": 1
   }
 }

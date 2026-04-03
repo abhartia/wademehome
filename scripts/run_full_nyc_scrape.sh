@@ -2,13 +2,15 @@
 set -euo pipefail
 
 # Full NYC metro scrape pipeline:
-#   1. Run each scraper (discovery + scrape)
+#   1. Run each scraper (discovery + scrape) — all 7 sources
 #   2. Temporarily drop NOT NULL on location columns
 #   3. Load all parquet into Postgres via upsert
-#   4. Run platform data hygiene (dedupe + tombstone + geo backfill)
+#   4. Run platform data hygiene (dedupe + tombstone stale listings + geo backfill)
 #   5. Delete rows with incomplete location data
 #   6. Re-enforce NOT NULL constraints
-#   7. Print summary
+#   7. Amenity backfill for new listings
+#   8. Generate PM building + market snapshots
+#   9. Print summary
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 API_VENV="${REPO_ROOT}/api/.venv/bin/python"
@@ -41,14 +43,14 @@ hr
 # RentCafe (auto-discovery via homepage crawl — skip expand_city_graph due to Cloudflare throttling)
 log "Starting RentCafe full crawl..."
 cd "$REPO_ROOT/rentcafe_scraper"
-python3 rentcafe_scraper.py --env local --mode scrape --max_workers 10 || log "WARN: RentCafe scraper exited non-zero"
+"$API_VENV" rentcafe_scraper.py --env local --mode scrape --max_workers 10 || log "WARN: RentCafe scraper exited non-zero"
 
 # RealPage/SecureCafe (crt.sh probe then scrape)
 log "Starting RealPage crt.sh probe + scrape..."
 cd "$REPO_ROOT/realpage_scraper"
-python3 realpage_scraper.py --env local --mode probe_seeds --probe-source crt --probe-output nyc_seeds_probed.txt --max_workers 10 || log "WARN: RealPage probe failed"
+"$API_VENV" realpage_scraper.py --env local --mode probe_seeds --probe-source crt --probe-output nyc_seeds_probed.txt --max_workers 10 || log "WARN: RealPage probe failed"
 if [ -s nyc_seeds_probed.txt ]; then
-    python3 realpage_scraper.py --env local --mode scrape --seeds nyc_seeds_probed.txt --max_workers 8 || log "WARN: RealPage scraper exited non-zero"
+    "$API_VENV" realpage_scraper.py --env local --mode scrape --seeds nyc_seeds_probed.txt --max_workers 8 || log "WARN: RealPage scraper exited non-zero"
 else
     log "SKIP RealPage scrape — no valid seeds from probe"
 fi
@@ -56,9 +58,9 @@ fi
 # Entrata (Bing search + curated site discovery then scrape)
 log "Starting Entrata discovery + scrape..."
 cd "$REPO_ROOT/entrata_scraper"
-python3 discover_entrata_nyc.py --output seeds_nyc.txt || log "WARN: Entrata discovery failed"
+"$API_VENV" discover_entrata_nyc.py --output seeds_nyc.txt || log "WARN: Entrata discovery failed"
 if [ -s seeds_nyc.txt ]; then
-    python3 entrata_scraper.py --env local --mode scrape --seeds seeds_nyc.txt seeds.txt --max_workers 4 || log "WARN: Entrata scraper exited non-zero"
+    "$API_VENV" entrata_scraper.py --env local --mode scrape --seeds seeds_nyc.txt seeds.txt --max_workers 4 || log "WARN: Entrata scraper exited non-zero"
 else
     log "SKIP Entrata scrape — no seeds discovered"
 fi
@@ -66,12 +68,22 @@ fi
 # AppFolio (crt.sh discovery + manual seed probing then scrape)
 log "Starting AppFolio discovery + scrape..."
 cd "$REPO_ROOT/appfolio_scraper"
-python3 appfolio_scraper.py --env local --mode discover --nyc_only --probe_output seeds_discovered.txt || log "WARN: AppFolio discovery failed"
+"$API_VENV" appfolio_scraper.py --env local --mode discover --nyc_only --probe_output seeds_discovered.txt || log "WARN: AppFolio discovery failed"
 if [ -s seeds_discovered.txt ]; then
-    python3 appfolio_scraper.py --env local --mode scrape --seeds seeds_discovered.txt --max_workers 6 || log "WARN: AppFolio scraper exited non-zero"
+    "$API_VENV" appfolio_scraper.py --env local --mode scrape --seeds seeds_discovered.txt --max_workers 6 || log "WARN: AppFolio scraper exited non-zero"
 else
     log "SKIP AppFolio scrape — no seeds discovered"
 fi
+
+# Corcoran (Playwright browser scrape with pagination)
+log "Starting Corcoran scrape..."
+cd "$REPO_ROOT/corcoran_scraper"
+"$API_VENV" corcoran_scraper.py --env local --mode scrape --max_pages 50 || log "WARN: Corcoran scraper exited non-zero"
+
+# Elliman (Playwright browser scrape)
+log "Starting Elliman scrape..."
+cd "$REPO_ROOT/elliman_scraper"
+"$API_VENV" elliman_scraper.py --env local --mode scrape --max_pages 20 || log "WARN: Elliman scraper exited non-zero"
 
 # ── Phase 2: Load into Postgres ───────────────────────────────────────────
 
@@ -82,7 +94,7 @@ hr
 # Temporarily drop NOT NULL on location columns (new scraper data may lack geo)
 log "Dropping NOT NULL on location columns..."
 cd "$REPO_ROOT/api"
-uv run python -c "
+"$API_VENV" -c "
 import os; from dotenv import load_dotenv; load_dotenv('.env')
 from sqlalchemy import create_engine, text
 e = create_engine(os.environ['DATABASE_URL'])
@@ -99,6 +111,8 @@ load_parquet "RealPage"  "*/realpage_scraper/env=local/source=realpage/stage=pro
 load_parquet "Entrata"   "*/entrata_scraper/env=local/source=entrata/stage=processed/*"
 load_parquet "AppFolio"  "*/appfolio_scraper/env=local/source=appfolio/stage=processed/*"
 load_parquet "Greystar"  "*/greystar_scraper/env=local/source=greystar/stage=processed/*"
+load_parquet "Corcoran"  "*/env=local/source=corcoran/stage=processed/*"
+load_parquet "Elliman"   "*/env=local/source=elliman/stage=processed/*"
 
 # ── Phase 3: Hygiene + Geo Backfill ──────────────────────────────────────
 
@@ -107,11 +121,11 @@ log "=== PHASE 3: DATA HYGIENE + GEO BACKFILL ==="
 hr
 
 cd "$REPO_ROOT/api"
-uv run python "$HYGIENE_SCRIPT" --env-file .env
+"$API_VENV" "$HYGIENE_SCRIPT" --env-file .env
 
 # Geocode rows that have address but no lat/lng
 log "Geocoding rows with addresses but no coordinates..."
-uv run python -c "
+"$API_VENV" -c "
 import os, sys, time
 from dotenv import load_dotenv; load_dotenv('.env')
 from sqlalchemy import create_engine, text
@@ -139,7 +153,7 @@ with e.connect() as c:
 
 # Delete rows with incomplete location data and re-enforce NOT NULL
 log "Cleaning up rows with incomplete location data..."
-uv run python -c "
+"$API_VENV" -c "
 import os; from dotenv import load_dotenv; load_dotenv('.env')
 from sqlalchemy import create_engine, text
 e = create_engine(os.environ['DATABASE_URL'])
@@ -151,6 +165,36 @@ with e.connect() as c:
     c.commit()
     print('NOT NULL constraints restored')
 "
+
+# ── Phase 4: Amenity Backfill ────────────────────────────────────────────
+
+hr
+log "=== PHASE 4: AMENITY BACKFILL ==="
+hr
+
+cd "$REPO_ROOT"
+"$API_VENV" scripts/ingest_amenities.py --company RentCafe --max-urls 500 --workers 4 --batch-size 100 || log "WARN: RentCafe amenity backfill failed"
+"$API_VENV" scripts/ingest_amenities.py --company Corcoran --max-urls 500 --workers 2 --batch-size 50 || log "WARN: Corcoran amenity backfill failed"
+"$API_VENV" scripts/ingest_amenities.py --company Greystar --max-urls 200 --workers 4 --batch-size 100 || log "WARN: Greystar amenity backfill failed"
+"$API_VENV" scripts/ingest_amenities.py --company AppFolio --max-urls 200 --workers 2 --batch-size 50 || log "WARN: AppFolio amenity backfill failed"
+
+# ── Phase 5: PM Snapshots ───────────────────────────────────────────────
+
+hr
+log "=== PHASE 5: PM SNAPSHOTS ==="
+hr
+
+cd "$REPO_ROOT/api"
+"$API_VENV" -c "
+from src.property_manager.service import archive_snapshots_for_all_subscriptions
+from src.db.database import SessionLocal
+db = SessionLocal()
+try:
+    n = archive_snapshots_for_all_subscriptions(db)
+    print(f'Generated snapshots for {n} subscriptions')
+finally:
+    db.close()
+" || log "WARN: PM snapshot generation failed"
 
 # ── Summary ───────────────────────────────────────────────────────────────
 
