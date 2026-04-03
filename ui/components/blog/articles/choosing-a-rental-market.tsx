@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function ChoosingARentalMarket() {
   return (
@@ -79,6 +80,7 @@ export default function ChoosingARentalMarket() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA variant="search" />
     </div>
   );
 }

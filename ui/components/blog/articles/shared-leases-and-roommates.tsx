@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function SharedLeasesAndRoommates() {
   return (
@@ -73,6 +74,7 @@ export default function SharedLeasesAndRoommates() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA />
     </div>
   );
 }

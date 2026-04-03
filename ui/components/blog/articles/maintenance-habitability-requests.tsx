@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function MaintenanceHabitabilityRequests() {
   return (
@@ -75,6 +76,7 @@ export default function MaintenanceHabitabilityRequests() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA variant="movein" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function NeighborhoodResearchForRenters() {
   return (
@@ -78,6 +79,7 @@ export default function NeighborhoodResearchForRenters() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA variant="search" />
     </div>
   );
 }

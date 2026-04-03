@@ -695,6 +695,9 @@ class UserMoveinPlans(Base):
     user: Mapped["Users"] = relationship(back_populates="movein_plans")
     vendor_orders: Mapped[list["UserVendorOrders"]] = relationship(back_populates="movein_plan")
     checklist_items: Mapped[list["UserChecklistItems"]] = relationship(back_populates="movein_plan")
+    photo_rooms: Mapped[list["UserMoveinPhotoRooms"]] = relationship(
+        back_populates="plan", cascade="all, delete-orphan"
+    )
 
 
 class UserVendorOrders(Base):
@@ -771,6 +774,57 @@ class UserChecklistItems(Base):
 
     user: Mapped["Users"] = relationship(back_populates="checklist_items")
     movein_plan: Mapped["UserMoveinPlans"] = relationship(back_populates="checklist_items")
+
+
+class UserMoveinPhotoRooms(Base):
+    __tablename__ = "user_movein_photo_rooms"
+    __table_args__ = (Index("ix_user_movein_photo_rooms_movein_plan_id", "movein_plan_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    movein_plan_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user_movein_plans.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    room_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    room_label: Mapped[str] = mapped_column(String(128), nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    plan: Mapped["UserMoveinPlans"] = relationship(back_populates="photo_rooms")
+    photos: Mapped[list["UserMoveinPhotos"]] = relationship(
+        back_populates="room", cascade="all, delete-orphan"
+    )
+
+
+class UserMoveinPhotos(Base):
+    __tablename__ = "user_movein_photos"
+    __table_args__ = (Index("ix_user_movein_photos_room_id", "room_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    room_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user_movein_photo_rooms.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    photo_url: Mapped[str] = mapped_column(Text, nullable=False)
+    thumbnail_url: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
+    captured_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    latitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
+    longitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
+    file_size_bytes: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    room: Mapped["UserMoveinPhotoRooms"] = relationship(back_populates="photos")
 
 
 class RoommateProfiles(Base):

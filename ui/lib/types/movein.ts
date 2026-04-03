@@ -84,3 +84,52 @@ export const VENDOR_CATEGORY_META: Record<
   internet: { label: "Internet", icon: "Wifi" },
   movers: { label: "Movers", icon: "Truck" },
 };
+
+/* ── Photo Documentation types ── */
+
+export type PhotoRoomType =
+  | "living_room"
+  | "bedroom"
+  | "kitchen"
+  | "bathroom"
+  | "hallway"
+  | "closet"
+  | "other";
+
+export const PHOTO_ROOM_META: Record<PhotoRoomType, { label: string; icon: string }> = {
+  living_room: { label: "Living Room", icon: "Sofa" },
+  bedroom: { label: "Bedroom", icon: "Bed" },
+  kitchen: { label: "Kitchen", icon: "CookingPot" },
+  bathroom: { label: "Bathroom", icon: "Bath" },
+  hallway: { label: "Hallway", icon: "DoorOpen" },
+  closet: { label: "Closet", icon: "Archive" },
+  other: { label: "Other", icon: "LayoutGrid" },
+};
+
+export interface PhotoRoom {
+  id: string;
+  roomType: PhotoRoomType;
+  roomLabel: string;
+  sortOrder: number;
+  photoCount: number;
+  firstPhotoUrl: string | null;
+}
+
+export interface MoveInPhoto {
+  id: string;
+  roomId: string;
+  photoUrl: string;
+  thumbnailUrl: string | null;
+  note: string | null;
+  capturedAt: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  fileSizeBytes: number | null;
+  createdAt: string;
+}
+
+export interface PhotoDocumentationSummary {
+  roomCount: number;
+  totalPhotos: number;
+  rooms: PhotoRoom[];
+}

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
 export default function MoveInDayDocumentation() {
   return (
@@ -73,6 +74,7 @@ export default function MoveInDayDocumentation() {
           </p>
         </CardContent>
       </Card>
+      <ArticleCTA variant="movein" />
     </div>
   );
 }
