@@ -64,10 +64,12 @@ function DeltaBadge({
   label,
   delta,
   format = "dollar",
+  increaseIsGood = true,
 }: {
   label: string;
   delta: MetricDelta | null | undefined;
   format?: "dollar" | "pct" | "int";
+  increaseIsGood?: boolean;
 }) {
   if (!delta || delta.current == null) return null;
 
@@ -88,11 +90,12 @@ function DeltaBadge({
   }
 
   const ArrowIcon = !hasChange ? Minus : isPositive ? ArrowUp : ArrowDown;
+  const isGood = increaseIsGood ? isPositive : !isPositive;
   const colorClass = !hasChange
     ? "text-muted-foreground"
-    : isPositive
-      ? "text-red-500"
-      : "text-green-600";
+    : isGood
+      ? "text-green-600"
+      : "text-red-500";
 
   return (
     <div className="flex flex-col gap-0.5">
@@ -274,24 +277,9 @@ export function TrendsCard({
   // Don't render if no location selected
   if (!enabled) return null;
 
-  // Empty state
+  // Hide entirely when no trend data exists
   if (!isLoading && weeksOfData === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="h-4 w-4" />
-            Market Trends
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No trend data yet for this area. Trends build automatically as you
-            and others analyze this location.
-          </p>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   // Prepare chart data (reverse so oldest first for X axis)
@@ -327,9 +315,9 @@ export function TrendsCard({
         {/* WoW Delta Badges */}
         {deltas && (
           <div className="flex gap-6 flex-wrap">
-            <DeltaBadge label="Median Rent" delta={deltas.median_rent} format="dollar" />
-            <DeltaBadge label="Vacancy Rate" delta={deltas.vacancy_rate_pct} format="pct" />
-            <DeltaBadge label="Sample Size" delta={deltas.sample_size} format="int" />
+            <DeltaBadge label="Median Rent" delta={deltas.median_rent} format="dollar" increaseIsGood />
+            <DeltaBadge label="Availability" delta={deltas.vacancy_rate_pct} format="pct" increaseIsGood={false} />
+            <DeltaBadge label="Sample Size" delta={deltas.sample_size} format="int" increaseIsGood />
           </div>
         )}
 
@@ -386,10 +374,10 @@ export function TrendsCard({
           </div>
         )}
 
-        {/* Vacancy Trend Chart */}
+        {/* Listing Availability Trend Chart */}
         {vacancyChartData.length >= 2 && vacancyChartData.some((d) => d.vacancy != null) && (
           <div>
-            <h4 className="text-sm font-medium mb-2">Vacancy Rate</h4>
+            <h4 className="text-sm font-medium mb-2">Listing Availability</h4>
             <div className="h-36">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={vacancyChartData}>
@@ -401,7 +389,7 @@ export function TrendsCard({
                     domain={[0, "auto"]}
                   />
                   <Tooltip
-                    formatter={(value: number) => [fmtPct(value), "Vacancy"]}
+                    formatter={(value: number) => [fmtPct(value), "Availability"]}
                     contentStyle={{ fontSize: 12 }}
                   />
                   <defs>

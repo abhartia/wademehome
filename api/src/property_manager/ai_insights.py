@@ -14,6 +14,7 @@ from property_manager.schemas import (
     AiInsightSection,
     AiSummary,
     AmenityAnalysis,
+    AmenityFrequency,
     BuildingFinancials,
     CompetitorPosition,
     DemographicsOut,
@@ -56,11 +57,17 @@ Include these sections (skip any where data is insufficient):
 3. "Fee Opportunities" — where is money being left on the table or \
    where are fees out of line with the market?
 4. "Supply & Demand" — is the market tight or loose? Which unit types \
-   are oversaturated vs. scarce?
+   are oversaturated vs. scarce? \
+   IMPORTANT: The supply data shows LISTING AVAILABILITY (% of units on listing \
+   platforms currently marketed as available), NOT true market vacancy. Listing \
+   platforms are biased toward available units. True market vacancy in healthy \
+   urban markets is typically 3-7%. Frame your analysis in terms of "listing \
+   availability" and "competition for tenants", NEVER call it "vacancy rate".
 5. "Amenity Gaps" — what amenities could differentiate the property? \
    What do competitors mostly lack?
 6. "Risk Factors" — anything in the data that signals trouble \
-   (e.g. high vacancy in a segment, rents above affordability ceiling)?
+   (e.g. high listing availability in a segment indicating competitive \
+   pressure, rents above affordability ceiling)?
 7. "Building Economics" — if building_financials data is provided, \
    what does the asking-vs-in-place rent gap reveal? Are buildings \
    in the area likely under-rented or over-rented relative to their \
@@ -137,16 +144,12 @@ def _build_data_payload(
     }
 
     d["supply_pressure"] = {
-        "total_units": supply_pressure.total_units,
+        "note": "These are listing platform availability rates, NOT true market vacancy rates.",
+        "total_listed_units": supply_pressure.total_units,
         "available_units": supply_pressure.available_units,
-        "vacancy_rate_pct": supply_pressure.vacancy_rate_pct,
-        "listing_sample_vacancy_rate_pct": supply_pressure.listing_sample_vacancy_rate_pct,
-        "estimated_market_units": supply_pressure.estimated_market_units,
-        "estimated_unlisted_units": supply_pressure.estimated_unlisted_units,
-        "unlisted_market_share_pct": supply_pressure.unlisted_market_share_pct,
-        "assumed_unlisted_vacancy_pct": supply_pressure.assumed_unlisted_vacancy_pct,
+        "listing_availability_pct": supply_pressure.listing_sample_vacancy_rate_pct,
         "by_bedroom": [
-            {"beds": b.beds, "total": b.total, "available": b.available, "vacancy_pct": b.vacancy_pct}
+            {"beds": b.beds, "total": b.total, "available": b.available, "availability_pct": b.vacancy_pct}
             for b in (supply_pressure.by_bedroom or [])
         ],
     }
@@ -333,3 +336,152 @@ def generate_ai_summary(
             return None
         logger.exception("AI insight generation failed")
         return None
+
+
+_AMENITY_CLEAN_PROMPT = """\
+You receive a JSON list of raw amenity labels from a rental listing database. \
+Your job is to produce clean, title-case display names for a professional \
+property manager report.
+
+Rules:
+- Remove category prefixes like "flooring ", "cooling ", "garage description ", \
+  "general ", "exterior description ", "property description ", "interior ", \
+  "amenities ", "basement ".
+- Convert to clean Title Case (e.g. "flooring hardwood" → "Hardwood Floors").
+- REMOVE any entry that represents the ABSENCE of a feature (e.g. "no garage", \
+  "none", "basement none", "garage description no garage").
+- REMOVE any entry that is too vague to be meaningful (e.g. "other", "n/a").
+- If two labels clearly mean the same thing, map them to the same clean name.
+- Keep it concise: 2-4 words max per label.
+
+Return valid JSON with this exact structure:
+{
+  "cleaned": {"original_label": "Clean Label", ...},
+  "remove": ["label_to_remove", ...]
+}
+
+Include EVERY input label in either "cleaned" or "remove".
+"""
+
+
+def clean_amenity_labels(amenities: AmenityAnalysis) -> AmenityAnalysis:
+    """Use LLM to clean raw amenity labels into professional display names."""
+    all_items = list(amenities.standard) + list(amenities.differentiators) + list(amenities.rare)
+    if not all_items:
+        return amenities
+
+    raw_labels = [item.amenity for item in all_items]
+
+    # Build cache key from the sorted labels
+    cache_data = {"_type": "amenity_clean", "labels": sorted(raw_labels)}
+    key = _cache_key(cache_data)
+
+    # Check cache
+    cached = None
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT response_json FROM insight_llm_cache WHERE cache_key = :k"),
+                {"k": key},
+            ).fetchone()
+            if row:
+                cached = json.loads(row[0])
+    except Exception:
+        logger.debug("amenity label cache miss or table not ready", exc_info=True)
+
+    if cached is None:
+        logger.info("Amenity label cache MISS — calling LLM (%s)", key[:12])
+        try:
+            from core.config import Config
+            from llama_index.core.base.llms.types import ChatMessage, MessageRole
+            from llama_index.llms.azure_openai import AzureOpenAI
+            from llama_index.llms.openai import OpenAI
+
+            endpoint = (Config.get("AZURE_OPENAI_ENDPOINT", "") or "").strip()
+            if endpoint and Config.get("AZURE_OPENAI_API_KEY") and Config.get("AZURE_OPENAI_DEPLOYMENT"):
+                llm = AzureOpenAI(
+                    azure_endpoint=endpoint.rstrip("/"),
+                    api_key=Config.get("AZURE_OPENAI_API_KEY"),
+                    engine=Config.get("AZURE_OPENAI_DEPLOYMENT"),
+                    model=Config.get("AZURE_OPENAI_MODEL", "gpt-5-nano"),
+                    api_version=Config.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
+                    timeout=30.0,
+                    max_retries=1,
+                )
+            else:
+                llm = OpenAI(
+                    api_key=Config.get("OPENAI_API_KEY"),
+                    model=Config.get("OPENAI_MODEL", "gpt-4.1"),
+                    timeout=30.0,
+                    max_retries=1,
+                )
+
+            user_msg = json.dumps(raw_labels)
+            response = llm.chat([
+                ChatMessage(role=MessageRole.SYSTEM, content=_AMENITY_CLEAN_PROMPT),
+                ChatMessage(role=MessageRole.USER, content=user_msg),
+            ])
+            content = (response.message.content or "").strip()
+            if content.startswith("```"):
+                lines = content.split("\n")
+                lines = lines[1:]
+                if lines and lines[-1].strip() == "```":
+                    lines = lines[:-1]
+                content = "\n".join(lines)
+            cached = json.loads(content)
+
+            # Persist to cache
+            try:
+                with engine.connect() as conn:
+                    conn.execute(
+                        text("""
+                            INSERT INTO insight_llm_cache (cache_key, response_json)
+                            VALUES (:k, :v)
+                            ON CONFLICT (cache_key) DO UPDATE SET response_json = :v, created_at = now()
+                        """),
+                        {"k": key, "v": json.dumps(cached)},
+                    )
+                    conn.commit()
+            except Exception:
+                logger.debug("amenity label cache write failed", exc_info=True)
+
+        except Exception:
+            logger.exception("Amenity label LLM cleanup failed — returning raw labels")
+            return amenities
+    else:
+        logger.info("Amenity label cache HIT (%s)", key[:12])
+
+    cleaned_map: dict[str, str] = cached.get("cleaned", {})
+    remove_set: set[str] = set(cached.get("remove", []))
+
+    def _apply(items: list[AmenityFrequency]) -> list[AmenityFrequency]:
+        result = []
+        seen_labels: dict[str, int] = {}
+        for item in items:
+            if item.amenity in remove_set:
+                continue
+            label = cleaned_map.get(item.amenity, item.amenity.title())
+            if label in seen_labels:
+                # Merge counts for duplicate cleaned labels
+                idx = seen_labels[label]
+                existing = result[idx]
+                result[idx] = AmenityFrequency(
+                    amenity=label,
+                    count=existing.count + item.count,
+                    pct_of_buildings=existing.pct_of_buildings + item.pct_of_buildings,
+                )
+            else:
+                seen_labels[label] = len(result)
+                result.append(AmenityFrequency(
+                    amenity=label,
+                    count=item.count,
+                    pct_of_buildings=item.pct_of_buildings,
+                ))
+        return result
+
+    return AmenityAnalysis(
+        total_buildings=amenities.total_buildings,
+        standard=_apply(amenities.standard),
+        differentiators=_apply(amenities.differentiators),
+        rare=_apply(amenities.rare),
+    )

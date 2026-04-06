@@ -56,7 +56,7 @@ import { useNearbyListings } from "@/lib/listings/useNearbyListings";
 import { useListingGeocode } from "@/lib/listings/useListingGeocode";
 import { toast } from "sonner";
 
-const DEFAULT_RADIUS = 2;
+const DEFAULT_RADIUS = 1;
 const NEARBY_LIMIT = 100;
 
 function fmt$(n: number | null | undefined): string {
@@ -297,10 +297,9 @@ function PropertyManagerAnalysisPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Competitive analysis</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          See rents, specials from amenities when present, and links for buildings within{" "}
-          {`${DEFAULT_RADIUS} miles`} of a pin—same
-          inventory as renter search. Weekly email sends this snapshot on your schedule (ops-triggered
-          job).
+          Rent comps, concessions, and competitor intelligence within{" "}
+          {`${DEFAULT_RADIUS} mile${DEFAULT_RADIUS === 1 ? "" : "s"}`}.
+          Subscribe for automated weekly reports.
         </p>
       </div>
 
@@ -308,8 +307,7 @@ function PropertyManagerAnalysisPage() {
         <CardHeader>
           <CardTitle>Location</CardTitle>
           <CardDescription>
-            Enter a street address or place name. We geocode it, then load nearby buildings from
-            inventory.
+            Enter a street address or place name to analyze nearby buildings.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -340,7 +338,7 @@ function PropertyManagerAnalysisPage() {
         </CardContent>
         {geoQuery.isError ? (
           <CardContent className="pt-0 text-sm text-destructive">
-            Could not geocode that address. Try a fuller address or check Mapbox configuration.
+            Could not find that address. Try a more specific address.
           </CardContent>
         ) : null}
         {lat != null && lng != null ? (
@@ -356,7 +354,7 @@ function PropertyManagerAnalysisPage() {
             <CardTitle className="text-base">Map</CardTitle>
             {fallbackNote ? (
               <CardDescription>
-                Nothing matched inside the radius; showing nearest buildings (same as search).
+                Nothing matched inside the radius; showing nearest buildings.
               </CardDescription>
             ) : null}
           </CardHeader>
@@ -376,8 +374,7 @@ function PropertyManagerAnalysisPage() {
           <CardHeader className="shrink-0">
             <CardTitle className="text-base">Buildings ({properties.length})</CardTitle>
             <CardDescription>
-              Promo-style lines are taken from the listing_amenities table and from other special-offer
-              fields on the listing row when present.
+              Current concessions and move-in specials advertised by competitors.
             </CardDescription>
           </CardHeader>
           <CardContent className="min-h-0 flex-1 overflow-auto p-0">
@@ -389,8 +386,8 @@ function PropertyManagerAnalysisPage() {
             ) : properties.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">
                 {lat == null || lng == null
-                  ? "Geocode an address to load competitors."
-                  : "No rows returned for this pin."}
+                  ? "Enter an address above to load nearby buildings."
+                  : "No buildings found in this area."}
               </p>
             ) : (
               <table className="w-full caption-bottom text-sm">
@@ -459,7 +456,7 @@ function PropertyManagerAnalysisPage() {
           ) : insightsQuery.isError ? (
             <Card>
               <CardContent className="py-8 text-center text-sm text-destructive">
-                Could not load insights. Try again or check server logs.
+                Could not load insights. Please try again.
               </CardContent>
             </Card>
           ) : insights ? (
@@ -600,7 +597,7 @@ function PropertyManagerAnalysisPage() {
                       <CardDescription>
                         Derived from NYC DOF assessed market values using{" "}
                         {((financials.cap_rate_used ?? 0) * 100).toFixed(0)}% cap rate,{" "}
-                        {((financials.expense_ratio_used ?? 0) * 100).toFixed(0)}% expense ratio (RGB study assumptions).
+                        {((financials.expense_ratio_used ?? 0) * 100).toFixed(0)}% expense ratio (industry benchmark assumptions).
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -866,47 +863,28 @@ function PropertyManagerAnalysisPage() {
                       Supply pressure
                     </CardTitle>
                     <CardDescription>
-                      Listings only capture part of the rental stock. The headline uses an estimated
-                      total market size and assumes mostly-occupied units that never appear in the
-                      database.
+                      Availability of listed units across the comp set.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-bold">
-                        {fmtPct(supply?.vacancy_rate_pct, 1)}
+                        {fmtPct(supply?.listing_sample_vacancy_rate_pct, 1)}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        est. market vacancy rate
+                        listing availability rate
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {fmtNum(supply?.available_units)} available in a listing sample of{" "}
-                      {fmtNum(supply?.total_units)} units (
-                      {fmtPct(supply?.listing_sample_vacancy_rate_pct, 1)} listing-only — can
-                      overstate vacancy).
+                      {fmtNum(supply?.available_units)} of{" "}
+                      {fmtNum(supply?.total_units)} listed units currently available.
+                      Based on listing platform data; actual market vacancy is typically lower.
                     </p>
-                    {supply != null &&
-                    supply.estimated_market_units > 0 &&
-                    supply.estimated_unlisted_units > 0 ? (
-                      <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground leading-relaxed">
-                        <p className="font-medium text-foreground">
-                          ~{fmtNum(supply.estimated_unlisted_units)} unlisted units
-                        </p>
-                        <p>
-                          We assume ~{fmtPct(supply.unlisted_market_share_pct, 0)} of area rental
-                          units never appear in scraped listings, so estimated market size is ~{" "}
-                          {fmtNum(supply.estimated_market_units)} units. Unlisted units are modeled
-                          at {fmtPct(supply.assumed_unlisted_vacancy_pct, 0)} vacancy (mostly
-                          occupied).
-                        </p>
-                      </div>
-                    ) : null}
 
                     {supply?.by_bedroom && supply.by_bedroom.length > 0 ? (
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">
-                          By bedroom (listing sample)
+                          Availability by unit type
                         </p>
                         {supply.by_bedroom.map((br) => (
                           <div key={br.beds} className="space-y-1">
@@ -934,7 +912,7 @@ function PropertyManagerAnalysisPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <TrendingUp className="h-4 w-4" />
-                        Rent positioning ({competitors.length})
+                        Rent positioning ({competitors.length} buildings in {DEFAULT_RADIUS}-mi radius)
                       </CardTitle>
                       <CardDescription>
                         Where each competitor stands relative to the area median. Sorted by $/sqft.
@@ -1208,8 +1186,8 @@ function PropertyManagerAnalysisPage() {
         <CardHeader>
           <CardTitle>Weekly email report</CardTitle>
           <CardDescription>
-            Opt in for automated weekly email (ops cron). Use Send now on a row to deliver the current
-            snapshot immediately. Toggle Weekly to pause scheduled sends for that watch.
+            Receive automated weekly market reports by email. Use Send now to deliver the
+            current snapshot immediately. Toggle Weekly to pause scheduled sends.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -1234,7 +1212,7 @@ function PropertyManagerAnalysisPage() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Uses the current geocoded pin and a {DEFAULT_RADIUS}-mile radius. To change the pin, run a
+            Uses the current location and a {DEFAULT_RADIUS}-mile radius. To change the area, run a
             new lookup and subscribe again with a different label.
           </p>
 

@@ -194,11 +194,9 @@ def _insights_html_section(insights: InsightsResponse) -> str:
     if sp.total_units > 0:
         parts.append(
             '<p style="font-size:13px;"><strong>Supply:</strong> '
-            f'{sp.available_units} available in listing sample of {sp.total_units} units '
-            f'({sp.listing_sample_vacancy_rate_pct}% listing-only vacancy). '
-            f'Estimated market vacancy ~{sp.vacancy_rate_pct}% '
-            f'(assuming ~{sp.unlisted_market_share_pct:.0f}% of units never appear in listings; '
-            f'~{sp.estimated_unlisted_units:,} unlisted units at ~{sp.assumed_unlisted_vacancy_pct:.0f}% vacancy).</p>'
+            f'{sp.available_units} of {sp.total_units} listed units currently available '
+            f'({sp.listing_sample_vacancy_rate_pct}% listing availability rate). '
+            f'Based on listing platform data; actual market vacancy is typically lower.</p>'
         )
 
     # Top fees
@@ -326,7 +324,7 @@ def build_report_html(
         if market_deltas.median_rent:
             badges.append(_delta_badge_html("Median rent", market_deltas.median_rent.current, market_deltas.median_rent.previous, "dollar"))
         if market_deltas.vacancy_rate_pct:
-            badges.append(_delta_badge_html("Vacancy", market_deltas.vacancy_rate_pct.current, market_deltas.vacancy_rate_pct.previous, "pct"))
+            badges.append(_delta_badge_html("Availability", market_deltas.vacancy_rate_pct.current, market_deltas.vacancy_rate_pct.previous, "pct"))
         if market_deltas.sample_size:
             badges.append(_delta_badge_html("Supply", market_deltas.sample_size.current, market_deltas.sample_size.previous, "int"))
         if badges:
@@ -593,11 +591,22 @@ def _compute_market_snapshot(rows: list[dict[str, Any]], zip_code: str | None) -
         scope = f"ZIP {zip_code}" if zip_code else "Nearby"
         return MarketSnapshotResponse(scope=scope, zip=zip_code, sample_size=0, bedroom_mix={})
 
+    # IQR-based outlier filtering to remove extreme rents (e.g. $650 in JC)
     rents_sorted = sorted(rents)
     n = len(rents_sorted)
-    p25 = rents_sorted[int(n * 0.25)]
-    p50 = rents_sorted[int(n * 0.50)]
-    p75 = rents_sorted[int(n * 0.75)]
+    q1 = rents_sorted[int(n * 0.25)]
+    q3 = rents_sorted[int(n * 0.75)]
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+    rents_filtered = [r for r in rents_sorted if lower_bound <= r <= upper_bound]
+    if not rents_filtered:
+        rents_filtered = rents_sorted  # fallback if filtering removes everything
+
+    n = len(rents_filtered)
+    p25 = rents_filtered[int(n * 0.25)]
+    p50 = rents_filtered[int(n * 0.50)]
+    p75 = rents_filtered[int(n * 0.75)]
 
     bed_counts: dict[str, int] = defaultdict(int)
     for r in rows:
@@ -743,8 +752,8 @@ _SUPPLY_ASSUMED_UNLISTED_VACANCY_PCT = 2.0
 
 
 def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
-    """Compute vacancy proxy from availability_status plus a market-wide estimate."""
-    total = len(rows)
+    """Compute listing availability from availability_status."""
+    total = 0
     available = 0
     bed_totals: dict[str, int] = defaultdict(int)
     bed_available: dict[str, int] = defaultdict(int)
@@ -759,12 +768,22 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
             "available", "available now", "available soon", "vacant",
             "not yet leased", "ready", "open",
         )
+
+        # Exclude "Unknown" bedroom units from headline totals — they inflate
+        # availability and signal dirty data.
+        if bed_label != "Unknown":
+            total += 1
+            if is_available:
+                available += 1
+
         if is_available:
-            available += 1
             bed_available[bed_label] += 1
 
+    # Build by-bedroom breakdown, excluding "Unknown"
     by_bedroom: list[BedroomSupply] = []
     for bed_label in sorted(bed_totals.keys()):
+        if bed_label == "Unknown":
+            continue
         t = bed_totals[bed_label]
         a = bed_available.get(bed_label, 0)
         by_bedroom.append(BedroomSupply(
@@ -774,7 +793,7 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
             vacancy_pct=round(a / t * 100, 1) if t > 0 else 0,
         ))
 
-    listing_vacancy = round(available / total * 100, 1) if total > 0 else 0.0
+    listing_availability = round(available / total * 100, 1) if total > 0 else 0.0
     unlisted_share = min(max(_SUPPLY_UNLISTED_MARKET_SHARE_PCT, 0.0), 99.0)
     share_in_db = 1.0 - unlisted_share / 100.0
     assumed_uv = min(max(_SUPPLY_ASSUMED_UNLISTED_VACANCY_PCT, 0.0), 100.0)
@@ -784,7 +803,7 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
             total_units=total,
             available_units=available,
             vacancy_rate_pct=0.0,
-            listing_sample_vacancy_rate_pct=listing_vacancy,
+            listing_sample_vacancy_rate_pct=listing_availability,
             estimated_market_units=0,
             estimated_unlisted_units=0,
             unlisted_market_share_pct=unlisted_share,
@@ -801,7 +820,7 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
         total_units=total,
         available_units=available,
         vacancy_rate_pct=round(est_vacancy, 1),
-        listing_sample_vacancy_rate_pct=listing_vacancy,
+        listing_sample_vacancy_rate_pct=listing_availability,
         estimated_market_units=int(round(est_market)),
         estimated_unlisted_units=est_unlisted,
         unlisted_market_share_pct=unlisted_share,
@@ -1058,9 +1077,14 @@ def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict
     # 8. Supply pressure
     supply = _compute_supply_pressure(details)
 
-    # 9. Amenity analysis
+    # 9. Amenity analysis + AI label cleanup
     listing_ids = list({d["listing_id"] for d in details if d.get("listing_id")})
     amenities = _compute_amenity_analysis(listing_ids)
+    try:
+        from property_manager.ai_insights import clean_amenity_labels
+        amenities = clean_amenity_labels(amenities)
+    except Exception:
+        logger.debug("Amenity label cleanup failed — using raw labels", exc_info=True)
 
     # 10. NYC Building Financials (PLUTO + DOF assessments)
     building_financials = None
