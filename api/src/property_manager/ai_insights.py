@@ -339,33 +339,49 @@ def generate_ai_summary(
 
 
 _AMENITY_CLEAN_PROMPT = """\
-You receive a JSON list of raw amenity labels from a rental listing database. \
-Your job is to produce clean, title-case display names for a professional \
-property manager report.
+Convert raw amenity database labels into clean display names.
 
-Rules:
-- Remove category prefixes like "flooring ", "cooling ", "garage description ", \
-  "general ", "exterior description ", "property description ", "interior ", \
-  "amenities ", "basement ".
-- Convert to clean Title Case (e.g. "flooring hardwood" → "Hardwood Floors").
-- REMOVE any entry that represents the ABSENCE of a feature (e.g. "no garage", \
-  "none", "basement none", "garage description no garage").
-- REMOVE any entry that is too vague to be meaningful (e.g. "other", "n/a").
-- If two labels clearly mean the same thing, map them to the same clean name.
-- Keep it concise: 2-4 words max per label.
+PREFIXES TO STRIP: "flooring ", "cooling ", "garage description ", "general ", \
+"exterior description ", "property description ", "interior ", "amenities ", \
+"basement ", "exterior living space ", "stainless steel ".
 
-Return valid JSON with this exact structure:
-{
-  "cleaned": {"original_label": "Clean Label", ...},
-  "remove": ["label_to_remove", ...]
-}
+EXAMPLES:
+"flooring hardwood" → "Hardwood Floors"
+"cooling central a c" → "Central A/C"
+"cooling central a c gas" → "Gas Central A/C"
+"cooling window a c" → "Window A/C"
+"general elevator" → "Elevator"
+"general security system" → "Security System"
+"general doorman" → "Doorman"
+"garage description attached garage" → "Attached Garage"
+"garage description garage" → "Garage"
+"exterior description brick" → "Brick Exterior"
+"exterior description stone" → "Stone Exterior"
+"exterior living space terrace" → "Terrace"
+"interior intercom system" → "Intercom System"
+"interior exercise area" → "Exercise Room"
+"amenities playground" → "Playground"
+"basement finished" → "Finished Basement"
+"basement full" → "Full Basement"
+"property description community living" → "Community Living"
+"stainless steel appliances" → "Stainless Appliances"
+"dishwasher" → "Dishwasher"
+"central air" → "Central Air"
+"laundry in building" → "In-Building Laundry"
+"pool description pool" → "Pool"
 
-Include EVERY input label in either "cleaned" or "remove".
+REMOVE only if the label means ABSENCE of a feature:
+"garage description no garage" → REMOVE
+"basement none" → REMOVE
+"exterior description other" → REMOVE
+
+Return JSON: {"cleaned": {"original_label": "Clean Label", ...}, "remove": ["label", ...]}
 """
 
 
 def _call_llm_raw(system_prompt: str, user_msg: str) -> str:
-    """Call LLM and return the raw text content (no AiSummary parsing)."""
+    """Call LLM and return raw text content. Uses same Azure/OpenAI config
+    as the main _call_llm but with reasoning disabled for speed."""
     from core.config import Config
     from llama_index.core.base.llms.types import ChatMessage, MessageRole
     from llama_index.llms.azure_openai import AzureOpenAI
@@ -381,6 +397,7 @@ def _call_llm_raw(system_prompt: str, user_msg: str) -> str:
             api_version=Config.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
             timeout=_LLM_TIMEOUT_SECONDS,
             max_retries=_LLM_MAX_RETRIES,
+            additional_kwargs={"reasoning_effort": "none"},
         )
     else:
         llm = OpenAI(
