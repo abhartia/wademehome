@@ -1,0 +1,42 @@
+# Wade Me Home
+
+> Renter-first rental search and move-in platform for New York City apartments.
+
+Wade Me Home helps renters find apartments, schedule tours, compare listings, and coordinate their entire move-in process in one place.
+
+## Key pages
+
+- Home: https://wademehome.com/
+- Property listings: https://wademehome.com/properties/{propertyKey}
+- Blog: https://wademehome.com/blog
+- NYC Moving Checklist: https://wademehome.com/nyc-moving-checklist
+- NYC Apartment Search Guide: https://wademehome.com/nyc-apartment-search-guide
+- NYC Apartment Movers: https://wademehome.com/nyc-apartment-movers
+- NYC Move-In Cleaning: https://wademehome.com/nyc-move-in-cleaning
+- Vendor Directory: https://wademehome.com/vendors
+- For Property Managers: https://wademehome.com/for-property-managers
+
+## Content types
+
+- **Rental listings**: Apartments and buildings across NYC with pricing, amenities, photos, and location data. Each listing page includes structured data (schema.org ApartmentComplex).
+- **Guides**: Practical how-to content for NYC renters covering apartment search, moving logistics, cleaning services, and movers.
+- **Blog articles**: In-depth posts about renting, neighborhoods, and the rental market.
+- **Vendor directory**: Curated list of move-in service providers (movers, cleaners, etc.).
+
+## Features for renters
+
+- AI-powered apartment search
+- Interactive map-based property browsing
+- Tour scheduling and management
+- Lease document review
+- Roommate matching
+- Move-in coordination and checklists
+- Guarantor management
+
+## Data
+
+Property listings are sourced from multiple rental platforms and updated regularly. Listings include addresses, pricing, bedroom counts, amenities, photos, and geographic coordinates.
+
+## Sitemap
+
+https://wademehome.com/sitemap.xml

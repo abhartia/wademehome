@@ -51,6 +51,10 @@ class PoiNearbyResponse(BaseModel):
     items: list[PoiHit]
 
 
+class SitemapKeysResponse(BaseModel):
+    keys: list[str] = Field(default_factory=list, description="Property keys for sitemap URLs.")
+
+
 class NearbyListingsResponse(BaseModel):
     properties: list[PropertyDataItem]
     total_in_radius: int = Field(

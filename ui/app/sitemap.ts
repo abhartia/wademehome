@@ -1,10 +1,20 @@
 import type { MetadataRoute } from "next";
 import { blogArticles } from "@/lib/blog/articles";
+import { listingsFetch } from "@/lib/listings/listingsApi";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+async function fetchPropertyKeys(): Promise<string[]> {
+  try {
+    const data = await listingsFetch<{ keys: string[] }>("/listings/sitemap-keys");
+    return data.keys ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${baseUrl}/`, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
     {
@@ -64,5 +74,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...blogEntries];
+  const propertyKeys = await fetchPropertyKeys();
+  const propertyEntries: MetadataRoute.Sitemap = propertyKeys.map((key) => ({
+    url: `${baseUrl}/properties/${encodeURIComponent(key)}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...blogEntries, ...propertyEntries];
 }

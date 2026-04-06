@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Any
 
+import httpx
 from sqlalchemy import text
 
 from core.logger import get_logger
@@ -232,14 +233,22 @@ def _call_llm(data: dict[str, Any]) -> AiSummary:
             engine=Config.get("AZURE_OPENAI_DEPLOYMENT"),
             model=Config.get("AZURE_OPENAI_MODEL", "gpt-5-nano"),
             api_version=Config.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
+            timeout=_LLM_TIMEOUT_SECONDS,
+            max_retries=_LLM_MAX_RETRIES,
             max_tokens=None,
+            # Keep this high: PM output is a structured multi-section JSON brief.
+            # Do not reduce max_completion_tokens unless product scope explicitly changes.
             additional_kwargs={"max_completion_tokens": 16000},
         )
     else:
         llm = OpenAI(
             api_key=Config.get("OPENAI_API_KEY"),
             model=Config.get("OPENAI_MODEL", "gpt-4.1"),
+            timeout=_LLM_TIMEOUT_SECONDS,
+            max_retries=_LLM_MAX_RETRIES,
             max_tokens=None,
+            # Keep this high: PM output is a structured multi-section JSON brief.
+            # Do not reduce max_completion_tokens unless product scope explicitly changes.
             additional_kwargs={"max_completion_tokens": 16000},
         )
 
@@ -276,6 +285,13 @@ def _call_llm(data: dict[str, Any]) -> AiSummary:
     )
 
 
+def _is_timeout_error(exc: Exception) -> bool:
+    if isinstance(exc, httpx.TimeoutException):
+        return True
+    # Keep this resilient even if OpenAI import path changes.
+    return exc.__class__.__name__ == "APITimeoutError"
+
+
 def generate_ai_summary(
     market: MarketSnapshotResponse,
     demographics: DemographicsOut | None,
@@ -304,6 +320,9 @@ def generate_ai_summary(
         summary = _call_llm(data)
         _cache_set(key, summary)
         return summary
-    except Exception:
+    except Exception as exc:
+        if _is_timeout_error(exc):
+            logger.warning("AI insight generation timed out (%s)", key[:12])
+            return None
         logger.exception("AI insight generation failed")
         return None

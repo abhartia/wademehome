@@ -17,7 +17,7 @@ from listings.listing_amenities_concessions import merge_concession_snippets_fro
 from listings.listings_table_cache import cached_execute_all, cached_execute_first
 from listings.market_snapshot import build_market_snapshot_sql, extract_zip_from_address, normalize_us_zip_query
 from listings.nearby_mapper import row_to_property_data_item
-from listings.property_key import item_matches_property_key, parse_property_key
+from listings.property_key import item_matches_property_key, parse_property_key, property_key_from_item
 from listings.schemas import (
     CommuteLegResult,
     CommuteMatrixResponse,
@@ -26,6 +26,7 @@ from listings.schemas import (
     NearbyListingsResponse,
     PoiHit,
     PoiNearbyResponse,
+    SitemapKeysResponse,
 )
 from workflow.events import PropertyDataItem
 from workflow.utils import engine, listing_table_name, listing_table_schema
@@ -759,6 +760,57 @@ def _resolve_property_by_key(key: str) -> PropertyDataItem | None:
     except Exception:
         logger.exception("listings/by-property-key: query failed")
         return None
+
+
+@router.get("/sitemap-keys", response_model=SitemapKeysResponse)
+def get_sitemap_keys() -> SitemapKeysResponse:
+    """Return all distinct property keys for sitemap generation."""
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        return SitemapKeysResponse()
+    if engine.dialect.name != "postgresql":
+        return SitemapKeysResponse()
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                return SitemapKeysResponse()
+
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            distinct_on, order_building = _distinct_on_building(cols)
+
+            sql = text(
+                f"""
+                SELECT * FROM (
+                  SELECT DISTINCT ON ({distinct_on})
+                    t_inner.*
+                  FROM {qtable} AS t_inner
+                  WHERE t_inner.latitude IS NOT NULL
+                    AND t_inner.longitude IS NOT NULL
+                  ORDER BY {order_building}
+                ) sub
+                """
+            )
+            rows = cached_execute_all(conn, sql, {})
+
+        keys: list[str] = []
+        for row in rows:
+            try:
+                item = row_to_property_data_item(dict(row))
+                keys.append(property_key_from_item(item))
+            except Exception:
+                logger.debug("sitemap-keys: skip row")
+
+        return SitemapKeysResponse(keys=keys)
+    except Exception:
+        logger.exception("sitemap-keys: query failed")
+        return SitemapKeysResponse()
 
 
 class GeocodeBody(BaseModel):

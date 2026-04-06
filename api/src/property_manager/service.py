@@ -50,6 +50,38 @@ from workflow.utils import engine, listing_table_name, listing_table_schema
 logger = get_logger(__name__)
 
 LISTING_LIMIT_REPORT = 100
+_SNAPSHOT_TABLE_CHECK_TTL_SECONDS = 300
+_snapshot_tables_ready_cache: bool | None = None
+_snapshot_tables_checked_at: datetime | None = None
+_snapshot_tables_missing_logged = False
+
+
+def _snapshot_tables_ready() -> bool:
+    """Return whether snapshot tables are present; cache check to avoid repeated inspector calls."""
+    global _snapshot_tables_ready_cache, _snapshot_tables_checked_at, _snapshot_tables_missing_logged
+
+    now = datetime.now(timezone.utc)
+    if (
+        _snapshot_tables_checked_at is not None
+        and _snapshot_tables_ready_cache is not None
+        and (now - _snapshot_tables_checked_at).total_seconds() < _SNAPSHOT_TABLE_CHECK_TTL_SECONDS
+    ):
+        return _snapshot_tables_ready_cache
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            ready = insp.has_table("pm_market_snapshots") and insp.has_table("pm_building_snapshots")
+    except Exception as exc:
+        logger.warning("snapshot table readiness check failed: %s", exc)
+        ready = False
+
+    _snapshot_tables_ready_cache = ready
+    _snapshot_tables_checked_at = now
+    if not ready and not _snapshot_tables_missing_logged:
+        logger.info("snapshot tables not ready; returning empty trend data until migrations are applied")
+        _snapshot_tables_missing_logged = True
+    return ready
 
 
 def _to_response(row: PropertyManagerReportSubscriptions) -> ReportSubscriptionResponse:
@@ -1062,6 +1094,9 @@ def archive_snapshots(
     Uses location_key so identical locations from different subscriptions share data.
     UPSERTs so calling multiple times in the same week is idempotent.
     """
+    if not _snapshot_tables_ready():
+        return
+
     loc_key = _location_key(lat, lng, radius_miles)
     week = _snapshot_week_monday()
 
@@ -1226,6 +1261,8 @@ def get_market_history(
     lat: float, lng: float, radius: float, weeks: int = 12,
 ) -> list[MarketSnapshotPoint]:
     """Return market-level snapshots for a location, newest first."""
+    if not _snapshot_tables_ready():
+        return []
     loc_key = _location_key(lat, lng, radius)
     try:
         with engine.connect() as conn:
@@ -1262,6 +1299,8 @@ def get_building_history(
     lat: float, lng: float, radius: float, property_id: str, weeks: int = 12,
 ) -> BuildingTrendsResponse:
     """Return per-building snapshots for a specific building, newest first."""
+    if not _snapshot_tables_ready():
+        return BuildingTrendsResponse(property_id=property_id, snapshots=[])
     loc_key = _location_key(lat, lng, radius)
     try:
         with engine.connect() as conn:
@@ -1304,6 +1343,8 @@ def get_buildings_latest_vs_previous(
     lat: float, lng: float, radius: float,
 ) -> list[BuildingDelta]:
     """Compare latest and previous week building snapshots to compute deltas."""
+    if not _snapshot_tables_ready():
+        return []
     loc_key = _location_key(lat, lng, radius)
     try:
         with engine.connect() as conn:
@@ -1501,6 +1542,8 @@ def archive_snapshots_for_all_subscriptions(db: Session) -> int:
 
 def cleanup_old_snapshots(db: Session) -> None:
     """Delete snapshots older than 53 weeks."""
+    if not _snapshot_tables_ready():
+        return
     try:
         db.execute(text("DELETE FROM pm_building_snapshots WHERE captured_at < now() - interval '53 weeks'"))
         db.execute(text("DELETE FROM pm_market_snapshots WHERE captured_at < now() - interval '53 weeks'"))

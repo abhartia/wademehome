@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from auth.router import get_current_property_manager_or_admin, get_db
 from core.env_utils import env_manager
+from core.logger import get_logger
 from db.models import Users
 from listings.schemas import NearbyListingsResponse
 from property_manager.schemas import (
@@ -24,6 +25,7 @@ from property_manager.schemas import (
 from property_manager import service as pm_service
 
 router = APIRouter(prefix="/property-manager", tags=["property-manager"])
+logger = get_logger(__name__)
 
 
 @router.get("/report-subscriptions", response_model=list[ReportSubscriptionResponse])
@@ -105,6 +107,13 @@ def get_insights(
         payload.center_longitude,
         payload.radius_miles,
     )
+    if result.ai_summary is None:
+        logger.info(
+            "property-manager insights completed without ai summary (lat=%s lng=%s radius=%s)",
+            payload.center_latitude,
+            payload.center_longitude,
+            payload.radius_miles,
+        )
     # Archive snapshot for time-series (fire-and-forget)
     try:
         pm_service.archive_snapshots(
