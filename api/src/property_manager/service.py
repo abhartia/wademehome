@@ -612,7 +612,9 @@ def _compute_market_snapshot(rows: list[dict[str, Any]], zip_code: str | None) -
     for r in rows:
         if r.get("rent_price") and r["rent_price"] > 0:
             b = r.get("beds")
-            label = f"{int(b)} BR" if b is not None else "Unknown"
+            if b is None:
+                continue  # exclude unknown bedroom units from mix
+            label = f"{int(b)} BR"
             bed_counts[label] += 1
 
     scope = f"ZIP {zip_code}" if zip_code else "Nearby"

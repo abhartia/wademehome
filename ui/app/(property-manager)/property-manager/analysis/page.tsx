@@ -863,35 +863,33 @@ function PropertyManagerAnalysisPage() {
                       Supply pressure
                     </CardTitle>
                     <CardDescription>
-                      Availability of listed units across the comp set.
+                      Competing listings currently on the market.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-bold">
-                        {fmtPct(supply?.listing_sample_vacancy_rate_pct, 1)}
+                        {fmtNum(supply?.available_units)}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        listing availability rate
+                        units actively listed
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {fmtNum(supply?.available_units)} of{" "}
-                      {fmtNum(supply?.total_units)} listed units currently available.
-                      Based on listing platform data; actual market vacancy is typically lower.
+                      Across {fmtNum(supply?.total_units)} total units tracked in the comp set.
                     </p>
 
                     {supply?.by_bedroom && supply.by_bedroom.length > 0 ? (
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">
-                          Availability by unit type
+                          Active listings by unit type
                         </p>
                         {supply.by_bedroom.map((br) => (
                           <div key={br.beds} className="space-y-1">
                             <div className="flex justify-between text-xs">
                               <span>{br.beds}</span>
                               <span>
-                                {br.available}/{br.total} ({fmtPct(br.vacancy_pct, 0)})
+                                {br.available} of {br.total} listed
                               </span>
                             </div>
                             <Progress value={br.vacancy_pct} className="h-2" />
@@ -1014,7 +1012,7 @@ function PropertyManagerAnalysisPage() {
               })() : null}
 
               {/* ── Row 4: Fee Intelligence (full width) ── */}
-              {fees && fees.fee_categories && fees.fee_categories.length > 0 ? (
+              {fees && fees.fee_categories && fees.fee_categories.length > 0 && fees.total_buildings_with_fees > 3 ? (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
