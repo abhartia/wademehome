@@ -24,6 +24,8 @@ from property_manager.schemas import (
 from workflow.utils import engine
 
 logger = get_logger(__name__)
+_LLM_TIMEOUT_SECONDS = 90.0
+_LLM_MAX_RETRIES = 2
 
 _SYSTEM_PROMPT = """\
 You are a senior real estate market analyst writing a competitive intelligence \
