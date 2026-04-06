@@ -140,6 +140,11 @@ def _build_data_payload(
         "total_units": supply_pressure.total_units,
         "available_units": supply_pressure.available_units,
         "vacancy_rate_pct": supply_pressure.vacancy_rate_pct,
+        "listing_sample_vacancy_rate_pct": supply_pressure.listing_sample_vacancy_rate_pct,
+        "estimated_market_units": supply_pressure.estimated_market_units,
+        "estimated_unlisted_units": supply_pressure.estimated_unlisted_units,
+        "unlisted_market_share_pct": supply_pressure.unlisted_market_share_pct,
+        "assumed_unlisted_vacancy_pct": supply_pressure.assumed_unlisted_vacancy_pct,
         "by_bedroom": [
             {"beds": b.beds, "total": b.total, "available": b.available, "vacancy_pct": b.vacancy_pct}
             for b in (supply_pressure.by_bedroom or [])

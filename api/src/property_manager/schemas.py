@@ -107,9 +107,25 @@ class BedroomSupply(BaseModel):
 
 
 class SupplyPressure(BaseModel):
+    """Vacancy from listing availability, plus a market-wide estimate.
+
+    Scrapers only see units that were listed at least once, so ``total_units`` understates
+    the true stock. ``vacancy_rate_pct`` scales the denominator and assumes mostly-occupied
+    unlisted units; ``listing_sample_vacancy_rate_pct`` is the raw listing-only ratio.
+    """
+
     total_units: int
     available_units: int
     vacancy_rate_pct: float
+    listing_sample_vacancy_rate_pct: float
+    estimated_market_units: int
+    estimated_unlisted_units: int
+    unlisted_market_share_pct: float = Field(
+        description="Assumed share of rental units not represented in the listing sample (0–100).",
+    )
+    assumed_unlisted_vacancy_pct: float = Field(
+        description="Vacancy assumed for unlisted units (mostly occupied).",
+    )
     by_bedroom: list[BedroomSupply] = Field(default_factory=list)
 
 

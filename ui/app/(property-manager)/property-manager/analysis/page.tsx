@@ -866,7 +866,9 @@ function PropertyManagerAnalysisPage() {
                       Supply pressure
                     </CardTitle>
                     <CardDescription>
-                      Vacancy proxy from availability status in listings.
+                      Listings only capture part of the rental stock. The headline uses an estimated
+                      total market size and assumes mostly-occupied units that never appear in the
+                      database.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -874,15 +876,38 @@ function PropertyManagerAnalysisPage() {
                       <span className="text-3xl font-bold">
                         {fmtPct(supply?.vacancy_rate_pct, 1)}
                       </span>
-                      <span className="text-sm text-muted-foreground">vacancy rate</span>
+                      <span className="text-sm text-muted-foreground">
+                        est. market vacancy rate
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {fmtNum(supply?.available_units)} available of {fmtNum(supply?.total_units)}{" "}
-                      total units
+                      {fmtNum(supply?.available_units)} available in a listing sample of{" "}
+                      {fmtNum(supply?.total_units)} units (
+                      {fmtPct(supply?.listing_sample_vacancy_rate_pct, 1)} listing-only — can
+                      overstate vacancy).
                     </p>
+                    {supply != null &&
+                    supply.estimated_market_units > 0 &&
+                    supply.estimated_unlisted_units > 0 ? (
+                      <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground leading-relaxed">
+                        <p className="font-medium text-foreground">
+                          ~{fmtNum(supply.estimated_unlisted_units)} unlisted units
+                        </p>
+                        <p>
+                          We assume ~{fmtPct(supply.unlisted_market_share_pct, 0)} of area rental
+                          units never appear in scraped listings, so estimated market size is ~{" "}
+                          {fmtNum(supply.estimated_market_units)} units. Unlisted units are modeled
+                          at {fmtPct(supply.assumed_unlisted_vacancy_pct, 0)} vacancy (mostly
+                          occupied).
+                        </p>
+                      </div>
+                    ) : null}
 
                     {supply?.by_bedroom && supply.by_bedroom.length > 0 ? (
                       <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          By bedroom (listing sample)
+                        </p>
                         {supply.by_bedroom.map((br) => (
                           <div key={br.beds} className="space-y-1">
                             <div className="flex justify-between text-xs">

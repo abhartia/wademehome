@@ -1,8 +1,19 @@
-# Property manager weekly email (cron)
+# Property manager weekly email
 
-Active subscriptions live in `property_manager_report_subscriptions`. A scheduled job should call the internal API once per week (or on your cadence).
+Active subscriptions live in `property_manager_report_subscriptions`. Reports are sent automatically by the in-app scheduler every Monday at 14:00 UTC.
 
-## Endpoint
+## How it works
+
+The FastAPI app starts an APScheduler `AsyncIOScheduler` on startup (via the `lifespan` hook in `main.py`). The job in `property_manager/scheduler.py` calls `send_weekly_reports_for_all_active()` directly — no HTTP round-trip or external cron needed.
+
+## Requirements
+
+- `RESEND_API_KEY` and `RESEND_FROM_EMAIL` configured (same as auth email).
+- `DATABASE_URL` and listings inventory (`LISTINGS_TABLE_NAME`, etc.) so `fetch_nearby_listings_radius` returns rows.
+
+## Manual send (API)
+
+### Internal endpoint (ad-hoc trigger)
 
 - **Method / path:** `POST /internal/property-manager/reports/send-weekly`
 - **Header:** `X-Internal-Cron-Secret: <INTERNAL_CRON_SECRET>`
@@ -10,28 +21,9 @@ Active subscriptions live in `property_manager_report_subscriptions`. A schedule
 
 Returns JSON: `{ "sent": <number>, "failed": <number> }`.
 
-If `INTERNAL_CRON_SECRET` is unset in the environment, the endpoint responds **503** so accidental public calls do not run partial logic.
+### Per-subscription send (logged-in PM or admin)
 
-## Requirements
-
-- `RESEND_API_KEY` and `RESEND_FROM_EMAIL` configured (same as auth email).
-- `DATABASE_URL` and listings inventory (`LISTINGS_TABLE_NAME`, etc.) so `fetch_nearby_listings_radius` returns rows.
-
-## Manual send (logged-in PM or admin)
-
-`POST /property-manager/report-subscriptions/{subscription_id}/send-now` with a normal session cookie sends that watch’s HTML report to the subscription owner’s verified email and updates `last_sent_at`. No cron secret.
-
-## Example: curl
-
-```bash
-curl -sS -X POST \
-  "$API_BASE/internal/property-manager/reports/send-weekly" \
-  -H "X-Internal-Cron-Secret: $INTERNAL_CRON_SECRET"
-```
-
-## Example: GitHub Actions (weekly)
-
-Store `INTERNAL_CRON_SECRET` and your production API base URL as repository secrets, then schedule a workflow on `cron: '0 14 * * 1'` (Monday 14:00 UTC) that runs the `curl` above.
+`POST /property-manager/report-subscriptions/{subscription_id}/send-now` with a normal session cookie sends that watch's HTML report to the subscription owner's verified email and updates `last_sent_at`. No cron secret.
 
 ## Promoting users
 

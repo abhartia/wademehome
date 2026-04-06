@@ -454,6 +454,28 @@
         }
       }
     },
+    "/listings/sitemap-keys": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Get Sitemap Keys",
+        "description": "Return all distinct property keys for sitemap generation.",
+        "operationId": "get_sitemap_keys_listings_sitemap_keys_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SitemapKeysResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/listings/by-property-key": {
       "get": {
         "tags": [
@@ -2673,6 +2695,483 @@
                 "schema": {
                   "$ref": "#/components/schemas/VendorCatalogListResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/vendors/public": {
+      "get": {
+        "tags": [
+          "move-in"
+        ],
+        "summary": "Read Vendor Catalog Public",
+        "description": "Public endpoint \u2014 no auth required. Returns vendors available in the given state.",
+        "operationId": "read_vendor_catalog_public_move_in_vendors_public_get",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "title": "State"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorCatalogListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/photos/summary": {
+      "get": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Read Photo Summary",
+        "operationId": "read_photo_summary_move_in_photos_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoDocumentationSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/photos/rooms": {
+      "get": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Read Photo Rooms",
+        "operationId": "read_photo_rooms_move_in_photos_rooms_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoRoomOut"
+                  },
+                  "type": "array",
+                  "title": "Response Read Photo Rooms Move In Photos Rooms Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Create Photo Room",
+        "operationId": "create_photo_room_move_in_photos_rooms_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoRoomCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoRoomOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/photos/rooms/{room_id}": {
+      "patch": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Patch Photo Room",
+        "operationId": "patch_photo_room_move_in_photos_rooms__room_id__patch",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Room Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoRoomPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoRoomOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Delete Photo Room",
+        "operationId": "delete_photo_room_move_in_photos_rooms__room_id__delete",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Room Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/photos/rooms/{room_id}/photos": {
+      "get": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Read Room Photos",
+        "operationId": "read_room_photos_move_in_photos_rooms__room_id__photos_get",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Room Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoOut"
+                  },
+                  "title": "Response Read Room Photos Move In Photos Rooms  Room Id  Photos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Upload Room Photo",
+        "operationId": "upload_room_photo_move_in_photos_rooms__room_id__photos_post",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Room Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_room_photo_move_in_photos_rooms__room_id__photos_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/photos/photos/{photo_id}": {
+      "patch": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Patch Single Photo",
+        "operationId": "patch_single_photo_move_in_photos_photos__photo_id__patch",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Delete Single Photo",
+        "operationId": "delete_single_photo_move_in_photos_photos__photo_id__delete",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/move-in/photos/file/{plan_id}/{room_id}/{filename}": {
+      "get": {
+        "tags": [
+          "move-in-photos"
+        ],
+        "summary": "Serve Photo",
+        "description": "Backward-compat endpoint for photos uploaded to local disk before Azure migration.",
+        "operationId": "serve_photo_move_in_photos_file__plan_id___room_id___filename__get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          },
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Room Id"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -4955,6 +5454,100 @@
         }
       }
     },
+    "/property-manager/trends": {
+      "post": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Get Trends",
+        "operationId": "get_trends_property_manager_trends_post",
+        "parameters": [
+          {
+            "name": "weeks",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 12,
+              "title": "Weeks"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsightsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/property-manager/building-trends": {
+      "post": {
+        "tags": [
+          "property-manager"
+        ],
+        "summary": "Get Building Trends",
+        "operationId": "get_building_trends_property_manager_building_trends_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildingTrendsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildingTrendsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/internal/property-manager/reports/send-weekly": {
       "post": {
         "tags": [
@@ -5241,6 +5834,170 @@
         ],
         "title": "Body_upload_lease_document_portal_lease_upload_post"
       },
+      "Body_upload_room_photo_move_in_photos_rooms__room_id__photos_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "captured_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Captured At"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_room_photo_move_in_photos_rooms__room_id__photos_post"
+      },
+      "BuildingDelta": {
+        "properties": {
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "property_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Name"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "current_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Rent"
+          },
+          "previous_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Rent"
+          },
+          "rent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent Change"
+          },
+          "rent_change_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent Change Pct"
+          },
+          "current_vacancy": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Vacancy"
+          },
+          "previous_vacancy": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Vacancy"
+          },
+          "is_new": {
+            "type": "boolean",
+            "title": "Is New",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_id"
+        ],
+        "title": "BuildingDelta"
+      },
       "BuildingFinancialProfile": {
         "properties": {
           "bbl": {
@@ -5525,6 +6282,163 @@
         "type": "object",
         "title": "BuildingFinancials",
         "description": "Aggregate building financial data for a radius, from NYC DOF records."
+      },
+      "BuildingSnapshotPoint": {
+        "properties": {
+          "snapshot_week": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Week"
+          },
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "property_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Name"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "median_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Rent"
+          },
+          "rent_per_sqft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent Per Sqft"
+          },
+          "unit_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Count"
+          },
+          "available_units": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Units"
+          }
+        },
+        "type": "object",
+        "required": [
+          "snapshot_week",
+          "property_id"
+        ],
+        "title": "BuildingSnapshotPoint"
+      },
+      "BuildingTrendsRequest": {
+        "properties": {
+          "center_latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Center Latitude"
+          },
+          "center_longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Center Longitude"
+          },
+          "radius_miles": {
+            "type": "number",
+            "maximum": 50.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Radius Miles",
+            "default": 2
+          },
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "weeks": {
+            "type": "integer",
+            "maximum": 52.0,
+            "minimum": 1.0,
+            "title": "Weeks",
+            "default": 12
+          }
+        },
+        "type": "object",
+        "required": [
+          "center_latitude",
+          "center_longitude",
+          "property_id"
+        ],
+        "title": "BuildingTrendsRequest"
+      },
+      "BuildingTrendsResponse": {
+        "properties": {
+          "property_id": {
+            "type": "string",
+            "title": "Property Id"
+          },
+          "property_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Name"
+          },
+          "snapshots": {
+            "items": {
+              "$ref": "#/components/schemas/BuildingSnapshotPoint"
+            },
+            "type": "array",
+            "title": "Snapshots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_id"
+        ],
+        "title": "BuildingTrendsResponse"
       },
       "ChatAPIMessage": {
         "properties": {
@@ -8978,6 +9892,127 @@
         ],
         "title": "MagicLinkVerifyRequest"
       },
+      "MarketDeltas": {
+        "properties": {
+          "median_rent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricDelta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "vacancy_rate_pct": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricDelta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sample_size": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricDelta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "MarketDeltas"
+      },
+      "MarketSnapshotPoint": {
+        "properties": {
+          "snapshot_week": {
+            "type": "string",
+            "format": "date",
+            "title": "Snapshot Week"
+          },
+          "median_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Rent"
+          },
+          "p25_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P25 Rent"
+          },
+          "p75_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P75 Rent"
+          },
+          "sample_size": {
+            "type": "integer",
+            "title": "Sample Size",
+            "default": 0
+          },
+          "vacancy_rate_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vacancy Rate Pct"
+          },
+          "available_units": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Units"
+          },
+          "total_units": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Units"
+          }
+        },
+        "type": "object",
+        "required": [
+          "snapshot_week"
+        ],
+        "title": "MarketSnapshotPoint"
+      },
       "MarketSnapshotResponse": {
         "properties": {
           "scope": {
@@ -9086,6 +10121,56 @@
         ],
         "title": "MessageRole",
         "description": "Message role."
+      },
+      "MetricDelta": {
+        "properties": {
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change"
+          },
+          "change_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Pct"
+          }
+        },
+        "type": "object",
+        "title": "MetricDelta"
       },
       "MetroCoverageEstimate": {
         "properties": {
@@ -9672,6 +10757,230 @@
           "limit"
         ],
         "title": "NearbyListingsResponse"
+      },
+      "PhotoDocumentationSummary": {
+        "properties": {
+          "room_count": {
+            "type": "integer",
+            "title": "Room Count",
+            "default": 0
+          },
+          "total_photos": {
+            "type": "integer",
+            "title": "Total Photos",
+            "default": 0
+          },
+          "rooms": {
+            "items": {
+              "$ref": "#/components/schemas/PhotoRoomOut"
+            },
+            "type": "array",
+            "title": "Rooms"
+          }
+        },
+        "type": "object",
+        "title": "PhotoDocumentationSummary"
+      },
+      "PhotoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "room_id": {
+            "type": "string",
+            "title": "Room Id"
+          },
+          "photo_url": {
+            "type": "string",
+            "title": "Photo Url"
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "captured_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Captured At"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "file_size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Size Bytes"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "room_id",
+          "photo_url",
+          "created_at"
+        ],
+        "title": "PhotoOut"
+      },
+      "PhotoPatch": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "PhotoPatch"
+      },
+      "PhotoRoomCreate": {
+        "properties": {
+          "room_type": {
+            "type": "string",
+            "title": "Room Type"
+          },
+          "room_label": {
+            "type": "string",
+            "title": "Room Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "room_type",
+          "room_label"
+        ],
+        "title": "PhotoRoomCreate"
+      },
+      "PhotoRoomOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "room_type": {
+            "type": "string",
+            "title": "Room Type"
+          },
+          "room_label": {
+            "type": "string",
+            "title": "Room Label"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          },
+          "photo_count": {
+            "type": "integer",
+            "title": "Photo Count",
+            "default": 0
+          },
+          "first_photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Photo Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "room_type",
+          "room_label",
+          "sort_order"
+        ],
+        "title": "PhotoRoomOut"
+      },
+      "PhotoRoomPatch": {
+        "properties": {
+          "room_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Room Label"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          }
+        },
+        "type": "object",
+        "title": "PhotoRoomPatch"
       },
       "PoiHit": {
         "properties": {
@@ -11333,6 +12642,20 @@
         ],
         "title": "SignupResponse"
       },
+      "SitemapKeysResponse": {
+        "properties": {
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keys",
+            "description": "Property keys for sitemap URLs."
+          }
+        },
+        "type": "object",
+        "title": "SitemapKeysResponse"
+      },
       "SourceSliceRow": {
         "properties": {
           "label": {
@@ -11494,6 +12817,28 @@
             "type": "number",
             "title": "Vacancy Rate Pct"
           },
+          "listing_sample_vacancy_rate_pct": {
+            "type": "number",
+            "title": "Listing Sample Vacancy Rate Pct"
+          },
+          "estimated_market_units": {
+            "type": "integer",
+            "title": "Estimated Market Units"
+          },
+          "estimated_unlisted_units": {
+            "type": "integer",
+            "title": "Estimated Unlisted Units"
+          },
+          "unlisted_market_share_pct": {
+            "type": "number",
+            "title": "Unlisted Market Share Pct",
+            "description": "Assumed share of rental units not represented in the listing sample (0\u2013100)."
+          },
+          "assumed_unlisted_vacancy_pct": {
+            "type": "number",
+            "title": "Assumed Unlisted Vacancy Pct",
+            "description": "Vacancy assumed for unlisted units (mostly occupied)."
+          },
           "by_bedroom": {
             "items": {
               "$ref": "#/components/schemas/BedroomSupply"
@@ -11506,9 +12851,15 @@
         "required": [
           "total_units",
           "available_units",
-          "vacancy_rate_pct"
+          "vacancy_rate_pct",
+          "listing_sample_vacancy_rate_pct",
+          "estimated_market_units",
+          "estimated_unlisted_units",
+          "unlisted_market_share_pct",
+          "assumed_unlisted_vacancy_pct"
         ],
-        "title": "SupplyPressure"
+        "title": "SupplyPressure",
+        "description": "Vacancy from listing availability, plus a market-wide estimate.\n\nScrapers only see units that were listed at least once, so ``total_units`` understates\nthe true stock. ``vacancy_rate_pct`` scales the denominator and assumes mostly-occupied\nunlisted units; ``listing_sample_vacancy_rate_pct`` is the raw listing-only ratio."
       },
       "TargetCoverageRow": {
         "properties": {
@@ -12021,6 +13372,41 @@
         },
         "type": "object",
         "title": "ToursStatePayload"
+      },
+      "TrendsResponse": {
+        "properties": {
+          "market_history": {
+            "items": {
+              "$ref": "#/components/schemas/MarketSnapshotPoint"
+            },
+            "type": "array",
+            "title": "Market History"
+          },
+          "market_deltas": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketDeltas"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "building_deltas": {
+            "items": {
+              "$ref": "#/components/schemas/BuildingDelta"
+            },
+            "type": "array",
+            "title": "Building Deltas"
+          },
+          "weeks_of_data": {
+            "type": "integer",
+            "title": "Weeks Of Data",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "TrendsResponse"
       },
       "UserResponse": {
         "properties": {

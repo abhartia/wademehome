@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 import json
 import time
 import traceback
@@ -42,6 +43,7 @@ from landlord.router import router as landlord_router
 from admin.router import router as admin_router
 from property_manager.router import internal_router as pm_internal_router
 from property_manager.router import router as pm_router
+from property_manager.scheduler import start_scheduler, shutdown_scheduler
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -58,7 +60,14 @@ except Exception as e:
 # Initialize LlamaIndex instrumentation
 LlamaIndexInstrumentor().instrument()
 
-app = FastAPI(title="Multi-Agent API", description="API with listing and markets agents")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_scheduler()
+    yield
+    shutdown_scheduler()
+
+
+app = FastAPI(title="Multi-Agent API", description="API with listing and markets agents", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(listings_router)
 app.include_router(properties_router)

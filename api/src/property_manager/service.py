@@ -192,7 +192,14 @@ def _insights_html_section(insights: InsightsResponse) -> str:
     # Supply pressure
     sp = insights.supply_pressure
     if sp.total_units > 0:
-        parts.append(f'<p style="font-size:13px;"><strong>Supply:</strong> {sp.available_units} of {sp.total_units} units available ({sp.vacancy_rate_pct}% vacancy)</p>')
+        parts.append(
+            '<p style="font-size:13px;"><strong>Supply:</strong> '
+            f'{sp.available_units} available in listing sample of {sp.total_units} units '
+            f'({sp.listing_sample_vacancy_rate_pct}% listing-only vacancy). '
+            f'Estimated market vacancy ~{sp.vacancy_rate_pct}% '
+            f'(assuming ~{sp.unlisted_market_share_pct:.0f}% of units never appear in listings; '
+            f'~{sp.estimated_unlisted_units:,} unlisted units at ~{sp.assumed_unlisted_vacancy_pct:.0f}% vacancy).</p>'
+        )
 
     # Top fees
     fi = insights.fee_intelligence
@@ -730,8 +737,13 @@ def _compute_fee_intelligence(rows: list[dict[str, Any]]) -> FeeIntelligence:
     )
 
 
+# Listing portals capture only part of the rental stock; the rest is mostly off-market and occupied.
+_SUPPLY_UNLISTED_MARKET_SHARE_PCT = 55.0
+_SUPPLY_ASSUMED_UNLISTED_VACANCY_PCT = 2.0
+
+
 def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
-    """Compute vacancy proxy from availability_status."""
+    """Compute vacancy proxy from availability_status plus a market-wide estimate."""
     total = len(rows)
     available = 0
     bed_totals: dict[str, int] = defaultdict(int)
@@ -762,10 +774,38 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
             vacancy_pct=round(a / t * 100, 1) if t > 0 else 0,
         ))
 
+    listing_vacancy = round(available / total * 100, 1) if total > 0 else 0.0
+    unlisted_share = min(max(_SUPPLY_UNLISTED_MARKET_SHARE_PCT, 0.0), 99.0)
+    share_in_db = 1.0 - unlisted_share / 100.0
+    assumed_uv = min(max(_SUPPLY_ASSUMED_UNLISTED_VACANCY_PCT, 0.0), 100.0)
+
+    if total <= 0 or share_in_db <= 0:
+        return SupplyPressure(
+            total_units=total,
+            available_units=available,
+            vacancy_rate_pct=0.0,
+            listing_sample_vacancy_rate_pct=listing_vacancy,
+            estimated_market_units=0,
+            estimated_unlisted_units=0,
+            unlisted_market_share_pct=unlisted_share,
+            assumed_unlisted_vacancy_pct=assumed_uv,
+            by_bedroom=by_bedroom,
+        )
+
+    est_market = total / share_in_db
+    est_unlisted = max(0, int(round(est_market - total)))
+    avail_unlisted = est_unlisted * (assumed_uv / 100.0)
+    est_vacancy = (available + avail_unlisted) / est_market * 100 if est_market > 0 else 0.0
+
     return SupplyPressure(
         total_units=total,
         available_units=available,
-        vacancy_rate_pct=round(available / total * 100, 1) if total > 0 else 0,
+        vacancy_rate_pct=round(est_vacancy, 1),
+        listing_sample_vacancy_rate_pct=listing_vacancy,
+        estimated_market_units=int(round(est_market)),
+        estimated_unlisted_units=est_unlisted,
+        unlisted_market_share_pct=unlisted_share,
+        assumed_unlisted_vacancy_pct=assumed_uv,
         by_bedroom=by_bedroom,
     )
 

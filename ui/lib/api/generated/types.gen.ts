@@ -122,6 +122,78 @@ export type BodyUploadLeaseDocumentPortalLeaseUploadPost = {
 };
 
 /**
+ * Body_upload_room_photo_move_in_photos_rooms__room_id__photos_post
+ */
+export type BodyUploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
+    /**
+     * Note
+     */
+    note?: string | null;
+    /**
+     * Captured At
+     */
+    captured_at?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+};
+
+/**
+ * BuildingDelta
+ */
+export type BuildingDelta = {
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Property Name
+     */
+    property_name?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+    /**
+     * Current Rent
+     */
+    current_rent?: number | null;
+    /**
+     * Previous Rent
+     */
+    previous_rent?: number | null;
+    /**
+     * Rent Change
+     */
+    rent_change?: number | null;
+    /**
+     * Rent Change Pct
+     */
+    rent_change_pct?: number | null;
+    /**
+     * Current Vacancy
+     */
+    current_vacancy?: number | null;
+    /**
+     * Previous Vacancy
+     */
+    previous_vacancy?: number | null;
+    /**
+     * Is New
+     */
+    is_new?: boolean;
+};
+
+/**
  * BuildingFinancialProfile
  * Financial profile for a single building derived from NYC public records.
  */
@@ -241,6 +313,88 @@ export type BuildingFinancials = {
      * Buildings
      */
     buildings?: Array<BuildingFinancialProfile>;
+};
+
+/**
+ * BuildingSnapshotPoint
+ */
+export type BuildingSnapshotPoint = {
+    /**
+     * Snapshot Week
+     */
+    snapshot_week: string;
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Property Name
+     */
+    property_name?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+    /**
+     * Median Rent
+     */
+    median_rent?: number | null;
+    /**
+     * Rent Per Sqft
+     */
+    rent_per_sqft?: number | null;
+    /**
+     * Unit Count
+     */
+    unit_count?: number | null;
+    /**
+     * Available Units
+     */
+    available_units?: number | null;
+};
+
+/**
+ * BuildingTrendsRequest
+ */
+export type BuildingTrendsRequest = {
+    /**
+     * Center Latitude
+     */
+    center_latitude: number;
+    /**
+     * Center Longitude
+     */
+    center_longitude: number;
+    /**
+     * Radius Miles
+     */
+    radius_miles?: number;
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Weeks
+     */
+    weeks?: number;
+};
+
+/**
+ * BuildingTrendsResponse
+ */
+export type BuildingTrendsResponse = {
+    /**
+     * Property Id
+     */
+    property_id: string;
+    /**
+     * Property Name
+     */
+    property_name?: string | null;
+    /**
+     * Snapshots
+     */
+    snapshots?: Array<BuildingSnapshotPoint>;
 };
 
 /**
@@ -2335,6 +2489,53 @@ export type MagicLinkVerifyRequest = {
 };
 
 /**
+ * MarketDeltas
+ */
+export type MarketDeltas = {
+    median_rent?: MetricDelta | null;
+    vacancy_rate_pct?: MetricDelta | null;
+    sample_size?: MetricDelta | null;
+};
+
+/**
+ * MarketSnapshotPoint
+ */
+export type MarketSnapshotPoint = {
+    /**
+     * Snapshot Week
+     */
+    snapshot_week: string;
+    /**
+     * Median Rent
+     */
+    median_rent?: number | null;
+    /**
+     * P25 Rent
+     */
+    p25_rent?: number | null;
+    /**
+     * P75 Rent
+     */
+    p75_rent?: number | null;
+    /**
+     * Sample Size
+     */
+    sample_size?: number;
+    /**
+     * Vacancy Rate Pct
+     */
+    vacancy_rate_pct?: number | null;
+    /**
+     * Available Units
+     */
+    available_units?: number | null;
+    /**
+     * Total Units
+     */
+    total_units?: number | null;
+};
+
+/**
  * MarketSnapshotResponse
  */
 export type MarketSnapshotResponse = {
@@ -2385,6 +2586,28 @@ export type MarketSnapshotResponse = {
  * Message role.
  */
 export type MessageRole = 'system' | 'developer' | 'user' | 'assistant' | 'function' | 'tool' | 'chatbot' | 'model';
+
+/**
+ * MetricDelta
+ */
+export type MetricDelta = {
+    /**
+     * Current
+     */
+    current?: number | null;
+    /**
+     * Previous
+     */
+    previous?: number | null;
+    /**
+     * Change
+     */
+    change?: number | null;
+    /**
+     * Change Pct
+     */
+    change_pct?: number | null;
+};
 
 /**
  * MetroCoverageEstimate
@@ -2732,6 +2955,138 @@ export type NearbyListingsResponse = {
      * True when results were filtered by west/south/east/north bounding box.
      */
     used_bbox?: boolean;
+};
+
+/**
+ * PhotoDocumentationSummary
+ */
+export type PhotoDocumentationSummary = {
+    /**
+     * Room Count
+     */
+    room_count?: number;
+    /**
+     * Total Photos
+     */
+    total_photos?: number;
+    /**
+     * Rooms
+     */
+    rooms?: Array<PhotoRoomOut>;
+};
+
+/**
+ * PhotoOut
+ */
+export type PhotoOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Room Id
+     */
+    room_id: string;
+    /**
+     * Photo Url
+     */
+    photo_url: string;
+    /**
+     * Thumbnail Url
+     */
+    thumbnail_url?: string | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+    /**
+     * Captured At
+     */
+    captured_at?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+    /**
+     * File Size Bytes
+     */
+    file_size_bytes?: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * PhotoPatch
+ */
+export type PhotoPatch = {
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
+/**
+ * PhotoRoomCreate
+ */
+export type PhotoRoomCreate = {
+    /**
+     * Room Type
+     */
+    room_type: string;
+    /**
+     * Room Label
+     */
+    room_label: string;
+};
+
+/**
+ * PhotoRoomOut
+ */
+export type PhotoRoomOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Room Type
+     */
+    room_type: string;
+    /**
+     * Room Label
+     */
+    room_label: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Photo Count
+     */
+    photo_count?: number;
+    /**
+     * First Photo Url
+     */
+    first_photo_url?: string | null;
+};
+
+/**
+ * PhotoRoomPatch
+ */
+export type PhotoRoomPatch = {
+    /**
+     * Room Label
+     */
+    room_label?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number | null;
 };
 
 /**
@@ -3648,6 +4003,17 @@ export type SignupResponse = {
 };
 
 /**
+ * SitemapKeysResponse
+ */
+export type SitemapKeysResponse = {
+    /**
+     * Keys
+     * Property keys for sitemap URLs.
+     */
+    keys?: Array<string>;
+};
+
+/**
  * SourceSliceRow
  */
 export type SourceSliceRow = {
@@ -3727,6 +4093,11 @@ export type StalenessSummary = {
 
 /**
  * SupplyPressure
+ * Vacancy from listing availability, plus a market-wide estimate.
+ *
+ * Scrapers only see units that were listed at least once, so ``total_units`` understates
+ * the true stock. ``vacancy_rate_pct`` scales the denominator and assumes mostly-occupied
+ * unlisted units; ``listing_sample_vacancy_rate_pct`` is the raw listing-only ratio.
  */
 export type SupplyPressure = {
     /**
@@ -3741,6 +4112,28 @@ export type SupplyPressure = {
      * Vacancy Rate Pct
      */
     vacancy_rate_pct: number;
+    /**
+     * Listing Sample Vacancy Rate Pct
+     */
+    listing_sample_vacancy_rate_pct: number;
+    /**
+     * Estimated Market Units
+     */
+    estimated_market_units: number;
+    /**
+     * Estimated Unlisted Units
+     */
+    estimated_unlisted_units: number;
+    /**
+     * Unlisted Market Share Pct
+     * Assumed share of rental units not represented in the listing sample (0–100).
+     */
+    unlisted_market_share_pct: number;
+    /**
+     * Assumed Unlisted Vacancy Pct
+     * Vacancy assumed for unlisted units (mostly occupied).
+     */
+    assumed_unlisted_vacancy_pct: number;
     /**
      * By Bedroom
      */
@@ -4048,6 +4441,25 @@ export type ToursStatePayload = {
      * Tours
      */
     tours?: Array<TourPayloadInput>;
+};
+
+/**
+ * TrendsResponse
+ */
+export type TrendsResponse = {
+    /**
+     * Market History
+     */
+    market_history?: Array<MarketSnapshotPoint>;
+    market_deltas?: MarketDeltas | null;
+    /**
+     * Building Deltas
+     */
+    building_deltas?: Array<BuildingDelta>;
+    /**
+     * Weeks Of Data
+     */
+    weeks_of_data?: number;
 };
 
 /**
@@ -4733,6 +5145,22 @@ export type GetNearbyListingsListingsNearbyGetResponses = {
 };
 
 export type GetNearbyListingsListingsNearbyGetResponse = GetNearbyListingsListingsNearbyGetResponses[keyof GetNearbyListingsListingsNearbyGetResponses];
+
+export type GetSitemapKeysListingsSitemapKeysGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/listings/sitemap-keys';
+};
+
+export type GetSitemapKeysListingsSitemapKeysGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: SitemapKeysResponse;
+};
+
+export type GetSitemapKeysListingsSitemapKeysGetResponse = GetSitemapKeysListingsSitemapKeysGetResponses[keyof GetSitemapKeysListingsSitemapKeysGetResponses];
 
 export type GetListingByPropertyKeyListingsByPropertyKeyGetData = {
     body?: never;
@@ -6163,6 +6591,315 @@ export type ReadVendorCatalogMoveInVendorsGetResponses = {
 };
 
 export type ReadVendorCatalogMoveInVendorsGetResponse = ReadVendorCatalogMoveInVendorsGetResponses[keyof ReadVendorCatalogMoveInVendorsGetResponses];
+
+export type ReadVendorCatalogPublicMoveInVendorsPublicGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * State
+         */
+        state: string;
+        /**
+         * Category
+         */
+        category?: string | null;
+    };
+    url: '/move-in/vendors/public';
+};
+
+export type ReadVendorCatalogPublicMoveInVendorsPublicGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadVendorCatalogPublicMoveInVendorsPublicGetError = ReadVendorCatalogPublicMoveInVendorsPublicGetErrors[keyof ReadVendorCatalogPublicMoveInVendorsPublicGetErrors];
+
+export type ReadVendorCatalogPublicMoveInVendorsPublicGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: VendorCatalogListResponse;
+};
+
+export type ReadVendorCatalogPublicMoveInVendorsPublicGetResponse = ReadVendorCatalogPublicMoveInVendorsPublicGetResponses[keyof ReadVendorCatalogPublicMoveInVendorsPublicGetResponses];
+
+export type ReadPhotoSummaryMoveInPhotosSummaryGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/move-in/photos/summary';
+};
+
+export type ReadPhotoSummaryMoveInPhotosSummaryGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PhotoDocumentationSummary;
+};
+
+export type ReadPhotoSummaryMoveInPhotosSummaryGetResponse = ReadPhotoSummaryMoveInPhotosSummaryGetResponses[keyof ReadPhotoSummaryMoveInPhotosSummaryGetResponses];
+
+export type ReadPhotoRoomsMoveInPhotosRoomsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/move-in/photos/rooms';
+};
+
+export type ReadPhotoRoomsMoveInPhotosRoomsGetResponses = {
+    /**
+     * Response Read Photo Rooms Move In Photos Rooms Get
+     * Successful Response
+     */
+    200: Array<PhotoRoomOut>;
+};
+
+export type ReadPhotoRoomsMoveInPhotosRoomsGetResponse = ReadPhotoRoomsMoveInPhotosRoomsGetResponses[keyof ReadPhotoRoomsMoveInPhotosRoomsGetResponses];
+
+export type CreatePhotoRoomMoveInPhotosRoomsPostData = {
+    body: PhotoRoomCreate;
+    path?: never;
+    query?: never;
+    url: '/move-in/photos/rooms';
+};
+
+export type CreatePhotoRoomMoveInPhotosRoomsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreatePhotoRoomMoveInPhotosRoomsPostError = CreatePhotoRoomMoveInPhotosRoomsPostErrors[keyof CreatePhotoRoomMoveInPhotosRoomsPostErrors];
+
+export type CreatePhotoRoomMoveInPhotosRoomsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: PhotoRoomOut;
+};
+
+export type CreatePhotoRoomMoveInPhotosRoomsPostResponse = CreatePhotoRoomMoveInPhotosRoomsPostResponses[keyof CreatePhotoRoomMoveInPhotosRoomsPostResponses];
+
+export type DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Room Id
+         */
+        room_id: string;
+    };
+    query?: never;
+    url: '/move-in/photos/rooms/{room_id}';
+};
+
+export type DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteError = DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteErrors[keyof DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteErrors];
+
+export type DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteResponse = DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteResponses[keyof DeletePhotoRoomMoveInPhotosRoomsRoomIdDeleteResponses];
+
+export type PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchData = {
+    body: PhotoRoomPatch;
+    path: {
+        /**
+         * Room Id
+         */
+        room_id: string;
+    };
+    query?: never;
+    url: '/move-in/photos/rooms/{room_id}';
+};
+
+export type PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchError = PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchErrors[keyof PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchErrors];
+
+export type PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: PhotoRoomOut;
+};
+
+export type PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchResponse = PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchResponses[keyof PatchPhotoRoomMoveInPhotosRoomsRoomIdPatchResponses];
+
+export type ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetData = {
+    body?: never;
+    path: {
+        /**
+         * Room Id
+         */
+        room_id: string;
+    };
+    query?: never;
+    url: '/move-in/photos/rooms/{room_id}/photos';
+};
+
+export type ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetError = ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetErrors[keyof ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetErrors];
+
+export type ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetResponses = {
+    /**
+     * Response Read Room Photos Move In Photos Rooms  Room Id  Photos Get
+     * Successful Response
+     */
+    200: Array<PhotoOut>;
+};
+
+export type ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetResponse = ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetResponses[keyof ReadRoomPhotosMoveInPhotosRoomsRoomIdPhotosGetResponses];
+
+export type UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostData = {
+    body: BodyUploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPost;
+    path: {
+        /**
+         * Room Id
+         */
+        room_id: string;
+    };
+    query?: never;
+    url: '/move-in/photos/rooms/{room_id}/photos';
+};
+
+export type UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostError = UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostErrors[keyof UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostErrors];
+
+export type UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: PhotoOut;
+};
+
+export type UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostResponse = UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostResponses[keyof UploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPostResponses];
+
+export type DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Photo Id
+         */
+        photo_id: string;
+    };
+    query?: never;
+    url: '/move-in/photos/photos/{photo_id}';
+};
+
+export type DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteError = DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteErrors[keyof DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteErrors];
+
+export type DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteResponse = DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteResponses[keyof DeleteSinglePhotoMoveInPhotosPhotosPhotoIdDeleteResponses];
+
+export type PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchData = {
+    body: PhotoPatch;
+    path: {
+        /**
+         * Photo Id
+         */
+        photo_id: string;
+    };
+    query?: never;
+    url: '/move-in/photos/photos/{photo_id}';
+};
+
+export type PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchError = PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchErrors[keyof PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchErrors];
+
+export type PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: PhotoOut;
+};
+
+export type PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchResponse = PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchResponses[keyof PatchSinglePhotoMoveInPhotosPhotosPhotoIdPatchResponses];
+
+export type ServePhotoMoveInPhotosFilePlanIdRoomIdFilenameGetData = {
+    body?: never;
+    path: {
+        /**
+         * Plan Id
+         */
+        plan_id: string;
+        /**
+         * Room Id
+         */
+        room_id: string;
+        /**
+         * Filename
+         */
+        filename: string;
+    };
+    query?: never;
+    url: '/move-in/photos/file/{plan_id}/{room_id}/{filename}';
+};
+
+export type ServePhotoMoveInPhotosFilePlanIdRoomIdFilenameGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ServePhotoMoveInPhotosFilePlanIdRoomIdFilenameGetError = ServePhotoMoveInPhotosFilePlanIdRoomIdFilenameGetErrors[keyof ServePhotoMoveInPhotosFilePlanIdRoomIdFilenameGetErrors];
+
+export type ServePhotoMoveInPhotosFilePlanIdRoomIdFilenameGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type ReadMyRoommateProfileRoommatesProfileGetData = {
     body?: never;
@@ -7627,93 +8364,31 @@ export type GetInsightsPropertyManagerInsightsPostResponses = {
 
 export type GetInsightsPropertyManagerInsightsPostResponse = GetInsightsPropertyManagerInsightsPostResponses[keyof GetInsightsPropertyManagerInsightsPostResponses];
 
-// ── Trends types ──────────────────────────────────────────────────────
-
-export type MarketSnapshotPoint = {
-    snapshot_week: string;
-    median_rent?: number | null;
-    p25_rent?: number | null;
-    p75_rent?: number | null;
-    sample_size?: number;
-    vacancy_rate_pct?: number | null;
-    available_units?: number | null;
-    total_units?: number | null;
-};
-
-export type BuildingSnapshotPoint = {
-    snapshot_week: string;
-    property_id: string;
-    property_name?: string | null;
-    address?: string | null;
-    median_rent?: number | null;
-    rent_per_sqft?: number | null;
-    unit_count?: number | null;
-    available_units?: number | null;
-};
-
-export type BuildingDelta = {
-    property_id: string;
-    property_name?: string | null;
-    address?: string | null;
-    current_rent?: number | null;
-    previous_rent?: number | null;
-    rent_change?: number | null;
-    rent_change_pct?: number | null;
-    current_vacancy?: number | null;
-    previous_vacancy?: number | null;
-    is_new?: boolean;
-};
-
-export type MetricDelta = {
-    current?: number | null;
-    previous?: number | null;
-    change?: number | null;
-    change_pct?: number | null;
-};
-
-export type MarketDeltas = {
-    median_rent?: MetricDelta | null;
-    vacancy_rate_pct?: MetricDelta | null;
-    sample_size?: MetricDelta | null;
-};
-
-export type TrendsResponse = {
-    market_history?: Array<MarketSnapshotPoint>;
-    market_deltas?: MarketDeltas | null;
-    building_deltas?: Array<BuildingDelta>;
-    weeks_of_data?: number;
-};
-
-export type BuildingTrendsRequest = {
-    center_latitude: number;
-    center_longitude: number;
-    radius_miles?: number;
-    property_id: string;
-    weeks?: number;
-};
-
-export type BuildingTrendsResponse = {
-    property_id: string;
-    property_name?: string | null;
-    snapshots?: Array<BuildingSnapshotPoint>;
-};
-
 export type GetTrendsPropertyManagerTrendsPostData = {
     body: InsightsRequest;
     path?: never;
     query?: {
+        /**
+         * Weeks
+         */
         weeks?: number;
     };
     url: '/property-manager/trends';
 };
 
 export type GetTrendsPropertyManagerTrendsPostErrors = {
+    /**
+     * Validation Error
+     */
     422: HttpValidationError;
 };
 
 export type GetTrendsPropertyManagerTrendsPostError = GetTrendsPropertyManagerTrendsPostErrors[keyof GetTrendsPropertyManagerTrendsPostErrors];
 
 export type GetTrendsPropertyManagerTrendsPostResponses = {
+    /**
+     * Successful Response
+     */
     200: TrendsResponse;
 };
 
@@ -7727,12 +8402,18 @@ export type GetBuildingTrendsPropertyManagerBuildingTrendsPostData = {
 };
 
 export type GetBuildingTrendsPropertyManagerBuildingTrendsPostErrors = {
+    /**
+     * Validation Error
+     */
     422: HttpValidationError;
 };
 
 export type GetBuildingTrendsPropertyManagerBuildingTrendsPostError = GetBuildingTrendsPropertyManagerBuildingTrendsPostErrors[keyof GetBuildingTrendsPropertyManagerBuildingTrendsPostErrors];
 
 export type GetBuildingTrendsPropertyManagerBuildingTrendsPostResponses = {
+    /**
+     * Successful Response
+     */
     200: BuildingTrendsResponse;
 };
 
