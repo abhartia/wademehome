@@ -54,6 +54,9 @@ src/listings/schemas.py
 src/movein/__init__.py
 src/movein/geocode.py
 src/movein/lease_premises_extract.py
+src/movein/photo_router.py
+src/movein/photo_schemas.py
+src/movein/photo_service.py
 src/movein/router.py
 src/movein/schemas.py
 src/movein/service.py
@@ -79,6 +82,7 @@ src/property_manager/ai_insights.py
 src/property_manager/census.py
 src/property_manager/nyc_property_data.py
 src/property_manager/router.py
+src/property_manager/scheduler.py
 src/property_manager/schemas.py
 src/property_manager/service.py
 src/roommates/__init__.py

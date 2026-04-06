@@ -364,6 +364,46 @@ Include EVERY input label in either "cleaned" or "remove".
 """
 
 
+def _call_llm_raw(system_prompt: str, user_msg: str) -> str:
+    """Call LLM and return the raw text content (no AiSummary parsing)."""
+    from core.config import Config
+    from llama_index.core.base.llms.types import ChatMessage, MessageRole
+    from llama_index.llms.azure_openai import AzureOpenAI
+    from llama_index.llms.openai import OpenAI
+
+    endpoint = (Config.get("AZURE_OPENAI_ENDPOINT", "") or "").strip()
+    if endpoint and Config.get("AZURE_OPENAI_API_KEY") and Config.get("AZURE_OPENAI_DEPLOYMENT"):
+        llm = AzureOpenAI(
+            azure_endpoint=endpoint.rstrip("/"),
+            api_key=Config.get("AZURE_OPENAI_API_KEY"),
+            engine=Config.get("AZURE_OPENAI_DEPLOYMENT"),
+            model=Config.get("AZURE_OPENAI_MODEL", "gpt-5-nano"),
+            api_version=Config.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
+            timeout=_LLM_TIMEOUT_SECONDS,
+            max_retries=_LLM_MAX_RETRIES,
+        )
+    else:
+        llm = OpenAI(
+            api_key=Config.get("OPENAI_API_KEY"),
+            model=Config.get("OPENAI_MODEL", "gpt-4.1"),
+            timeout=_LLM_TIMEOUT_SECONDS,
+            max_retries=_LLM_MAX_RETRIES,
+        )
+
+    response = llm.chat([
+        ChatMessage(role=MessageRole.SYSTEM, content=system_prompt),
+        ChatMessage(role=MessageRole.USER, content=user_msg),
+    ])
+    content = (response.message.content or "").strip()
+    if content.startswith("```"):
+        lines = content.split("\n")
+        lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        content = "\n".join(lines)
+    return content
+
+
 def clean_amenity_labels(amenities: AmenityAnalysis) -> AmenityAnalysis:
     """Use LLM to clean raw amenity labels into professional display names."""
     all_items = list(amenities.standard) + list(amenities.differentiators) + list(amenities.rare)
@@ -372,11 +412,11 @@ def clean_amenity_labels(amenities: AmenityAnalysis) -> AmenityAnalysis:
 
     raw_labels = [item.amenity for item in all_items]
 
-    # Build cache key from the sorted labels
-    cache_data = {"_type": "amenity_clean", "labels": sorted(raw_labels)}
+    # Cache key based on sorted labels
+    cache_data = {"_type": "amenity_clean_v2", "labels": sorted(raw_labels)}
     key = _cache_key(cache_data)
 
-    # Check cache
+    # Check cache (direct DB query — _cache_get expects AiSummary shape)
     cached = None
     try:
         with engine.connect() as conn:
@@ -386,70 +426,31 @@ def clean_amenity_labels(amenities: AmenityAnalysis) -> AmenityAnalysis:
             ).fetchone()
             if row:
                 cached = json.loads(row[0])
+                logger.info("Amenity label cache HIT (%s)", key[:12])
     except Exception:
-        logger.debug("amenity label cache miss or table not ready", exc_info=True)
+        logger.warning("Amenity label cache read failed", exc_info=True)
 
     if cached is None:
         logger.info("Amenity label cache MISS — calling LLM (%s)", key[:12])
+        content = _call_llm_raw(_AMENITY_CLEAN_PROMPT, json.dumps(raw_labels))
+        cached = json.loads(content)
+        logger.info("Amenity LLM returned: %d cleaned, %d removed",
+                     len(cached.get("cleaned", {})), len(cached.get("remove", [])))
+
+        # Persist to cache
         try:
-            from core.config import Config
-            from llama_index.core.base.llms.types import ChatMessage, MessageRole
-            from llama_index.llms.azure_openai import AzureOpenAI
-            from llama_index.llms.openai import OpenAI
-
-            endpoint = (Config.get("AZURE_OPENAI_ENDPOINT", "") or "").strip()
-            if endpoint and Config.get("AZURE_OPENAI_API_KEY") and Config.get("AZURE_OPENAI_DEPLOYMENT"):
-                llm = AzureOpenAI(
-                    azure_endpoint=endpoint.rstrip("/"),
-                    api_key=Config.get("AZURE_OPENAI_API_KEY"),
-                    engine=Config.get("AZURE_OPENAI_DEPLOYMENT"),
-                    model=Config.get("AZURE_OPENAI_MODEL", "gpt-5-nano"),
-                    api_version=Config.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
-                    timeout=30.0,
-                    max_retries=1,
+            with engine.connect() as conn:
+                conn.execute(
+                    text("""
+                        INSERT INTO insight_llm_cache (cache_key, response_json)
+                        VALUES (:k, :v)
+                        ON CONFLICT (cache_key) DO UPDATE SET response_json = :v, created_at = now()
+                    """),
+                    {"k": key, "v": json.dumps(cached)},
                 )
-            else:
-                llm = OpenAI(
-                    api_key=Config.get("OPENAI_API_KEY"),
-                    model=Config.get("OPENAI_MODEL", "gpt-4.1"),
-                    timeout=30.0,
-                    max_retries=1,
-                )
-
-            user_msg = json.dumps(raw_labels)
-            response = llm.chat([
-                ChatMessage(role=MessageRole.SYSTEM, content=_AMENITY_CLEAN_PROMPT),
-                ChatMessage(role=MessageRole.USER, content=user_msg),
-            ])
-            content = (response.message.content or "").strip()
-            if content.startswith("```"):
-                lines = content.split("\n")
-                lines = lines[1:]
-                if lines and lines[-1].strip() == "```":
-                    lines = lines[:-1]
-                content = "\n".join(lines)
-            cached = json.loads(content)
-
-            # Persist to cache
-            try:
-                with engine.connect() as conn:
-                    conn.execute(
-                        text("""
-                            INSERT INTO insight_llm_cache (cache_key, response_json)
-                            VALUES (:k, :v)
-                            ON CONFLICT (cache_key) DO UPDATE SET response_json = :v, created_at = now()
-                        """),
-                        {"k": key, "v": json.dumps(cached)},
-                    )
-                    conn.commit()
-            except Exception:
-                logger.debug("amenity label cache write failed", exc_info=True)
-
+                conn.commit()
         except Exception:
-            logger.exception("Amenity label LLM cleanup failed — returning raw labels")
-            return amenities
-    else:
-        logger.info("Amenity label cache HIT (%s)", key[:12])
+            logger.warning("Amenity label cache write failed", exc_info=True)
 
     cleaned_map: dict[str, str] = cached.get("cleaned", {})
     remove_set: set[str] = set(cached.get("remove", []))

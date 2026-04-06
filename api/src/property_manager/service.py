@@ -1084,7 +1084,7 @@ def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict
         from property_manager.ai_insights import clean_amenity_labels
         amenities = clean_amenity_labels(amenities)
     except Exception:
-        logger.debug("Amenity label cleanup failed — using raw labels", exc_info=True)
+        logger.warning("AI amenity label cleanup failed", exc_info=True)
 
     # 10. NYC Building Financials (PLUTO + DOF assessments)
     building_financials = None
