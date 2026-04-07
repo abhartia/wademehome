@@ -1012,7 +1012,7 @@ function PropertyManagerAnalysisPage() {
               })() : null}
 
               {/* ── Row 4: Fee Intelligence (full width) ── */}
-              {fees && fees.fee_categories && fees.fee_categories.length > 0 && fees.total_buildings_with_fees > 3 ? (
+              {fees && fees.fee_categories && fees.fee_categories.length > 0 && Math.max(...fees.fee_categories.map(f => f.buildings_charging ?? 0)) > 1 ? (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
