@@ -316,12 +316,10 @@ def _refresh_search_columns(engine, table_name: str, schema: str | None) -> None
                 text(
                     f"""
                     UPDATE {qtable}
-                    SET geog = CASE
-                        WHEN "{lat_col}" IS NOT NULL
-                         AND "{lon_col}" IS NOT NULL
-                        THEN ST_SetSRID(ST_MakePoint("{lon_col}"::double precision, "{lat_col}"::double precision), 4326)::geography
-                        ELSE NULL
-                    END
+                    SET geog = ST_SetSRID(ST_MakePoint("{lon_col}"::double precision, "{lat_col}"::double precision), 4326)::geography
+                    WHERE geog IS NULL
+                      AND "{lat_col}" IS NOT NULL
+                      AND "{lon_col}" IS NOT NULL
                     """
                 )
             )
@@ -332,6 +330,7 @@ def _refresh_search_columns(engine, table_name: str, schema: str | None) -> None
                     f"""
                     UPDATE {qtable}
                     SET search_doc = NULLIF(trim(concat_ws(' ', {concat_sql})), '')
+                    WHERE search_doc IS NULL
                     """
                 )
             )
