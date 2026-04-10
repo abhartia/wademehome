@@ -59,11 +59,40 @@ export default async function BlogArticlePage({ params }: Props) {
     keywords: meta.keywords?.join(", "),
   };
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: `${baseUrl}/blog`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: meta.title,
+        item: `${baseUrl}/blog/${slug}`,
+      },
+    ],
+  };
+
   return (
     <div className="flex-1 overflow-y-auto">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <article className="mx-auto max-w-3xl space-y-6 p-6">
         <div className="space-y-3">

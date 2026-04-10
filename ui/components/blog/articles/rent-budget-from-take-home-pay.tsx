@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
@@ -72,6 +73,20 @@ export default function RentBudgetFromTakeHomePay() {
             it clears probation periods. Lifestyle creep after a promotion is common; direct
             part of new income to savings before upgrading apartment size. Rent is sticky—
             easy to raise your standard of living, harder to downshift without another move.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-5 text-sm text-muted-foreground">
+          <p>
+            Curious what your budget gets you in New York City? Check our{" "}
+            <Link
+              href="/nyc-rent-by-neighborhood"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              NYC Rent by Neighborhood guide
+            </Link>{" "}
+            for 2026 prices across Manhattan, Brooklyn, Queens, and the Bronx.
           </p>
         </CardContent>
       </Card>

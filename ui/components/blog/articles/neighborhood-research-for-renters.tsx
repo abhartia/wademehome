@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
@@ -76,6 +77,20 @@ export default function NeighborhoodResearchForRenters() {
             a primary reason for choosing a neighborhood. Magnet programs and charter
             lotteries add complexity beyond ZIP-code shopping. Long-term renters should
             revisit these assumptions before multi-year commitments if family plans change.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-5 text-sm text-muted-foreground">
+          <p>
+            If you are looking at NYC neighborhoods specifically, see our{" "}
+            <Link
+              href="/nyc-rent-by-neighborhood"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              NYC Rent by Neighborhood guide
+            </Link>{" "}
+            for 2026 prices, commute times, and tips by borough.
           </p>
         </CardContent>
       </Card>

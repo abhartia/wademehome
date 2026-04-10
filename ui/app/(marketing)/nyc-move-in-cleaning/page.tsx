@@ -81,6 +81,20 @@ export default function NYCMoveInCleaningPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
+              { "@type": "ListItem", position: 2, name: "Guides", item: `${baseUrl}/blog` },
+              { "@type": "ListItem", position: 3, name: "NYC Move-In Cleaning", item: `${baseUrl}/nyc-move-in-cleaning` },
+            ],
+          }),
+        }}
+      />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-6 p-6">
           <header className="space-y-3">
@@ -358,6 +372,30 @@ export default function NYCMoveInCleaningPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Apartment Tour Checklist
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-moving-checklist"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Moving Checklist
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-apartment-movers"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Apartment Movers Comparison
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-rent-by-neighborhood"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Rent by Neighborhood
                   </Link>
                 </li>
               </ul>

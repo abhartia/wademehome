@@ -21,3 +21,4 @@ scripts/.listing_amenities_scrape.checkpoint.json
 /.claude
 /corcoran_scraper/env=local
 /elliman_scraper/env=local
+/analytics

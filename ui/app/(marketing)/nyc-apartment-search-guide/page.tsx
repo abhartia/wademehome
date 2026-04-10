@@ -49,6 +49,20 @@ export default function NYCApartmentSearchGuidePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
+              { "@type": "ListItem", position: 2, name: "Guides", item: `${baseUrl}/blog` },
+              { "@type": "ListItem", position: 3, name: "NYC Apartment Search Guide", item: `${baseUrl}/nyc-apartment-search-guide` },
+            ],
+          }),
+        }}
+      />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-6 p-6">
           <header className="space-y-3">
@@ -299,6 +313,38 @@ export default function NYCApartmentSearchGuidePage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Broker Fees and Upfront Costs
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/blog/nyc-fare-act-broker-fee-ban"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Broker Fee Ban (FARE Act) Explained
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-rent-by-neighborhood"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Rent by Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-apartment-movers"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Apartment Movers Comparison
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-moving-checklist"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Moving Checklist
                   </Link>
                 </li>
               </ul>

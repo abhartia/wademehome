@@ -192,6 +192,14 @@ export const blogArticles: BlogArticleMeta[] = [
     keywords: ["month to month lease", "holdover tenant rights", "month to month notice period", "lease expired now what", "month to month rent increase", "tenancy at will"],
   },
   {
+    slug: "nyc-fare-act-broker-fee-ban",
+    title: "NYC Broker Fee Ban Explained: What the FARE Act Means for Renters in 2025-2026",
+    description:
+      "The FARE Act ended tenant-paid broker fees in NYC. Learn who pays now, how much you save, and what to watch for when apartment hunting.",
+    publishedAt: "2026-04-11",
+    keywords: ["NYC broker fee ban", "FARE Act NYC", "NYC broker fee law", "who pays broker fee NYC", "no fee apartments NYC", "FARE Act explained", "NYC renter broker fee 2025", "broker fee law New York City"],
+  },
+  {
     slug: "noise-neighbors-and-building-rules",
     title: "Noisy Neighbors? Apartment Noise Rules and What You Can Do",
     description:

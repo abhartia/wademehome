@@ -17,13 +17,23 @@ const baseUrl =
   "https://wademehome.com";
 
 export const metadata: Metadata = {
-  title: "Best Movers for NYC Apartments | Wade Me Home",
+  title: "NYC Apartment Movers: Costs, Building Rules & How to Hire | Wade Me Home",
   description:
-    "How to choose movers for a NYC apartment move. Building requirements, cost ranges, red flags to watch for, and answers to common questions.",
+    "Complete guide to hiring apartment movers in NYC. Costs ($450-$2,500), COI requirements, walk-up surcharges, scam red flags, and FAQs for Manhattan, Brooklyn, and Queens moves.",
+  keywords: [
+    "apartment movers NYC",
+    "NYC moving companies",
+    "manhattan apartment movers",
+    "NYC movers cost",
+    "moving company NYC apartments",
+    "best movers NYC",
+    "NYC moving guide",
+    "Brooklyn movers",
+  ],
   openGraph: {
-    title: "Best Movers for NYC Apartments | Wade Me Home",
+    title: "NYC Apartment Movers: Costs, Building Rules & How to Hire",
     description:
-      "How to choose movers for a NYC apartment move. Building requirements, cost ranges, red flags to watch for, and answers to common questions.",
+      "Complete guide to hiring apartment movers in NYC. Costs, COI requirements, walk-up surcharges, scam red flags, and FAQs.",
     url: `${baseUrl}/nyc-apartment-movers`,
   },
 };
@@ -96,6 +106,20 @@ export default function NYCApartmentMoversPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
+              { "@type": "ListItem", position: 2, name: "Guides", item: `${baseUrl}/blog` },
+              { "@type": "ListItem", position: 3, name: "NYC Apartment Movers", item: `${baseUrl}/nyc-apartment-movers` },
+            ],
+          }),
+        }}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-6 p-6">
@@ -352,6 +376,14 @@ export default function NYCApartmentMoversPage() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+                <li>
+                  <Link
+                    href="/nyc-rent-by-neighborhood"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Rent by Neighborhood 2026
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/blog/broker-fees-and-upfront-costs"

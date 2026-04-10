@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
@@ -68,6 +69,20 @@ export default function ApartmentSearchTips() {
             groups sometimes surface unlisted sublets or roommate situations; vet those
             carefully against scams. Combine online research with in-person intuition—data
             cannot smell mold or hear train noise through walls.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-5 text-sm text-muted-foreground">
+          <p>
+            Searching in NYC? See our{" "}
+            <Link
+              href="/nyc-rent-by-neighborhood"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              NYC Rent by Neighborhood guide
+            </Link>{" "}
+            for average prices and commute times across all four boroughs.
           </p>
         </CardContent>
       </Card>

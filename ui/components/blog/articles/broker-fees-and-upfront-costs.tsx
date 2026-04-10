@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
+import Link from "next/link";
 
 export default function BrokerFeesAndUpfrontCosts() {
   return (
@@ -24,6 +25,17 @@ export default function BrokerFeesAndUpfrontCosts() {
             a unit yourself on a public listing, confirm whether a fee still attaches due
             to agency relationships. Dual agency situations deserve extra clarity on who
             represents whom.
+          </p>
+          <p>
+            <strong>NYC renters:</strong> the FARE Act changed who pays broker fees
+            in New York City starting June 2025. Read our{" "}
+            <Link
+              href="/blog/nyc-fare-act-broker-fee-ban"
+              className="text-foreground underline underline-offset-4"
+            >
+              complete guide to the NYC broker fee ban
+            </Link>{" "}
+            for details on how the law works and what it means for your apartment search.
           </p>
         </CardContent>
       </Card>
