@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
+import Link from "next/link";
 
 export default function NegotiatingRentAndLeaseTerms() {
   return (
@@ -73,6 +74,17 @@ export default function NegotiatingRentAndLeaseTerms() {
             exist if you need a different line later—some owners document internal moves at
             reduced fees for reliable tenants. It is not guaranteed, but worth asking once
             rapport exists.
+          </p>
+          <p>
+            If you live in a rent-stabilized apartment in NYC, your rent increase is capped
+            by the Rent Guidelines Board each year — read our{" "}
+            <Link
+              href="/blog/nyc-rent-stabilization-guide"
+              className="text-primary underline underline-offset-2"
+            >
+              NYC rent stabilization guide
+            </Link>{" "}
+            to understand your rights before negotiating a renewal.
           </p>
         </CardContent>
       </Card>

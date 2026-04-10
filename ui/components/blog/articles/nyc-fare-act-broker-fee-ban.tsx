@@ -226,7 +226,15 @@ export default function NycFareActBrokerFeeBan() {
           </p>
           <p>
             <strong>Can a landlord raise rent to cover the broker fee?</strong>{" "}
-            Rent-stabilized units have regulated increases. For market-rate units,
+            Rent-stabilized units have regulated increases set by the Rent
+            Guidelines Board — see our{" "}
+            <Link
+              href="/blog/nyc-rent-stabilization-guide"
+              className="text-foreground underline underline-offset-4"
+            >
+              NYC rent stabilization guide
+            </Link>{" "}
+            for current rates. For market-rate units,
             landlords can set prices freely, so some may factor broker costs into
             the monthly rent. Compare listings carefully to spot inflated prices.
           </p>

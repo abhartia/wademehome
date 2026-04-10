@@ -200,6 +200,14 @@ export const blogArticles: BlogArticleMeta[] = [
     keywords: ["NYC broker fee ban", "FARE Act NYC", "NYC broker fee law", "who pays broker fee NYC", "no fee apartments NYC", "FARE Act explained", "NYC renter broker fee 2025", "broker fee law New York City"],
   },
   {
+    slug: "nyc-rent-stabilization-guide",
+    title: "NYC Rent Stabilization Explained: 2025-2026 Guide for Tenants",
+    description:
+      "Everything NYC renters need to know about rent stabilization: 2025-2026 guidelines (3% one-year, 4.5% two-year), how to check if your apartment qualifies, your rights, and what to do if you're being overcharged.",
+    publishedAt: "2026-04-12",
+    keywords: ["NYC rent stabilization", "rent stabilized apartment NYC", "rent control NYC", "NYC rent guidelines 2025 2026", "is my apartment rent stabilized", "rent stabilization rights NYC", "rent increase NYC", "how to find rent stabilized apartment"],
+  },
+  {
     slug: "noise-neighbors-and-building-rules",
     title: "Noisy Neighbors? Apartment Noise Rules and What You Can Do",
     description:

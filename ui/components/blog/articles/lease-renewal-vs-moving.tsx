@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
+import Link from "next/link";
 
 export default function LeaseRenewalVsMoving() {
   return (
@@ -72,6 +73,17 @@ export default function LeaseRenewalVsMoving() {
             If you negotiate a renewal concession—free month, parking waiver—get it in the
             signed renewal package, not a side email that predates the final document.
             Promotions sometimes expire between verbal agreement and DocuSign.
+          </p>
+          <p>
+            If your apartment is rent stabilized in NYC, your landlord&apos;s renewal
+            increase is capped by the Rent Guidelines Board — see our{" "}
+            <Link
+              href="/blog/nyc-rent-stabilization-guide"
+              className="text-primary underline underline-offset-2"
+            >
+              NYC rent stabilization guide
+            </Link>{" "}
+            for current rates and how to verify your status.
           </p>
         </CardContent>
       </Card>

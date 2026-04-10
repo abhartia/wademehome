@@ -521,6 +521,14 @@ export default function NYCRentByNeighborhoodPage() {
                     How to Research a Neighborhood Before Renting
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/blog/nyc-rent-stabilization-guide"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Rent Stabilization Explained
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>
