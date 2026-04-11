@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
@@ -51,6 +52,17 @@ export default function RentalApplicationScreeningBasics() {
             rules. Use feedback to adjust expectations—sometimes a slightly lower rent tier
             or a different neighborhood clears the bar. Persistence with preparation beats
             volume without focus.
+          </p>
+          <p>
+            Be cautious of listings that charge unusually high application fees or pressure you
+            to pay before you have verified the property. Our guide to{" "}
+            <Link
+              href="/blog/nyc-apartment-scams"
+              className="text-foreground underline underline-offset-4"
+            >
+              common apartment scams
+            </Link>{" "}
+            covers the warning signs to watch for during your search.
           </p>
         </CardContent>
       </Card>

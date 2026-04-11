@@ -81,6 +81,16 @@ export default function BrokerFeesAndUpfrontCosts() {
             transfers require             verification.
           </p>
           <p>
+            For a deeper look at common tactics used by fraudulent listings, read our guide to{" "}
+            <Link
+              href="/blog/nyc-apartment-scams"
+              className="text-foreground underline underline-offset-4"
+            >
+              spotting apartment scams in NYC
+            </Link>
+            —many of the red flags apply nationwide.
+          </p>
+          <p>
             Roommates splitting broker fees should agree on shares before anyone wires—
             unequal bedrooms or incomes often justify unequal splits; put it in writing to
             avoid Venmo disputes after move-in stress peaks.

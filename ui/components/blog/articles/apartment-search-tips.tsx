@@ -70,6 +70,17 @@ export default function ApartmentSearchTips() {
             carefully against scams. Combine online research with in-person intuition—data
             cannot smell mold or hear train noise through walls.
           </p>
+          <p>
+            Before wiring a deposit or paying an application fee to an unfamiliar listing, learn
+            how to{" "}
+            <Link
+              href="/blog/nyc-apartment-scams"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              recognize common apartment scams
+            </Link>{" "}
+            so you can spot red flags early.
+          </p>
         </CardContent>
       </Card>
       <Card>

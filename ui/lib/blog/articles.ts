@@ -208,6 +208,14 @@ export const blogArticles: BlogArticleMeta[] = [
     keywords: ["NYC rent stabilization", "rent stabilized apartment NYC", "rent control NYC", "NYC rent guidelines 2025 2026", "is my apartment rent stabilized", "rent stabilization rights NYC", "rent increase NYC", "how to find rent stabilized apartment"],
   },
   {
+    slug: "nyc-apartment-scams",
+    title: "NYC Apartment Scams: How to Spot and Avoid Rental Fraud in 2026",
+    description:
+      "Learn the most common NYC rental scams, red flags to watch for, how to verify listings, and what to do if you get scammed. Protect yourself when apartment hunting in New York City.",
+    publishedAt: "2026-04-12",
+    keywords: ["NYC apartment scams", "rental scams NYC", "apartment scam red flags", "how to avoid rental scams", "fake apartment listing", "NYC rental fraud", "Craigslist apartment scam", "is this apartment listing a scam", "rental scam what to do"],
+  },
+  {
     slug: "noise-neighbors-and-building-rules",
     title: "Noisy Neighbors? Apartment Noise Rules and What You Can Do",
     description:

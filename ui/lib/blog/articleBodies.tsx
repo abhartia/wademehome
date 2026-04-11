@@ -24,6 +24,7 @@ import ConditionalApprovalHigherDeposit from "@/components/blog/articles/conditi
 import MonthToMonthAfterLease from "@/components/blog/articles/month-to-month-after-lease";
 import NycFareActBrokerFeeBan from "@/components/blog/articles/nyc-fare-act-broker-fee-ban";
 import NycRentStabilizationGuide from "@/components/blog/articles/nyc-rent-stabilization-guide";
+import NycApartmentScams from "@/components/blog/articles/nyc-apartment-scams";
 import NoiseNeighborsAndBuildingRules from "@/components/blog/articles/noise-neighbors-and-building-rules";
 
 export const articleBodies: Record<string, ComponentType> = {
@@ -52,5 +53,6 @@ export const articleBodies: Record<string, ComponentType> = {
   "month-to-month-after-lease": MonthToMonthAfterLease,
   "nyc-fare-act-broker-fee-ban": NycFareActBrokerFeeBan,
   "nyc-rent-stabilization-guide": NycRentStabilizationGuide,
+  "nyc-apartment-scams": NycApartmentScams,
   "noise-neighbors-and-building-rules": NoiseNeighborsAndBuildingRules,
 };

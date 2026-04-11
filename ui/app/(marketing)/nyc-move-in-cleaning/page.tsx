@@ -71,6 +71,34 @@ const jsonLd = [
       },
     ],
   },
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "How to Deep-Clean an NYC Apartment Before Moving In",
+    description:
+      "A room-by-room DIY move-in cleaning checklist for New York City apartments. Complete these steps before your movers arrive for the best results.",
+    totalTime: "PT4H",
+    step: [
+      {
+        "@type": "HowToStep",
+        position: 1,
+        name: "Clean the kitchen",
+        text: "Run the oven self-clean cycle or apply oven cleaner. Clean inside the refrigerator and freezer with baking soda solution. Wipe inside all cabinets and drawers. Clean the stovetop, range hood filter, and dishwasher. Scrub the sink, faucet, and countertops.",
+      },
+      {
+        "@type": "HowToStep",
+        position: 2,
+        name: "Clean the bathroom",
+        text: "Apply cleaner to the tub, shower, and toilet and let it sit. Clean the mirror, sink, and vanity. Scrub grout lines with a brush. Wipe the toilet exterior and base. Clean the exhaust fan cover. Mop the floor including corners and behind the toilet.",
+      },
+      {
+        "@type": "HowToStep",
+        position: 3,
+        name: "Clean living areas and bedrooms",
+        text: "Wipe all baseboards, door frames, and light switch plates. Clean window sills and tracks. Wipe inside all closets including shelves and rods. Dust light fixtures. Damp-mop hardwood floors with wood cleaner or vacuum and deep-clean carpets.",
+      },
+    ],
+  },
 ];
 
 export default function NYCMoveInCleaningPage() {
