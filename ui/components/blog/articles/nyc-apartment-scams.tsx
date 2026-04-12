@@ -2,9 +2,60 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 import Link from "next/link";
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Is it safe to rent an apartment I found on Craigslist?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Craigslist can have legitimate listings, but it is also the most common platform for rental scams because anyone can post without verification. If you find a listing on Craigslist, verify it independently: check the building ownership, tour in person, and never send money before seeing the apartment. Cross-reference the listing on StreetEasy or the management company's website.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can a landlord ask for first and last month's rent plus a security deposit upfront?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "In New York, landlords can ask for first month's rent and a security deposit (capped at one month's rent) at lease signing. They cannot collect last month's rent in advance. Any request for more than these two payments is either illegal or a scam.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What if a broker asks me to pay the application fee in cash?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Paying in cash makes it much harder to dispute the charge or get a refund. Always pay application fees by check or card so you have a paper trail. Remember that application fees in NYC are capped at $20, and the fee must go toward the actual cost of a credit or background check.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I know if a broker is licensed?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Check the New York Department of State's license lookup tool at eAccessNY. Every real estate broker and salesperson in New York must hold an active license. If someone cannot provide a license number or their name does not appear in the database, do not work with them.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Are Facebook Marketplace apartment listings safe?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Facebook Marketplace has the same risks as Craigslist. While the platform shows user profiles, scammers create fake accounts. Apply the same verification steps: tour in person, check ownership records, and never wire money or send payment before viewing the apartment.",
+      },
+    },
+  ],
+};
+
 export default function NycApartmentScams() {
   return (
     <div className="space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Why apartment scams are so common in NYC</CardTitle>

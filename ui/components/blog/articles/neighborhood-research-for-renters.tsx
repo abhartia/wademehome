@@ -90,7 +90,16 @@ export default function NeighborhoodResearchForRenters() {
             >
               NYC Rent by Neighborhood guide
             </Link>{" "}
-            for 2026 prices, commute times, and tips by borough.
+            for 2026 prices, commute times, and tips by borough. For a
+            detailed look at one of Manhattan&apos;s hottest rental markets, check
+            out our{" "}
+            <Link
+              href="/nyc/east-village"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              East Village apartment guide
+            </Link>
+            .
           </p>
         </CardContent>
       </Card>

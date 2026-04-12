@@ -213,7 +213,15 @@ export default function NYCRentByNeighborhoodPage() {
                 downtown. However, these neighborhoods have strong community
                 character, excellent parks (Fort Tryon, Riverside), and a
                 growing restaurant scene that makes them worth considering for
-                renters who prioritize space and savings.
+                renters who prioritize space and savings. For a deep dive into
+                one of Manhattan&apos;s hottest rental markets, see our{" "}
+                <Link
+                  href="/nyc/east-village"
+                  className="text-primary underline underline-offset-2"
+                >
+                  East Village neighborhood guide
+                </Link>
+                .
               </p>
             </CardContent>
           </Card>
@@ -527,6 +535,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     NYC Rent Stabilization Explained
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/east-village"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    East Village: Rent Prices, Transit &amp; Tips
                   </Link>
                 </li>
               </ul>
