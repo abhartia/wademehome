@@ -98,6 +98,13 @@ export default function NeighborhoodResearchForRenters() {
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
               East Village apartment guide
+            </Link>{" "}
+            and our{" "}
+            <Link
+              href="/nyc/williamsburg"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Williamsburg apartment guide
             </Link>
             .
           </p>

@@ -575,7 +575,13 @@ export default function EastVillageGuidePage() {
               <Separator />
               <div>
                 <h3 className="mb-1 font-semibold text-foreground">
-                  vs. Williamsburg
+                  vs.{" "}
+                  <Link
+                    href="/nyc/williamsburg"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Williamsburg
+                  </Link>
                 </h3>
                 <p>
                   Williamsburg in Brooklyn offers a similar cultural scene with

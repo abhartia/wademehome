@@ -237,7 +237,14 @@ export default function NYCRentByNeighborhoodPage() {
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
                 Brooklyn&apos;s median rent has risen to $4,150, but that number
-                masks enormous variation. Williamsburg, DUMBO, Brooklyn Heights,
+                masks enormous variation.{" "}
+                <Link
+                  href="/nyc/williamsburg"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Williamsburg
+                </Link>
+                , DUMBO, Brooklyn Heights,
                 and Cobble Hill are priced at or above many Manhattan
                 neighborhoods, with one-bedrooms ranging from $3,200 to $4,500.
                 Park Slope and Carroll Gardens sit in a similar range. These
@@ -543,6 +550,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     East Village: Rent Prices, Transit &amp; Tips
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/williamsburg"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Williamsburg: Rent Prices, Transit &amp; Tips
                   </Link>
                 </li>
               </ul>
