@@ -17,9 +17,9 @@ const baseUrl =
   "https://wademehome.com";
 
 export const metadata: Metadata = {
-  title: "NYC Rent by Neighborhood 2026: Prices, Commutes & Tips | Wade Me Home",
+  title: "NYC Rent Prices by Neighborhood (2026): What You'll Pay in Every Borough",
   description:
-    "Average rent prices in every major NYC neighborhood for 2026. Compare Manhattan, Brooklyn, Queens, and Bronx rents with commute times, income requirements, and tips for finding deals.",
+    "Compare average apartment rent in 20+ NYC neighborhoods for 2026. Manhattan, Brooklyn, Queens & Bronx costs side-by-side with subway commute times, income requirements, and money-saving tips.",
   keywords: [
     "NYC rent by neighborhood",
     "average rent NYC 2026",
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
     "rent prices New York City",
   ],
   openGraph: {
-    title: "NYC Rent by Neighborhood 2026: Prices, Commutes & Tips",
+    title: "NYC Rent Prices by Neighborhood (2026): What You'll Pay in Every Borough",
     description:
-      "Average rent prices in every major NYC neighborhood for 2026. Compare Manhattan, Brooklyn, Queens, and Bronx rents.",
+      "Compare average apartment rent in 20+ NYC neighborhoods for 2026. Manhattan, Brooklyn, Queens & Bronx costs side-by-side with subway commute times.",
     url: `${baseUrl}/nyc-rent-by-neighborhood`,
     type: "article",
   },
@@ -45,11 +45,11 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: "NYC Rent by Neighborhood 2026: Prices, Commutes & Tips",
+    headline: "NYC Rent Prices by Neighborhood (2026): What You'll Pay in Every Borough",
     description:
       "A comprehensive guide to average rent prices in every major NYC neighborhood for 2026, including commute times, income requirements, and practical tips for renters.",
     datePublished: "2026-04-10",
-    dateModified: "2026-04-10",
+    dateModified: "2026-04-15",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -281,7 +281,14 @@ export default function NYCRentByNeighborhoodPage() {
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
                 Queens is where many renters find the best balance between
-                affordability and transit access. Astoria ($2,200 to $2,800 for
+                affordability and transit access.{" "}
+                <Link
+                  href="/nyc/astoria"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Astoria
+                </Link>{" "}
+                ($2,200 to $2,800 for
                 a one-bedroom) is the most popular entry point: it sits on the
                 N/W lines with a 20-minute ride to Midtown, has a thriving
                 restaurant scene, and offers significantly more space than
@@ -558,6 +565,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Williamsburg: Rent Prices, Transit &amp; Tips
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/astoria"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Astoria: Rent Prices, Transit &amp; Neighborhood Guide
                   </Link>
                 </li>
               </ul>

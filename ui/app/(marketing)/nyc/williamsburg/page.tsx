@@ -764,6 +764,14 @@ export default function WilliamsburgGuidePage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/astoria"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Astoria Apartments: Rent Prices, Transit &amp; Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc-rent-by-neighborhood"
                     className="text-primary underline underline-offset-2"
                   >

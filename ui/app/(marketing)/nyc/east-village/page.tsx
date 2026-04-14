@@ -759,6 +759,14 @@ export default function EastVillageGuidePage() {
                     Understanding Broker Fees &amp; Upfront Costs
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/nyc/astoria"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Astoria Apartments: Rent Prices, Transit &amp; Neighborhood Guide
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>
