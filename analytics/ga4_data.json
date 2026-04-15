@@ -1,0 +1,584 @@
+{
+  "traffic_summary_30d": {
+    "activeUsers": "11",
+    "sessions": "71",
+    "screenPageViews": "478",
+    "averageSessionDuration": "1026.8126505070425",
+    "bounceRate": "0.26760563380281688",
+    "newUsers": "11"
+  },
+  "traffic_summary_prev_30d": {
+    "activeUsers": "0",
+    "sessions": "0",
+    "screenPageViews": "0",
+    "averageSessionDuration": "0",
+    "bounceRate": "0",
+    "newUsers": "0"
+  },
+  "daily_trend": [
+    {
+      "date": "20260323",
+      "activeUsers": "2",
+      "sessions": "6",
+      "screenPageViews": "90"
+    },
+    {
+      "date": "20260324",
+      "activeUsers": "3",
+      "sessions": "7",
+      "screenPageViews": "26"
+    },
+    {
+      "date": "20260325",
+      "activeUsers": "2",
+      "sessions": "12",
+      "screenPageViews": "60"
+    },
+    {
+      "date": "20260326",
+      "activeUsers": "1",
+      "sessions": "4",
+      "screenPageViews": "11"
+    },
+    {
+      "date": "20260327",
+      "activeUsers": "2",
+      "sessions": "4",
+      "screenPageViews": "62"
+    },
+    {
+      "date": "20260328",
+      "activeUsers": "2",
+      "sessions": "5",
+      "screenPageViews": "97"
+    },
+    {
+      "date": "20260329",
+      "activeUsers": "0",
+      "sessions": "1",
+      "screenPageViews": "1"
+    },
+    {
+      "date": "20260330",
+      "activeUsers": "4",
+      "sessions": "13",
+      "screenPageViews": "64"
+    },
+    {
+      "date": "20260401",
+      "activeUsers": "1",
+      "sessions": "3",
+      "screenPageViews": "15"
+    },
+    {
+      "date": "20260402",
+      "activeUsers": "2",
+      "sessions": "9",
+      "screenPageViews": "43"
+    },
+    {
+      "date": "20260403",
+      "activeUsers": "2",
+      "sessions": "6",
+      "screenPageViews": "7"
+    },
+    {
+      "date": "20260406",
+      "activeUsers": "1",
+      "sessions": "1",
+      "screenPageViews": "2"
+    }
+  ],
+  "top_pages": [
+    {
+      "pagePath": "/",
+      "screenPageViews": "200",
+      "activeUsers": "7",
+      "averageSessionDuration": "628.02083623076919",
+      "bounceRate": "0.11538461538461539"
+    },
+    {
+      "pagePath": "/search",
+      "screenPageViews": "84",
+      "activeUsers": "3",
+      "averageSessionDuration": "723.40854624",
+      "bounceRate": "0.24"
+    },
+    {
+      "pagePath": "/app",
+      "screenPageViews": "35",
+      "activeUsers": "3",
+      "averageSessionDuration": "211.35435141176472",
+      "bounceRate": "0.11764705882352941"
+    },
+    {
+      "pagePath": "/admin/inventory",
+      "screenPageViews": "31",
+      "activeUsers": "1",
+      "averageSessionDuration": "855.70366699999988",
+      "bounceRate": "0.16666666666666666"
+    },
+    {
+      "pagePath": "/login",
+      "screenPageViews": "30",
+      "activeUsers": "7",
+      "averageSessionDuration": "173.4261886",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/property-manager/analysis",
+      "screenPageViews": "24",
+      "activeUsers": "1",
+      "averageSessionDuration": "715.68404022222217",
+      "bounceRate": "0.1111111111111111"
+    },
+    {
+      "pagePath": "/admin/property-managers",
+      "screenPageViews": "15",
+      "activeUsers": "1",
+      "averageSessionDuration": "289.105213",
+      "bounceRate": "0.25"
+    },
+    {
+      "pagePath": "/guarantor",
+      "screenPageViews": "12",
+      "activeUsers": "2",
+      "averageSessionDuration": "1898.6466675",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/profile",
+      "screenPageViews": "12",
+      "activeUsers": "2",
+      "averageSessionDuration": "104.83899925",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/roommates",
+      "screenPageViews": "6",
+      "activeUsers": "1",
+      "averageSessionDuration": "341.5733305",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
+      "screenPageViews": "4",
+      "activeUsers": "1",
+      "averageSessionDuration": "1731.831128",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/tours",
+      "screenPageViews": "4",
+      "activeUsers": "1",
+      "averageSessionDuration": "991.21815",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/admin/listings-without-amenities",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "486.80211820000005",
+      "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "627.631788",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "105.344856",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/10-lexington-avenue--10-lexington-avenue--40.6862---73.9617",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "7.8191605",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/properties/377-menahan-street-brooklyn-ny--377-menahan-street-brooklyn-ny-11237--40.7019---73.9137",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "78.52786",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/rocket-factory-lofts--100-south-4th-street-brooklyn-ny-11249--40.7120---73.9638",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "287.46443",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/property-manager",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "6.7172115",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/315-melrose-street-brooklyn-ny--315-melrose-street-brooklyn-ny-11237--40.7032---73.9288",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "averageSessionDuration": "220.29165",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/properties/98-front-street-7r--98-front-street-7r-brooklyn-ny-11201--40.7020---73.9888",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "averageSessionDuration": "211.629367",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/nev-seno--1717-s-michigan-chicago-il-60616--41.8586---87.6235",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "averageSessionDuration": "238.789905",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/the-brook--567-fulton-street-brooklyn-ny-11201--40.6896---73.9846",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "averageSessionDuration": "88.3713645",
+      "bounceRate": "0.5"
+    }
+  ],
+  "traffic_sources": [
+    {
+      "channel": "Direct",
+      "sessions": "71",
+      "activeUsers": "11",
+      "screenPageViews": "478",
+      "avgDuration": "1026.8126505070425",
+      "bounceRate": "0.26760563380281688"
+    }
+  ],
+  "organic_landing_pages": [],
+  "devices": [
+    {
+      "device": "desktop",
+      "sessions": "71",
+      "activeUsers": "11",
+      "bounceRate": "0.26760563380281688"
+    }
+  ],
+  "countries": [
+    {
+      "country": "United States",
+      "sessions": "71",
+      "activeUsers": "11"
+    }
+  ],
+  "events": [
+    {
+      "event": "page_view",
+      "eventCount": "478",
+      "totalUsers": "11"
+    },
+    {
+      "event": "scroll",
+      "eventCount": "210",
+      "totalUsers": "11"
+    },
+    {
+      "event": "user_engagement",
+      "eventCount": "171",
+      "totalUsers": "9"
+    },
+    {
+      "event": "session_start",
+      "eventCount": "71",
+      "totalUsers": "11"
+    },
+    {
+      "event": "click",
+      "eventCount": "27",
+      "totalUsers": "4"
+    },
+    {
+      "event": "view_search_results",
+      "eventCount": "24",
+      "totalUsers": "5"
+    },
+    {
+      "event": "form_start",
+      "eventCount": "12",
+      "totalUsers": "6"
+    },
+    {
+      "event": "first_visit",
+      "eventCount": "11",
+      "totalUsers": "11"
+    }
+  ],
+  "weekly_trend_90d": [
+    {
+      "week": "202613",
+      "activeUsers": "6",
+      "sessions": "39",
+      "screenPageViews": "347"
+    },
+    {
+      "week": "202614",
+      "activeUsers": "6",
+      "sessions": "31",
+      "screenPageViews": "129"
+    },
+    {
+      "week": "202615",
+      "activeUsers": "1",
+      "sessions": "1",
+      "screenPageViews": "2"
+    }
+  ],
+  "all_pages_with_titles": [
+    {
+      "pagePath": "/",
+      "pageTitle": "Wade Me Home: Rental search & renter tools",
+      "screenPageViews": "178",
+      "activeUsers": "7",
+      "avgDuration": "625.65527323076924",
+      "bounceRate": "0.11538461538461539"
+    },
+    {
+      "pagePath": "/search",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "83",
+      "activeUsers": "3",
+      "avgDuration": "682.42325748000007",
+      "bounceRate": "0.24"
+    },
+    {
+      "pagePath": "/app",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "35",
+      "activeUsers": "3",
+      "avgDuration": "211.35435141176472",
+      "bounceRate": "0.11764705882352941"
+    },
+    {
+      "pagePath": "/admin/inventory",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "31",
+      "activeUsers": "1",
+      "avgDuration": "794.86695241666666",
+      "bounceRate": "0.16666666666666666"
+    },
+    {
+      "pagePath": "/login",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "30",
+      "activeUsers": "7",
+      "avgDuration": "173.4261886",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/property-manager/analysis",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "24",
+      "activeUsers": "1",
+      "avgDuration": "713.11773533333337",
+      "bounceRate": "0.1111111111111111"
+    },
+    {
+      "pagePath": "/",
+      "pageTitle": "(not set)",
+      "screenPageViews": "21",
+      "activeUsers": "3",
+      "avgDuration": "4.1496012",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/admin/property-managers",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "15",
+      "activeUsers": "1",
+      "avgDuration": "289.105213",
+      "bounceRate": "0.25"
+    },
+    {
+      "pagePath": "/guarantor",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "12",
+      "activeUsers": "2",
+      "avgDuration": "1898.6466675",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/profile",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "11",
+      "activeUsers": "2",
+      "avgDuration": "55.26515025",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/roommates",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "6",
+      "activeUsers": "1",
+      "avgDuration": "341.5733305",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "4",
+      "activeUsers": "1",
+      "avgDuration": "1731.831128",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/tours",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "4",
+      "activeUsers": "1",
+      "avgDuration": "991.21815",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/admin/listings-without-amenities",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "avgDuration": "486.80211820000005",
+      "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "avgDuration": "627.631788",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "avgDuration": "105.344856",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/10-lexington-avenue--10-lexington-avenue--40.6862---73.9617",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "7.8191605",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/properties/377-menahan-street-brooklyn-ny--377-menahan-street-brooklyn-ny-11237--40.7019---73.9137",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "78.52786",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/rocket-factory-lofts--100-south-4th-street-brooklyn-ny-11249--40.7120---73.9638",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "287.46443",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/property-manager",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "6.7172115",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "40.756632",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/profile",
+      "pageTitle": "(not set)",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "198.295396",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/315-melrose-street-brooklyn-ny--315-melrose-street-brooklyn-ny-11237--40.7032---73.9288",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "220.29165",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/properties/98-front-street-7r--98-front-street-7r-brooklyn-ny-11201--40.7020---73.9888",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "211.629367",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/nev-seno--1717-s-michigan-chicago-il-60616--41.8586---87.6235",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "238.789905",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/the-brook--567-fulton-street-brooklyn-ny-11201--40.6896---73.9846",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "88.3713645",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/search",
+      "pageTitle": "(not set)",
+      "screenPageViews": "1",
+      "activeUsers": "3",
+      "avgDuration": "204.92644380000002",
+      "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/admin/inventory",
+      "pageTitle": "(not set)",
+      "screenPageViews": "0",
+      "activeUsers": "1",
+      "avgDuration": "730.040575",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/property-manager/analysis",
+      "pageTitle": "(not set)",
+      "screenPageViews": "0",
+      "activeUsers": "1",
+      "avgDuration": "23.096744",
+      "bounceRate": "0"
+    }
+  ],
+  "referrers": [
+    {
+      "source": "(direct)",
+      "sessions": "71",
+      "activeUsers": "11"
+    }
+  ]
+}

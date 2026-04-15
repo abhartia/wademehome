@@ -400,6 +400,14 @@ export default function NYCApartmentMoversPage() {
                     Move-In Day Documentation
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/cost-of-moving-to-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Full NYC Move-In Cost Breakdown (2026)
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

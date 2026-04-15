@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 
@@ -72,6 +73,16 @@ export default function SecurityDepositsMoveInFees() {
             the tax forms your accountant recommends—amounts are often small but compliance
             matters. When landlords change ownership mid-lease, confirm in writing where
             your deposit transferred; gaps in chain-of-custody complicate move-out refunds.
+          </p>
+          <p>
+            Security deposits are just one piece of the puzzle. See our{" "}
+            <Link
+              href="/cost-of-moving-to-nyc"
+              className="text-foreground underline underline-offset-4"
+            >
+              full NYC move-in cost breakdown
+            </Link>{" "}
+            for a complete budget covering first month&apos;s rent, movers, furniture, and more.
           </p>
         </CardContent>
       </Card>

@@ -575,6 +575,14 @@ export default function NYCRentByNeighborhoodPage() {
                     Astoria: Rent Prices, Transit &amp; Neighborhood Guide
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/cost-of-moving-to-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    How Much Does It Cost to Move to NYC? (2026)
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

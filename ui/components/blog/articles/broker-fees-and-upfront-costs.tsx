@@ -95,6 +95,16 @@ export default function BrokerFeesAndUpfrontCosts() {
             unequal bedrooms or incomes often justify unequal splits; put it in writing to
             avoid Venmo disputes after move-in stress peaks.
           </p>
+          <p>
+            Want to see how broker fees fit into the full picture? Our{" "}
+            <Link
+              href="/cost-of-moving-to-nyc"
+              className="text-foreground underline underline-offset-4"
+            >
+              complete NYC move-in cost breakdown
+            </Link>{" "}
+            covers every expense from security deposits to furniture.
+          </p>
         </CardContent>
       </Card>
       <ArticleCTA variant="movein" />

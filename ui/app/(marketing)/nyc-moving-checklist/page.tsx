@@ -361,6 +361,14 @@ export default function NYCMovingChecklistPage() {
                     NYC Rent by Neighborhood
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/cost-of-moving-to-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    How Much Does It Cost to Move to NYC?
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>
