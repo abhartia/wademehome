@@ -11,6 +11,89 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-16 -- Session 9 (Best-Time-to-Rent NYC Pillar + Rent Stabilization Meta)
+
+### Context
+- Ninth growth agent run, second of the day (session 8 was earlier today).
+- GSC data essentially unchanged from morning pull — Google hasn't published Apr 15 data
+  yet. 117 impressions, 50 queries, /blog/nyc-rent-stabilization-guide still 18 imp pos
+  58.5, /nyc-rent-by-neighborhood still 17 imp pos 10.7.
+- Used the cycle to ship the high-seasonal-relevance pillar page from the queue rather
+  than micro-optimize stale data.
+- Apartment scams post (created Apr 12) STILL not in GSC — 4 days past. Slower indexing
+  than rent stabilization (2 days) or FARE Act (3 days). Possibly trust signal issue
+  with "scams" trigger word; monitor for Apr 18 — if still missing, consider adding
+  E-E-A-T signals.
+- Rent stabilization is best-performing post (11 ranking queries) — optimized meta to
+  match actual ranking queries, not assumed ones.
+
+### Completed
+- [x] Pulled fresh GA4 and GSC data (essentially unchanged from session 8)
+- [x] Created comprehensive /best-time-to-rent-nyc seasonal pillar page (~700 lines)
+  - Target keywords: "best time to rent apartment NYC", "when to start looking for
+    apartment NYC", "NYC rental season", "cheapest month to rent NYC", "NYC apartment
+    hunting timeline", "NYC rental market timing"
+  - 12-row seasonal price/inventory/competition/leverage index table (shadcn Table)
+  - Month-by-month breakdown (7 sections covering all 12 months)
+  - 5 renter-type strategy personas (recent grad, flexible pro, couple, family, roommates)
+  - Negotiation leverage by season table
+  - Net effective vs gross rent explainer
+  - 90/60/30-day apartment hunting timeline
+  - Structured data: Article + FAQPage (7 questions) + BreadcrumbList
+  - 12+ internal links out to neighborhood pages, cost guide, search guide, etc.
+- [x] Added /best-time-to-rent-nyc to sitemap
+- [x] Cross-linked FROM 4 guide pages: search-guide, rent-by-neighborhood, moving-checklist,
+  cost-of-moving
+- [x] Cross-linked FROM 3 blog posts: apartment-search-tips, lease-renewal-vs-moving,
+  negotiating-rent-and-lease-terms
+- [x] Optimized /blog/nyc-rent-stabilization-guide title + description + keywords based
+  on actual GSC ranking queries (added "rent increase laws", "lease renewal", "rent
+  stabilization NYC code")
+- [x] Verified build compiles successfully (best-time-to-rent-nyc: 994 B, 195 kB First Load)
+- [x] Wrote analytics report (analytics/reports/2026-04-16-b.md)
+
+### Not Yet Done (queue for future sessions)
+- [ ] Investigate missing onboarding funnel events in GA4 (onboarding_started etc. not appearing)
+- [ ] Check GA consent management -- may be blocking some event tracking
+- [ ] Create more neighborhood pages: Bushwick, UWS, or LIC next (if existing ones gain traction)
+- [ ] Build social/Reddit distribution strategy for content
+- [ ] Monitor /nyc-rent-by-neighborhood position after meta optimization (target: top 10 for clicks)
+- [ ] Monitor apartment scams post — if still missing in GSC after Apr 18, add E-E-A-T
+  signals (author bio, sources)
+- [ ] Once /best-time-to-rent-nyc indexes, spin off spoke posts: "winter NYC apartment
+  hunting playbook", "summer NYC rental sprint guide", "NYC rental concessions explained"
+- [ ] Once /cost-of-moving-to-nyc indexes (created Apr 16 AM), check which queries it captures
+- [ ] Monitor property page impressions — if trend continues, optimize property page meta titles
+
+### SEO Changes Pending Reindex (don't judge before date shown)
+- /best-time-to-rent-nyc -- new pillar page created 2026-04-16, check after 2026-04-21
+- Cross-links to best-time-to-rent from 7 pages -- 2026-04-16, check after 2026-04-21
+- Rent stabilization meta optimization -- 2026-04-16, check after 2026-04-21
+- /cost-of-moving-to-nyc -- new page created 2026-04-16 AM, check after 2026-04-21
+- Cross-links to cost guide from 6 pages -- 2026-04-16, check after 2026-04-21
+- /nyc/astoria -- new page created 2026-04-15, check after 2026-04-20
+- /nyc-rent-by-neighborhood meta title/description updated 2026-04-15, check after 2026-04-20
+- /nyc/williamsburg -- new page created 2026-04-14, check after 2026-04-19
+- /nyc/east-village -- new page created 2026-04-13, check after 2026-04-18
+- robots.txt updated (disallow app routes) -- 2026-04-13, check after 2026-04-18
+- /blog/nyc-apartment-scams -- created 2026-04-12, OVERDUE for indexing (4 days, still missing)
+- /blog/nyc-rent-stabilization-guide -- created 2026-04-12, INDEXED at position 58.5 ✓ (18 imp, 11 queries!)
+- /blog/nyc-fare-act-broker-fee-ban -- created 2026-04-11, INDEXED at position 95 ✓
+- /nyc-rent-by-neighborhood -- created 2026-04-10, INDEXED at position 10.7 ✓
+
+### Key Numbers (2026-04-16 PM)
+- GA4 30d: 11 users, 71 sessions, 478 pageviews, 26.8% bounce (unchanged)
+- GSC 30d: 1 click, 117 impressions (flat from AM), 50 queries (flat), avg position ~30
+- GSC daily: Apr 8=12, Apr 9=25, Apr 10=11, Apr 11=6, Apr 12=21, Apr 13=25, Apr 14=19
+  (Apr 15 still not reported)
+- Traffic: 100% direct, 0% organic
+- Total blog posts: 27
+- Total guide pages: 7 (added best-time-to-rent-nyc)
+- Total neighborhood pages: 3
+- Pages with GSC data: ~50
+
+---
+
 ## 2026-04-16 -- Session 8 (NYC Move-In Costs Guide + Table Component)
 
 ### Context

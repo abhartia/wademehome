@@ -93,7 +93,15 @@ export default function ApartmentSearchTips() {
             >
               NYC Rent by Neighborhood guide
             </Link>{" "}
-            for average prices and commute times across all four boroughs.
+            for average prices and commute times across all four boroughs, and
+            our{" "}
+            <Link
+              href="/best-time-to-rent-nyc"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              month-by-month guide to the NYC rental market
+            </Link>{" "}
+            so you can time your search for the best price-to-selection trade-off.
           </p>
         </CardContent>
       </Card>

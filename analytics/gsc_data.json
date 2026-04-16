@@ -302,6 +302,13 @@
       "position": 47
     },
     {
+      "query": "nys rent stabilization code",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 60
+    },
+    {
       "query": "park at rialto apartments san antonio",
       "clicks": 0,
       "impressions": 1,
@@ -342,13 +349,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 51
-    },
-    {
-      "query": "somerset apts lewisville tx",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 80
     }
   ],
   "top_pages_30d": [
@@ -1047,6 +1047,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 47
+    },
+    {
+      "query": "nys rent stabilization code",
+      "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 60
     },
     {
       "query": "park at rialto apartments san antonio",

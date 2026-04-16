@@ -997,6 +997,14 @@ export default function CostOfMovingToNYCPage() {
                     NYC Rent Stabilization Explained
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/best-time-to-rent-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Best Time to Rent in NYC: Month-by-Month Guide
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

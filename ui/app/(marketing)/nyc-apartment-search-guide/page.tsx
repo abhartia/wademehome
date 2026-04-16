@@ -347,6 +347,22 @@ export default function NYCApartmentSearchGuidePage() {
                     NYC Moving Checklist
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/best-time-to-rent-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Best Time to Rent in NYC: Month-by-Month Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/cost-of-moving-to-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Cost of Moving to NYC: Full Budget Breakdown
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

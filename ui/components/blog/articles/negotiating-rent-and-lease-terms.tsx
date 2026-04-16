@@ -84,7 +84,15 @@ export default function NegotiatingRentAndLeaseTerms() {
             >
               NYC rent stabilization guide
             </Link>{" "}
-            to understand your rights before negotiating a renewal.
+            to understand your rights before negotiating a renewal. Negotiation
+            leverage in NYC also swings hard with the calendar — see our{" "}
+            <Link
+              href="/best-time-to-rent-nyc"
+              className="text-primary underline underline-offset-2"
+            >
+              month-by-month NYC rental market guide
+            </Link>{" "}
+            to know when landlords are most willing to give concessions.
           </p>
         </CardContent>
       </Card>

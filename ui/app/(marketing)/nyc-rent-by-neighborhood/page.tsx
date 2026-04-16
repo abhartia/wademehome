@@ -553,6 +553,14 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/best-time-to-rent-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Best Time to Rent in NYC: Month-by-Month Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/east-village"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

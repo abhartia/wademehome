@@ -83,7 +83,16 @@ export default function LeaseRenewalVsMoving() {
             >
               NYC rent stabilization guide
             </Link>{" "}
-            for current rates and how to verify your status.
+            for current rates and how to verify your status. If you are leaning
+            toward moving, also check our{" "}
+            <Link
+              href="/best-time-to-rent-nyc"
+              className="text-primary underline underline-offset-2"
+            >
+              month-by-month NYC rental market guide
+            </Link>{" "}
+            — timing your move can mean a 5% to 10% lower headline rent on
+            an otherwise identical apartment.
           </p>
         </CardContent>
       </Card>
