@@ -11,6 +11,96 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-17 -- Session 10 (Long Island City Neighborhood Guide)
+
+### Context
+- Tenth growth agent run. Apr 15 GSC hit **best avg position ever (12.4)** on
+  22 impressions — content pages are driving position improvements faster
+  than impression totals.
+- MILESTONE: /nyc/astoria indexed at pos 33.7 in ~2 days (created 2026-04-15).
+- MILESTONE: /nyc/williamsburg ranking for commercial-intent "apartments for
+  rent williamsburg" at pos 57.
+- MILESTONE: /nyc/east-village at pos 10 (page 1!).
+- Rent stabilization guide now #1 content page with 19 impressions / 5+ queries
+  (up from 18 imp / 11 queries in session 9 — different query cut).
+- Apartment scams post STILL not in GSC — 5 days overdue. Outlier vs other
+  content. Likely E-E-A-T issue with "scams" trigger word. Deadline: 2026-04-19.
+- Neighborhood-page pattern proven: faster indexing + commercial-intent capture
+  than blog posts.
+
+### Completed
+- [x] Pulled fresh GA4 and GSC data
+- [x] Created /nyc/long-island-city neighborhood guide (~800 lines)
+  - Target keywords: "LIC apartments", "Long Island City apartments",
+    "LIC rent prices", "Court Square apartments", "Hunters Point apartments",
+    "LIC no fee apartments", "LIC luxury apartments"
+  - 4 sub-neighborhood breakdown: Court Square, Hunters Point, Hallets Point,
+    Queens Plaza + older walkup stock
+  - Unique sections: luxury building amenities explainer, rent concessions /
+    net-effective-rent guide (LIC has deepest concessions in NYC)
+  - 6-row LIC-vs-neighbors rent comparison table (shadcn Table)
+  - Structured data: Article + FAQPage (6 Qs) + BreadcrumbList
+  - 4th neighborhood page — second Queens neighborhood (paired with Astoria)
+- [x] Added /nyc/long-island-city to sitemap
+- [x] Cross-linked FROM 4 neighborhood/guide pages:
+  - /nyc/astoria (both body "vs. LIC" section + Related Guides)
+  - /nyc/williamsburg (Related Guides)
+  - /nyc/east-village (Related Guides)
+  - /nyc-rent-by-neighborhood (Queens body text + Related Guides list)
+- [x] Cross-linked FROM 2 additional pages:
+  - /best-time-to-rent-nyc (Related Guides — LIC = deepest winter concessions)
+  - /blog/nyc-fare-act-broker-fee-ban (body — LIC was no-fee before FARE Act)
+- [x] Verified build compiles (LIC: 2.34 kB, 197 kB First Load)
+- [x] Verified in browser preview — H1 correct, JSON-LD present, Table renders,
+  cross-links bidirectional (Astoria → LIC confirmed)
+- [x] Wrote analytics report (analytics/reports/2026-04-17.md)
+
+### Not Yet Done (queue for future sessions)
+- [ ] Monitor /nyc/long-island-city indexing (check after 2026-04-22)
+- [ ] Check which queries /nyc/astoria captures beyond the 3 known
+- [ ] Once /best-time-to-rent-nyc indexes (2026-04-21), analyze queries
+- [ ] Once /cost-of-moving-to-nyc indexes (2026-04-21), analyze queries
+- [ ] If apartment scams post still missing by 2026-04-19, add E-E-A-T signals
+  (author bio, cited sources, last-reviewed date)
+- [ ] Next neighborhood candidates (in priority order based on search volume):
+  Bushwick (Brooklyn alt, highest search volume), UWS (family), Park Slope
+  (family Brooklyn), Harlem (growth segment)
+- [ ] Investigate east-village pos 10 → 0 click gap once more data available
+  (could be title/description CTR issue on page 1)
+- [ ] Investigate missing onboarding funnel events in GA4
+- [ ] Check GA consent management -- may be blocking event tracking
+- [ ] Build social/Reddit distribution strategy for content
+- [ ] Once LIC indexes, spin off potential spoke content: "LIC vs Astoria
+  decision guide", "NYC waterfront apartments comparison"
+
+### SEO Changes Pending Reindex (don't judge before date shown)
+- /nyc/long-island-city -- new page created 2026-04-17, check after 2026-04-22
+- Cross-links to LIC from 6 pages -- 2026-04-17, check after 2026-04-22
+- /best-time-to-rent-nyc -- new pillar created 2026-04-16, check after 2026-04-21
+- /cost-of-moving-to-nyc -- new page created 2026-04-16, check after 2026-04-21
+- Cross-links to best-time-to-rent from 7 pages -- 2026-04-16, check 2026-04-21
+- Rent stabilization meta optimization -- 2026-04-16, check after 2026-04-21
+- /nyc/astoria -- INDEXED at pos 33.7 ✓ (3 imp on astoria-rent queries)
+- /nyc/williamsburg -- INDEXED at pos 57 ✓ ("apartments for rent williamsburg")
+- /nyc/east-village -- INDEXED at pos 10 ✓ (page 1 but 0 clicks)
+- /nyc-rent-by-neighborhood -- INDEXED at pos 10.7 ✓ (17 imp)
+- /blog/nyc-rent-stabilization-guide -- INDEXED at pos 55.8 ✓ (19 imp, 5+ queries)
+- /blog/nyc-fare-act-broker-fee-ban -- INDEXED at pos 95 ✓
+- /blog/nyc-apartment-scams -- created 2026-04-12, OVERDUE (5 days, still missing)
+
+### Key Numbers (2026-04-17)
+- GA4 30d: 11 users, 71 sessions, 478 pageviews, 26.8% bounce (unchanged)
+- GSC 30d: 0 new clicks, ~112 page-impressions, 50 queries, avg position ~30
+- GSC best day: Apr 15 = 22 impressions at pos 12.4 (BEST EVER)
+- GSC daily: Apr 9=25, Apr 10=11, Apr 11=6, Apr 12=21, Apr 13=25, Apr 14=19, Apr 15=22
+- Traffic: 100% direct, 0% organic (still)
+- Total blog posts: 27
+- Total guide pages: 7
+- Total neighborhood pages: 4 (East Village + Williamsburg + Astoria + LIC)
+- Content-page share of impressions: ~35% (growing)
+
+---
+
 ## 2026-04-16 -- Session 9 (Best-Time-to-Rent NYC Pillar + Rent Stabilization Meta)
 
 ### Context

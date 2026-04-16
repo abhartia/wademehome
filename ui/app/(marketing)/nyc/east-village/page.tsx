@@ -767,6 +767,14 @@ export default function EastVillageGuidePage() {
                     Astoria Apartments: Rent Prices, Transit &amp; Neighborhood Guide
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/nyc/long-island-city"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Long Island City (LIC) Apartments: Luxury Towers &amp; Rent
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

@@ -1013,6 +1013,15 @@ export default function BestTimeToRentNycPage() {
               </p>
               <p>
                 <Link
+                  href="/nyc/long-island-city"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Long Island City (LIC) apartments
+                </Link>{" "}
+                &mdash; the NYC neighborhood with the deepest winter rent concessions.
+              </p>
+              <p>
+                <Link
                   href="/blog/nyc-fare-act-broker-fee-ban"
                   className="text-primary underline underline-offset-2"
                 >

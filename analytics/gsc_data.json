@@ -183,6 +183,13 @@
       "position": 79.3
     },
     {
+      "query": "apartments for rent williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
+    },
+    {
       "query": "arbor on duke",
       "clicks": 0,
       "impressions": 1,
@@ -197,11 +204,25 @@
       "position": 35
     },
     {
+      "query": "astoria average rent",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 47
+    },
+    {
       "query": "audere apartments",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
       "position": 36
+    },
+    {
+      "query": "average rent in astoria",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 43
     },
     {
       "query": "broadstone on trinity",
@@ -237,6 +258,13 @@
       "impressions": 1,
       "ctr": 0,
       "position": 71
+    },
+    {
+      "query": "gyms near me",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1
     },
     {
       "query": "lease renewal rent stabilized nyc",
@@ -321,34 +349,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 56
-    },
-    {
-      "query": "rent stabilization increase 2023",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 57
-    },
-    {
-      "query": "rent stabilization nyc",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 89
-    },
-    {
-      "query": "rent stabilization nyc increase",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 50
-    },
-    {
-      "query": "rising glen apartments carlsbad",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 51
     }
   ],
   "top_pages_30d": [
@@ -369,9 +369,9 @@
     {
       "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
       "clicks": 0,
-      "impressions": 18,
+      "impressions": 19,
       "ctr": 0,
-      "position": 58.5
+      "position": 55.8
     },
     {
       "page": "https://wademehome.com/login",
@@ -393,6 +393,27 @@
       "impressions": 17,
       "ctr": 0,
       "position": 10.7
+    },
+    {
+      "page": "https://wademehome.com/nyc/astoria",
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 33.7
+    },
+    {
+      "page": "https://wademehome.com/nyc/east-village",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10
+    },
+    {
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
     },
     {
       "page": "https://wademehome.com/profile",
@@ -430,11 +451,18 @@
       "position": 15
     },
     {
-      "page": "https://wademehome.com/properties/44-monroe--44-w-monroe-st-phoenix-az-85003--33.4508---112.0747",
+      "page": "https://wademehome.com/properties/3232-n-20th-st-unit-101--3232-n-20th-st-phoenix-az-85016--33.4864---112.0396",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
-      "position": 4
+      "position": 8
+    },
+    {
+      "page": "https://wademehome.com/properties/44-monroe--44-w-monroe-st-phoenix-az-85003--33.4508---112.0747",
+      "clicks": 0,
+      "impressions": 10,
+      "ctr": 0,
+      "position": 4.9
     },
     {
       "page": "https://wademehome.com/properties/5420-sunset--5420-w-sunset-blvd-los-angeles-ca-90027--34.0969---118.3077",
@@ -481,9 +509,9 @@
     {
       "page": "https://wademehome.com/properties/arbor-haus-apartments-ann-arbor-mi--2572-carpenter-rd-ann-arbor-mi-48108--42.2501---83.6827",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 26
+      "position": 18
     },
     {
       "page": "https://wademehome.com/properties/arbors-on-duke--5250-duke-street-alexandria-va-22304--38.8122---77.1238",
@@ -600,16 +628,16 @@
     {
       "page": "https://wademehome.com/properties/listing--319-18th-street-ph-brooklyn-ny-11215--40.6616---73.9889",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 7.5
+      "position": 7.7
     },
     {
       "page": "https://wademehome.com/properties/long-beach-towers--600-e-ocean-blvd-long-beach-ca-90802--33.7658---118.1849",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 47
+      "position": 35
     },
     {
       "page": "https://wademehome.com/properties/lore-south-mountain--13021-s-48th-st-phoenix-az-85044--33.3278---111.9798",
@@ -642,9 +670,9 @@
     {
       "page": "https://wademehome.com/properties/renaissance-901-w-argyle-st--901-w-argyle-st-chicago-il-60640--41.9731---87.6525",
       "clicks": 0,
-      "impressions": 4,
+      "impressions": 5,
       "ctr": 0,
-      "position": 6
+      "position": 6.4
     },
     {
       "page": "https://wademehome.com/properties/riverwalk-iii-llc--300-riverfront-boulevard-elmwood-park-nj-07407--40.8960---74.1273",
@@ -673,34 +701,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 29
-    },
-    {
-      "page": "https://wademehome.com/properties/somerset-apartments--256-east-corporate-drive-lewisville-tx-75067--33.0116---96.9897",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 80
-    },
-    {
-      "page": "https://wademehome.com/properties/sonnet-apartments--1441-u-street-washington-dc-20006--38.9171---77.0342",
-      "clicks": 0,
-      "impressions": 2,
-      "ctr": 0,
-      "position": 61.5
-    },
-    {
-      "page": "https://wademehome.com/properties/stone-pointe--15001-potomac-heights-place-woodbridge-va-22191--38.6282---77.2747",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 66
-    },
-    {
-      "page": "https://wademehome.com/properties/strathmore-apartments--70-w-alexandrine-st-detroit-mi-48201--42.3504---83.0614",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 40
     }
   ],
   "query_page_30d": [
@@ -913,6 +913,14 @@
       "position": 79.3
     },
     {
+      "query": "apartments for rent williamsburg",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
+    },
+    {
       "query": "arbor on duke",
       "page": "https://wademehome.com/properties/arbors-on-duke--5250-duke-street-alexandria-va-22304--38.8122---77.1238",
       "clicks": 0,
@@ -929,12 +937,28 @@
       "position": 35
     },
     {
+      "query": "astoria average rent",
+      "page": "https://wademehome.com/nyc/astoria",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 47
+    },
+    {
       "query": "audere apartments",
       "page": "https://wademehome.com/properties/audere-apartments--1920-east-indian-school-road-phoenix-az-85016--33.4959---112.0407",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
       "position": 36
+    },
+    {
+      "query": "average rent in astoria",
+      "page": "https://wademehome.com/nyc/astoria",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 43
     },
     {
       "query": "broadstone on trinity",
@@ -975,6 +999,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 71
+    },
+    {
+      "query": "gyms near me",
+      "page": "https://wademehome.com/properties/the-meadows-at-championsgate--9116-integra-meadows-drive-davenport-fl-33896--28.2725---81.6557",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1
     },
     {
       "query": "lease renewal rent stabilized nyc",
@@ -1330,31 +1362,38 @@
       "impressions": 19,
       "ctr": 0,
       "position": 30.4
+    },
+    {
+      "date": "2026-04-15",
+      "clicks": 0,
+      "impressions": 22,
+      "ctr": 0,
+      "position": 12.4
     }
   ],
   "devices_30d": [
     {
       "device": "DESKTOP",
       "clicks": 1,
-      "impressions": 118,
-      "ctr": 0.85,
-      "position": 34.8
+      "impressions": 138,
+      "ctr": 0.72,
+      "position": 31.1
     },
     {
       "device": "MOBILE",
       "clicks": 0,
-      "impressions": 12,
+      "impressions": 14,
       "ctr": 0,
-      "position": 18.3
+      "position": 22.1
     }
   ],
   "countries_30d": [
     {
       "country": "usa",
       "clicks": 1,
-      "impressions": 111,
-      "ctr": 0.9,
-      "position": 37.1
+      "impressions": 132,
+      "ctr": 0.76,
+      "position": 33.2
     },
     {
       "country": "arg",
@@ -1380,9 +1419,9 @@
     {
       "country": "can",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 4
+      "position": 7
     },
     {
       "country": "ecu",

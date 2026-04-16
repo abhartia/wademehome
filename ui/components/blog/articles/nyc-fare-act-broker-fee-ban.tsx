@@ -204,6 +204,20 @@ export default function NycFareActBrokerFeeBan() {
               </Link>{" "}
               for a full cost breakdown.
             </li>
+            <li>
+              <strong>Target neighborhoods with in-house leasing.</strong> Luxury
+              high-rise neighborhoods like{" "}
+              <Link
+                href="/nyc/long-island-city"
+                className="text-foreground underline underline-offset-4"
+              >
+                Long Island City
+              </Link>{" "}
+              have been largely no-fee for years because buildings lease
+              directly through in-house offices. LIC also has the deepest
+              concession stack in NYC (one to two months free is common), so
+              the FARE Act savings compound.
+            </li>
           </ol>
         </CardContent>
       </Card>

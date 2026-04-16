@@ -727,13 +727,20 @@ export default function AstoriaGuidePage() {
                   vs. Long Island City
                 </h3>
                 <p>
-                  LIC borders Astoria to the south and has similar Queens-
-                  based transit access. LIC skews newer and more high-rise,
-                  with luxury towers and waterfront parks. One-bedrooms in
-                  LIC run $2,800 to $3,500 — noticeably more than Astoria.
-                  LIC has fewer independent restaurants and less neighborhood
-                  character but offers more modern building amenities and
-                  slightly shorter commutes on the 7 train.
+                  <Link
+                    href="/nyc/long-island-city"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    LIC
+                  </Link>{" "}
+                  borders Astoria to the south and has similar Queens-based
+                  transit access. LIC skews newer and more high-rise, with
+                  luxury towers and waterfront parks. One-bedrooms in LIC run
+                  $3,200 to $3,800 — noticeably more than Astoria. LIC has
+                  fewer independent restaurants and less neighborhood character
+                  but offers modern building amenities and the shortest Midtown
+                  commute of any non-Manhattan neighborhood (6 minutes on the
+                  7 train).
                 </p>
               </div>
               <Separator />
@@ -880,6 +887,14 @@ export default function AstoriaGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/long-island-city"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Long Island City (LIC) Apartments: Rent, Transit &amp; Towers
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/williamsburg"

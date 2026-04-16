@@ -90,6 +90,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/nyc/long-island-city`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/cost-of-moving-to-nyc`,
       lastModified: new Date(),
       changeFrequency: "monthly",

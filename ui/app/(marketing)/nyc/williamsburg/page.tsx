@@ -772,6 +772,14 @@ export default function WilliamsburgGuidePage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/long-island-city"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Long Island City (LIC) Apartments: Towers &amp; Waterfront
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc-rent-by-neighborhood"
                     className="text-primary underline underline-offset-2"
                   >

@@ -295,7 +295,13 @@ export default function NYCRentByNeighborhoodPage() {
                 comparable Brooklyn neighborhoods at the same price.
               </p>
               <p>
-                Long Island City ($2,800 to $3,500) has the shortest commute
+                <Link
+                  href="/nyc/long-island-city"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Long Island City
+                </Link>{" "}
+                ($3,200 to $3,800 in new construction) has the shortest commute
                 in Queens (one stop from Midtown on the 7 or E/M) and modern
                 luxury buildings, but prices reflect the convenience. Sunnyside
                 ($2,000 to $2,500) and Woodside ($1,800 to $2,300) sit one and
@@ -581,6 +587,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Astoria: Rent Prices, Transit &amp; Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/long-island-city"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Long Island City (LIC): Luxury Towers &amp; Waterfront Rent
                   </Link>
                 </li>
                 <li>
