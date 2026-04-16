@@ -42,7 +42,22 @@ export default function RootLayout({
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 window.gtag = window.gtag || gtag;
-gtag('consent', 'default', { analytics_storage: 'denied' });`}
+gtag('consent', 'default', {
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  analytics_storage: 'granted',
+  wait_for_update: 500,
+});
+gtag('set', 'url_passthrough', true);
+gtag('set', 'ads_data_redaction', true);
+try {
+  var stored = localStorage.getItem('wademehome_analytics_consent');
+  var gpc = navigator.globalPrivacyControl === true;
+  if (stored === 'denied' || (stored === null && gpc)) {
+    gtag('consent', 'update', { analytics_storage: 'denied' });
+  }
+} catch (e) {}`}
         </Script>
       </head>
       <body className={`${workSans.variable} antialiased`}>

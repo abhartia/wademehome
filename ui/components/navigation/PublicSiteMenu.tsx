@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useAnalyticsConsent } from "@/components/providers/AnalyticsConsentProvider";
 
 const links = [
   { href: "/privacy", label: "Privacy policy" },
@@ -22,6 +23,7 @@ const links = [
 
 export function PublicSiteMenu() {
   const [open, setOpen] = useState(false);
+  const { openPreferences } = useAnalyticsConsent();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -54,6 +56,16 @@ export function PublicSiteMenu() {
               </Link>
             </SheetClose>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              openPreferences();
+            }}
+            className="rounded-md px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Your Privacy Choices
+          </button>
         </nav>
       </SheetContent>
     </Sheet>

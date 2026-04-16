@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-const effectiveDate = "March 20, 2026";
+const effectiveDate = "April 17, 2026";
 const contactEmail = "support@wademehome.com";
 const governingState = "New York (with initial operations in New Jersey)";
 
@@ -116,20 +116,32 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Wade Me Home uses Google Analytics only after consent is granted.
-              Analytics consent is denied by default and can be accepted or
-              declined through the in-app consent prompt.
+              Wade Me Home uses Google Analytics (GA4) with Google Consent
+              Mode v2 to understand product usage. Because the service is
+              offered only in the United States, analytics are allowed by
+              default. You can opt out at any time using the{" "}
+              <span className="font-medium text-foreground">
+                Your Privacy Choices
+              </span>{" "}
+              link in the site menu.
             </p>
             <p>
-              Your consent choice is stored in your browser under:
+              Your choice is stored in your browser under:
               <code className="ml-1 rounded bg-muted px-1 py-0.5 text-xs">
                 wademehome_analytics_consent
               </code>
               .
             </p>
             <p>
-              If you decline consent, analytics storage remains denied. You can
-              also manage cookies in your browser settings at any time.
+              If your browser sends a{" "}
+              <span className="font-medium text-foreground">
+                Global Privacy Control (GPC)
+              </span>{" "}
+              signal, analytics are automatically disabled unless you have
+              previously chosen to allow them. Advertising identifiers
+              (ad_storage, ad_user_data, ad_personalization) are denied by
+              default for all visitors. You can also manage cookies in your
+              browser settings at any time.
             </p>
           </CardContent>
         </Card>
