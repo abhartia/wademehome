@@ -124,6 +124,30 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> Users:
     return user
 
 
+def get_current_user_or_none(
+    request: Request, db: Session = Depends(get_db)
+) -> Users | None:
+    """Non-raising variant of get_current_user — used on endpoints that stay
+    readable when logged out but need to know *who* is asking (e.g. to show
+    private user-contributed rows to their contributor only)."""
+    cookie_name = str(build_cookie_settings()["key"])
+    session_token = request.cookies.get(cookie_name)
+    if not session_token:
+        return None
+    token_hash = hash_token(session_token)
+    session = db.execute(
+        select(UserSessions).where(UserSessions.token_hash == token_hash)
+    ).scalar_one_or_none()
+    if not session or session.revoked_at is not None or session.expires_at <= utc_now():
+        return None
+    user = db.execute(
+        select(Users).where(Users.id == session.user_id)
+    ).scalar_one_or_none()
+    if not user or not user.is_active or user.email_verified_at is None:
+        return None
+    return user
+
+
 def get_current_admin_user(user: Users = Depends(get_current_user)) -> Users:
     raw = user.role.value if isinstance(user.role, UserRole) else str(user.role)
     if str(raw).strip().lower() != UserRole.admin.value:

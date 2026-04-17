@@ -6,12 +6,14 @@ import math
 import time
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import inspect, text
 
+from auth.router import get_current_user_or_none
 from core.config import Config
 from core.logger import get_logger
+from db.models import Users
 from listings.mapbox_client import driving_durations_minutes, forward_geocode, search_category_nearby
 from listings.listing_amenities_concessions import merge_concession_snippets_from_listing_amenities
 from listings.listings_table_cache import cached_execute_all, cached_execute_first
@@ -675,7 +677,12 @@ def get_nearby_listings(
         return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
 
-def _resolve_property_by_key(key: str) -> PropertyDataItem | None:
+def _resolve_property_by_key(
+    key: str, *, current_user_id: str | None = None
+) -> PropertyDataItem | None:
+    """Resolve a property_key to a listing. Private user-contributed rows are
+    only returned to their contributor — public (or legacy NULL-visibility)
+    rows are readable by anyone, same as /listings/nearby."""
     parsed = parse_property_key(key)
     if parsed is None:
         return None
@@ -764,7 +771,13 @@ def _resolve_property_by_key(key: str) -> PropertyDataItem | None:
         matches: list[PropertyDataItem] = []
         for row in rows:
             try:
-                item = row_to_property_data_item(dict(row))
+                row_dict = dict(row)
+                visibility = row_dict.get("visibility")
+                if visibility == "private":
+                    contributor = row_dict.get("contributed_by_user_id")
+                    if current_user_id is None or str(contributor) != str(current_user_id):
+                        continue
+                item = row_to_property_data_item(row_dict)
                 if item_matches_property_key(key, item):
                     matches.append(item)
             except Exception:
@@ -849,8 +862,12 @@ class CommuteMatrixBody(BaseModel):
 @router.get("/by-property-key", response_model=PropertyDataItem)
 def get_listing_by_property_key(
     property_key: str = Query(..., min_length=5, max_length=600),
+    user: Users | None = Depends(get_current_user_or_none),
 ) -> PropertyDataItem:
-    item = _resolve_property_by_key(property_key)
+    item = _resolve_property_by_key(
+        property_key,
+        current_user_id=str(user.id) if user else None,
+    )
     if item is None:
         raise HTTPException(status_code=404, detail="Listing not found")
     return item

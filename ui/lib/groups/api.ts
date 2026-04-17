@@ -13,6 +13,7 @@ import {
   removeMemberGroupsGroupIdMembersUserIdDelete,
   renameGroupGroupsGroupIdPatch,
   revokeInviteGroupsGroupIdInvitesInviteIdDelete,
+  updateMemberRoleGroupsGroupIdMembersUserIdRolePatch,
 } from "@/lib/api/generated/sdk.gen";
 import {
   listGroupsGroupsGetOptions,
@@ -129,6 +130,30 @@ export function useRemoveMember(groupId: string) {
           path: { group_id: groupId },
         }),
       });
+    },
+  });
+}
+
+export function useUpdateMemberRole(groupId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      userId: string;
+      role: "owner" | "member";
+    }): Promise<void> => {
+      await updateMemberRoleGroupsGroupIdMembersUserIdRolePatch({
+        path: { group_id: groupId, user_id: input.userId },
+        body: { role: input.role },
+        throwOnError: true,
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({
+        queryKey: listMembersGroupsGroupIdMembersGetQueryKey({
+          path: { group_id: groupId },
+        }),
+      });
+      await qc.invalidateQueries({ queryKey: listGroupsGroupsGetQueryKey({}) });
     },
   });
 }

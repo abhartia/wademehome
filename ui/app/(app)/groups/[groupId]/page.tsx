@@ -9,6 +9,8 @@ import {
   LogOut,
   Mail,
   Link as LinkIcon,
+  ShieldCheck,
+  ShieldOff,
   Trash2,
   UserMinus,
 } from "lucide-react";
@@ -48,6 +50,7 @@ import {
   useRemoveMember,
   useRenameGroup,
   useRevokeInvite,
+  useUpdateMemberRole,
 } from "@/lib/groups/api";
 
 type PageProps = { params: Promise<{ groupId: string }> };
@@ -74,6 +77,7 @@ export default function GroupDetailPage(props: PageProps) {
   const deleteGroup = useDeleteGroup();
   const leaveGroup = useLeaveGroup();
   const removeMember = useRemoveMember(groupId);
+  const updateMemberRole = useUpdateMemberRole(groupId);
   const createInvite = useCreateInvite(groupId);
   const revokeInvite = useRevokeInvite(groupId);
 
@@ -155,6 +159,27 @@ export default function GroupDetailPage(props: PageProps) {
       toast.success("Member removed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Remove failed");
+    }
+  }
+
+  async function handleMakeOwner(userId: string, email: string) {
+    if (!confirm(`Make ${email} an owner? They'll have full control of the group.`))
+      return;
+    try {
+      await updateMemberRole.mutateAsync({ userId, role: "owner" });
+      toast.success(`${email} is now an owner`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Promote failed");
+    }
+  }
+
+  async function handleRemoveOwner(userId: string, email: string) {
+    if (!confirm(`Remove owner role from ${email}?`)) return;
+    try {
+      await updateMemberRole.mutateAsync({ userId, role: "member" });
+      toast.success(`${email} is now a member`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Demote failed");
     }
   }
 
@@ -369,15 +394,42 @@ export default function GroupDetailPage(props: PageProps) {
                   </div>
                 </div>
               </div>
-              {isOwner && m.role !== "owner" && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveMember(m.user_id, m.email)}
-                >
-                  <UserMinus className="h-4 w-4" />
-                  Remove
-                </Button>
+              {isOwner && (
+                <div className="flex gap-1">
+                  {m.role === "owner" ? (
+                    members.filter((x) => x.role === "owner").length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveOwner(m.user_id, m.email)}
+                        disabled={updateMemberRole.isPending}
+                      >
+                        <ShieldOff className="h-4 w-4" />
+                        Remove owner
+                      </Button>
+                    )
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMakeOwner(m.user_id, m.email)}
+                        disabled={updateMemberRole.isPending}
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        Make owner
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveMember(m.user_id, m.email)}
+                      >
+                        <UserMinus className="h-4 w-4" />
+                        Remove
+                      </Button>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           ))}

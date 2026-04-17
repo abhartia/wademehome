@@ -38,6 +38,10 @@ class GroupMembersListResponse(BaseModel):
     members: list[GroupMemberResponse]
 
 
+class GroupMemberRoleUpdateRequest(BaseModel):
+    role: Literal["owner", "member"]
+
+
 class GroupInviteCreateRequest(BaseModel):
     kind: Literal["email", "link"]
     email: EmailStr | None = None

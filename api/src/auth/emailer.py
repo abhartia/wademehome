@@ -153,6 +153,27 @@ def send_group_invite_email(
     )
 
 
+def send_group_member_joined_email(
+    *,
+    to_email: str,
+    joiner_email: str,
+    group_name: str,
+    group_url: str,
+) -> None:
+    name = group_name.strip() or "your apartment search"
+    _post_resend(
+        to=[to_email],
+        subject=f"{joiner_email} joined {name} on Wademehome",
+        html=(
+            f"<p><strong>{joiner_email}</strong> accepted your invite and joined "
+            f"<strong>{name}</strong>.</p>"
+            "<p>Favorites, notes, reactions, and tours saved inside this group are now "
+            "shared between you.</p>"
+            f'<p><a href="{group_url}">Open {name}</a></p>'
+        ),
+    )
+
+
 def send_property_manager_weekly_report_email(
     *,
     to_email: str,

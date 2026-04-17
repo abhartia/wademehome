@@ -1371,6 +1371,16 @@ export type GroupMemberResponse = {
 };
 
 /**
+ * GroupMemberRoleUpdateRequest
+ */
+export type GroupMemberRoleUpdateRequest = {
+    /**
+     * Role
+     */
+    role: 'owner' | 'member';
+};
+
+/**
  * GroupMembersListResponse
  */
 export type GroupMembersListResponse = {
@@ -4085,12 +4095,21 @@ export type OwnershipPeriodUpsert = {
 
 /**
  * ParseUrlRequest
+ * Accepts either a bare URL or a free-form paste (e.g. a Zillow share message).
+ *
+ * If `text` is provided it is preferred: an LLM pulls a URL and address hint
+ * out of it so a share blob like `"269 Terrace Ave #B, Jersey City, NJ 07307
+ * | Zillow https://share.google/…"` can be pasted directly.
  */
 export type ParseUrlRequest = {
     /**
      * Url
      */
-    url: string;
+    url?: string | null;
+    /**
+     * Text
+     */
+    text?: string | null;
 };
 
 /**
@@ -4321,6 +4340,30 @@ export type PrefillFields = {
      * Source Host
      */
     source_host?: string | null;
+    /**
+     * Source Url
+     */
+    source_url?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+    /**
+     * City
+     */
+    city?: string | null;
+    /**
+     * State
+     */
+    state?: string | null;
+    /**
+     * Zipcode
+     */
+    zipcode?: string | null;
 };
 
 /**
@@ -7488,6 +7531,40 @@ export type RemoveMemberGroupsGroupIdMembersUserIdDeleteResponses = {
 };
 
 export type RemoveMemberGroupsGroupIdMembersUserIdDeleteResponse = RemoveMemberGroupsGroupIdMembersUserIdDeleteResponses[keyof RemoveMemberGroupsGroupIdMembersUserIdDeleteResponses];
+
+export type UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchData = {
+    body: GroupMemberRoleUpdateRequest;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+        /**
+         * User Id
+         */
+        user_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/members/{user_id}/role';
+};
+
+export type UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchError = UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchErrors[keyof UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchErrors];
+
+export type UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupMemberResponse;
+};
+
+export type UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchResponse = UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchResponses[keyof UpdateMemberRoleGroupsGroupIdMembersUserIdRolePatchResponses];
 
 export type ListInvitesGroupsGroupIdInvitesGetData = {
     body?: never;

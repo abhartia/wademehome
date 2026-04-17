@@ -1480,6 +1480,69 @@
         }
       }
     },
+    "/groups/{group_id}/members/{user_id}/role": {
+      "patch": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Update Member Role",
+        "operationId": "update_member_role_groups__group_id__members__user_id__role_patch",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupMemberRoleUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupMemberResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/groups/{group_id}/invites": {
       "get": {
         "tags": [
@@ -10513,6 +10576,23 @@
         ],
         "title": "GroupMemberResponse"
       },
+      "GroupMemberRoleUpdateRequest": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "member"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "GroupMemberRoleUpdateRequest"
+      },
       "GroupMembersListResponse": {
         "properties": {
           "members": {
@@ -15110,18 +15190,35 @@
       "ParseUrlRequest": {
         "properties": {
           "url": {
-            "type": "string",
-            "maxLength": 2083,
-            "minLength": 1,
-            "format": "uri",
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Url"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
           }
         },
         "type": "object",
-        "required": [
-          "url"
-        ],
-        "title": "ParseUrlRequest"
+        "title": "ParseUrlRequest",
+        "description": "Accepts either a bare URL or a free-form paste (e.g. a Zillow share message).\n\nIf `text` is provided it is preferred: an LLM pulls a URL and address hint\nout of it so a share blob like `\"269 Terrace Ave #B, Jersey City, NJ 07307\n| Zillow https://share.google/\u2026\"` can be pasted directly."
       },
       "ParseUrlResponse": {
         "properties": {
@@ -15544,6 +15641,72 @@
               }
             ],
             "title": "Source Host"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zipcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zipcode"
           }
         },
         "type": "object",

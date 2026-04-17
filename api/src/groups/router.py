@@ -8,10 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from auth.emailer import send_group_invite_email
+from auth.emailer import send_group_invite_email, send_group_member_joined_email
 from auth.router import get_current_user, get_db
 from core.config import Config
+from core.logger import get_logger
 from db.models import GroupInvites, GroupMembers, Groups, Users
+
+logger = get_logger(__name__)
 from groups.deps import require_group_member
 from groups.schemas import (
     GroupCreateRequest,
@@ -20,6 +23,7 @@ from groups.schemas import (
     GroupInvitesListResponse,
     GroupListResponse,
     GroupMemberResponse,
+    GroupMemberRoleUpdateRequest,
     GroupMembersListResponse,
     GroupRenameRequest,
     GroupResponse,
@@ -238,6 +242,56 @@ def remove_member(
     return None
 
 
+@router.patch(
+    "/groups/{group_id}/members/{user_id}/role", response_model=GroupMemberResponse
+)
+def update_member_role(
+    group_id: uuid.UUID,
+    user_id: uuid.UUID,
+    payload: GroupMemberRoleUpdateRequest,
+    membership: GroupMembers = Depends(require_group_member(role="owner")),
+    db: Session = Depends(get_db),
+):
+    target = db.execute(
+        select(GroupMembers).where(
+            GroupMembers.group_id == group_id, GroupMembers.user_id == user_id
+        )
+    ).scalar_one_or_none()
+    if target is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    if target.role == payload.role:
+        pass
+    elif payload.role == "member" and target.role == "owner":
+        other_owners = db.execute(
+            select(func.count(GroupMembers.id)).where(
+                GroupMembers.group_id == group_id,
+                GroupMembers.role == "owner",
+                GroupMembers.user_id != target.user_id,
+            )
+        ).scalar_one()
+        if int(other_owners) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot demote the last owner",
+            )
+        target.role = "member"
+        db.commit()
+        db.refresh(target)
+    else:
+        target.role = payload.role
+        db.commit()
+        db.refresh(target)
+
+    user_row = db.get(Users, target.user_id)
+    return GroupMemberResponse(
+        user_id=target.user_id,
+        email=user_row.email if user_row else "",
+        role=target.role,
+        joined_at=target.joined_at,
+    )
+
+
 @router.get("/groups/{group_id}/invites", response_model=GroupInvitesListResponse)
 def list_invites(
     group_id: uuid.UUID,
@@ -381,13 +435,34 @@ def accept_invite(
             GroupMembers.user_id == user.id,
         )
     ).scalar_one_or_none()
-    if existing is None:
+    newly_joined = existing is None
+    if newly_joined:
         db.add(
             GroupMembers(group_id=invite.group_id, user_id=user.id, role="member")
         )
     if invite.accepted_at is None:
         invite.accepted_at = _utc_now()
         invite.accepted_by_user_id = user.id
+
+    inviter_email: str | None = None
+    if newly_joined and invite.invited_by is not None and invite.invited_by != user.id:
+        inviter = db.get(Users, invite.invited_by)
+        if inviter is not None:
+            inviter_email = inviter.email
+
     db.commit()
+
+    if inviter_email:
+        try:
+            send_group_member_joined_email(
+                to_email=inviter_email,
+                joiner_email=user.email,
+                group_name=group.name,
+                group_url=f"{_app_base_url()}/groups/{group.id}",
+            )
+        except ValueError:
+            logger.exception(
+                "Failed to send group join notification to inviter %s", inviter_email
+            )
 
     return InviteAcceptResponse(group_id=group.id, group_name=group.name)
