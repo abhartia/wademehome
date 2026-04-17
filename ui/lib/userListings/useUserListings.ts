@@ -15,6 +15,12 @@ export interface PrefillFields {
   baths: string | null;
   image_url: string | null;
   source_host: string | null;
+  source_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
+  state: string | null;
+  zipcode: string | null;
 }
 
 export interface ParseUrlResponse {
@@ -136,10 +142,24 @@ async function rawDelete(url: string): Promise<void> {
 
 export function useParseListingUrl() {
   return useMutation({
-    mutationFn: async (url: string): Promise<ParseUrlResponse> => {
-      return rawPost<ParseUrlResponse>("/user-listings/parse-url", { url });
+    mutationFn: async (
+      input: string | { text?: string; url?: string },
+    ): Promise<ParseUrlResponse> => {
+      const body =
+        typeof input === "string"
+          ? looksLikeUrl(input)
+            ? { url: input }
+            : { text: input }
+          : input;
+      return rawPost<ParseUrlResponse>("/user-listings/parse-url", body);
     },
   });
+}
+
+function looksLikeUrl(s: string): boolean {
+  const trimmed = s.trim();
+  if (/\s/.test(trimmed)) return false;
+  return /^https?:\/\//i.test(trimmed);
 }
 
 export function useDedupeCheck() {

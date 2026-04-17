@@ -86,7 +86,8 @@ function isLandlordQueryKey(queryKey: readonly unknown[]): boolean {
 export function LandlordProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const enabled = Boolean(user);
+  const role = typeof user?.role === "string" ? user.role.trim().toLowerCase() : "";
+  const enabled = Boolean(user) && (role === "landlord" || role === "admin");
 
   const { data: profileResponse } = useQuery({
     ...readProfileLandlordProfileGetOptions({}),

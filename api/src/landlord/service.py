@@ -74,16 +74,29 @@ def _ensure_landlord(db: Session, user: Users) -> LandlordProfiles:
     if profile is None:
         profile = LandlordProfiles(user_id=user.id)
         db.add(profile)
-    # Only promote renters to landlord; never downgrade admin (or other roles).
-    if user.role == UserRole.user:
-        user.role = UserRole.landlord
-    db.commit()
-    db.refresh(profile)
+        db.commit()
+        db.refresh(profile)
     return profile
 
 
+def _promote_to_landlord(db: Session, user: Users) -> None:
+    # Only promote renters; never downgrade admin or property_manager.
+    if user.role == UserRole.user:
+        user.role = UserRole.landlord
+        db.commit()
+
+
 def get_landlord_profile(db: Session, user: Users) -> LandlordProfilePayload:
-    profile = _ensure_landlord(db, user)
+    profile = db.execute(
+        select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)
+    ).scalar_one_or_none()
+    if profile is None:
+        return LandlordProfilePayload(
+            display_name="",
+            company_name="",
+            phone_number="",
+            verification_status="pending",
+        )
     return LandlordProfilePayload(
         display_name=profile.display_name or "",
         company_name=profile.company_name or "",
@@ -94,6 +107,7 @@ def get_landlord_profile(db: Session, user: Users) -> LandlordProfilePayload:
 
 def update_landlord_profile(db: Session, user: Users, payload: LandlordProfileUpdate) -> LandlordProfilePayload:
     profile = _ensure_landlord(db, user)
+    _promote_to_landlord(db, user)
     if payload.display_name is not None:
         profile.display_name = payload.display_name.strip() or None
     if payload.company_name is not None:
@@ -135,6 +149,7 @@ def list_properties(db: Session, user: Users) -> list[LandlordPropertyPayload]:
 
 def create_property(db: Session, user: Users, payload: LandlordPropertyCreate) -> LandlordPropertyPayload:
     _ensure_landlord(db, user)
+    _promote_to_landlord(db, user)
     row = LandlordProperties(owner_user_id=user.id, **payload.model_dump(), amenities_json=payload.amenities)
     db.add(row)
     db.commit()

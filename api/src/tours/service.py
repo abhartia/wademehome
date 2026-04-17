@@ -88,8 +88,13 @@ def _tour_payload(row: UserTours, note: TourNotes | None) -> TourPayload:
     )
 
 
-def _tour_query_for_user(user_id: uuid.UUID) -> Select[tuple[UserTours]]:
-    return select(UserTours).where(UserTours.user_id == user_id)
+def _tour_query_for_user(
+    user_id: uuid.UUID, group_id: uuid.UUID | None = None
+) -> Select[tuple[UserTours]]:
+    query = select(UserTours).where(UserTours.user_id == user_id)
+    if group_id is None:
+        return query.where(UserTours.group_id.is_(None))
+    return query.where(UserTours.group_id == group_id)
 
 
 def _apply_filters(query: Select[tuple[UserTours]], params: TourSortParams) -> Select[tuple[UserTours]]:
@@ -125,7 +130,7 @@ def _get_note_map(db: Session, tour_ids: list[uuid.UUID]) -> dict[uuid.UUID, Tou
 
 
 def list_tours(db: Session, user_id: uuid.UUID, params: TourSortParams) -> tuple[list[TourPayload], int]:
-    base_query = _apply_filters(_tour_query_for_user(user_id), params)
+    base_query = _apply_filters(_tour_query_for_user(user_id, params.group_id), params)
     all_rows = db.execute(base_query).scalars().all()
     total = len(all_rows)
     query = _apply_sort(base_query, params.sort).limit(params.limit).offset(params.offset)
@@ -153,6 +158,7 @@ def get_tour_payload(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID) -> Tou
 def create_tour(db: Session, user_id: uuid.UUID, payload: TourCreate) -> TourPayload:
     row = UserTours(
         user_id=user_id,
+        group_id=payload.group_id,
         property_ref_id=payload.property.id or None,
         property_name=payload.property.name,
         property_address=payload.property.address,
@@ -247,6 +253,7 @@ def create_saved_tour_for_property(
     property_tags: list[str],
     requested_date: str | None = None,
     requested_time: str | None = None,
+    group_id: uuid.UUID | None = None,
 ) -> TourPayload:
     return create_tour(
         db,
@@ -265,5 +272,6 @@ def create_saved_tour_for_property(
             scheduled_date=requested_date or "",
             scheduled_time=requested_time or "",
             note=None,
+            group_id=group_id,
         ),
     )

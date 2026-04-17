@@ -25,6 +25,7 @@ import {
 import { PropertyImageGallery } from "@/components/properties/PropertyImageGallery";
 import { ThumbsUp, ThumbsDown, Heart, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import {
@@ -76,6 +77,7 @@ export function PropertyDetailSheet({
   onOpenChange,
 }: PropertyDetailSheetProps) {
   const activeGroupId = useActiveGroupId();
+  const router = useRouter();
   const { user } = useAuth();
   const propertyKey = useMemo(
     () => (property ? buildPropertyKey(property) : ""),
@@ -152,7 +154,16 @@ export function PropertyDetailSheet({
       propertyName: property.name,
       propertyAddress: property.address,
     });
-    toast.success(response.favorited ? "Saved to favorites" : "Removed from favorites");
+    if (response.favorited) {
+      toast.success("Saved to favorites", {
+        action: {
+          label: "View saved",
+          onClick: () => router.push("/saved"),
+        },
+      });
+    } else {
+      toast.success("Removed from favorites");
+    }
   };
 
   const onSaveNote = async () => {
@@ -203,6 +214,7 @@ export function PropertyDetailSheet({
         requested_date: tourRequestedDate || null,
         requested_time: tourRequestedTime || null,
         request_message: tourRequestMessage.trim() || null,
+        group_id: activeGroupId ?? null,
       });
       toast.success("Tour request sent");
       setTourConfirmOpen(false);

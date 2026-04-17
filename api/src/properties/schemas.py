@@ -98,6 +98,7 @@ class TourRequestCreate(BaseModel):
     requested_date: str | None = None
     requested_time: str | None = None
     request_message: str | None = Field(default=None, max_length=6000)
+    group_id: uuid.UUID | None = None
 
 
 class TourRequestCreateResponse(BaseModel):

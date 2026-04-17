@@ -38,6 +38,71 @@ def forward_geocode(address: str, token: str, *, timeout: float = 12.0) -> tuple
     return lat, lng
 
 
+def forward_geocode_detailed(
+    address: str, token: str, *, timeout: float = 12.0
+) -> dict[str, Any] | None:
+    """Return {place_name, lat, lng, city, state, zipcode} for best Mapbox feature, or None.
+
+    Used by the listing paste flow so one parse call returns everything needed to save
+    without a second round trip to Mapbox from the client.
+    """
+    q = (address or "").strip()
+    if not q:
+        return None
+    path = urllib.parse.quote(q, safe="")
+    url = f"{_GEOCODE_BASE}/{path}.json?{urllib.parse.urlencode({'access_token': token, 'limit': 1, 'country': 'us'})}"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+    except (urllib.error.URLError, json.JSONDecodeError, OSError):
+        return None
+    feats = data.get("features") or []
+    if not feats or not isinstance(feats[0], dict):
+        return None
+    feat = feats[0]
+    center = feat.get("center")
+    if not isinstance(center, list) or len(center) < 2:
+        return None
+    lng, lat = float(center[0]), float(center[1])
+    if not (math.isfinite(lat) and math.isfinite(lng)):
+        return None
+
+    city: str | None = None
+    state: str | None = None
+    zipcode: str | None = None
+    ctx = feat.get("context")
+    if isinstance(ctx, list):
+        for item in ctx:
+            if not isinstance(item, dict):
+                continue
+            iid = item.get("id", "")
+            if not isinstance(iid, str):
+                continue
+            text_val = item.get("text") if isinstance(item.get("text"), str) else None
+            if iid.startswith("place."):
+                city = text_val
+            elif iid.startswith("locality.") and not city:
+                city = text_val
+            elif iid.startswith("region."):
+                short = item.get("short_code")
+                if isinstance(short, str) and short.upper().startswith("US-"):
+                    state = short[3:].upper()
+                elif text_val:
+                    state = text_val
+            elif iid.startswith("postcode."):
+                zipcode = text_val
+
+    place_name = feat.get("place_name") if isinstance(feat.get("place_name"), str) else None
+    return {
+        "place_name": place_name,
+        "lat": lat,
+        "lng": lng,
+        "city": city,
+        "state": state,
+        "zipcode": zipcode,
+    }
+
+
 def _feature_us_state_code(feature: dict[str, Any]) -> str | None:
     """
     Extract US state abbreviation from a Mapbox Geocoding feature's context

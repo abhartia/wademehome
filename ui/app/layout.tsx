@@ -70,15 +70,15 @@ try {
               </Suspense>
               <UserProfileProvider>
                 <RoommateProvider>
-                  <ToursProvider>
-                    <GuarantorProvider>
-                      <MoveInProvider>
-                        <LandlordProvider>
-                          <ActiveGroupProvider>{children}</ActiveGroupProvider>
-                        </LandlordProvider>
-                      </MoveInProvider>
-                    </GuarantorProvider>
-                  </ToursProvider>
+                  <ActiveGroupProvider>
+                    <ToursProvider>
+                      <GuarantorProvider>
+                        <MoveInProvider>
+                          <LandlordProvider>{children}</LandlordProvider>
+                        </MoveInProvider>
+                      </GuarantorProvider>
+                    </ToursProvider>
+                  </ActiveGroupProvider>
                 </RoommateProvider>
               </UserProfileProvider>
             </AnalyticsConsentProvider>

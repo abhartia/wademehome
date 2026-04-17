@@ -12,6 +12,7 @@ import {
   Package,
   Shield,
   FileText,
+  Bookmark,
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,7 @@ export function AppSidebar() {
   const coreItems = [
     { title: "Home", href: "/app", icon: Home },
     { title: "Search", href: "/search", icon: Search },
+    { title: "Saved", href: "/saved", icon: Bookmark },
     { title: "Tours", href: "/tours", icon: CalendarCheck },
     { title: "Groups", href: "/groups", icon: Users2 },
   ];

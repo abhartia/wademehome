@@ -23,7 +23,7 @@ from user_listings.service import (
     run_dedupe,
     set_visibility,
 )
-from user_listings.url_parser import parse_listing_url
+from user_listings.url_parser import parse_listing_paste, parse_listing_url
 
 logger = get_logger(__name__)
 
@@ -35,7 +35,16 @@ async def parse_url(
     payload: ParseUrlRequest,
     _user: Users = Depends(get_current_user),
 ) -> ParseUrlResponse:
-    prefill, parsed = await parse_listing_url(str(payload.url))
+    text = (payload.text or "").strip()
+    if text:
+        prefill, parsed = await parse_listing_paste(text)
+    elif payload.url is not None:
+        prefill, parsed = await parse_listing_url(str(payload.url))
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide `text` (a pasted share message) or `url`.",
+        )
     return ParseUrlResponse(prefill=prefill, parsed=parsed)
 
 

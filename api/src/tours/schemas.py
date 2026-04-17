@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import date
 from typing import Any, Literal
 
@@ -51,6 +52,7 @@ class TourCreate(BaseModel):
     scheduled_date: str = ""
     scheduled_time: str = ""
     note: TourNotePayload | None = None
+    group_id: uuid.UUID | None = None
 
 
 class TourUpdate(BaseModel):
@@ -72,5 +74,6 @@ class TourSortParams(BaseModel):
     from_date: date | None = None
     to_date: date | None = None
     q: str | None = None
+    group_id: uuid.UUID | None = None
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)

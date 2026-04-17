@@ -363,7 +363,12 @@ def accept_invite(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="This invite was sent to a different email",
             )
-    if invite.accepted_at is not None and invite.kind == "email":
+    if (
+        invite.accepted_at is not None
+        and invite.kind == "email"
+        and invite.accepted_by_user_id is not None
+        and invite.accepted_by_user_id != user.id
+    ):
         raise HTTPException(status_code=410, detail="Invite already used")
 
     group = db.get(Groups, invite.group_id)

@@ -127,7 +127,7 @@ export default function ToursPage() {
               )}
             </TabsTrigger>
             <TabsTrigger value="saved" className="gap-1.5">
-              Saved
+              Requested
               {saved.length > 0 && (
                 <Badge
                   variant="secondary"
@@ -226,14 +226,18 @@ export default function ToursPage() {
           </div>
         </TabsContent>
 
-        {/* Saved properties */}
+        {/* Requested tour properties */}
         <TabsContent value="saved" className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl space-y-3 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold">Saved Properties</h2>
+                <h2 className="text-base font-semibold">Requested Tours</h2>
                 <p className="text-xs text-muted-foreground">
-                  Properties you&apos;re interested in but haven&apos;t scheduled yet.
+                  Pending tour requests awaiting a confirmed date. For bookmarks, see{" "}
+                  <Link href="/saved" className="underline">
+                    Saved
+                  </Link>
+                  .
                 </p>
               </div>
               <AddPropertyModal />
@@ -242,8 +246,8 @@ export default function ToursPage() {
             {saved.length === 0 ? (
               <EmptyState
                 icon={<Bookmark className="h-8 w-8 text-muted-foreground/50" />}
-                title="No saved properties"
-                description="Find properties through search and save them here for later."
+                title="No pending tour requests"
+                description="Request a tour from a property page — it&apos;ll show up here until scheduled."
                 action={
                   <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs">
                     <Link href="/search">

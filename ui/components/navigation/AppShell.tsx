@@ -14,6 +14,7 @@ import { useEffect } from "react";
 const pageTitles: Record<string, string> = {
   "/app": "Home",
   "/search": "Search",
+  "/saved": "Saved properties",
   "/tours": "Tours & Notes",
   "/roommates": "Roommates",
   "/profile": "Profile",

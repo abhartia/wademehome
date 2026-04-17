@@ -1,12 +1,16 @@
-"""Parse an external listing URL into prefillable fields.
+"""Parse an external listing URL (or a free-form paste) into prefillable fields.
 
-Two-stage pipeline:
-  1. Fetch HTML, extract JSON-LD + OpenGraph meta — standardized, deterministic.
-  2. If key fields are missing, send trimmed page text to an LLM via LlamaIndex
-     for structured extraction. No per-site heuristic HTML scraping.
+Two entry points:
+  * `parse_listing_url(url)` — fetches HTML, extracts JSON-LD + OpenGraph meta,
+     falls back to an LLM on visible text for any missing fields.
+  * `parse_listing_paste(text)` — accepts a full share blob like
+     ``"269 Terrace Ave #B, Jersey City, NJ 07307 | Zillow https://share.google/…"``.
+     An LLM pulls out the URL + address/name hints, the URL is fetched (with
+     redirects followed by urllib so share.google shorteners resolve to the real
+     listing), and everything is merged.
 
-Never invents data: fields the extractor can't confidently pull stay None,
-so the frontend asks the user to fill them.
+Both paths run server-side Mapbox geocoding when an address is recovered, so the
+UI can one-click save without a separate geocode round trip.
 """
 
 from __future__ import annotations
@@ -21,8 +25,10 @@ from html.parser import HTMLParser
 from llama_index.core.base.llms.types import ChatMessage
 from llama_index.core.llms import LLM
 
+from core.config import Config
 from core.llm_factory import get_llm
 from core.logger import get_logger
+from listings.mapbox_client import forward_geocode_detailed
 from user_listings.schemas import PrefillFields
 
 logger = get_logger(__name__)
@@ -316,32 +322,150 @@ async def _extract_with_llm(visible_text: str, llm: LLM | None = None) -> Prefil
     )
 
 
-async def parse_listing_url(url: str) -> tuple[PrefillFields, bool]:
-    """
-    Returns (prefill, parsed). parsed=True if we extracted at least an address
-    from any source (so the UI knows the prefill is useful).
+async def _fetch_and_extract(url: str) -> PrefillFields:
+    """Fetch URL (urllib follows redirects, so share.google shorteners resolve),
+    parse JSON-LD + OG, fall back to LLM extraction on visible text.
     """
     html = _fetch_html(url)
     if html is None:
-        return PrefillFields(source_host=_host_of(url)), False
+        return PrefillFields(source_host=_host_of(url), source_url=url)
 
     parser = _MetaParser()
     try:
         parser.feed(html)
-    except Exception:  # noqa: BLE001 — best-effort tolerance of malformed HTML
+    except Exception:  # noqa: BLE001 — tolerant of malformed HTML
         logger.exception("user_listings url_parser: HTML parsing crashed for %s", url)
 
     from_jsonld = _extract_from_jsonld(parser.jsonld_buffers)
     from_og = _extract_from_og(parser.metas)
     merged = _merge(from_jsonld, from_og)
     merged.source_host = _host_of(url)
+    merged.source_url = url
 
     if not merged.address or not merged.price:
         from_llm = await _extract_with_llm(parser.visible_text())
         merged = _merge(merged, from_llm)
 
-    parsed_ok = bool(merged.address)
-    return merged, parsed_ok
+    return merged
+
+
+async def parse_listing_url(url: str) -> tuple[PrefillFields, bool]:
+    """Returns (prefill, parsed). parsed=True if at least an address was recovered."""
+    prefill = await _fetch_and_extract(url)
+    prefill = _geocode_prefill(prefill)
+    return prefill, bool(prefill.address)
+
+
+_PASTE_LLM_SYSTEM = (
+    "You extract listing fields from a free-form share message. The user pasted "
+    "something like a Zillow/StreetEasy share blurb that may contain a full address, "
+    "a URL, and maybe a price or building name. Respond with JSON only (no markdown), "
+    "keys (all nullable strings): url, address, name, price, beds, baths. "
+    "Set null if the text does not clearly state it. Do NOT invent values. "
+    "URL must be a http(s) URL copied verbatim from the text. "
+    "address should be a single-line mailing address with city/state/zip when present."
+)
+
+_PASTE_LLM_USER = (
+    "Pull the listing fields out of this pasted message. Unknown fields must be null.\n"
+    "---\n{snippet}\n---\n"
+)
+
+
+async def _extract_from_paste(
+    text: str, llm: LLM | None = None
+) -> tuple[str | None, PrefillFields]:
+    """Returns (extracted_url, hint_fields). Never invents values."""
+    snippet = (text or "").strip()[:3000]
+    if not snippet:
+        return None, PrefillFields()
+    active = llm or get_llm()
+    try:
+        resp = await active.achat(
+            messages=[
+                ChatMessage(role="system", content=_PASTE_LLM_SYSTEM),
+                ChatMessage(role="user", content=_PASTE_LLM_USER.format(snippet=snippet)),
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=400,
+        )
+    except Exception:
+        logger.exception("user_listings url_parser: paste LLM extraction failed")
+        return None, PrefillFields()
+
+    raw = (resp.message.content if resp and resp.message else None) or ""
+    try:
+        payload = raw if isinstance(raw, dict) else json.loads(str(raw))
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("user_listings url_parser: invalid JSON from paste LLM")
+        return None, PrefillFields()
+    if not isinstance(payload, dict):
+        return None, PrefillFields()
+
+    def _s(key: str) -> str | None:
+        v = payload.get(key)
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s or None
+
+    url = _s("url")
+    # Guard: only accept plausible http(s) URLs that actually appear in the text.
+    if url and not re.match(r"^https?://", url, flags=re.IGNORECASE):
+        url = None
+    if url and url not in snippet:
+        url = None
+
+    return url, PrefillFields(
+        name=_s("name"),
+        address=_s("address"),
+        price=_s("price"),
+        beds=_s("beds"),
+        baths=_s("baths"),
+    )
+
+
+async def parse_listing_paste(text: str) -> tuple[PrefillFields, bool]:
+    """Parse a free-form share blob. Returns (prefill, parsed)."""
+    extracted_url, paste_hints = await _extract_from_paste(text)
+
+    if extracted_url:
+        fetched = await _fetch_and_extract(extracted_url)
+        # Fetched HTML wins for anything it recovered; paste hints fill gaps.
+        # If the fetch failed (share.google fronted, anti-bot, etc.) the paste
+        # address is enough to geocode and save.
+        merged = _merge(fetched, paste_hints)
+    else:
+        merged = paste_hints
+
+    merged = _geocode_prefill(merged)
+    return merged, bool(merged.address)
+
+
+def _geocode_prefill(prefill: PrefillFields) -> PrefillFields:
+    """Server-side Mapbox geocode so the client can save in one click."""
+    if not prefill.address:
+        return prefill
+    token = (Config.get("MAPBOX_ACCESS_TOKEN") or "").strip()
+    if not token:
+        return prefill
+    try:
+        geo = forward_geocode_detailed(prefill.address, token)
+    except Exception:
+        logger.exception("user_listings url_parser: geocode crashed")
+        return prefill
+    if geo is None:
+        return prefill
+    prefill.latitude = geo["lat"]
+    prefill.longitude = geo["lng"]
+    prefill.city = geo.get("city") or prefill.city
+    prefill.state = geo.get("state") or prefill.state
+    prefill.zipcode = geo.get("zipcode") or prefill.zipcode
+    # Upgrade to Mapbox's canonical place_name so the saved address is normalized.
+    canonical = geo.get("place_name")
+    if isinstance(canonical, str) and canonical.strip():
+        prefill.address = canonical.strip()
+    return prefill
 
 
 def _host_of(url: str) -> str | None:

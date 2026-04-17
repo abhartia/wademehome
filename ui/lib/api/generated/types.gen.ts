@@ -5790,6 +5790,10 @@ export type TourCreate = {
      */
     scheduled_time?: string;
     note?: TourNotePayload | null;
+    /**
+     * Group Id
+     */
+    group_id?: string | null;
 };
 
 /**
@@ -5969,6 +5973,10 @@ export type TourRequestCreate = {
      * Request Message
      */
     request_message?: string | null;
+    /**
+     * Group Id
+     */
+    group_id?: string | null;
 };
 
 /**
@@ -7882,6 +7890,10 @@ export type ReadToursToursGetData = {
          * Q
          */
         q?: string | null;
+        /**
+         * Group Id
+         */
+        group_id?: string | null;
         /**
          * Limit
          */

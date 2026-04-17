@@ -9,6 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tour, TourNote, TourProperty, TourStatus } from "@/lib/types/tours";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useActiveGroup } from "@/lib/groups/activeGroup";
 import {
   createTourRouteToursPostMutation,
   deleteTourRouteToursTourIdDeleteMutation,
@@ -38,27 +39,32 @@ const ToursContext = createContext<ToursContextValue | null>(null);
 
 export function ToursProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const { activeGroupId } = useActiveGroup();
   const queryClient = useQueryClient();
 
+  const toursQuery = useMemo(
+    () => ({
+      limit: 200,
+      offset: 0,
+      sort: "created_at_desc",
+      ...(activeGroupId ? { group_id: activeGroupId } : {}),
+    }),
+    [activeGroupId],
+  );
+
   const { data: serverTours } = useQuery({
-    ...readToursToursGetOptions({
-      query: { limit: 200, offset: 0, sort: "created_at_desc" },
-    }),
+    ...readToursToursGetOptions({ query: toursQuery }),
     enabled: Boolean(user),
-    queryKey: readToursToursGetQueryKey({
-      query: { limit: 200, offset: 0, sort: "created_at_desc" },
-    }),
+    queryKey: readToursToursGetQueryKey({ query: toursQuery }),
   });
   const tours = useMemo(() => (user ? toursFromApi(serverTours) : []), [serverTours, user]);
   const isReadOnly = !user;
 
   const refreshTours = useCallback(async () => {
     await queryClient.invalidateQueries({
-      queryKey: readToursToursGetQueryKey({
-        query: { limit: 200, offset: 0, sort: "created_at_desc" },
-      }),
+      queryKey: readToursToursGetQueryKey({ query: toursQuery }),
     });
-  }, [queryClient]);
+  }, [queryClient, toursQuery]);
 
   const createTourMutation = useMutation({
     ...createTourRouteToursPostMutation(),
@@ -100,10 +106,11 @@ export function ToursProvider({ children }: { children: React.ReactNode }) {
           scheduled_date: date ?? "",
           scheduled_time: time ?? "",
           note: null,
+          group_id: activeGroupId ?? null,
         },
       });
     },
-    [createTourMutation, user],
+    [activeGroupId, createTourMutation, user],
   );
 
   const updateTour = useCallback(

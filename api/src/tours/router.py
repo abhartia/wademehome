@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
 from db.models import Users
+from groups.deps import resolve_scope
 from tours.schemas import (
     TourCreate,
     TourNoteUpsert,
@@ -34,17 +35,20 @@ def read_tours(
     from_date: date | None = Query(default=None),
     to_date: date | None = Query(default=None),
     q: str | None = Query(default=None),
+    group_id: uuid.UUID | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
     sort: str = Query(default="created_at_desc"),
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    _, scope_group_id = resolve_scope(group_id, user, db)
     params = TourSortParams(
         status=status,
         from_date=from_date,
         to_date=to_date,
         q=q,
+        group_id=scope_group_id,
         limit=limit,
         offset=offset,
         sort=sort,
@@ -63,6 +67,8 @@ def read_tour(tour_id: uuid.UUID, user: Users = Depends(get_current_user), db: S
 def create_tour_route(
     payload: TourCreate, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
 ):
+    _, scope_group_id = resolve_scope(payload.group_id, user, db)
+    payload.group_id = scope_group_id
     tour = create_tour(db, user.id, payload)
     return TourResponse(tour=tour)
 

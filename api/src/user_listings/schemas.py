@@ -11,7 +11,15 @@ Visibility = Literal["private", "public"]
 
 
 class ParseUrlRequest(BaseModel):
-    url: HttpUrl
+    """Accepts either a bare URL or a free-form paste (e.g. a Zillow share message).
+
+    If `text` is provided it is preferred: an LLM pulls a URL and address hint
+    out of it so a share blob like `"269 Terrace Ave #B, Jersey City, NJ 07307
+    | Zillow https://share.google/…"` can be pasted directly.
+    """
+
+    url: HttpUrl | None = None
+    text: str | None = Field(default=None, max_length=4000)
 
 
 class PrefillFields(BaseModel):
@@ -23,6 +31,12 @@ class PrefillFields(BaseModel):
     baths: str | None = None
     image_url: str | None = None
     source_host: str | None = None
+    source_url: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    city: str | None = None
+    state: str | None = None
+    zipcode: str | None = None
 
 
 class ParseUrlResponse(BaseModel):

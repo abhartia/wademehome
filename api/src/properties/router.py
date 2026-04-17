@@ -314,6 +314,7 @@ def create_tour_request(
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    _, scope_group_id = resolve_scope(payload.group_id, user, db)
     tour = create_saved_tour_for_property(
         db,
         user.id,
@@ -326,6 +327,7 @@ def create_tour_request(
         property_tags=payload.property_tags,
         requested_date=payload.requested_date,
         requested_time=payload.requested_time,
+        group_id=scope_group_id,
     )
     ops_email = (Config.get("TOUR_REQUEST_OPS_EMAIL", "") or "").strip()
     if not ops_email:
