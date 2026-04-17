@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
   Loader2,
@@ -31,6 +31,9 @@ import {
   usePropertyFavorites,
   useToggleFavorite,
 } from "@/lib/properties/api";
+import { getListingByPropertyKeyListingsByPropertyKeyGetOptions } from "@/lib/api/generated/@tanstack/react-query.gen";
+import { normalizePropertyDataItem } from "@/lib/properties/normalizePropertyDataItem";
+import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 
 type ItemStatus = "processing" | "saved" | "dedupe" | "error";
 
@@ -42,6 +45,7 @@ interface QueueItem {
   savedName?: string;
   errorMessage?: string;
   dedupeMatches?: DedupeMatch[];
+  matchDetail?: PropertyDataItem | null;
 }
 
 function previewLine(text: string): string {
@@ -55,6 +59,7 @@ export function AddPropertyModal() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const qc = useQueryClient();
   const pasteMut = usePasteAndCreate();
   const activeGroupId = useActiveGroupId();
   const groupsQuery = useMyGroups();
@@ -79,14 +84,17 @@ export function AddPropertyModal() {
         null)
       : null;
 
-  const reset = useCallback(() => {
-    setPasted("");
+  const clearQueue = useCallback(() => {
     setQueue([]);
     pasteMut.reset();
   }, [pasteMut]);
 
+  // Deliberately do NOT reset the queue when the modal closes — the user may
+  // switch tabs to verify a "View match" link, and losing their in-flight
+  // queue on every close is infuriating. The queue survives across open/close
+  // and is only cleared explicitly via the "Clear" button.
   const handleOpenChange = (next: boolean) => {
-    if (!next) reset();
+    if (!next) setPasted("");
     setOpen(next);
   };
 
@@ -144,6 +152,31 @@ export function AddPropertyModal() {
               };
             }
             if (res.dedupe_matches.length > 0) {
+              // Kick off inline detail fetch so the chip can show the match's
+              // image/price/address without the user opening a new tab.
+              const firstKey = res.dedupe_matches[0].property_key;
+              void qc
+                .fetchQuery({
+                  ...getListingByPropertyKeyListingsByPropertyKeyGetOptions({
+                    query: { property_key: firstKey },
+                  }),
+                  staleTime: 5 * 60_000,
+                })
+                .then((row) => {
+                  const detail = normalizePropertyDataItem(row);
+                  setQueue((cur) =>
+                    cur.map((x) =>
+                      x.id === id ? { ...x, matchDetail: detail } : x,
+                    ),
+                  );
+                })
+                .catch(() => {
+                  setQueue((cur) =>
+                    cur.map((x) =>
+                      x.id === id ? { ...x, matchDetail: null } : x,
+                    ),
+                  );
+                });
               return {
                 ...i,
                 status: "dedupe",
@@ -175,7 +208,7 @@ export function AddPropertyModal() {
         );
       }
     },
-    [pasteMut, activeGroupId],
+    [pasteMut, activeGroupId, qc],
   );
 
   const handlePasteEvent = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -323,18 +356,32 @@ export function AddPropertyModal() {
         </div>
 
         {queue.length > 0 && (
-          <ul className="space-y-1.5 pt-2">
-            {queue.map((item) => (
-              <QueueRow
-                key={item.id}
-                item={item}
-                onRetry={(force) => void submit(item.text, force, item.id)}
-                onDismiss={() => dismiss(item.id)}
-                onUseExisting={(match) => void adoptExisting(item.id, match)}
-                favoritedKeys={favoritedKeys}
-              />
-            ))}
-          </ul>
+          <>
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Queue ({queue.length})
+              </p>
+              <button
+                type="button"
+                onClick={clearQueue}
+                className="text-[10px] text-muted-foreground underline hover:text-foreground"
+              >
+                Clear all
+              </button>
+            </div>
+            <ul className="space-y-1.5">
+              {queue.map((item) => (
+                <QueueRow
+                  key={item.id}
+                  item={item}
+                  onRetry={(force) => void submit(item.text, force, item.id)}
+                  onDismiss={() => dismiss(item.id)}
+                  onUseExisting={(match) => void adoptExisting(item.id, match)}
+                  favoritedKeys={favoritedKeys}
+                />
+              ))}
+            </ul>
+          </>
         )}
       </DialogContent>
     </Dialog>
@@ -397,6 +444,7 @@ function QueueRow({
           {item.status === "dedupe" && item.dedupeMatches && (
             <DedupeDetails
               matches={item.dedupeMatches}
+              detail={item.matchDetail}
               onUseExisting={onUseExisting}
               onSaveAnyway={() => onRetry(true)}
               onSkip={onDismiss}
@@ -422,53 +470,83 @@ function QueueRow({
 
 function DedupeDetails({
   matches,
+  detail,
   onUseExisting,
   onSaveAnyway,
   onSkip,
   favoritedKeys,
 }: {
   matches: DedupeMatch[];
+  detail?: PropertyDataItem | null;
   onUseExisting: (match: DedupeMatch) => void;
   onSaveAnyway: () => void;
   onSkip: () => void;
   favoritedKeys: Set<string>;
 }) {
   const top = matches[0];
+  const rawName =
+    (detail?.name && detail.name.trim()) ||
+    (top.name && top.name.trim()) ||
+    "";
   const friendlyName =
-    top.name && top.name.toLowerCase() !== "property" ? top.name : null;
+    rawName && rawName.toLowerCase() !== "property" ? rawName : null;
+  const address = detail?.address || top.address;
+  const image = detail?.images_urls?.[0] || top.image_url || null;
+  const priceLabel = detail?.rent_range || null;
+  const bedsLabel = detail?.bedroom_range || null;
   const distanceLabel =
     Number.isFinite(top.distance_meters) && top.distance_meters > 0
       ? `${Math.round(top.distance_meters)}m away`
       : null;
   const alreadyFavorited = favoritedKeys.has(top.property_key);
+  // Plain anchor + explicit stopPropagation: Next's `Link` with target="_blank"
+  // plus Fast Refresh was closing the Dialog on tab switch in dev. Plain <a>
+  // avoids the client-side nav path entirely.
+  const matchHref = `/properties/${encodeURIComponent(top.property_key)}`;
 
   return (
     <div className="space-y-2">
       <p className="text-[11px] text-amber-800">
         Might already exist — matched {friendlyName ?? "this address"}:
       </p>
-      <div className="space-y-1 rounded border border-amber-200 bg-white p-2">
-        {friendlyName && (
-          <div className="truncate text-[11px] font-medium">
-            {friendlyName}
+      <div className="flex gap-2 rounded border border-amber-200 bg-white p-2">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={image}
+            alt=""
+            className="h-14 w-14 shrink-0 rounded object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : null}
+        <div className="min-w-0 flex-1 space-y-0.5">
+          {friendlyName && (
+            <div className="truncate text-[11px] font-medium">
+              {friendlyName}
+            </div>
+          )}
+          <div className="truncate text-[11px] text-muted-foreground">
+            {address}
           </div>
-        )}
-        <div className="truncate text-[11px] text-muted-foreground">
-          {top.address}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
+            {priceLabel && <span>{priceLabel}</span>}
+            {bedsLabel && <span>· {bedsLabel}</span>}
+            {distanceLabel && <span>· {distanceLabel}</span>}
+            {top.is_user_contributed && <span>· User-added</span>}
+            {alreadyFavorited && <span>· Already in your Saved list</span>}
+          </div>
+          <a
+            href={matchHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+          >
+            Open full page <ExternalLink className="h-2.5 w-2.5" />
+          </a>
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
-          {distanceLabel && <span>{distanceLabel}</span>}
-          {top.is_user_contributed && <span>· User-added</span>}
-          {alreadyFavorited && <span>· Already in your Saved list</span>}
-        </div>
-        <Link
-          href={`/properties/${encodeURIComponent(top.property_key)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
-        >
-          View match <ExternalLink className="h-2.5 w-2.5" />
-        </Link>
       </div>
       <div className="flex flex-wrap gap-1.5">
         <Button
