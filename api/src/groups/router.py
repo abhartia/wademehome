@@ -32,7 +32,7 @@ router = APIRouter(tags=["groups"])
 
 
 def _app_base_url() -> str:
-    raw = (Config.get("APP_BASE_URL", "") or "").strip().rstrip("/")
+    raw = (Config.get("AUTH_UI_BASE_URL", "") or "").strip().rstrip("/")
     if not raw:
         return "http://localhost:3000"
     return raw
