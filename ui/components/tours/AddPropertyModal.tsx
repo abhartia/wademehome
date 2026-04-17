@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import {
   Plus,
   Loader2,
@@ -8,6 +9,7 @@ import {
   CheckCircle2,
   X,
   RotateCw,
+  ExternalLink,
 } from "lucide-react";
 
 import {
@@ -25,6 +27,10 @@ import {
 } from "@/lib/userListings/useUserListings";
 import { useActiveGroupId } from "@/lib/groups/activeGroup";
 import { useMyGroups } from "@/lib/groups/api";
+import {
+  usePropertyFavorites,
+  useToggleFavorite,
+} from "@/lib/properties/api";
 
 type ItemStatus = "processing" | "saved" | "dedupe" | "error";
 
@@ -52,6 +58,14 @@ export function AddPropertyModal() {
   const pasteMut = usePasteAndCreate();
   const activeGroupId = useActiveGroupId();
   const groupsQuery = useMyGroups();
+  const toggleFavoriteMut = useToggleFavorite({ groupId: activeGroupId });
+  const favoritesQuery = usePropertyFavorites({
+    groupId: activeGroupId,
+    enabled: open,
+  });
+  const favoritedKeys = new Set(
+    (favoritesQuery.data?.favorites ?? []).map((f) => f.property_key),
+  );
   const activeGroupName =
     activeGroupId && groupsQuery.data?.groups
       ? (groupsQuery.data.groups.find((g) => g.id === activeGroupId)?.name ??
@@ -181,6 +195,67 @@ export function AddPropertyModal() {
   const dismiss = (id: string) =>
     setQueue((prev) => prev.filter((i) => i.id !== id));
 
+  // "Use existing" path: favorite the matched property (under the active group)
+  // instead of creating a new user-added listing. If it's already in the user's
+  // saved list, skip the toggle — otherwise useToggleFavorite would flip it off.
+  const useExisting = useCallback(
+    async (itemId: string, match: DedupeMatch) => {
+      if (favoritedKeys.has(match.property_key)) {
+        setQueue((prev) =>
+          prev.map((i) =>
+            i.id === itemId
+              ? {
+                  ...i,
+                  status: "saved",
+                  savedName: match.name || match.address,
+                }
+              : i,
+          ),
+        );
+        return;
+      }
+      setQueue((prev) =>
+        prev.map((i) =>
+          i.id === itemId ? { ...i, status: "processing" } : i,
+        ),
+      );
+      try {
+        await toggleFavoriteMut.mutateAsync({
+          propertyKey: match.property_key,
+          propertyName: match.name,
+          propertyAddress: match.address,
+        });
+        setQueue((prev) =>
+          prev.map((i) =>
+            i.id === itemId
+              ? {
+                  ...i,
+                  status: "saved",
+                  savedName: match.name || match.address,
+                }
+              : i,
+          ),
+        );
+      } catch (err) {
+        setQueue((prev) =>
+          prev.map((i) =>
+            i.id === itemId
+              ? {
+                  ...i,
+                  status: "error",
+                  errorMessage:
+                    err instanceof Error
+                      ? err.message
+                      : "Could not favorite match.",
+                }
+              : i,
+          ),
+        );
+      }
+    },
+    [toggleFavoriteMut, favoritedKeys],
+  );
+
   const processingCount = queue.filter((i) => i.status === "processing").length;
 
   return (
@@ -248,6 +323,8 @@ export function AddPropertyModal() {
                 item={item}
                 onRetry={(force) => void submit(item.text, force, item.id)}
                 onDismiss={() => dismiss(item.id)}
+                onUseExisting={(match) => void useExisting(item.id, match)}
+                favoritedKeys={favoritedKeys}
               />
             ))}
           </ul>
@@ -261,16 +338,20 @@ function QueueRow({
   item,
   onRetry,
   onDismiss,
+  onUseExisting,
+  favoritedKeys,
 }: {
   item: QueueItem;
   onRetry: (force: boolean) => void;
   onDismiss: () => void;
+  onUseExisting: (match: DedupeMatch) => void;
+  favoritedKeys: Set<string>;
 }) {
   return (
     <li className="rounded-md border bg-muted/30 px-3 py-2 text-xs">
       <div className="flex items-start gap-2">
         <StatusIcon status={item.status} />
-        <div className="flex-1 space-y-1">
+        <div className="min-w-0 flex-1 space-y-1">
           <div className="truncate font-medium">
             {item.status === "saved" && item.savedName
               ? item.savedName
@@ -307,29 +388,13 @@ function QueueRow({
           )}
 
           {item.status === "dedupe" && item.dedupeMatches && (
-            <div className="space-y-1">
-              <p className="text-[11px] text-amber-800">
-                Might already exist — matched{" "}
-                <strong>{item.dedupeMatches[0].name}</strong>.
-              </p>
-              <div className="flex gap-1.5">
-                <Button
-                  size="sm"
-                  className="h-6 gap-1 text-[10px]"
-                  onClick={() => onRetry(true)}
-                >
-                  Save anyway
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-6 text-[10px]"
-                  onClick={onDismiss}
-                >
-                  Skip
-                </Button>
-              </div>
-            </div>
+            <DedupeDetails
+              matches={item.dedupeMatches}
+              onUseExisting={onUseExisting}
+              onSaveAnyway={() => onRetry(true)}
+              onSkip={onDismiss}
+              favoritedKeys={favoritedKeys}
+            />
           )}
         </div>
 
@@ -345,6 +410,91 @@ function QueueRow({
         )}
       </div>
     </li>
+  );
+}
+
+function DedupeDetails({
+  matches,
+  onUseExisting,
+  onSaveAnyway,
+  onSkip,
+  favoritedKeys,
+}: {
+  matches: DedupeMatch[];
+  onUseExisting: (match: DedupeMatch) => void;
+  onSaveAnyway: () => void;
+  onSkip: () => void;
+  favoritedKeys: Set<string>;
+}) {
+  const top = matches[0];
+  const friendlyName =
+    top.name && top.name.toLowerCase() !== "property" ? top.name : null;
+  const distanceLabel =
+    Number.isFinite(top.distance_meters) && top.distance_meters > 0
+      ? `${Math.round(top.distance_meters)}m away`
+      : null;
+  const alreadyFavorited = favoritedKeys.has(top.property_key);
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] text-amber-800">
+        Might already exist — matched {friendlyName ?? "this address"}:
+      </p>
+      <div className="space-y-1 rounded border border-amber-200 bg-white p-2">
+        {friendlyName && (
+          <div className="truncate text-[11px] font-medium">
+            {friendlyName}
+          </div>
+        )}
+        <div className="truncate text-[11px] text-muted-foreground">
+          {top.address}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
+          {distanceLabel && <span>{distanceLabel}</span>}
+          {top.is_user_contributed && <span>· User-added</span>}
+          {alreadyFavorited && <span>· Already in your Saved list</span>}
+        </div>
+        <Link
+          href={`/properties/${encodeURIComponent(top.property_key)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+        >
+          View match <ExternalLink className="h-2.5 w-2.5" />
+        </Link>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <Button
+          size="sm"
+          className="h-6 gap-1 text-[10px]"
+          onClick={() => onUseExisting(top)}
+          disabled={alreadyFavorited}
+          title={
+            alreadyFavorited
+              ? "This match is already in your Saved list."
+              : "Add the existing match to your Saved list."
+          }
+        >
+          {alreadyFavorited ? "Already saved" : "Use existing"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-6 text-[10px]"
+          onClick={onSaveAnyway}
+        >
+          Save as new
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-6 text-[10px]"
+          onClick={onSkip}
+        >
+          Skip
+        </Button>
+      </div>
+    </div>
   );
 }
 
