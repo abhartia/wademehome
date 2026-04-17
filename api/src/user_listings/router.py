@@ -68,23 +68,34 @@ def dedupe_check(
 def _perform_create(
     payload: CreateUserListingRequest, user: Users, db: Session
 ) -> CreateUserListingResponse:
-    """Shared by POST / and POST /paste — listing insert + favorite + saved tour."""
+    """Shared by POST / and POST /paste — listing insert + favorite + saved tour.
+
+    Respects payload.group_id so the favorite entry is scoped to the sidebar's
+    active group when the user is working in a group context. The underlying
+    listings row is still per-user (contributed_by_user_id); group scoping only
+    affects the PropertyFavorites link so the /saved view filters correctly.
+    """
     created = create_user_listing(payload, user.id)
 
-    existing_fav = (
-        db.query(PropertyFavorites)
-        .filter(
-            PropertyFavorites.user_id == user.id,
-            PropertyFavorites.group_id.is_(None),
-            PropertyFavorites.property_key == created.property_key,
-        )
-        .one_or_none()
-    )
+    # Normalize empty-string to None — a blank sidebar selection should not land
+    # as an unknown group_id in the DB.
+    fav_group_id = (payload.group_id or None) if payload.group_id else None
+
+    fav_filters = [
+        PropertyFavorites.user_id == user.id,
+        PropertyFavorites.property_key == created.property_key,
+    ]
+    if fav_group_id is None:
+        fav_filters.append(PropertyFavorites.group_id.is_(None))
+    else:
+        fav_filters.append(PropertyFavorites.group_id == fav_group_id)
+
+    existing_fav = db.query(PropertyFavorites).filter(*fav_filters).one_or_none()
     if existing_fav is None:
         db.add(
             PropertyFavorites(
                 user_id=user.id,
-                group_id=None,
+                group_id=fav_group_id,
                 property_key=created.property_key,
                 property_name=created.name,
                 property_address=created.address,
@@ -192,6 +203,7 @@ async def paste_and_create(
         baths=prefill.baths,
         source_url=prefill.source_url,
         image_url=prefill.image_url,
+        group_id=payload.group_id,
     )
     try:
         created = _perform_create(create_payload, user, db)

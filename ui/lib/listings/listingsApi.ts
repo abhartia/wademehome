@@ -23,10 +23,13 @@ export async function listingsFetch<T>(path: string, init?: RequestInit): Promis
     headers["Content-Type"] = "application/json";
   }
   Object.assign(headers, init?.headers as Record<string, string> | undefined);
+  // Order matters: spread init FIRST so our merged headers (including caller's
+  // override) are the authoritative ones — the previous order had init.headers
+  // silently nuking the merge.
   const response = await fetch(url, {
     credentials: "include",
-    headers,
     ...init,
+    headers,
   });
   if (!response.ok) {
     const text = await response.text();

@@ -156,10 +156,12 @@ export function usePasteAndCreate() {
     mutationFn: async (input: {
       text: string;
       force?: boolean;
+      groupId?: string | null;
     }): Promise<PasteCreateResponse> => {
       return rawPost<PasteCreateResponse>("/user-listings/paste", {
         text: input.text,
         force: input.force ?? false,
+        group_id: input.groupId ?? null,
       });
     },
     onSuccess: async (res) => {

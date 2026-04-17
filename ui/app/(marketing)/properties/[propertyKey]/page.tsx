@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { listingsFetch } from "@/lib/listings/listingsApi";
 import { normalizePropertyDataItem } from "@/lib/properties/normalizePropertyDataItem";
@@ -11,9 +12,23 @@ const baseUrl =
 type Props = { params: Promise<{ propertyKey: string }> };
 
 async function fetchProperty(propertyKey: string): Promise<PropertyDataItem | null> {
+  // Forward the browser's cookies so the API can identify the contributor —
+  // private user-added listings 404 otherwise (visibility check in
+  // /listings/by-property-key). Public rows resolve either way.
+  let cookieHeader = "";
+  try {
+    const store = await cookies();
+    cookieHeader = store
+      .getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join("; ");
+  } catch {
+    // outside a request scope (build-time metadata probe) — continue anonymously
+  }
   try {
     const raw = await listingsFetch<ApiPropertyRow>(
       `/listings/by-property-key?property_key=${encodeURIComponent(propertyKey)}`,
+      cookieHeader ? { headers: { cookie: cookieHeader } } : undefined,
     );
     return normalizePropertyDataItem(raw);
   } catch {

@@ -81,6 +81,7 @@ class CreateUserListingRequest(BaseModel):
     baths: str | None = Field(default=None, max_length=32)
     source_url: str | None = Field(default=None, max_length=2048)
     image_url: str | None = Field(default=None, max_length=2048)
+    group_id: str | None = Field(default=None, max_length=64)
 
 
 class CreateUserListingResponse(BaseModel):
@@ -107,6 +108,7 @@ class PasteCreateRequest(BaseModel):
 
     text: str = Field(..., min_length=3, max_length=4000)
     force: bool = False  # skip dedupe warning and save anyway
+    group_id: str | None = Field(default=None, max_length=64)
 
 
 class PasteCreateResponse(BaseModel):

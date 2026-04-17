@@ -23,6 +23,8 @@ import {
   DedupeMatch,
   usePasteAndCreate,
 } from "@/lib/userListings/useUserListings";
+import { useActiveGroupId } from "@/lib/groups/activeGroup";
+import { useMyGroups } from "@/lib/groups/api";
 
 type ItemStatus = "processing" | "saved" | "dedupe" | "error";
 
@@ -48,6 +50,13 @@ export function AddPropertyModal() {
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const pasteMut = usePasteAndCreate();
+  const activeGroupId = useActiveGroupId();
+  const groupsQuery = useMyGroups();
+  const activeGroupName =
+    activeGroupId && groupsQuery.data?.groups
+      ? (groupsQuery.data.groups.find((g) => g.id === activeGroupId)?.name ??
+        null)
+      : null;
 
   const reset = useCallback(() => {
     setPasted("");
@@ -98,7 +107,11 @@ export function AddPropertyModal() {
       });
 
       try {
-        const res = await pasteMut.mutateAsync({ text: trimmed, force });
+        const res = await pasteMut.mutateAsync({
+          text: trimmed,
+          force,
+          groupId: activeGroupId,
+        });
         setQueue((prev) =>
           prev.map((i) => {
             if (i.id !== id) return i;
@@ -141,7 +154,7 @@ export function AddPropertyModal() {
         );
       }
     },
-    [pasteMut],
+    [pasteMut, activeGroupId],
   );
 
   const handlePasteEvent = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -188,6 +201,16 @@ export function AddPropertyModal() {
             Paste a Zillow / StreetEasy / Apartments.com share message — or just
             a URL. Each paste queues and processes on its own; you can paste the
             next one right away.
+            {activeGroupName ? (
+              <>
+                {" "}
+                Saving to{" "}
+                <strong className="font-medium text-foreground">
+                  {activeGroupName}
+                </strong>
+                .
+              </>
+            ) : null}
           </DialogDescription>
         </DialogHeader>
 
