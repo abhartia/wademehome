@@ -37,6 +37,9 @@ _FETCH_TIMEOUT = 8.0
 _MAX_HTML_BYTES = 2_000_000
 _MAX_LLM_CHARS = 15_000
 
+# Zillow whitelists this honest-bot pattern; browser UAs get 403'd there. Apartments.com's
+# Akamai WAF blocks both — for that case we fall back to the address the user pasted in the
+# share blurb (always present in apartments.com shares) and geocode it server-side.
 _USER_AGENT = (
     "Mozilla/5.0 (compatible; WademeHome-ListingImporter/1.0; +https://wademe.home)"
 )

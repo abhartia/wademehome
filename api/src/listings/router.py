@@ -26,6 +26,8 @@ from listings.schemas import (
     GeocodeResponse,
     MarketSnapshotResponse,
     NearbyListingsResponse,
+    NearestTransitResponse,
+    NearestTransitStation,
     PoiHit,
     PoiNearbyResponse,
     SitemapKeysResponse,
@@ -1092,3 +1094,90 @@ def poi_nearby(
         if not token:
             raise HTTPException(status_code=503, detail="POI search unavailable")
     return result
+
+
+# ── Nearest transit ───────────────────────────────────────────────────
+# Straight-line haversine distance scaled to walk time at 3 mph, with a
+# 20% detour factor to approximate real street-network pathing. This
+# undershoots on grid-only neighborhoods (JSQ, Downtown JC) and slightly
+# overshoots on blocks with diagonal paths — good enough for "is this
+# listing walkable to PATH?" filtering without requiring a routing API.
+_WALK_SPEED_MPH = 3.0
+_WALK_DETOUR = 1.2
+
+
+def _haversine_miles(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    r_mi = 3958.7613
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lng2 - lng1)
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return r_mi * c
+
+
+@router.get("/nearest-transit", response_model=NearestTransitResponse)
+def nearest_transit(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+    systems: str | None = Query(
+        default=None,
+        description=(
+            "Comma-separated list of transit systems to consider "
+            "(e.g. 'path,hblr,ferry'). Omit for all systems."
+        ),
+    ),
+    limit: int = Query(default=5, ge=1, le=25),
+    max_walk_minutes: int | None = Query(default=None, ge=1, le=60),
+) -> NearestTransitResponse:
+    """Return the N nearest transit stations to a given point, with straight-line
+    walk times at 3 mph + 20% detour overhead. Used for filtering/labeling
+    JC listings by PATH/HBLR/ferry proximity."""
+    allowed_systems: set[str] | None = None
+    if systems:
+        allowed_systems = {s.strip() for s in systems.split(",") if s.strip()}
+        if not allowed_systems:
+            allowed_systems = None
+
+    sql = """
+        SELECT system::text, station_name, lines, latitude, longitude
+        FROM transit_stations
+    """
+    params: dict[str, Any] = {}
+    if allowed_systems:
+        sql += " WHERE system::text = ANY(:systems)"
+        params["systems"] = list(allowed_systems)
+
+    with engine.connect() as conn:
+        rows = conn.execute(text(sql), params).mappings().all()
+
+    scored: list[NearestTransitStation] = []
+    for r in rows:
+        d_mi = _haversine_miles(
+            latitude, longitude, float(r["latitude"]), float(r["longitude"])
+        )
+        walk_min = int(round((d_mi / _WALK_SPEED_MPH) * 60 * _WALK_DETOUR))
+        if max_walk_minutes is not None and walk_min > max_walk_minutes:
+            continue
+        scored.append(
+            NearestTransitStation(
+                system=r["system"],
+                station_name=r["station_name"],
+                lines=list(r["lines"] or []),
+                latitude=float(r["latitude"]),
+                longitude=float(r["longitude"]),
+                distance_miles=round(d_mi, 3),
+                walk_minutes=walk_min,
+            )
+        )
+
+    scored.sort(key=lambda s: (s.walk_minutes, s.distance_miles))
+    return NearestTransitResponse(
+        latitude=latitude,
+        longitude=longitude,
+        stations=scored[:limit],
+    )

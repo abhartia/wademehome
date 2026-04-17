@@ -102,6 +102,12 @@ export function GuestHomeIntroDisclosure() {
           <Link href="/blog" className={linkQuiet}>
             Renter guides
           </Link>
+          <Link href="/nyc-rent-by-neighborhood" className={linkQuiet}>
+            NYC rent by neighborhood
+          </Link>
+          <Link href="/jersey-city" className={linkQuiet}>
+            Jersey City guide
+          </Link>
           <Link href="/for-property-managers" className={linkQuiet}>
             Property managers
           </Link>

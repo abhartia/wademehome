@@ -358,6 +358,69 @@ export default function NYCRentByNeighborhoodPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Jersey City (PATH to Manhattan)</CardTitle>
+              <CardDescription>
+                $400 to $1,000 cheaper than Manhattan for the same PATH-train
+                commute
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                If your job is in the Financial District or Midtown and you
+                are open to crossing the Hudson, Jersey City is the single
+                biggest rent arbitrage in the metro. A 1BR at a new tower in{" "}
+                <Link
+                  href="/jersey-city/downtown"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Downtown Jersey City
+                </Link>{" "}
+                runs $3,500 to $4,500 — the same unit specs in Tribeca or
+                Battery Park City run $5,500 to $7,000. PATH trains from
+                Grove Street and Exchange Place hit the World Trade Center in
+                4 to 7 minutes, faster than most Manhattan subway rides to
+                the same building.
+              </p>
+              <p>
+                <Link
+                  href="/jersey-city/journal-square"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Journal Square
+                </Link>{" "}
+                ($2,950 to $3,500 for a new-tower 1BR) is the cheapest
+                PATH-adjacent submarket, with a construction wave since 2019
+                delivering the Greyson, 505 Summit, and Journal Squared.{" "}
+                <Link
+                  href="/jersey-city/newport"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Newport
+                </Link>{" "}
+                ($3,300 to $4,500) is LeFrak&apos;s master-planned
+                amenity-dense waterfront with direct PATH service to 33rd
+                Street — the only JC submarket with a single-ride Midtown
+                commute.
+              </p>
+              <p>
+                Renter protections differ from NYC. NJ caps security deposits
+                at 1.5 months (tighter than NY), the NJ Anti-Eviction Act
+                requires cause for non-renewal after year one, and pre-1987
+                buildings with 5+ units are rent-controlled under the JC
+                ordinance. See the{" "}
+                <Link
+                  href="/jersey-city"
+                  className="text-primary underline underline-offset-2"
+                >
+                  full Jersey City guide
+                </Link>{" "}
+                for rent breakdowns, transit math, and building-level data.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>The 40x Rule and What You Actually Need</CardTitle>
               <CardDescription>
                 How income requirements shape where you can rent
@@ -595,6 +658,38 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Long Island City (LIC): Luxury Towers &amp; Waterfront Rent
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Jersey City: PATH-to-Manhattan Rent &amp; Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/downtown"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Downtown Jersey City: Grove Street &amp; Exchange Place
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/journal-square"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Journal Square: Cheapest PATH-Adjacent Submarket
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/newport"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Newport: LeFrak Waterfront &amp; Direct Midtown PATH
                   </Link>
                 </li>
                 <li>

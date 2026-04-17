@@ -100,3 +100,18 @@ class VisibilityUpdateRequest(BaseModel):
 class DuplicateConflictResponse(BaseModel):
     detail: str
     match: DedupeMatch
+
+
+class PasteCreateRequest(BaseModel):
+    """One-shot: parse + geocode + create. For the fire-and-forget paste queue."""
+
+    text: str = Field(..., min_length=3, max_length=4000)
+    force: bool = False  # skip dedupe warning and save anyway
+
+
+class PasteCreateResponse(BaseModel):
+    """Exactly one of (listing, dedupe_matches, parse_error) is meaningfully populated."""
+
+    listing: CreateUserListingResponse | None = None
+    dedupe_matches: list[DedupeMatch] = []
+    parse_error: str | None = None

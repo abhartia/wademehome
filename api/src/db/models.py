@@ -1561,6 +1561,15 @@ class ReviewLandlordRelation(str, Enum):
     both = "both"
 
 
+class TransitSystem(str, Enum):
+    path = "path"
+    hblr = "hblr"
+    nyc_subway = "nyc_subway"
+    lirr = "lirr"
+    nj_transit_rail = "nj_transit_rail"
+    ferry = "ferry"
+
+
 class ReviewDimension(str, Enum):
     responsiveness = "responsiveness"
     maintenance = "maintenance"
@@ -1681,6 +1690,39 @@ class Buildings(Base):
         back_populates="building", cascade="all, delete-orphan"
     )
     reviews: Mapped[list["Reviews"]] = relationship(back_populates="building")
+
+
+class TransitStations(Base):
+    __tablename__ = "transit_stations"
+    __table_args__ = (
+        UniqueConstraint("system", "station_name", name="uq_transit_system_name"),
+        Index("ix_transit_stations_system", "system"),
+        Index("ix_transit_stations_lat_lng", "latitude", "longitude"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    system: Mapped[TransitSystem] = mapped_column(
+        SQLEnum(TransitSystem, name="transit_system", create_type=False), nullable=False
+    )
+    station_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    lines: Mapped[list[str] | None] = mapped_column(ARRAY(String(64)))
+    latitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
+    longitude: Mapped[Decimal] = mapped_column(Numeric(11, 7), nullable=False)
+    city: Mapped[str | None] = mapped_column(String(128))
+    state: Mapped[str | None] = mapped_column(String(8))
+    borough: Mapped[str | None] = mapped_column(String(64))
+    external_id: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
 
 class LandlordEntities(Base):

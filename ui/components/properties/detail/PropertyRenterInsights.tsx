@@ -15,6 +15,7 @@ import { useCommuteMatrix } from "@/lib/listings/useCommuteMatrix";
 import { useMarketSnapshot } from "@/lib/listings/useMarketSnapshot";
 import { useOpenMeteoPropertyInsights } from "@/lib/listings/useOpenMeteoPropertyInsights";
 import { usePoiNearby } from "@/lib/listings/usePoiNearby";
+import { useNearestTransit } from "@/lib/listings/useNearestTransit";
 import { isApiConfigured } from "@/lib/api/isApiConfigured";
 import { geocodeAddressListingsGeocodePostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -116,6 +117,11 @@ export function PropertyRenterInsights({
   const poi = usePoiNearby(mapLatitude ?? undefined, mapLongitude ?? undefined, {
     enabled: locationReady,
   });
+  const transit = useNearestTransit(
+    mapLatitude ?? undefined,
+    mapLongitude ?? undefined,
+    { enabled: locationReady, limit: 5, maxWalkMinutes: 25 },
+  );
   const { weather, air } = useOpenMeteoPropertyInsights(
     mapLatitude ?? undefined,
     mapLongitude ?? undefined,
@@ -315,6 +321,62 @@ export function PropertyRenterInsights({
                       ) : (
                         "none found in quick search"
                       )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Nearest transit</CardTitle>
+          <CardDescription>
+            Straight-line walk time at 3 mph with a 20% detour factor. Covers
+            PATH, Hudson-Bergen Light Rail, and NY Waterway ferry landings.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {!locationReady ? (
+            <p className="text-muted-foreground">
+              Available once the listing has a map pin.
+            </p>
+          ) : !apiConfigured ? (
+            <p className="text-muted-foreground">API not configured.</p>
+          ) : transit.isLoading ? (
+            <Skeleton className="h-16 w-full" />
+          ) : transit.isError ? (
+            <p className="text-muted-foreground">
+              Couldn&apos;t load transit data.
+            </p>
+          ) : !transit.data || transit.data.stations.length === 0 ? (
+            <p className="text-muted-foreground">
+              No PATH, light rail, or ferry stops within a 25-minute walk.
+            </p>
+          ) : (
+            <ul className="space-y-1">
+              {transit.data.stations.map((s) => {
+                const label =
+                  s.system === "path"
+                    ? "PATH"
+                    : s.system === "hblr"
+                      ? "Light Rail"
+                      : s.system === "ferry"
+                        ? "Ferry"
+                        : s.system;
+                return (
+                  <li
+                    key={`${s.system}-${s.station_name}`}
+                    className="flex flex-wrap items-baseline justify-between gap-2"
+                  >
+                    <span className="font-medium">
+                      {s.station_name}{" "}
+                      <span className="text-muted-foreground">({label})</span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      {s.walk_minutes} min walk · {s.distance_miles.toFixed(2)} mi
                     </span>
                   </li>
                 );

@@ -77,3 +77,24 @@ class NearbyListingsResponse(BaseModel):
         default=False,
         description="True when results were filtered by west/south/east/north bounding box.",
     )
+
+
+class NearestTransitStation(BaseModel):
+    system: str = Field(description="path | hblr | nyc_subway | lirr | nj_transit_rail | ferry")
+    station_name: str
+    lines: list[str] = Field(default_factory=list)
+    latitude: float
+    longitude: float
+    distance_miles: float = Field(ge=0)
+    walk_minutes: int = Field(
+        ge=0,
+        description="Estimated straight-line walk time at 3 mph (adds ~20% detour overhead).",
+    )
+
+
+class NearestTransitResponse(BaseModel):
+    latitude: float
+    longitude: float
+    stations: list[NearestTransitStation] = Field(
+        description="Nearest stations across requested systems, sorted by walk time ascending.",
+    )

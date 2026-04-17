@@ -15,6 +15,8 @@ from user_listings.schemas import (
     DedupeCheckResponse,
     ParseUrlRequest,
     ParseUrlResponse,
+    PasteCreateRequest,
+    PasteCreateResponse,
     VisibilityUpdateRequest,
 )
 from user_listings.service import (
@@ -63,19 +65,12 @@ def dedupe_check(
     return DedupeCheckResponse(matches=matches)
 
 
-@router.post(
-    "",
-    response_model=CreateUserListingResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_listing(
-    payload: CreateUserListingRequest,
-    user: Users = Depends(get_current_user),
-    db: Session = Depends(get_db),
+def _perform_create(
+    payload: CreateUserListingRequest, user: Users, db: Session
 ) -> CreateUserListingResponse:
+    """Shared by POST / and POST /paste — listing insert + favorite + saved tour."""
     created = create_user_listing(payload, user.id)
 
-    # Auto-favorite so the user sees it in their favorites/search UI.
     existing_fav = (
         db.query(PropertyFavorites)
         .filter(
@@ -96,7 +91,6 @@ def create_listing(
             )
         )
 
-    # Also drop a saved-status tour so the property shows in the Saved tab of /tours.
     existing_tour = (
         db.query(UserTours)
         .filter(
@@ -130,6 +124,89 @@ def create_listing(
         image_url=created.image_url,
         visibility="private",
     )
+
+
+@router.post(
+    "",
+    response_model=CreateUserListingResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_listing(
+    payload: CreateUserListingRequest,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CreateUserListingResponse:
+    return _perform_create(payload, user, db)
+
+
+@router.post("/paste", response_model=PasteCreateResponse)
+async def paste_and_create(
+    payload: PasteCreateRequest,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> PasteCreateResponse:
+    """Fire-and-forget endpoint: parse + geocode + dedupe-check + create in one call.
+
+    Returns one of three outcomes so the client can show a terminal state per
+    queued paste without extra round trips:
+      * listing populated → saved
+      * dedupe_matches non-empty → user must confirm (retry with force=True)
+      * parse_error populated → couldn't recover an address / coords
+    """
+    text = (payload.text or "").strip()
+    if not text:
+        return PasteCreateResponse(parse_error="Nothing to parse.")
+
+    prefill, parsed = await parse_listing_paste(text)
+    if not parsed or not prefill.address:
+        return PasteCreateResponse(
+            parse_error="Couldn't extract an address from that paste.",
+        )
+    if prefill.latitude is None or prefill.longitude is None:
+        return PasteCreateResponse(
+            parse_error="Got an address but couldn't geocode it. Try a more specific address.",
+        )
+
+    if not payload.force:
+        matches = run_dedupe(
+            latitude=prefill.latitude,
+            longitude=prefill.longitude,
+            address=prefill.address,
+            current_user_id=user.id,
+            visibility_scope="private_add",
+        )
+        if matches:
+            return PasteCreateResponse(dedupe_matches=matches)
+
+    create_payload = CreateUserListingRequest(
+        name=prefill.name or prefill.address,
+        address=prefill.address,
+        unit=prefill.unit,
+        city=prefill.city,
+        state=prefill.state,
+        zipcode=prefill.zipcode,
+        latitude=prefill.latitude,
+        longitude=prefill.longitude,
+        price=prefill.price,
+        beds=prefill.beds,
+        baths=prefill.baths,
+        source_url=prefill.source_url,
+        image_url=prefill.image_url,
+    )
+    try:
+        created = _perform_create(create_payload, user, db)
+    except HTTPException as exc:
+        # Exact property_key collision is rare but real (same address saved twice
+        # in quick succession) — surface as a parse_error so the chip can show it.
+        detail = exc.detail
+        message = (
+            detail.get("message")
+            if isinstance(detail, dict) and "message" in detail
+            else str(detail)
+        )
+        return PasteCreateResponse(parse_error=message or "Could not save listing.")
+
+    return PasteCreateResponse(listing=created)
 
 
 @router.patch("/{property_key}/visibility", response_model=CreateUserListingResponse)

@@ -2,7 +2,6 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/api/generated/client.gen";
-import { listFavoritesPropertiesFavoritesGetQueryKey, readToursToursGetQueryKey } from "@/lib/api/generated/@tanstack/react-query.gen";
 
 export type Visibility = "private" | "public";
 
@@ -140,6 +139,37 @@ async function rawDelete(url: string): Promise<void> {
   }
 }
 
+export interface PasteCreateResponse {
+  listing: CreateUserListingResponse | null;
+  dedupe_matches: DedupeMatch[];
+  parse_error: string | null;
+}
+
+/**
+ * One-shot paste→create mutation. Server parses text, geocodes, dedupe-checks,
+ * and creates the listing; the client just needs to dispatch per paste. Invalidates
+ * /saved and /tours on success so the new row shows up without a manual refresh.
+ */
+export function usePasteAndCreate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      text: string;
+      force?: boolean;
+    }): Promise<PasteCreateResponse> => {
+      return rawPost<PasteCreateResponse>("/user-listings/paste", {
+        text: input.text,
+        force: input.force ?? false,
+      });
+    },
+    onSuccess: async (res) => {
+      if (res.listing) {
+        await invalidateFavoritesAndTours(qc);
+      }
+    },
+  });
+}
+
 export function useParseListingUrl() {
   return useMutation({
     mutationFn: async (
@@ -175,6 +205,23 @@ export function useDedupeCheck() {
   });
 }
 
+// hey-api keys are `[{ _id, baseUrl, query? }]` — react-query's default prefix
+// match doesn't bridge across different `query` objects, so a plain-options
+// invalidate misses the group-scoped variant on /saved. Predicate matches by
+// the endpoint id regardless of group_id.
+function invalidateFavoritesAndTours(qc: ReturnType<typeof useQueryClient>) {
+  return qc.invalidateQueries({
+    predicate: (q) => {
+      const head = q.queryKey?.[0] as { _id?: string } | undefined;
+      const id = head?._id;
+      return (
+        id === "listFavoritesPropertiesFavoritesGet" ||
+        id === "readToursToursGet"
+      );
+    },
+  });
+}
+
 export function useCreateUserListing() {
   const qc = useQueryClient();
   return useMutation({
@@ -184,16 +231,7 @@ export function useCreateUserListing() {
       return rawPost<CreateUserListingResponse>("/user-listings", body);
     },
     onSuccess: async () => {
-      await Promise.all([
-        qc.invalidateQueries({
-          queryKey: readToursToursGetQueryKey({
-            query: { limit: 200, offset: 0, sort: "created_at_desc" },
-          }),
-        }),
-        qc.invalidateQueries({
-          queryKey: listFavoritesPropertiesFavoritesGetQueryKey({}),
-        }),
-      ]);
+      await invalidateFavoritesAndTours(qc);
     },
   });
 }
@@ -211,11 +249,7 @@ export function useSetUserListingVisibility() {
       );
     },
     onSuccess: async () => {
-      await qc.invalidateQueries({
-        queryKey: readToursToursGetQueryKey({
-          query: { limit: 200, offset: 0, sort: "created_at_desc" },
-        }),
-      });
+      await invalidateFavoritesAndTours(qc);
     },
   });
 }
@@ -227,16 +261,7 @@ export function useDeleteUserListing() {
       await rawDelete(`/user-listings/${encodeURIComponent(propertyKey)}`);
     },
     onSuccess: async () => {
-      await Promise.all([
-        qc.invalidateQueries({
-          queryKey: readToursToursGetQueryKey({
-            query: { limit: 200, offset: 0, sort: "created_at_desc" },
-          }),
-        }),
-        qc.invalidateQueries({
-          queryKey: listFavoritesPropertiesFavoritesGetQueryKey({}),
-        }),
-      ]);
+      await invalidateFavoritesAndTours(qc);
     },
   });
 }
