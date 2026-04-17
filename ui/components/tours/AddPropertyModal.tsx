@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -63,8 +63,15 @@ export function AddPropertyModal() {
     groupId: activeGroupId,
     enabled: open,
   });
-  const favoritedKeys = new Set(
-    (favoritesQuery.data?.favorites ?? []).map((f) => f.property_key),
+  // Memoize so the "Use existing" callback's identity stays stable across
+  // unrelated renders — eslint's exhaustive-deps also flags a fresh Set each
+  // render as a changing dep.
+  const favoritedKeys = useMemo(
+    () =>
+      new Set(
+        (favoritesQuery.data?.favorites ?? []).map((f) => f.property_key),
+      ),
+    [favoritesQuery.data?.favorites],
   );
   const activeGroupName =
     activeGroupId && groupsQuery.data?.groups
@@ -198,7 +205,7 @@ export function AddPropertyModal() {
   // "Use existing" path: favorite the matched property (under the active group)
   // instead of creating a new user-added listing. If it's already in the user's
   // saved list, skip the toggle — otherwise useToggleFavorite would flip it off.
-  const useExisting = useCallback(
+  const adoptExisting = useCallback(
     async (itemId: string, match: DedupeMatch) => {
       if (favoritedKeys.has(match.property_key)) {
         setQueue((prev) =>
@@ -323,7 +330,7 @@ export function AddPropertyModal() {
                 item={item}
                 onRetry={(force) => void submit(item.text, force, item.id)}
                 onDismiss={() => dismiss(item.id)}
-                onUseExisting={(match) => void useExisting(item.id, match)}
+                onUseExisting={(match) => void adoptExisting(item.id, match)}
                 favoritedKeys={favoritedKeys}
               />
             ))}

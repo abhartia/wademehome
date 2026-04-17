@@ -108,7 +108,12 @@ export function PropertyDetailSheet({
   const isFavorited = favoritesForProperty.length > 0;
 
   const groupNotes = groupNotesQuery.data?.notes ?? [];
-  const reactions = reactionsQuery.data?.reactions ?? [];
+  // Wrap the `?? []` in its own memo so the reference is stable — otherwise the
+  // two downstream memos' deps change every render, defeating memoization.
+  const reactions = useMemo(
+    () => reactionsQuery.data?.reactions ?? [],
+    [reactionsQuery.data?.reactions],
+  );
 
   const reactionsByKind = useMemo(() => {
     const byKind: Record<ReactionKind, typeof reactions> = {

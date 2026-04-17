@@ -209,7 +209,7 @@ export function MoveInProvider({ children }: { children: React.ReactNode }) {
     debounceRef.current = setTimeout(() => {
       patchPlanMut.mutate({ body });
     }, 400);
-  }, [patchPlanMut, planData, queryClient, user]);
+  }, [patchPlanMut, queryClient, user]);
 
   const addOrder = useCallback(
     (order: Omit<VendorOrder, "id" | "createdAt">): string => {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, ChevronDown, Settings } from "lucide-react";
+import { Users, Settings } from "lucide-react";
 import {
   Select,
   SelectContent,

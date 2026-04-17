@@ -9,7 +9,6 @@ import {
   leaveGroupGroupsGroupIdLeavePost,
   listInvitesGroupsGroupIdInvitesGet,
   listMembersGroupsGroupIdMembersGet,
-  previewInviteInvitesTokenGet,
   removeMemberGroupsGroupIdMembersUserIdDelete,
   renameGroupGroupsGroupIdPatch,
   revokeInviteGroupsGroupIdInvitesInviteIdDelete,

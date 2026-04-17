@@ -283,12 +283,16 @@ export function PropertyListingsMap({
       });
     })();
 
+    // Snapshot the ref map so cleanup uses the same Map instance we just mutated —
+    // by the time cleanup fires, the ref may point at a new map.
+    const markerByGroupKeyAtMount = markerByGroupKeyRef.current;
+
     return () => {
       cancelled = true;
       setMapReady(false);
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
-      markerByGroupKeyRef.current.clear();
+      markerByGroupKeyAtMount.clear();
       mapInstance?.remove();
       mapRef.current = null;
       mapboxRef.current = null;
@@ -350,6 +354,9 @@ export function PropertyListingsMap({
       zoom: z,
     });
     mapInstance.resize();
+    // fallbackCenter is a prop object; we depend on its lat/lng scalars to avoid
+    // re-running on every render when the parent allocates a fresh wrapper object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapReady, followDataCamera, fallbackCenter.latitude, fallbackCenter.longitude]);
 
   useEffect(() => {

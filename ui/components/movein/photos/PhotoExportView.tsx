@@ -6,7 +6,7 @@ import { usePhotoDocumentation } from "@/lib/hooks/usePhotoDocumentation";
 import { useMoveIn } from "@/components/providers/MoveInProvider";
 
 export function PhotoExportView() {
-  const { rooms, useRoomPhotos } = usePhotoDocumentation();
+  const { rooms } = usePhotoDocumentation();
   const { plan } = useMoveIn();
 
   function handlePrint() {
