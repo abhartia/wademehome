@@ -18,6 +18,7 @@ Rules:
 - `semantic_query` should be a tight English phrase that captures location + intent for vector search (include neighborhood and transit there).
 - **Subjective “avoid” / neighborhood quality** (noise, crime, safety, “rough” areas, “bad neighborhood”, etc.): listings do **not** honestly encode these. Put them only in `soft_preferences` and strengthen `semantic_query`—**never** in `must_not_have_terms`.
 - **`must_not_have_terms`:** only for phrases that often appear **literally** in listing text (e.g. user refuses “broker fee”, “convertible”, a specific phrase). Do not use for vibe/safety/noise.
+- **Street address lookups** (e.g. "269 Terrace Ave", "1600 Pennsylvania"): when the user gives a specific street address without explicitly stating a city, **do NOT guess `city` or `state`** — leave them null. Instead, put the street-number token and the distinctive street-name token into `must_have_terms` (e.g. `["269", "Terrace"]`) so the full-text index can find the exact listing. Strip suffixes like "Ave", "St", "Road", "Blvd" from the terms (they are too common). If the user states the city explicitly alongside the address (e.g. "269 Terrace Ave in Jersey City"), still use `must_have_terms` for the address tokens in addition to the explicit `city`/`state`.
 
 Output schema:
 {

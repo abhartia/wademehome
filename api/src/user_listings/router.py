@@ -20,6 +20,7 @@ from user_listings.schemas import (
     VisibilityUpdateRequest,
 )
 from user_listings.service import (
+    CreatedListing,
     create_user_listing,
     delete_user_listing,
     run_dedupe,
@@ -75,7 +76,32 @@ def _perform_create(
     listings row is still per-user (contributed_by_user_id); group scoping only
     affects the PropertyFavorites link so the /saved view filters correctly.
     """
-    created = create_user_listing(payload, user.id)
+    try:
+        created = create_user_listing(payload, user.id)
+    except HTTPException as exc:
+        # The listing already exists (left over from a prior partial save, or
+        # added by another group member). Reuse it so we still create the
+        # favorite + tour for this user — otherwise the saved tab would stay
+        # empty even though the listing is in the DB.
+        detail = exc.detail
+        if (
+            exc.status_code == status.HTTP_409_CONFLICT
+            and isinstance(detail, dict)
+            and detail.get("code") == "duplicate"
+            and isinstance(detail.get("match"), dict)
+        ):
+            match = detail["match"]
+            created = CreatedListing(
+                property_key=match["property_key"],
+                name=match.get("name") or payload.name,
+                address=match.get("address") or payload.address,
+                latitude=float(match["latitude"]),
+                longitude=float(match["longitude"]),
+                image_url=match.get("image_url"),
+                visibility="private",
+            )
+        else:
+            raise
 
     # Normalize empty-string to None — a blank sidebar selection should not land
     # as an unknown group_id in the DB.

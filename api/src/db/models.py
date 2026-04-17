@@ -410,7 +410,7 @@ class UserTours(Base):
     group_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id", ondelete="SET NULL"), nullable=True
     )
-    property_ref_id: Mapped[str | None] = mapped_column(String(128))
+    property_ref_id: Mapped[str | None] = mapped_column(String(255))
     property_name: Mapped[str] = mapped_column(String(255), nullable=False)
     property_address: Mapped[str] = mapped_column(String(255), nullable=False)
     property_image: Mapped[str | None] = mapped_column(Text)
