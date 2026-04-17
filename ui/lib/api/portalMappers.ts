@@ -4,7 +4,14 @@ import type {
   ProfilePatch,
 } from "@/lib/api/generated/types.gen";
 import type { UserProfile } from "@/lib/types/userProfile";
-import type { Tour, TourNote, TourProperty, TourStatus } from "@/lib/types/tours";
+import type {
+  Tour,
+  TourMedia,
+  TourMediaKind,
+  TourNote,
+  TourProperty,
+  TourStatus,
+} from "@/lib/types/tours";
 import type {
   GuarantorRequest,
   LeaseInfo,
@@ -112,6 +119,16 @@ type TourNoteApi = {
   updated_at: string;
 };
 
+type TourMediaApi = {
+  id: string;
+  media_url: string;
+  media_kind: TourMediaKind;
+  content_type: string | null;
+  file_size_bytes: number | null;
+  sort_order: number;
+  created_at: string;
+};
+
 type TourApi = {
   id: string;
   property: {
@@ -127,6 +144,7 @@ type TourApi = {
   scheduled_date: string;
   scheduled_time: string;
   note: TourNoteApi | null;
+  media?: TourMediaApi[];
   created_at: string;
 };
 
@@ -178,6 +196,15 @@ export function toursFromApi(payload: unknown): Tour[] {
       image: t.property.image,
       tags: t.property.tags ?? [],
     };
+    const media: TourMedia[] = (t.media ?? []).map((m) => ({
+      id: m.id,
+      mediaUrl: m.media_url,
+      mediaKind: m.media_kind,
+      contentType: m.content_type ?? null,
+      fileSizeBytes: m.file_size_bytes ?? null,
+      sortOrder: m.sort_order ?? 0,
+      createdAt: m.created_at ?? "",
+    }));
     return {
       id: t.id,
       property,
@@ -185,6 +212,7 @@ export function toursFromApi(payload: unknown): Tour[] {
       scheduledDate: t.scheduled_date ?? "",
       scheduledTime: t.scheduled_time ?? "",
       note: t.note ? tourNoteFromApi(t.note) : null,
+      media,
       createdAt: t.created_at ?? "",
     };
   });
@@ -207,6 +235,15 @@ export function toursToApiPayload(tours: Tour[]) {
       scheduled_date: t.scheduledDate,
       scheduled_time: t.scheduledTime,
       note: t.note ? tourNoteToApi(t.note) : null,
+      media: t.media.map((m) => ({
+        id: m.id,
+        media_url: m.mediaUrl,
+        media_kind: m.mediaKind,
+        content_type: m.contentType,
+        file_size_bytes: m.fileSizeBytes,
+        sort_order: m.sortOrder,
+        created_at: m.createdAt,
+      })),
       created_at: t.createdAt,
     })),
   };

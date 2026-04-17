@@ -106,12 +106,19 @@ export default function NeighborhoodResearchForRenters() {
             >
               Williamsburg apartment guide
             </Link>
-            , and our{" "}
+            , our{" "}
             <Link
               href="/nyc/astoria"
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
               Astoria apartment guide
+            </Link>
+            , and our{" "}
+            <Link
+              href="/nyc/bushwick"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Bushwick apartment guide
             </Link>
             .
           </p>

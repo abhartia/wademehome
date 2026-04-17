@@ -253,12 +253,18 @@ export default function NYCRentByNeighborhoodPage() {
               </p>
               <p>
                 The sweet spot for many renters is the band of neighborhoods
-                just south and east of Williamsburg. Bushwick offers some of the
-                lowest rents in the borough (one-bedrooms from around $1,500 to
-                $2,200) with L and M train access. Bed-Stuy ($2,000 to $2,800)
-                has beautiful brownstones and multiple subway lines. Crown
-                Heights ($2,200 to $3,000) sits along the 2/3/4/5 lines with a
-                direct shot to Midtown.
+                just south and east of Williamsburg.{" "}
+                <Link
+                  href="/nyc/bushwick"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Bushwick
+                </Link>{" "}
+                offers some of the best value in the borough (one-bedrooms from
+                $2,400 to $3,300) with L and M train access and a vibrant arts
+                scene. Bed-Stuy ($2,000 to $2,800) has beautiful brownstones
+                and multiple subway lines. Crown Heights ($2,200 to $3,000)
+                sits along the 2/3/4/5 lines with a direct shot to Midtown.
               </p>
               <p>
                 Further out, neighborhoods like Sunset Park ($1,800 to $2,400),
@@ -642,6 +648,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Williamsburg: Rent Prices, Transit &amp; Tips
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/bushwick"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Bushwick: Rent Prices, Transit &amp; Neighborhood Guide
                   </Link>
                 </li>
                 <li>

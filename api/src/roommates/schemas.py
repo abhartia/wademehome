@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import uuid
+
 from pydantic import BaseModel, Field
+
+from groups.schemas import GroupInviteResponse
 
 
 class RoommateProfilePayload(BaseModel):
@@ -85,4 +89,24 @@ class RoommateConnectionListResponse(BaseModel):
 
 class RoommateMatchesListResponse(BaseModel):
     matches: list[RoommateProfilePayload] = Field(default_factory=list)
+
+
+class CreateGroupFromConnectionRequest(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+
+
+class CreateGroupFromConnectionResponse(BaseModel):
+    group_id: uuid.UUID
+    group_name: str
+    invite: GroupInviteResponse | None = None
+    already_member: bool = False
+
+
+class InviteConnectionToGroupRequest(BaseModel):
+    group_id: uuid.UUID
+
+
+class InviteConnectionToGroupResponse(BaseModel):
+    invite: GroupInviteResponse | None = None
+    already_member: bool = False
 

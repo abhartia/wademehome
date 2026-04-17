@@ -53,7 +53,10 @@ export default async function BlogArticlePage({ params }: Props) {
     headline: meta.title,
     description: meta.description,
     datePublished: meta.publishedAt,
-    author: { "@type": "Organization", name: "Wade Me Home", url: baseUrl },
+    dateModified: meta.reviewedAt ?? meta.publishedAt,
+    author: meta.author
+      ? { "@type": "Person", name: meta.author, worksFor: { "@type": "Organization", name: "Wade Me Home", url: baseUrl } }
+      : { "@type": "Organization", name: "Wade Me Home", url: baseUrl },
     publisher: { "@type": "Organization", name: "Wade Me Home", url: baseUrl },
     mainEntityOfPage: `${baseUrl}/blog/${slug}`,
     keywords: meta.keywords?.join(", "),
@@ -98,9 +101,13 @@ export default async function BlogArticlePage({ params }: Props) {
         <div className="space-y-3">
           <Badge variant="outline">Guide</Badge>
           <h1 className="text-3xl font-bold tracking-tight">{meta.title}</h1>
-          <p className="text-sm text-muted-foreground">
-            Published {formatDate(meta.publishedAt)}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            {meta.author && <span>By {meta.author}</span>}
+            <span>Published {formatDate(meta.publishedAt)}</span>
+            {meta.reviewedAt && meta.reviewedAt !== meta.publishedAt && (
+              <span>· Last reviewed {formatDate(meta.reviewedAt)}</span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">{meta.description}</p>
         </div>
         <Separator />

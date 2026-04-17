@@ -1,11 +1,11 @@
 {
   "traffic_summary_30d": {
-    "activeUsers": "11",
-    "sessions": "71",
-    "screenPageViews": "478",
-    "averageSessionDuration": "1026.8126505070425",
-    "bounceRate": "0.26760563380281688",
-    "newUsers": "11"
+    "activeUsers": "13",
+    "sessions": "81",
+    "screenPageViews": "541",
+    "averageSessionDuration": "1034.1892686172839",
+    "bounceRate": "0.32098765432098764",
+    "newUsers": "13"
   },
   "traffic_summary_prev_30d": {
     "activeUsers": "0",
@@ -87,15 +87,27 @@
       "activeUsers": "1",
       "sessions": "1",
       "screenPageViews": "2"
+    },
+    {
+      "date": "20260416",
+      "activeUsers": "1",
+      "sessions": "3",
+      "screenPageViews": "36"
+    },
+    {
+      "date": "20260417",
+      "activeUsers": "2",
+      "sessions": "7",
+      "screenPageViews": "27"
     }
   ],
   "top_pages": [
     {
       "pagePath": "/",
-      "screenPageViews": "200",
-      "activeUsers": "7",
-      "averageSessionDuration": "628.02083623076919",
-      "bounceRate": "0.11538461538461539"
+      "screenPageViews": "215",
+      "activeUsers": "9",
+      "averageSessionDuration": "537.31856402941173",
+      "bounceRate": "0.23529411764705882"
     },
     {
       "pagePath": "/search",
@@ -105,11 +117,18 @@
       "bounceRate": "0.24"
     },
     {
+      "pagePath": "/login",
+      "screenPageViews": "41",
+      "activeUsers": "9",
+      "averageSessionDuration": "291.7390728333333",
+      "bounceRate": "0.1111111111111111"
+    },
+    {
       "pagePath": "/app",
-      "screenPageViews": "35",
-      "activeUsers": "3",
-      "averageSessionDuration": "211.35435141176472",
-      "bounceRate": "0.11764705882352941"
+      "screenPageViews": "37",
+      "activeUsers": "4",
+      "averageSessionDuration": "221.70023072222224",
+      "bounceRate": "0.1111111111111111"
     },
     {
       "pagePath": "/admin/inventory",
@@ -117,13 +136,6 @@
       "activeUsers": "1",
       "averageSessionDuration": "855.70366699999988",
       "bounceRate": "0.16666666666666666"
-    },
-    {
-      "pagePath": "/login",
-      "screenPageViews": "30",
-      "activeUsers": "7",
-      "averageSessionDuration": "173.4261886",
-      "bounceRate": "0"
     },
     {
       "pagePath": "/property-manager/analysis",
@@ -154,6 +166,20 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/tours",
+      "screenPageViews": "10",
+      "activeUsers": "2",
+      "averageSessionDuration": "780.7909575",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/saved",
+      "screenPageViews": "8",
+      "activeUsers": "1",
+      "averageSessionDuration": "1437.463264",
+      "bounceRate": "1"
+    },
+    {
       "pagePath": "/roommates",
       "screenPageViews": "6",
       "activeUsers": "1",
@@ -168,18 +194,18 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/tours",
-      "screenPageViews": "4",
-      "activeUsers": "1",
-      "averageSessionDuration": "991.21815",
-      "bounceRate": "0"
-    },
-    {
       "pagePath": "/admin/listings-without-amenities",
       "screenPageViews": "3",
       "activeUsers": "1",
       "averageSessionDuration": "486.80211820000005",
       "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/admin/reviews/verifications",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "169.478222",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
@@ -189,10 +215,38 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/properties/19-belmont-avenue--19-belmont-avenue-jersey-city-nj-07304--40.7188---74.0686",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "1041.147084",
+      "bounceRate": "0"
+    },
+    {
       "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
       "screenPageViews": "3",
       "activeUsers": "1",
       "averageSessionDuration": "105.344856",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/account/reviews",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "211.006493",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/invites/accept",
+      "screenPageViews": "2",
+      "activeUsers": "2",
+      "averageSessionDuration": "19.4517835",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/landlord/reviews",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "64.00413",
       "bounceRate": "0"
     },
     {
@@ -222,53 +276,33 @@
       "activeUsers": "1",
       "averageSessionDuration": "6.7172115",
       "bounceRate": "0"
-    },
-    {
-      "pagePath": "/properties/315-melrose-street-brooklyn-ny--315-melrose-street-brooklyn-ny-11237--40.7032---73.9288",
-      "screenPageViews": "1",
-      "activeUsers": "1",
-      "averageSessionDuration": "220.29165",
-      "bounceRate": "0.5"
-    },
-    {
-      "pagePath": "/properties/98-front-street-7r--98-front-street-7r-brooklyn-ny-11201--40.7020---73.9888",
-      "screenPageViews": "1",
-      "activeUsers": "1",
-      "averageSessionDuration": "211.629367",
-      "bounceRate": "0"
-    },
-    {
-      "pagePath": "/properties/nev-seno--1717-s-michigan-chicago-il-60616--41.8586---87.6235",
-      "screenPageViews": "1",
-      "activeUsers": "1",
-      "averageSessionDuration": "238.789905",
-      "bounceRate": "0"
-    },
-    {
-      "pagePath": "/properties/the-brook--567-fulton-street-brooklyn-ny-11201--40.6896---73.9846",
-      "screenPageViews": "1",
-      "activeUsers": "1",
-      "averageSessionDuration": "88.3713645",
-      "bounceRate": "0.5"
     }
   ],
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "71",
-      "activeUsers": "11",
-      "screenPageViews": "478",
-      "avgDuration": "1026.8126505070425",
-      "bounceRate": "0.26760563380281688"
+      "sessions": "80",
+      "activeUsers": "13",
+      "screenPageViews": "536",
+      "avgDuration": "1043.3722065625002",
+      "bounceRate": "0.3125"
+    },
+    {
+      "channel": "Unassigned",
+      "sessions": "5",
+      "activeUsers": "2",
+      "screenPageViews": "5",
+      "avgDuration": "59.9108466",
+      "bounceRate": "1"
     }
   ],
   "organic_landing_pages": [],
   "devices": [
     {
       "device": "desktop",
-      "sessions": "71",
-      "activeUsers": "11",
-      "bounceRate": "0.26760563380281688"
+      "sessions": "81",
+      "activeUsers": "13",
+      "bounceRate": "0.32098765432098764"
     }
   ],
   "countries": [
@@ -276,28 +310,33 @@
       "country": "United States",
       "sessions": "71",
       "activeUsers": "11"
+    },
+    {
+      "country": "Australia",
+      "sessions": "10",
+      "activeUsers": "3"
     }
   ],
   "events": [
     {
       "event": "page_view",
-      "eventCount": "478",
-      "totalUsers": "11"
+      "eventCount": "541",
+      "totalUsers": "13"
     },
     {
       "event": "scroll",
-      "eventCount": "210",
-      "totalUsers": "11"
+      "eventCount": "250",
+      "totalUsers": "13"
     },
     {
       "event": "user_engagement",
-      "eventCount": "171",
-      "totalUsers": "9"
+      "eventCount": "182",
+      "totalUsers": "10"
     },
     {
       "event": "session_start",
-      "eventCount": "71",
-      "totalUsers": "11"
+      "eventCount": "80",
+      "totalUsers": "13"
     },
     {
       "event": "click",
@@ -310,14 +349,14 @@
       "totalUsers": "5"
     },
     {
-      "event": "form_start",
-      "eventCount": "12",
-      "totalUsers": "6"
+      "event": "first_visit",
+      "eventCount": "13",
+      "totalUsers": "13"
     },
     {
-      "event": "first_visit",
-      "eventCount": "11",
-      "totalUsers": "11"
+      "event": "form_start",
+      "eventCount": "13",
+      "totalUsers": "7"
     }
   ],
   "weekly_trend_90d": [
@@ -338,16 +377,22 @@
       "activeUsers": "1",
       "sessions": "1",
       "screenPageViews": "2"
+    },
+    {
+      "week": "202616",
+      "activeUsers": "3",
+      "sessions": "10",
+      "screenPageViews": "63"
     }
   ],
   "all_pages_with_titles": [
     {
       "pagePath": "/",
       "pageTitle": "Wade Me Home: Rental search & renter tools",
-      "screenPageViews": "178",
-      "activeUsers": "7",
-      "avgDuration": "625.65527323076924",
-      "bounceRate": "0.11538461538461539"
+      "screenPageViews": "193",
+      "activeUsers": "9",
+      "avgDuration": "535.50960408823539",
+      "bounceRate": "0.23529411764705882"
     },
     {
       "pagePath": "/search",
@@ -358,12 +403,20 @@
       "bounceRate": "0.24"
     },
     {
+      "pagePath": "/login",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "41",
+      "activeUsers": "9",
+      "avgDuration": "291.7390728333333",
+      "bounceRate": "0.1111111111111111"
+    },
+    {
       "pagePath": "/app",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "35",
-      "activeUsers": "3",
-      "avgDuration": "211.35435141176472",
-      "bounceRate": "0.11764705882352941"
+      "screenPageViews": "37",
+      "activeUsers": "4",
+      "avgDuration": "221.70023072222224",
+      "bounceRate": "0.1111111111111111"
     },
     {
       "pagePath": "/admin/inventory",
@@ -372,14 +425,6 @@
       "activeUsers": "1",
       "avgDuration": "794.86695241666666",
       "bounceRate": "0.16666666666666666"
-    },
-    {
-      "pagePath": "/login",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "30",
-      "activeUsers": "7",
-      "avgDuration": "173.4261886",
-      "bounceRate": "0"
     },
     {
       "pagePath": "/property-manager/analysis",
@@ -422,6 +467,22 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/tours",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "10",
+      "activeUsers": "2",
+      "avgDuration": "780.7909575",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/saved",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "8",
+      "activeUsers": "1",
+      "avgDuration": "1437.463264",
+      "bounceRate": "1"
+    },
+    {
       "pagePath": "/roommates",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "6",
@@ -438,20 +499,20 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/tours",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "4",
-      "activeUsers": "1",
-      "avgDuration": "991.21815",
-      "bounceRate": "0"
-    },
-    {
       "pagePath": "/admin/listings-without-amenities",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "3",
       "activeUsers": "1",
       "avgDuration": "486.80211820000005",
       "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/admin/reviews/verifications",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "avgDuration": "169.478222",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
@@ -462,11 +523,43 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/properties/19-belmont-avenue--19-belmont-avenue-jersey-city-nj-07304--40.7188---74.0686",
+      "pageTitle": "19 Belmont Avenue | Wade Me Home",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "avgDuration": "1041.147084",
+      "bounceRate": "0"
+    },
+    {
       "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "3",
       "activeUsers": "1",
       "avgDuration": "105.344856",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/account/reviews",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "211.006493",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/invites/accept",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "2",
+      "avgDuration": "19.4517835",
+      "bounceRate": "0.5"
+    },
+    {
+      "pagePath": "/landlord/reviews",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "64.00413",
       "bounceRate": "0"
     },
     {
@@ -507,6 +600,78 @@
       "screenPageViews": "1",
       "activeUsers": "1",
       "avgDuration": "40.756632",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/account/reviews/467bee8e-535d-4d09-bc86-83e98876e105/verify",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "29.998627",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/admin/reviews",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "7.643375",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/bad-landlord-nj-ny",
+      "pageTitle": "Bad Landlord in NJ or NY? How to Report, Fight Back & Avoid Next Time (2026)",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "610.605682",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/buildings/82d0ae03-bd88-42d6-a70a-b520b782c324",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "27.003099",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "160.381237",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/jersey-city/journal-square",
+      "pageTitle": "Journal Square Apartments: Jersey City 07306 Rent Guide (2026) | Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "0",
+      "avgDuration": "0",
+      "bounceRate": "1"
+    },
+    {
+      "pagePath": "/jersey-city/newport",
+      "pageTitle": "Newport Jersey City Apartments: 07310 Waterfront Rent Guide (2026) | Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "39.315507",
+      "bounceRate": "1"
+    },
+    {
+      "pagePath": "/nyc/astoria",
+      "pageTitle": "Astoria Apartments: Rent Prices, Transit & Neighborhood Guide (2026) | Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "17.324027",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/nyc/long-island-city",
+      "pageTitle": "Long Island City Apartments: LIC Rent Prices, Transit & Guide (2026) | Wade Me Home",
+      "screenPageViews": "1",
+      "activeUsers": "1",
+      "avgDuration": "15.751133",
       "bounceRate": "0"
     },
     {
@@ -577,8 +742,13 @@
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "71",
-      "activeUsers": "11"
+      "sessions": "80",
+      "activeUsers": "13"
+    },
+    {
+      "source": "(not set)",
+      "sessions": "5",
+      "activeUsers": "2"
     }
   ]
 }

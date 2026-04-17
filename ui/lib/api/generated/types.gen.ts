@@ -170,6 +170,16 @@ export type BodyUploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPost = {
 };
 
 /**
+ * Body_upload_tour_media_route_tours__tour_id__media_post
+ */
+export type BodyUploadTourMediaRouteToursTourIdMediaPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * BuildingAggregates
  */
 export type BuildingAggregates = {
@@ -883,6 +893,35 @@ export type CompetitorPosition = {
      * Listing Url
      */
     listing_url?: string | null;
+};
+
+/**
+ * CreateGroupFromConnectionRequest
+ */
+export type CreateGroupFromConnectionRequest = {
+    /**
+     * Name
+     */
+    name?: string | null;
+};
+
+/**
+ * CreateGroupFromConnectionResponse
+ */
+export type CreateGroupFromConnectionResponse = {
+    /**
+     * Group Id
+     */
+    group_id: string;
+    /**
+     * Group Name
+     */
+    group_name: string;
+    invite?: GroupInviteResponse | null;
+    /**
+     * Already Member
+     */
+    already_member?: boolean;
 };
 
 /**
@@ -1926,6 +1965,27 @@ export type InviteAcceptResponse = {
      * Group Name
      */
     group_name: string;
+};
+
+/**
+ * InviteConnectionToGroupRequest
+ */
+export type InviteConnectionToGroupRequest = {
+    /**
+     * Group Id
+     */
+    group_id: string;
+};
+
+/**
+ * InviteConnectionToGroupResponse
+ */
+export type InviteConnectionToGroupResponse = {
+    invite?: GroupInviteResponse | null;
+    /**
+     * Already Member
+     */
+    already_member?: boolean;
 };
 
 /**
@@ -5978,6 +6038,40 @@ export type TourCreate = {
 };
 
 /**
+ * TourMediaPayload
+ */
+export type TourMediaPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Media Url
+     */
+    media_url: string;
+    /**
+     * Media Kind
+     */
+    media_kind: 'video' | 'image';
+    /**
+     * Content Type
+     */
+    content_type?: string | null;
+    /**
+     * File Size Bytes
+     */
+    file_size_bytes?: number | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Created At
+     */
+    created_at?: string;
+};
+
+/**
  * TourNotePayload
  */
 export type TourNotePayload = {
@@ -6070,6 +6164,10 @@ export type TourPayloadOutput = {
      */
     scheduled_time?: string;
     note?: TourNotePayload | null;
+    /**
+     * Media
+     */
+    media?: Array<TourMediaPayload>;
     /**
      * Created At
      */
@@ -8365,6 +8463,70 @@ export type UpsertTourNoteRouteToursTourIdNotePutResponses = {
 
 export type UpsertTourNoteRouteToursTourIdNotePutResponse = UpsertTourNoteRouteToursTourIdNotePutResponses[keyof UpsertTourNoteRouteToursTourIdNotePutResponses];
 
+export type UploadTourMediaRouteToursTourIdMediaPostData = {
+    body: BodyUploadTourMediaRouteToursTourIdMediaPost;
+    path: {
+        /**
+         * Tour Id
+         */
+        tour_id: string;
+    };
+    query?: never;
+    url: '/tours/{tour_id}/media';
+};
+
+export type UploadTourMediaRouteToursTourIdMediaPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadTourMediaRouteToursTourIdMediaPostError = UploadTourMediaRouteToursTourIdMediaPostErrors[keyof UploadTourMediaRouteToursTourIdMediaPostErrors];
+
+export type UploadTourMediaRouteToursTourIdMediaPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: TourMediaPayload;
+};
+
+export type UploadTourMediaRouteToursTourIdMediaPostResponse = UploadTourMediaRouteToursTourIdMediaPostResponses[keyof UploadTourMediaRouteToursTourIdMediaPostResponses];
+
+export type DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Tour Id
+         */
+        tour_id: string;
+        /**
+         * Media Id
+         */
+        media_id: string;
+    };
+    query?: never;
+    url: '/tours/{tour_id}/media/{media_id}';
+};
+
+export type DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteError = DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteErrors[keyof DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteErrors];
+
+export type DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteResponse = DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteResponses[keyof DeleteTourMediaRouteToursTourIdMediaMediaIdDeleteResponses];
+
 export type ParseUrlUserListingsParseUrlPostData = {
     body: ParseUrlRequest;
     path?: never;
@@ -9691,12 +9853,86 @@ export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostRes
 
 export type CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponse = CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponses[keyof CreateRoommateMessageRoommatesConnectionsConnectionIdMessagesPostResponses];
 
+export type CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostData = {
+    body: CreateGroupFromConnectionRequest;
+    path: {
+        /**
+         * Connection Id
+         */
+        connection_id: string;
+    };
+    query?: never;
+    url: '/roommates/connections/{connection_id}/group';
+};
+
+export type CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostError = CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostErrors[keyof CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostErrors];
+
+export type CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: CreateGroupFromConnectionResponse;
+};
+
+export type CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostResponse = CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostResponses[keyof CreateGroupFromRoommateConnectionRoommatesConnectionsConnectionIdGroupPostResponses];
+
+export type InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostData = {
+    body: InviteConnectionToGroupRequest;
+    path: {
+        /**
+         * Connection Id
+         */
+        connection_id: string;
+    };
+    query?: never;
+    url: '/roommates/connections/{connection_id}/invites';
+};
+
+export type InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostError = InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostErrors[keyof InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostErrors];
+
+export type InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: InviteConnectionToGroupResponse;
+};
+
+export type InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostResponse = InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostResponses[keyof InviteRoommateConnectionToGroupRoommatesConnectionsConnectionIdInvitesPostResponses];
+
 export type ReadRoommateMatchesRoommatesMatchesGetData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Group Id
+         */
+        group_id?: string | null;
+    };
     url: '/roommates/matches';
 };
+
+export type ReadRoommateMatchesRoommatesMatchesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadRoommateMatchesRoommatesMatchesGetError = ReadRoommateMatchesRoommatesMatchesGetErrors[keyof ReadRoommateMatchesRoommatesMatchesGetErrors];
 
 export type ReadRoommateMatchesRoommatesMatchesGetResponses = {
     /**

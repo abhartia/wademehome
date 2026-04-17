@@ -102,18 +102,20 @@ def _perform_create(
             )
         )
 
-    existing_tour = (
-        db.query(UserTours)
-        .filter(
-            UserTours.user_id == user.id,
-            UserTours.property_ref_id == created.property_key,
-        )
-        .one_or_none()
-    )
+    tour_filters = [
+        UserTours.user_id == user.id,
+        UserTours.property_ref_id == created.property_key,
+    ]
+    if fav_group_id is None:
+        tour_filters.append(UserTours.group_id.is_(None))
+    else:
+        tour_filters.append(UserTours.group_id == fav_group_id)
+    existing_tour = db.query(UserTours).filter(*tour_filters).one_or_none()
     if existing_tour is None:
         db.add(
             UserTours(
                 user_id=user.id,
+                group_id=fav_group_id,
                 property_ref_id=created.property_key,
                 property_name=created.name,
                 property_address=created.address,

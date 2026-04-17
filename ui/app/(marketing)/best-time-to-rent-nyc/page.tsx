@@ -1022,6 +1022,15 @@ export default function BestTimeToRentNycPage() {
               </p>
               <p>
                 <Link
+                  href="/nyc/bushwick"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Bushwick apartments
+                </Link>{" "}
+                &mdash; Brooklyn&apos;s best value neighborhood, with strong winter discounts.
+              </p>
+              <p>
+                <Link
                   href="/blog/nyc-fare-act-broker-fee-ban"
                   className="text-primary underline underline-offset-2"
                 >

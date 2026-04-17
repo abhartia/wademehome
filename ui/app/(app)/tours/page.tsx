@@ -8,6 +8,7 @@ import { useTours } from "@/components/providers/ToursProvider";
 import { TourCard } from "@/components/tours/TourCard";
 import { ScheduleTourSheet } from "@/components/tours/ScheduleTourSheet";
 import { TourNotesSheet } from "@/components/tours/TourNotesSheet";
+import { LogTourModal } from "@/components/tours/LogTourModal";
 import { Tour, TourProperty } from "@/lib/types/tours";
 import { CalendarPlus, Search, Bookmark, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -149,15 +150,18 @@ export default function ToursPage() {
                   Your scheduled apartment tours, nearest first.
                 </p>
               </div>
-              <Button
-                size="sm"
-                className="h-8 gap-1.5 text-xs"
-                onClick={() => openSchedule()}
-                disabled={isReadOnly}
-              >
-                <CalendarPlus className="h-3.5 w-3.5" />
-                Schedule a Tour
-              </Button>
+              <div className="flex items-center gap-2">
+                {!isReadOnly && <LogTourModal />}
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() => openSchedule()}
+                  disabled={isReadOnly}
+                >
+                  <CalendarPlus className="h-3.5 w-3.5" />
+                  Schedule a Tour
+                </Button>
+              </div>
             </div>
 
             {upcoming.length === 0 ? (
@@ -199,11 +203,14 @@ export default function ToursPage() {
         {/* Completed tours */}
         <TabsContent value="completed" className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl space-y-3 p-4">
-            <div>
-              <h2 className="text-base font-semibold">Completed Tours</h2>
-              <p className="text-xs text-muted-foreground">
-                Review your notes and ratings from past tours.
-              </p>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold">Completed Tours</h2>
+                <p className="text-xs text-muted-foreground">
+                  Review your notes and ratings from past tours.
+                </p>
+              </div>
+              {!isReadOnly && <LogTourModal />}
             </div>
 
             {completed.length === 0 ? (

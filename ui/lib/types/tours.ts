@@ -28,6 +28,18 @@ export interface TourNote {
   updatedAt: string;
 }
 
+export type TourMediaKind = "video" | "image";
+
+export interface TourMedia {
+  id: string;
+  mediaUrl: string;
+  mediaKind: TourMediaKind;
+  contentType: string | null;
+  fileSizeBytes: number | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface Tour {
   id: string;
   property: TourProperty;
@@ -35,6 +47,7 @@ export interface Tour {
   scheduledDate: string;
   scheduledTime: string;
   note: TourNote | null;
+  media: TourMedia[];
   createdAt: string;
 }
 

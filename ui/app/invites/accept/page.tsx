@@ -10,6 +10,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
 import { useAcceptInvite, useInvitePreview } from "@/lib/groups/api";
+import {
+  consumePendingInviteToken,
+  setPendingInviteToken,
+} from "@/lib/groups/pendingInvite";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -75,6 +79,7 @@ function InviteAcceptInner() {
     accept
       .mutateAsync(token)
       .then((res) => {
+        consumePendingInviteToken();
         setActiveGroupId(res.group_id);
         toast.success(`Joined "${res.group_name}"`);
         router.replace(`/search?g=${res.group_id}`);
@@ -139,6 +144,7 @@ function InviteAcceptInner() {
   }
 
   if (!user) {
+    setPendingInviteToken(token);
     const next = encodeURIComponent(`/invites/accept?token=${token}`);
     return (
       <StateCard

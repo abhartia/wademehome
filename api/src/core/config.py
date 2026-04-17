@@ -111,6 +111,9 @@ class Config:
     # Azure Blob Storage (shared connection string, per-feature containers)
     AZURE_BLOB_CONNECTION_STRING: str = env_manager.get("AZURE_BLOB_CONNECTION_STRING", "") or ""
     AZURE_BLOB_MOVEIN_CONTAINER: str = env_manager.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or ""
+    AZURE_BLOB_TOUR_MEDIA_CONTAINER: str = (
+        env_manager.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or ""
+    )
 
     @classmethod
     def _refresh_values(cls) -> None:
@@ -214,6 +217,9 @@ class Config:
         cls.AUTH_VERIFY_EMAIL_HOURS = env_manager.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48"
         cls.AZURE_BLOB_CONNECTION_STRING = env_manager.get("AZURE_BLOB_CONNECTION_STRING", "") or ""
         cls.AZURE_BLOB_MOVEIN_CONTAINER = env_manager.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or ""
+        cls.AZURE_BLOB_TOUR_MEDIA_CONTAINER = (
+            env_manager.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or ""
+        )
 
     @classmethod
     def get(cls, key: str, default: str | None = None) -> str | None:

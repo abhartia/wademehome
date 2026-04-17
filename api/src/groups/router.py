@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -10,12 +10,17 @@ from sqlalchemy.orm import Session
 
 from auth.emailer import send_group_invite_email, send_group_member_joined_email
 from auth.router import get_current_user, get_db
-from core.config import Config
 from core.logger import get_logger
 from db.models import GroupInvites, GroupMembers, Groups, Users
 
 logger = get_logger(__name__)
 from groups.deps import require_group_member
+from groups.service import (
+    accept_url as _accept_url,
+    app_base_url as _app_base_url,
+    invite_to_response as _invite_to_response,
+    utc_now as _utc_now,
+)
 from groups.schemas import (
     GroupCreateRequest,
     GroupInviteCreateRequest,
@@ -33,34 +38,6 @@ from groups.schemas import (
 )
 
 router = APIRouter(tags=["groups"])
-
-
-def _app_base_url() -> str:
-    raw = (Config.get("AUTH_UI_BASE_URL", "") or "").strip().rstrip("/")
-    if not raw:
-        return "http://localhost:3000"
-    return raw
-
-
-def _accept_url(token: str) -> str:
-    return f"{_app_base_url()}/invites/accept?token={token}"
-
-
-def _invite_to_response(invite: GroupInvites) -> GroupInviteResponse:
-    return GroupInviteResponse(
-        id=invite.id,
-        kind=invite.kind,
-        email=invite.email,
-        token=invite.token,
-        accept_url=_accept_url(invite.token),
-        expires_at=invite.expires_at,
-        accepted_at=invite.accepted_at,
-        revoked_at=invite.revoked_at,
-    )
-
-
-def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 @router.post("/groups", response_model=GroupResponse)

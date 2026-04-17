@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
+import { pendingInviteRedirectPath } from "@/lib/groups/pendingInvite";
 import { authMeQueryKey } from "@/lib/api/authSessionQuery";
 import { verifyMagicLinkAuthMagicLinkVerifyPostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { getApiErrorMessage } from "@/lib/api/errors";
@@ -26,7 +27,10 @@ export default function AuthCallbackPage() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
       await refresh();
-      if (!data?.user?.onboarding_completed) {
+      const pending = pendingInviteRedirectPath();
+      if (pending) {
+        router.replace(pending);
+      } else if (!data?.user?.onboarding_completed) {
         router.replace("/onboarding");
       } else {
         router.replace(defaultAppLandingPath(journeyStageRef.current));

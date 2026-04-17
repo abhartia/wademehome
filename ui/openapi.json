@@ -2634,6 +2634,105 @@
         }
       }
     },
+    "/tours/{tour_id}/media": {
+      "post": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Upload Tour Media Route",
+        "operationId": "upload_tour_media_route_tours__tour_id__media_post",
+        "parameters": [
+          {
+            "name": "tour_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tour Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_tour_media_route_tours__tour_id__media_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourMediaPayload"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tours/{tour_id}/media/{media_id}": {
+      "delete": {
+        "tags": [
+          "tours"
+        ],
+        "summary": "Delete Tour Media Route",
+        "operationId": "delete_tour_media_route_tours__tour_id__media__media_id__delete",
+        "parameters": [
+          {
+            "name": "tour_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tour Id"
+            }
+          },
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/user-listings/parse-url": {
       "post": {
         "tags": [
@@ -4620,6 +4719,110 @@
         }
       }
     },
+    "/roommates/connections/{connection_id}/group": {
+      "post": {
+        "tags": [
+          "roommates"
+        ],
+        "summary": "Create Group From Roommate Connection",
+        "operationId": "create_group_from_roommate_connection_roommates_connections__connection_id__group_post",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupFromConnectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateGroupFromConnectionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/roommates/connections/{connection_id}/invites": {
+      "post": {
+        "tags": [
+          "roommates"
+        ],
+        "summary": "Invite Roommate Connection To Group",
+        "operationId": "invite_roommate_connection_to_group_roommates_connections__connection_id__invites_post",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteConnectionToGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteConnectionToGroupResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/roommates/matches": {
       "get": {
         "tags": [
@@ -4627,6 +4830,25 @@
         ],
         "summary": "Read Roommate Matches",
         "operationId": "read_roommate_matches_roommates_matches_get",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Group Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4634,6 +4856,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RoommateMatchesListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -8503,6 +8735,20 @@
         ],
         "title": "Body_upload_room_photo_move_in_photos_rooms__room_id__photos_post"
       },
+      "Body_upload_tour_media_route_tours__tour_id__media_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_tour_media_route_tours__tour_id__media_post"
+      },
       "BuildingAggregates": {
         "properties": {
           "review_count": {
@@ -9871,6 +10117,58 @@
           "unit_count"
         ],
         "title": "CompetitorPosition"
+      },
+      "CreateGroupFromConnectionRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "title": "CreateGroupFromConnectionRequest"
+      },
+      "CreateGroupFromConnectionResponse": {
+        "properties": {
+          "group_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Group Id"
+          },
+          "group_name": {
+            "type": "string",
+            "title": "Group Name"
+          },
+          "invite": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupInviteResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "already_member": {
+            "type": "boolean",
+            "title": "Already Member",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_id",
+          "group_name"
+        ],
+        "title": "CreateGroupFromConnectionResponse"
       },
       "CreateUserListingRequest": {
         "properties": {
@@ -11692,6 +11990,41 @@
           "group_name"
         ],
         "title": "InviteAcceptResponse"
+      },
+      "InviteConnectionToGroupRequest": {
+        "properties": {
+          "group_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Group Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_id"
+        ],
+        "title": "InviteConnectionToGroupRequest"
+      },
+      "InviteConnectionToGroupResponse": {
+        "properties": {
+          "invite": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupInviteResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "already_member": {
+            "type": "boolean",
+            "title": "Already Member",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "InviteConnectionToGroupResponse"
       },
       "InvitePreviewResponse": {
         "properties": {
@@ -18725,6 +19058,65 @@
         ],
         "title": "TourCreate"
       },
+      "TourMediaPayload": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "media_kind": {
+            "type": "string",
+            "enum": [
+              "video",
+              "image"
+            ],
+            "title": "Media Kind"
+          },
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type"
+          },
+          "file_size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Size Bytes"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "default": 0
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "media_url",
+          "media_kind"
+        ],
+        "title": "TourMediaPayload"
+      },
       "TourNotePayload": {
         "properties": {
           "ratings": {
@@ -18865,6 +19257,13 @@
                 "type": "null"
               }
             ]
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/TourMediaPayload"
+            },
+            "type": "array",
+            "title": "Media"
           },
           "created_at": {
             "type": "string",

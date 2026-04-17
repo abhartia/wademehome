@@ -618,13 +618,16 @@ export default function WilliamsburgGuidePage() {
                   vs. Bushwick
                 </h3>
                 <p>
-                  Bushwick is the budget alternative to Williamsburg, with
-                  one-bedrooms starting around $2,000 to $2,500. The arts and
-                  food scene is growing rapidly, and the L and M trains
-                  provide subway access. The commute to Manhattan is about 10
-                  to 15 minutes longer than from Williamsburg. If price is
-                  your top priority, Bushwick offers the best value within
-                  easy reach of the Williamsburg scene.
+                  <Link href="/nyc/bushwick" className="text-primary hover:underline">
+                    Bushwick
+                  </Link>{" "}
+                  is the budget alternative to Williamsburg, with
+                  one-bedrooms typically 20–25% cheaper. The arts and food
+                  scene is growing rapidly, and the L and M trains provide
+                  subway access. The commute to Manhattan is about 10 to 15
+                  minutes longer than from Williamsburg. If price is your top
+                  priority, Bushwick offers the best value within easy reach
+                  of the Williamsburg scene.
                 </p>
               </div>
               <Separator />
@@ -754,6 +757,14 @@ export default function WilliamsburgGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/bushwick"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Bushwick Apartments: Rent Prices, Transit &amp; Neighborhood Guide
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/east-village"

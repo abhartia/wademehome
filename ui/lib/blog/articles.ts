@@ -3,6 +3,8 @@ export type BlogArticleMeta = {
   title: string;
   description: string;
   publishedAt: string;
+  reviewedAt?: string;
+  author?: string;
   keywords?: string[];
 };
 
@@ -231,6 +233,8 @@ export const blogArticles: BlogArticleMeta[] = [
     description:
       "Learn the most common NYC rental scams, red flags to watch for, how to verify listings, and what to do if you get scammed. Protect yourself when apartment hunting in New York City.",
     publishedAt: "2026-04-12",
+    reviewedAt: "2026-04-18",
+    author: "Wade Me Home Editorial Team",
     keywords: ["NYC apartment scams", "rental scams NYC", "apartment scam red flags", "how to avoid rental scams", "fake apartment listing", "NYC rental fraud", "Craigslist apartment scam", "is this apartment listing a scam", "rental scam what to do"],
   },
   {

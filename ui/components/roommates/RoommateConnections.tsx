@@ -6,6 +6,7 @@ import { RoommateConnection } from "@/lib/types/roommate";
 import { avatarColor } from "@/lib/roommates/avatarColor";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal, Users2, ArrowLeft } from "lucide-react";
+import { SearchTogetherDialog } from "./SearchTogetherDialog";
 
 function EmptyConnections() {
   return (
@@ -116,12 +117,16 @@ function Conversation({
         >
           {connection.roommate.avatarInitials}
         </div>
-        <div>
-          <p className="text-sm font-medium">{connection.roommate.name}</p>
-          <p className="text-xs text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{connection.roommate.name}</p>
+          <p className="truncate text-xs text-muted-foreground">
             {connection.roommate.occupation}
           </p>
         </div>
+        <SearchTogetherDialog
+          connectionId={connection.roommate.id}
+          roommateName={connection.roommate.name.split(" ")[0] || connection.roommate.name}
+        />
       </div>
 
       {/* Messages */}
@@ -218,8 +223,8 @@ export function RoommateConnections() {
             onBack={() => setSelectedId(null)}
           />
         ) : (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            Select a connection to start chatting
+          <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-muted-foreground">
+            Select a connection to message — or use &ldquo;Search together&rdquo; to start collaborating in a group.
           </div>
         )}
       </div>

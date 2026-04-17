@@ -11,6 +11,101 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-18 -- Session 11 (Bushwick Guide + Apartment Scams E-E-A-T Fix)
+
+### Context
+- Eleventh growth agent run. Astoria continues improving fast: pos 33.7 → **25.4**
+  (now 5 imp vs. 3 last session) — fastest single-day position improvement so far.
+- Apr 16 had only 3 impressions but best-ever avg position of 9.7.
+- GA4: +2 users, +10 sessions, +63 pageviews vs. last session.
+- /blog/nyc-apartment-scams STILL not in GSC — 6 days overdue (every other page
+  indexed in 2–3 days). E-E-A-T fix applied today.
+- LIC (created Apr 17) not yet in GSC — too new (check Apr 22).
+- /best-time-to-rent-nyc and /cost-of-moving-to-nyc pending reindex (check Apr 21).
+
+### Completed
+- [x] Pulled fresh GA4 and GSC data
+- [x] Fixed GA4 pull script DEADLINE_EXCEEDED timeout — added retry with 60s
+  timeout and 3-attempt backoff
+- [x] Created /nyc/bushwick neighborhood guide (~800 lines)
+  - Target keywords: "Bushwick apartments", "Bushwick Brooklyn rent",
+    "Bushwick rent prices 2026", "apartments for rent Bushwick Brooklyn",
+    "Bushwick studios rent", "Bushwick 1 bedroom rent", "moving to Bushwick",
+    "East Williamsburg apartments", "Bushwick loft apartments"
+  - 5-row rent price table, 6-row vs-neighbors comparison table (shadcn Table)
+  - Detailed transit guide: L train (6 stops), M, J/Z, biking
+  - 5 sub-neighborhoods: East Williamsburg/Morgan, Wyckoff Ave corridor,
+    Central Bushwick/Halsey-Wilson, Ridgewood border, South Bushwick
+  - Lifestyle section: arts scene, food (Roberta's), grocery weakness
+  - Is Bushwick right for you? pros/cons grid
+  - Structured data: Article + FAQPage (6 Qs) + BreadcrumbList
+  - 5th neighborhood page, 2nd Brooklyn neighborhood
+- [x] Added /nyc/bushwick to sitemap
+- [x] Cross-linked FROM 4 pages:
+  - /nyc/williamsburg — "vs. Bushwick" body (now a link) + Related Guides
+  - /nyc-rent-by-neighborhood — Brooklyn section body + Related Guides
+  - /best-time-to-rent-nyc — Related Guides
+  - /blog/neighborhood-research-for-renters — article body
+- [x] E-E-A-T fix for /blog/nyc-apartment-scams (YMYL trust signals):
+  - Added `reviewedAt?: string` and `author?: string` to BlogArticleMeta type
+  - Added `reviewedAt: "2026-04-18"` + `author: "Wade Me Home Editorial Team"`
+    to scams article metadata
+  - Updated blog `[slug]/page.tsx` template: Article JSON-LD now uses
+    `dateModified`, `@type: Person` author when set; visible byline + last-reviewed
+    date displayed
+  - Made 7 external citations clickable links (FBI IC3, HPD, ACRIS, eAccessNY,
+    NYPD, FTC, NY AG)
+  - Added "Sources and resources" card with 6 authority links
+- [x] Build verified: `npm run build` → exit code 0 (8.1 min)
+- [x] Wrote analytics report (analytics/reports/2026-04-18.md)
+
+### Not Yet Done (queue for future sessions)
+- [ ] Monitor /nyc/bushwick indexing (check after 2026-04-23)
+- [ ] Check if /blog/nyc-apartment-scams finally appears in GSC (E-E-A-T fix
+  applied 2026-04-18; give 3–5 days, check after 2026-04-23)
+- [ ] Monitor /best-time-to-rent-nyc indexing (check after 2026-04-21)
+- [ ] Monitor /cost-of-moving-to-nyc indexing (check after 2026-04-21)
+- [ ] Monitor /nyc/long-island-city indexing (check after 2026-04-22)
+- [ ] Check Astoria position trajectory — continuing to improve past pos 25?
+- [ ] Next neighborhood candidates: UWS (family/high income), Park Slope
+  (Brooklyn family anchor), Harlem (value+growth). Bushwick was highest volume;
+  UWS or Park Slope is next.
+- [ ] Investigate east-village pos 10 → 0 click gap (needs more impressions)
+- [ ] Investigate missing onboarding funnel events in GA4
+- [ ] Check GA consent management — may block event tracking
+- [ ] Build social/Reddit distribution strategy for content
+- [ ] Consider "Bushwick vs. Williamsburg: Full Comparison" spoke guide once
+  both pages are indexed
+
+### SEO Changes Pending Reindex (don't judge before date shown)
+- /nyc/bushwick — new page 2026-04-18, check after 2026-04-23
+- Cross-links to Bushwick from 4 pages — 2026-04-18, check after 2026-04-23
+- E-E-A-T fix on /blog/nyc-apartment-scams — 2026-04-18, check after 2026-04-23
+- Blog template dateModified/author JSON-LD — 2026-04-18, check after 2026-04-23
+- /nyc/long-island-city — new page 2026-04-17, check after 2026-04-22
+- Cross-links to LIC from 6 pages — 2026-04-17, check after 2026-04-22
+- /best-time-to-rent-nyc — 2026-04-16, check after 2026-04-21
+- /cost-of-moving-to-nyc — 2026-04-16, check after 2026-04-21
+- /nyc/astoria — INDEXED at pos 25.4 and improving ✓
+- /nyc/williamsburg — INDEXED at pos 57 ✓
+- /nyc/east-village — INDEXED at pos 10 ✓
+- /nyc-rent-by-neighborhood — INDEXED at pos 10.7 ✓
+- /blog/nyc-rent-stabilization-guide — INDEXED at pos 55.8 ✓
+- /blog/nyc-fare-act-broker-fee-ban — INDEXED at pos 95 ✓
+- /blog/nyc-apartment-scams — E-E-A-T fix 2026-04-18, monitor from 2026-04-23
+
+### Key Numbers (2026-04-18)
+- GA4 30d: 13 users, 81 sessions, 541 pageviews, 32% bounce
+- GSC 30d: 1 click, ~155 page-impressions, 50 queries, avg position ~10 (best)
+- GSC daily: Apr 13=25, Apr 14=19, Apr 15=22, Apr 16=3 (pos 9.7!)
+- Astoria: pos 33.7 → 25.4 in 1 day (fastest improvement so far)
+- Traffic: 100% direct, 0% organic (still)
+- Total blog posts: 27
+- Total guide pages: 7
+- Total neighborhood pages: 5 (EV + Williamsburg + Astoria + LIC + Bushwick)
+
+---
+
 ## 2026-04-17 -- Session 10 (Long Island City Neighborhood Guide)
 
 ### Context

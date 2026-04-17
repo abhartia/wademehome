@@ -142,6 +142,30 @@ export function TourCard({
             </p>
           )}
 
+          {tour.media.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {tour.media.map((m) =>
+                m.mediaKind === "video" ? (
+                  <video
+                    key={m.id}
+                    src={m.mediaUrl}
+                    controls
+                    preload="metadata"
+                    className="h-24 w-32 rounded border bg-black object-cover"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={m.id}
+                    src={m.mediaUrl}
+                    alt="Tour photo"
+                    className="h-24 w-24 rounded border object-cover"
+                  />
+                ),
+              )}
+            </div>
+          )}
+
           {status === "scheduled" && <InspectionChecklist />}
 
           <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-0.5">

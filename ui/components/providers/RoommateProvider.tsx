@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useRef,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -47,7 +46,6 @@ export function RoommateProvider({
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const autoReplyTimeouts = useRef<Record<string, number>>({});
   const { data: profileData } = useQuery({
     ...readMyRoommateProfileRoommatesProfileGetOptions({}),
     enabled: Boolean(user),
@@ -255,27 +253,6 @@ export function RoommateProvider({
           time: message.time,
         },
       });
-      if (message.role === "user") {
-        window.clearTimeout(autoReplyTimeouts.current[roommateId]);
-        autoReplyTimeouts.current[roommateId] = window.setTimeout(() => {
-          const replies = [
-            "That sounds great! When works for you to check out some places?",
-            "Nice, I'm on the same page. Let's figure out a budget that works for both of us.",
-            "Awesome! I think we'd be a solid match. Want to set up a time to video chat?",
-            "Cool, I'm flexible on that. What neighbourhood are you leaning towards?",
-            "Sounds good to me! I'll send over some listings I've been looking at.",
-          ];
-          const reply = replies[Math.floor(Math.random() * replies.length)];
-          addMessageMut.mutate({
-            path: { connection_id: conn.roommate.id },
-            body: {
-              role: "them",
-              content: reply,
-              time: new Date().toISOString(),
-            },
-          });
-        }, 1200);
-      }
     },
     [addMessageMut, connections, user],
   );

@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
+import { pendingInviteRedirectPath } from "@/lib/groups/pendingInvite";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,11 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (loading || !user) return;
+    const pending = pendingInviteRedirectPath();
+    if (pending) {
+      router.replace(pending);
+      return;
+    }
     router.replace(
       user.onboarding_completed
         ? defaultAppLandingPath(journeyStage)

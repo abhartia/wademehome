@@ -437,6 +437,49 @@ class UserTours(Base):
         back_populates="tour",
         passive_deletes=True,
     )
+    media: Mapped[list["TourMedia"]] = relationship(
+        back_populates="tour",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+
+class TourMediaKind(str, Enum):
+    video = "video"
+    image = "image"
+
+
+class TourMedia(Base):
+    __tablename__ = "tour_media"
+    __table_args__ = (
+        Index("ix_tour_media_tour_id", "tour_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    tour_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user_tours.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    uploaded_by_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    media_url: Mapped[str] = mapped_column(Text, nullable=False)
+    media_kind: Mapped[TourMediaKind] = mapped_column(
+        SQLEnum(TourMediaKind, name="tour_media_kind"), nullable=False
+    )
+    content_type: Mapped[str | None] = mapped_column(String(128))
+    file_size_bytes: Mapped[int | None] = mapped_column(Integer)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    tour: Mapped["UserTours"] = relationship(back_populates="media")
 
 
 class PropertyFavorites(Base):

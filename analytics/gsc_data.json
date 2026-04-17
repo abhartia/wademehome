@@ -355,9 +355,9 @@
     {
       "page": "https://wademehome.com/",
       "clicks": 1,
-      "impressions": 8,
-      "ctr": 12.5,
-      "position": 4.1
+      "impressions": 9,
+      "ctr": 11.11,
+      "position": 4
     },
     {
       "page": "https://wademehome.com/blog/nyc-fare-act-broker-fee-ban",
@@ -376,9 +376,9 @@
     {
       "page": "https://wademehome.com/login",
       "clicks": 0,
-      "impressions": 6,
+      "impressions": 7,
       "ctr": 0,
-      "position": 7.5
+      "position": 7.7
     },
     {
       "page": "https://wademehome.com/nyc-apartment-movers",
@@ -397,9 +397,9 @@
     {
       "page": "https://wademehome.com/nyc/astoria",
       "clicks": 0,
-      "impressions": 3,
+      "impressions": 5,
       "ctr": 0,
-      "position": 33.7
+      "position": 25.4
     },
     {
       "page": "https://wademehome.com/nyc/east-village",
@@ -1169,6 +1169,14 @@
       "position": 66
     },
     {
+      "query": "subway station apartments in astoria",
+      "page": "https://wademehome.com/nyc/astoria",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 19
+    },
+    {
       "query": "the arbors on duke",
       "page": "https://wademehome.com/properties/arbors-on-duke--5250-duke-street-alexandria-va-22304--38.8122---77.1238",
       "clicks": 0,
@@ -1196,9 +1204,17 @@
       "query": "wade me",
       "page": "https://wademehome.com/",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 3.5
+      "position": 3.3
+    },
+    {
+      "query": "wade me",
+      "page": "https://wademehome.com/login",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9
     }
   ],
   "daily_trend_90d": [
@@ -1369,31 +1385,38 @@
       "impressions": 22,
       "ctr": 0,
       "position": 12.4
+    },
+    {
+      "date": "2026-04-16",
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 9.7
     }
   ],
   "devices_30d": [
     {
       "device": "DESKTOP",
       "clicks": 1,
-      "impressions": 138,
-      "ctr": 0.72,
-      "position": 31.1
+      "impressions": 140,
+      "ctr": 0.71,
+      "position": 30.9
     },
     {
       "device": "MOBILE",
       "clicks": 0,
-      "impressions": 14,
+      "impressions": 15,
       "ctr": 0,
-      "position": 22.1
+      "position": 20.9
     }
   ],
   "countries_30d": [
     {
       "country": "usa",
       "clicks": 1,
-      "impressions": 132,
-      "ctr": 0.76,
-      "position": 33.2
+      "impressions": 133,
+      "ctr": 0.75,
+      "position": 33.1
     },
     {
       "country": "arg",
@@ -1438,11 +1461,18 @@
       "position": 9
     },
     {
-      "country": "gbr",
+      "country": "fra",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
-      "position": 25
+      "position": 7
+    },
+    {
+      "country": "gbr",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 14
     },
     {
       "country": "gin",

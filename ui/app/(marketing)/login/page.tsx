@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
+import { pendingInviteRedirectPath } from "@/lib/groups/pendingInvite";
 import { authMeQueryKey } from "@/lib/api/authSessionQuery";
 import {
   loginAuthLoginPostMutation,
@@ -27,6 +28,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (loading || !user) return;
+    const pending = pendingInviteRedirectPath();
+    if (pending) {
+      router.replace(pending);
+      return;
+    }
     router.replace(
       user.onboarding_completed
         ? defaultAppLandingPath(journeyStage)
@@ -45,7 +51,10 @@ export default function LoginPage() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
       await refresh();
-      if (!data?.user?.onboarding_completed) {
+      const pending = pendingInviteRedirectPath();
+      if (pending) {
+        router.replace(pending);
+      } else if (!data?.user?.onboarding_completed) {
         router.replace("/onboarding");
       } else {
         router.replace(defaultAppLandingPath(journeyStageRef.current));

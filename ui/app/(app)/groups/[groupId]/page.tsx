@@ -13,6 +13,7 @@ import {
   ShieldOff,
   Trash2,
   UserMinus,
+  UserSearch,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -370,6 +371,27 @@ export default function GroupDetailPage(props: PageProps) {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Find a roommate</CardTitle>
+          <CardDescription>
+            Browse compatible matches scored against everyone in this group.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={() => {
+              setActiveGroupId(group.id);
+              router.push(`/roommates?g=${group.id}`);
+            }}
+            className="gap-2"
+          >
+            <UserSearch className="h-4 w-4" />
+            Find a roommate
+          </Button>
         </CardContent>
       </Card>
 

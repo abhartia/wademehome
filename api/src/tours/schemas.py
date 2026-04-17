@@ -27,6 +27,16 @@ class TourNotePayload(BaseModel):
     updated_at: str = ""
 
 
+class TourMediaPayload(BaseModel):
+    id: str
+    media_url: str
+    media_kind: Literal["video", "image"]
+    content_type: str | None = None
+    file_size_bytes: int | None = None
+    sort_order: int = 0
+    created_at: str = ""
+
+
 class TourPayload(BaseModel):
     id: str
     property: TourPropertyPayload
@@ -34,6 +44,7 @@ class TourPayload(BaseModel):
     scheduled_date: str = ""
     scheduled_time: str = ""
     note: TourNotePayload | None = None
+    media: list[TourMediaPayload] = Field(default_factory=list)
     created_at: str = ""
 
 

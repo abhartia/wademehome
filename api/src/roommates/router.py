@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
 from db.models import Users
 from roommates.schemas import (
+    CreateGroupFromConnectionRequest,
+    CreateGroupFromConnectionResponse,
+    InviteConnectionToGroupRequest,
+    InviteConnectionToGroupResponse,
     MyRoommateProfileOut,
     MyRoommateProfilePatch,
     RoommateConnectionCreate,
@@ -16,8 +22,10 @@ from roommates.schemas import (
 )
 from roommates.service import (
     create_connection,
+    create_group_from_connection,
     create_message,
     delete_connection,
+    invite_connection_to_group,
     list_connections,
     list_matches,
     patch_my_profile,
@@ -69,7 +77,36 @@ def create_roommate_message(
     return create_message(db, user.id, connection_id, body)
 
 
-@router.get("/matches", response_model=RoommateMatchesListResponse)
-def read_roommate_matches(user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
-    return RoommateMatchesListResponse(matches=list_matches(db, user.id))
+@router.post(
+    "/connections/{connection_id}/group",
+    response_model=CreateGroupFromConnectionResponse,
+)
+def create_group_from_roommate_connection(
+    connection_id: str,
+    body: CreateGroupFromConnectionRequest,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return create_group_from_connection(db, user, connection_id, body.name)
 
+
+@router.post(
+    "/connections/{connection_id}/invites",
+    response_model=InviteConnectionToGroupResponse,
+)
+def invite_roommate_connection_to_group(
+    connection_id: str,
+    body: InviteConnectionToGroupRequest,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return invite_connection_to_group(db, user, connection_id, body.group_id)
+
+
+@router.get("/matches", response_model=RoommateMatchesListResponse)
+def read_roommate_matches(
+    group_id: uuid.UUID | None = None,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return RoommateMatchesListResponse(matches=list_matches(db, user.id, group_id))

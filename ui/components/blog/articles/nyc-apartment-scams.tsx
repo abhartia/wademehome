@@ -71,11 +71,20 @@ export default function NycApartmentScams() {
             sending money before seeing the place in person.
           </p>
           <p>
-            The FBI&apos;s Internet Crime Complaint Center reports that rental
-            fraud losses in the US exceed $350 million annually, and New York is
-            consistently among the hardest-hit cities. The most common victims
-            are first-time renters, people relocating from out of state, and
-            international students who may not be familiar with local norms.
+            The{" "}
+            <a
+              href="https://www.ic3.gov"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              FBI&apos;s Internet Crime Complaint Center (IC3)
+            </a>{" "}
+            reports that rental fraud losses in the US exceed $350 million
+            annually, and New York is consistently among the hardest-hit cities.
+            The most common victims are first-time renters, people relocating
+            from out of state, and international students who may not be
+            familiar with local norms.
           </p>
         </CardContent>
       </Card>
@@ -206,10 +215,27 @@ export default function NycApartmentScams() {
               Check the building and ownership:
             </strong>{" "}
             The NYC Department of Housing Preservation and Development (HPD)
-            maintains a public database at hpdonline.nyc.gov where you can look
-            up any building by address. You can verify the registered owner and
-            check for open violations. The NYC Department of Finance ACRIS
-            system lets you look up property ownership records.
+            maintains a public database at{" "}
+            <a
+              href="https://hpdonline.nyc.gov"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              hpdonline.nyc.gov
+            </a>{" "}
+            where you can look up any building by address. You can verify the
+            registered owner and check for open violations. The NYC Department
+            of Finance{" "}
+            <a
+              href="https://a836-acris.nyc.gov"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              ACRIS system
+            </a>{" "}
+            lets you look up property ownership records.
           </p>
           <p>
             <strong className="text-foreground">
@@ -225,9 +251,17 @@ export default function NycApartmentScams() {
               Verify the person&apos;s identity:
             </strong>{" "}
             Ask for a business card, check the brokerage&apos;s website, and
-            verify the broker&apos;s license on the New York Department of
-            State&apos;s eAccessNY portal. If they claim to be the building
-            owner, cross-reference with HPD or ACRIS records.
+            verify the broker&apos;s license on the{" "}
+            <a
+              href="https://www.dos.ny.gov/licensing/licnsrch/profiler.asp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              New York Department of State&apos;s eAccessNY portal
+            </a>
+            . If they claim to be the building owner, cross-reference with HPD
+            or ACRIS records.
           </p>
           <p>
             <strong className="text-foreground">Visit in person:</strong> Always
@@ -338,16 +372,40 @@ export default function NycApartmentScams() {
             </li>
             <li>
               <strong className="text-foreground">File a police report:</strong>{" "}
-              File a report with the NYPD. You can do this online at
-              nyc.gov/nypd or at your local precinct. Get the report number for
-              your records.
+              File a report with the NYPD online at{" "}
+              <a
+                href="https://www.nyc.gov/site/nypd/services/victim-services/online-reporting.page"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                nyc.gov/nypd
+              </a>{" "}
+              or at your local precinct. Get the report number for your records.
             </li>
             <li>
               <strong className="text-foreground">
                 Report to the FTC and FBI:
               </strong>{" "}
-              File a complaint at reportfraud.ftc.gov and ic3.gov (FBI Internet
-              Crime Complaint Center).
+              File a complaint at{" "}
+              <a
+                href="https://reportfraud.ftc.gov"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                reportfraud.ftc.gov
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://www.ic3.gov"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                ic3.gov
+              </a>{" "}
+              (FBI Internet Crime Complaint Center).
             </li>
             <li>
               <strong className="text-foreground">
@@ -361,8 +419,16 @@ export default function NycApartmentScams() {
               <strong className="text-foreground">
                 Contact the NY Attorney General:
               </strong>{" "}
-              File a complaint at ag.ny.gov. The AG&apos;s office investigates
-              patterns of rental fraud.
+              File a complaint at{" "}
+              <a
+                href="https://ag.ny.gov/resources/individuals/housing/tenant-rights"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                ag.ny.gov
+              </a>
+              . The AG&apos;s office investigates patterns of rental fraud.
             </li>
           </ol>
         </CardContent>
@@ -435,6 +501,52 @@ export default function NycApartmentScams() {
               viewing the apartment.
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sources and resources</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <a href="https://www.ic3.gov" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                FBI Internet Crime Complaint Center (IC3)
+              </a>{" "}
+              — file complaints and view annual rental fraud statistics
+            </li>
+            <li>
+              <a href="https://hpdonline.nyc.gov" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                NYC HPD Online
+              </a>{" "}
+              — building ownership, registration, and violation records
+            </li>
+            <li>
+              <a href="https://a836-acris.nyc.gov" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                NYC ACRIS Property Records
+              </a>{" "}
+              — verify who actually owns a building before renting
+            </li>
+            <li>
+              <a href="https://www.dos.ny.gov/licensing/licnsrch/profiler.asp" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                NY DOS Broker License Lookup (eAccessNY)
+              </a>{" "}
+              — verify any broker or agent is licensed in New York State
+            </li>
+            <li>
+              <a href="https://ag.ny.gov/resources/individuals/housing/tenant-rights" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                NY Attorney General — Tenant Rights
+              </a>{" "}
+              — report rental fraud and learn about your protections
+            </li>
+            <li>
+              <a href="https://reportfraud.ftc.gov" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                FTC ReportFraud
+              </a>{" "}
+              — Federal Trade Commission fraud reporting portal
+            </li>
+          </ul>
         </CardContent>
       </Card>
 

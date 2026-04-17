@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
@@ -11,6 +11,7 @@ from db.models import Users
 from groups.deps import resolve_scope
 from tours.schemas import (
     TourCreate,
+    TourMediaPayload,
     TourNoteUpsert,
     TourResponse,
     ToursListResponse,
@@ -20,9 +21,11 @@ from tours.schemas import (
 from tours.service import (
     create_tour,
     delete_tour,
+    delete_tour_media,
     get_tour_payload,
     list_tours,
     update_tour,
+    upload_tour_media,
     upsert_tour_note,
 )
 
@@ -101,3 +104,24 @@ def upsert_tour_note_route(
 ):
     tour = upsert_tour_note(db, user.id, tour_id, payload.note)
     return TourResponse(tour=tour)
+
+
+@router.post("/{tour_id}/media", response_model=TourMediaPayload)
+def upload_tour_media_route(
+    tour_id: uuid.UUID,
+    file: UploadFile = File(...),
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return upload_tour_media(db, user.id, tour_id, file)
+
+
+@router.delete("/{tour_id}/media/{media_id}", status_code=204)
+def delete_tour_media_route(
+    tour_id: uuid.UUID,
+    media_id: uuid.UUID,
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    delete_tour_media(db, user.id, tour_id, media_id)
+    return None
