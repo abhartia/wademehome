@@ -8,6 +8,8 @@ import {
   getPropertyNotePropertiesNotesPropertyKeyGetQueryKey,
   listFavoritesPropertiesFavoritesGetOptions,
   listFavoritesPropertiesFavoritesGetQueryKey,
+  listCommentedPropertiesPropertiesCommentedGetOptions,
+  listCommentedPropertiesPropertiesCommentedGetQueryKey,
   listGroupNotesPropertiesGroupNotesPropertyKeyGetOptions,
   listGroupNotesPropertiesGroupNotesPropertyKeyGetQueryKey,
   listReactionsPropertiesReactionsPropertyKeyGetOptions,
@@ -23,6 +25,7 @@ import {
   upsertPropertyNotePropertiesNotesPropertyKeyPut,
 } from "@/lib/api/generated/sdk.gen";
 import type {
+  CommentedPropertyResponse,
   FavoriteResponse,
   FavoriteToggleResponse,
   GroupNoteResponse,
@@ -38,6 +41,8 @@ export type FavoriteProperty = FavoriteResponse;
 export type PropertyNote = PropertyNoteResponse;
 
 export type GroupNote = GroupNoteResponse;
+
+export type CommentedProperty = CommentedPropertyResponse;
 
 export type ReactionKind = "thumbs_up" | "thumbs_down" | "heart";
 
@@ -155,6 +160,11 @@ export function useAddGroupPropertyNote(propertyKey: string, groupId: string) {
           query: { group_id: groupId },
         }),
       });
+      await qc.invalidateQueries({
+        queryKey: listCommentedPropertiesPropertiesCommentedGetQueryKey({
+          query: { group_id: groupId },
+        }),
+      });
     },
   });
 }
@@ -175,7 +185,25 @@ export function useDeleteGroupPropertyNote(propertyKey: string, groupId: string)
           query: { group_id: groupId },
         }),
       });
+      await qc.invalidateQueries({
+        queryKey: listCommentedPropertiesPropertiesCommentedGetQueryKey({
+          query: { group_id: groupId },
+        }),
+      });
     },
+  });
+}
+
+export function useCommentedProperties(
+  groupId: string | null,
+  options?: { enabled?: boolean },
+) {
+  const enabled = Boolean(groupId) && (options?.enabled ?? true);
+  return useQuery({
+    ...listCommentedPropertiesPropertiesCommentedGetOptions({
+      query: { group_id: groupId ?? "" },
+    }),
+    enabled,
   });
 }
 

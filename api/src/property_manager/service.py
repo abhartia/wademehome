@@ -1215,7 +1215,7 @@ def archive_snapshots(
                 VALUES
                     (gen_random_uuid(), :loc_key, :week, :pid, :pname, :addr,
                      :med_rent, :med_sqft, :rps, :unit_count, :avail,
-                     :beds, :fees::jsonb, :amenities::jsonb)
+                     :beds, CAST(:fees AS jsonb), CAST(:amenities AS jsonb))
                 ON CONFLICT (location_key, snapshot_week, property_id) DO UPDATE SET
                     property_name = EXCLUDED.property_name,
                     address = EXCLUDED.address,
@@ -1263,7 +1263,7 @@ def archive_snapshots(
             VALUES
                 (gen_random_uuid(), :loc_key, :week, :med_rent, :p25, :p75,
                  :sample, :vac, :avail, :total,
-                 :bed_vac::jsonb, :lat, :lng, :radius)
+                 CAST(:bed_vac AS jsonb), :lat, :lng, :radius)
             ON CONFLICT (location_key, snapshot_week) DO UPDATE SET
                 median_rent = EXCLUDED.median_rent,
                 p25_rent = EXCLUDED.p25_rent,

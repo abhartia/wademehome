@@ -1,7 +1,7 @@
 import uuid
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, aliased
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -15,6 +15,8 @@ from properties.schemas import (
     FavoriteResponse,
     FavoriteToggleRequest,
     FavoriteToggleResponse,
+    CommentedPropertiesListResponse,
+    CommentedPropertyResponse,
     GroupNoteCreateRequest,
     GroupNoteResponse,
     GroupNotesListResponse,
@@ -168,6 +170,74 @@ def upsert_property_note(
             updated_at=existing.updated_at,
         )
     )
+
+
+@router.get("/commented", response_model=CommentedPropertiesListResponse)
+def list_commented_properties(
+    group_id: uuid.UUID = Query(...),
+    user: Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resolve_scope(group_id, user, db)
+    agg = (
+        select(
+            PropertyNotes.property_key.label("property_key"),
+            func.count(PropertyNotes.id).label("note_count"),
+            func.max(PropertyNotes.updated_at).label("latest_at"),
+        )
+        .where(PropertyNotes.group_id == group_id)
+        .group_by(PropertyNotes.property_key)
+        .subquery()
+    )
+    latest_note = aliased(PropertyNotes)
+    rows = db.execute(
+        select(
+            agg.c.property_key,
+            agg.c.note_count,
+            agg.c.latest_at,
+            PropertyFavorites.property_name,
+            PropertyFavorites.property_address,
+            latest_note.note,
+            Users.email.label("author_email"),
+        )
+        .join(
+            latest_note,
+            (latest_note.group_id == group_id)
+            & (latest_note.property_key == agg.c.property_key)
+            & (latest_note.updated_at == agg.c.latest_at),
+        )
+        .join(Users, Users.id == latest_note.user_id)
+        .join(
+            PropertyFavorites,
+            (PropertyFavorites.property_key == agg.c.property_key)
+            & (PropertyFavorites.group_id == group_id),
+            isouter=True,
+        )
+        .order_by(agg.c.latest_at.desc())
+    ).all()
+    seen: set[str] = set()
+    properties: list[CommentedPropertyResponse] = []
+    for row in rows:
+        # Guard against duplicate latest-note rows when two notes share the same
+        # max(updated_at) for a property_key — take the first and skip the rest.
+        if row.property_key in seen:
+            continue
+        seen.add(row.property_key)
+        preview = row.note or ""
+        if len(preview) > 240:
+            preview = preview[:237] + "…"
+        properties.append(
+            CommentedPropertyResponse(
+                property_key=row.property_key,
+                property_name=row.property_name,
+                property_address=row.property_address,
+                note_count=row.note_count,
+                latest_note_at=row.latest_at,
+                latest_note_preview=preview,
+                latest_note_author_email=row.author_email,
+            )
+        )
+    return CommentedPropertiesListResponse(properties=properties)
 
 
 @router.get("/group-notes/{property_key}", response_model=GroupNotesListResponse)

@@ -762,6 +762,110 @@
         }
       }
     },
+    "/listings/nearest-transit": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Nearest Transit",
+        "description": "Return the N nearest transit stations to a given point, with straight-line\nwalk times at 3 mph + 20% detour overhead. Used for filtering/labeling\nJC listings by PATH/HBLR/ferry proximity.",
+        "operationId": "nearest_transit_listings_nearest_transit_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude"
+            }
+          },
+          {
+            "name": "systems",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated list of transit systems to consider (e.g. 'path,hblr,ferry'). Omit for all systems.",
+              "title": "Systems"
+            },
+            "description": "Comma-separated list of transit systems to consider (e.g. 'path,hblr,ferry'). Omit for all systems."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 25,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "max_walk_minutes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 60,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Walk Minutes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearestTransitResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/properties/favorites": {
       "get": {
         "tags": [
@@ -928,6 +1032,49 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PropertyNoteGetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/properties/commented": {
+      "get": {
+        "tags": [
+          "properties"
+        ],
+        "summary": "List Commented Properties",
+        "operationId": "list_commented_properties_properties_commented_get",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentedPropertiesListResponse"
                 }
               }
             }
@@ -2593,6 +2740,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreateUserListingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user-listings/paste": {
+      "post": {
+        "tags": [
+          "user-listings"
+        ],
+        "summary": "Paste And Create",
+        "description": "Fire-and-forget endpoint: parse + geocode + dedupe-check + create in one call.\n\nReturns one of three outcomes so the client can show a terminal state per\nqueued paste without extra round trips:\n  * listing populated \u2192 saved\n  * dedupe_matches non-empty \u2192 user must confirm (retry with force=True)\n  * parse_error populated \u2192 couldn't recover an address / coords",
+        "operationId": "paste_and_create_user_listings_paste_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasteCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasteCreateResponse"
                 }
               }
             }
@@ -9433,6 +9622,78 @@
         ],
         "title": "CmsMarketShareSlice"
       },
+      "CommentedPropertiesListResponse": {
+        "properties": {
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/CommentedPropertyResponse"
+            },
+            "type": "array",
+            "title": "Properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "properties"
+        ],
+        "title": "CommentedPropertiesListResponse"
+      },
+      "CommentedPropertyResponse": {
+        "properties": {
+          "property_key": {
+            "type": "string",
+            "title": "Property Key"
+          },
+          "property_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Name"
+          },
+          "property_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Address"
+          },
+          "note_count": {
+            "type": "integer",
+            "title": "Note Count"
+          },
+          "latest_note_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Latest Note At"
+          },
+          "latest_note_preview": {
+            "type": "string",
+            "title": "Latest Note Preview"
+          },
+          "latest_note_author_email": {
+            "type": "string",
+            "title": "Latest Note Author Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "property_key",
+          "note_count",
+          "latest_note_at",
+          "latest_note_preview",
+          "latest_note_author_email"
+        ],
+        "title": "CommentedPropertyResponse"
+      },
       "CommuteLegResult": {
         "properties": {
           "label": {
@@ -9758,6 +10019,18 @@
               }
             ],
             "title": "Image Url"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
           }
         },
         "type": "object",
@@ -15010,6 +15283,82 @@
         ],
         "title": "NearbyListingsResponse"
       },
+      "NearestTransitResponse": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/NearestTransitStation"
+            },
+            "type": "array",
+            "title": "Stations",
+            "description": "Nearest stations across requested systems, sorted by walk time ascending."
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude",
+          "stations"
+        ],
+        "title": "NearestTransitResponse"
+      },
+      "NearestTransitStation": {
+        "properties": {
+          "system": {
+            "type": "string",
+            "title": "System",
+            "description": "path | hblr | nyc_subway | lirr | nj_transit_rail | ferry"
+          },
+          "station_name": {
+            "type": "string",
+            "title": "Station Name"
+          },
+          "lines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "distance_miles": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Distance Miles"
+          },
+          "walk_minutes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Walk Minutes",
+            "description": "Estimated straight-line walk time at 3 mph (adds ~20% detour overhead)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "system",
+          "station_name",
+          "latitude",
+          "longitude",
+          "distance_miles",
+          "walk_minutes"
+        ],
+        "title": "NearestTransitStation"
+      },
       "OwnershipHistoryResponse": {
         "properties": {
           "periods": {
@@ -15236,6 +15585,75 @@
           "parsed"
         ],
         "title": "ParseUrlResponse"
+      },
+      "PasteCreateRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 3,
+            "title": "Text"
+          },
+          "force": {
+            "type": "boolean",
+            "title": "Force",
+            "default": false
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "PasteCreateRequest",
+        "description": "One-shot: parse + geocode + create. For the fire-and-forget paste queue."
+      },
+      "PasteCreateResponse": {
+        "properties": {
+          "listing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CreateUserListingResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dedupe_matches": {
+            "items": {
+              "$ref": "#/components/schemas/DedupeMatch"
+            },
+            "type": "array",
+            "title": "Dedupe Matches",
+            "default": []
+          },
+          "parse_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parse Error"
+          }
+        },
+        "type": "object",
+        "title": "PasteCreateResponse",
+        "description": "Exactly one of (listing, dedupe_matches, parse_error) is meaningfully populated."
       },
       "PhotoDocumentationSummary": {
         "properties": {

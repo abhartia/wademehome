@@ -369,21 +369,99 @@ def parse_listing_from_html(card_el, scraped_ts: str) -> tuple[dict | None, list
 
 # ── Direct API scrape ────────────────────────────────────────────────────────
 
-# Region IDs for NYC metro
+# Region IDs for NYC metro. Corcoran's current backend no longer filters by
+# numeric regionId — the live site passes a `locations: [{name,state,id}]`
+# object to /api/search/listings. We keep the regionId as a stable label for
+# logging/debugging but drive the actual query off (name, state).
 CORCORAN_REGIONS = {
-    "1": "NYC (Manhattan)",
-    "2": "Brooklyn",
-    "7": "Queens",
-    "8": "Bronx",
-    "50": "Hoboken",
-    "51": "Jersey City",
+    "1":  {"label": "NYC (Manhattan)", "name": "manhattan",    "state": "ny"},
+    "2":  {"label": "Brooklyn",         "name": "brooklyn",     "state": "ny"},
+    "7":  {"label": "Queens",           "name": "queens",       "state": "ny"},
+    "8":  {"label": "Bronx",            "name": "bronx",        "state": "ny"},
+    "50": {"label": "Hoboken",          "name": "hoboken",      "state": "nj"},
+    "51": {"label": "Jersey City",      "name": "jersey-city",  "state": "nj"},
 }
+
+
+def fetch_be_api_key(timeout_s: int = 60) -> str:
+    """
+    Corcoran's backend API (backendapi.corcoranlabs.com) requires a static
+    header `be-api-key: <KEY>`. The key is issued by the Next.js app bundle
+    and the `Authorization` header is a red herring (it is sent as the
+    literal string "Bearer undefined").
+
+    Rather than hard-coding the key (it could rotate) we launch a short
+    headless Playwright session, navigate to a search page so the SPA fires
+    at least one /api/search/listings POST, and read the `be-api-key`
+    request header off that call. We then reuse the same key for the
+    entire paginated scrape via plain `requests`.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError as exc:
+        raise RuntimeError(
+            "playwright is required to extract Corcoran's be-api-key. "
+            "Install: pip install playwright && playwright install chromium"
+        ) from exc
+
+    captured: dict[str, str] = {}
+
+    def on_request(req):
+        if req.url.endswith("/api/search/listings"):
+            key = req.headers.get("be-api-key") or req.headers.get("Be-Api-Key")
+            if key and "be_api_key" not in captured:
+                captured["be_api_key"] = key
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            context = browser.new_context(
+                user_agent=(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                ),
+                viewport={"width": 1440, "height": 900},
+            )
+            page = context.new_page()
+            page.on("request", on_request)
+            # Any for-rent search page will do; jersey-city is the priority region.
+            page.goto(
+                "https://www.corcoran.com/search/for-rent/location/jersey-city-nj/regionId/51",
+                wait_until="domcontentloaded",
+                timeout=timeout_s * 1000,
+            )
+            # Scroll to force the SPA to fire the /api/search/listings POST
+            # (it defers the call until the results section is near the viewport).
+            deadline = time.time() + timeout_s
+            while "be_api_key" not in captured and time.time() < deadline:
+                try:
+                    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                except Exception:
+                    pass
+                page.wait_for_timeout(500)
+        finally:
+            browser.close()
+
+    if "be_api_key" not in captured:
+        raise RuntimeError(
+            "Failed to capture be-api-key from corcoran.com — the page may "
+            "have changed its auth scheme. Re-run with debugging."
+        )
+    key = captured["be_api_key"]
+    logger.info("Extracted be-api-key (len=%d) from corcoran.com", len(key))
+    return key
 
 
 def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict]]:
     """
     Directly call Corcoran's backend API (backendapi.corcoranlabs.com/api/search/listings).
     Paginate through all regions using page/pageSize parameters.
+
+    Auth: the API requires a `be-api-key` header. We extract it fresh each
+    run by briefly driving corcoran.com in headless Chromium (see
+    fetch_be_api_key). No bearer token is involved — the site sends a
+    literal "Bearer undefined" Authorization header, which the backend
+    ignores in favor of the be-api-key.
     """
     scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     all_rows: list[dict] = []
@@ -393,6 +471,7 @@ def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict
     API_URL = "https://backendapi.corcoranlabs.com/api/search/listings"
     PAGE_SIZE = 48
 
+    be_api_key = fetch_be_api_key()
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -402,17 +481,25 @@ def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict
         "Content-Type": "application/json",
         "Referer": "https://www.corcoran.com/",
         "Origin": "https://www.corcoran.com",
+        "be-api-key": be_api_key,
     }
 
-    for region_id, region_name in CORCORAN_REGIONS.items():
-        logger.info("Scraping region %s (%s)...", region_id, region_name)
+    for region_id, region_info in CORCORAN_REGIONS.items():
+        region_name = region_info["label"]
+        loc_name = region_info["name"]
+        loc_state = region_info["state"]
+        logger.info("Scraping region %s (%s) via locations=[%s,%s]...",
+                    region_id, region_name, loc_name, loc_state)
 
         for page_num in range(1, max_pages + 1):
             payload = {
                 "page": page_num,
                 "pageSize": PAGE_SIZE,
                 "transactionTypes": ["for-rent"],
-                "regionIds": [region_id],
+                # Backend no longer honors regionIds for public search —
+                # filter by location name/state instead (this is what the
+                # live corcoran.com SPA sends).
+                "regionIds": [],
                 "sortBy": ["recommended+desc"],
                 "locale": {"currency": "USD", "language": "en-US", "measure": "imperial"},
                 "address": [],
@@ -428,6 +515,7 @@ def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict
                 "neighborhoods": [],
                 "propertyTypes": [""],
                 "features": [""],
+                "locations": [{"name": loc_name, "state": loc_state, "id": None}],
                 "countries": [],
                 "places": [],
             }

@@ -85,6 +85,11 @@ log "Starting Elliman scrape..."
 cd "$REPO_ROOT/elliman_scraper"
 "$API_VENV" elliman_scraper.py --env local --mode scrape --max_pages 20 || log "WARN: Elliman scraper exited non-zero"
 
+# Greystar (sitemap-driven nationwide crawl — full US, ~20-30 min)
+log "Starting Greystar scrape..."
+cd "$REPO_ROOT/greystar_scraper"
+"$API_VENV" greystar_scraper.py --env local --mode scrape --max_workers 10 || log "WARN: Greystar scraper exited non-zero"
+
 # ── Phase 2: Load into Postgres ───────────────────────────────────────────
 
 hr
@@ -185,10 +190,10 @@ log "=== PHASE 5: PM SNAPSHOTS ==="
 hr
 
 cd "$REPO_ROOT/api"
-"$API_VENV" -c "
-from src.property_manager.service import archive_snapshots_for_all_subscriptions
-from src.db.database import SessionLocal
-db = SessionLocal()
+PYTHONPATH="$REPO_ROOT/api/src" "$API_VENV" -c "
+from property_manager.service import archive_snapshots_for_all_subscriptions
+from db.session import get_session_local
+db = get_session_local()()
 try:
     n = archive_snapshots_for_all_subscriptions(db)
     print(f'Generated snapshots for {n} subscriptions')
@@ -210,7 +215,8 @@ load_dotenv('${REPO_ROOT}/api/.env')
 engine = create_engine(os.environ['DATABASE_URL'])
 with engine.connect() as conn:
     r = conn.execute(text('''
-        SELECT company, COUNT(*) AS rows, COUNT(DISTINCT property_id) AS buildings,
+        SELECT COALESCE(company, '(unknown)') AS company,
+               COUNT(*) AS rows, COUNT(DISTINCT property_id) AS buildings,
                COUNT(*) FILTER (WHERE availability_status = 'available') AS available
         FROM listings
         GROUP BY company
@@ -227,7 +233,8 @@ with engine.connect() as conn:
     
     print()
     r2 = conn.execute(text('''
-        SELECT company, COUNT(*) FILTER (WHERE availability_status = 'available') AS available
+        SELECT COALESCE(company, '(unknown)') AS company,
+               COUNT(*) FILTER (WHERE availability_status = 'available') AS available
         FROM listings
         WHERE latitude BETWEEN 40.4 AND 41.4 AND longitude BETWEEN -74.5 AND -73.5
         GROUP BY company ORDER BY available DESC

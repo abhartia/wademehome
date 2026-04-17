@@ -8,9 +8,13 @@ from core.config import Config
 
 
 def _llm_kwargs_for_no_reasoning() -> dict:
-    # Keep completions short for latency; avoid unsupported params (e.g. temperature on GPT-5 nano).
+    # GPT-5-nano is a reasoning model: even with reasoning_effort=minimal, any
+    # non-trivial prompt can spend tokens on reasoning. A budget under ~1024
+    # results in finish_reason=length with 0 output tokens (all tokens consumed
+    # by reasoning). 2048 leaves ample room for structured JSON outputs
+    # (query plan, listing validation, lease extraction, URL parsing).
     return {
-        "max_tokens": 256,
+        "max_tokens": 2048,
         "additional_kwargs": {
             "reasoning_effort": "minimal",
         },

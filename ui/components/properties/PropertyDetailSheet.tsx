@@ -23,7 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PropertyImageGallery } from "@/components/properties/PropertyImageGallery";
-import { ThumbsUp, ThumbsDown, Heart, Trash2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Heart, Lock, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -43,6 +43,7 @@ import {
   type ReactionKind,
 } from "@/lib/properties/api";
 import { useActiveGroupId } from "@/lib/groups/activeGroup";
+import { useMyGroups } from "@/lib/groups/api";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { shareListingUrl } from "@/lib/properties/shareListingUrl";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
@@ -79,6 +80,10 @@ export function PropertyDetailSheet({
   const activeGroupId = useActiveGroupId();
   const router = useRouter();
   const { user } = useAuth();
+  const groupsQuery = useMyGroups({ enabled: Boolean(activeGroupId) });
+  const activeGroupName = activeGroupId
+    ? groupsQuery.data?.groups.find((g) => g.id === activeGroupId)?.name
+    : undefined;
   const propertyKey = useMemo(
     () => (property ? buildPropertyKey(property) : ""),
     [property],
@@ -360,12 +365,22 @@ export function PropertyDetailSheet({
 
           {activeGroupId ? (
             <div className="space-y-3">
-              <h4 className="text-sm font-semibold">Shared notes</h4>
+              <div className="space-y-1">
+                <h4 className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  Group notes
+                </h4>
+                <p className="text-[11px] text-muted-foreground">
+                  Only visible to members of
+                  {activeGroupName ? ` ${activeGroupName}` : " your group"}. Not
+                  shared with landlords or anyone outside the group.
+                </p>
+              </div>
               {groupNotesQuery.isLoading ? (
                 <div className="text-xs text-muted-foreground">Loading notes…</div>
               ) : groupNotes.length === 0 ? (
                 <div className="text-xs text-muted-foreground">
-                  No notes yet. Be the first to share your thoughts.
+                  No notes yet. Be the first to share your thoughts with the group.
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -408,7 +423,11 @@ export function PropertyDetailSheet({
                 <Textarea
                   value={groupNoteDraft}
                   onChange={(e) => setGroupNoteDraft(e.target.value)}
-                  placeholder="Add a note for your group…"
+                  placeholder={
+                    activeGroupName
+                      ? `Add a note for ${activeGroupName}…`
+                      : "Add a note for your group…"
+                  }
                 />
                 <Button
                   size="sm"

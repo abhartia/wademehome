@@ -745,6 +745,50 @@ export type CmsMarketShareSlice = {
 };
 
 /**
+ * CommentedPropertiesListResponse
+ */
+export type CommentedPropertiesListResponse = {
+    /**
+     * Properties
+     */
+    properties: Array<CommentedPropertyResponse>;
+};
+
+/**
+ * CommentedPropertyResponse
+ */
+export type CommentedPropertyResponse = {
+    /**
+     * Property Key
+     */
+    property_key: string;
+    /**
+     * Property Name
+     */
+    property_name?: string | null;
+    /**
+     * Property Address
+     */
+    property_address?: string | null;
+    /**
+     * Note Count
+     */
+    note_count: number;
+    /**
+     * Latest Note At
+     */
+    latest_note_at: string;
+    /**
+     * Latest Note Preview
+     */
+    latest_note_preview: string;
+    /**
+     * Latest Note Author Email
+     */
+    latest_note_author_email: string;
+};
+
+/**
  * CommuteLegResult
  */
 export type CommuteLegResult = {
@@ -897,6 +941,10 @@ export type CreateUserListingRequest = {
      * Image Url
      */
     image_url?: string | null;
+    /**
+     * Group Id
+     */
+    group_id?: string | null;
 };
 
 /**
@@ -4007,6 +4055,61 @@ export type NearbyListingsResponse = {
 };
 
 /**
+ * NearestTransitResponse
+ */
+export type NearestTransitResponse = {
+    /**
+     * Latitude
+     */
+    latitude: number;
+    /**
+     * Longitude
+     */
+    longitude: number;
+    /**
+     * Stations
+     * Nearest stations across requested systems, sorted by walk time ascending.
+     */
+    stations: Array<NearestTransitStation>;
+};
+
+/**
+ * NearestTransitStation
+ */
+export type NearestTransitStation = {
+    /**
+     * System
+     * path | hblr | nyc_subway | lirr | nj_transit_rail | ferry
+     */
+    system: string;
+    /**
+     * Station Name
+     */
+    station_name: string;
+    /**
+     * Lines
+     */
+    lines?: Array<string>;
+    /**
+     * Latitude
+     */
+    latitude: number;
+    /**
+     * Longitude
+     */
+    longitude: number;
+    /**
+     * Distance Miles
+     */
+    distance_miles: number;
+    /**
+     * Walk Minutes
+     * Estimated straight-line walk time at 3 mph (adds ~20% detour overhead).
+     */
+    walk_minutes: number;
+};
+
+/**
  * OwnershipHistoryResponse
  */
 export type OwnershipHistoryResponse = {
@@ -4121,6 +4224,41 @@ export type ParseUrlResponse = {
      * Parsed
      */
     parsed: boolean;
+};
+
+/**
+ * PasteCreateRequest
+ * One-shot: parse + geocode + create. For the fire-and-forget paste queue.
+ */
+export type PasteCreateRequest = {
+    /**
+     * Text
+     */
+    text: string;
+    /**
+     * Force
+     */
+    force?: boolean;
+    /**
+     * Group Id
+     */
+    group_id?: string | null;
+};
+
+/**
+ * PasteCreateResponse
+ * Exactly one of (listing, dedupe_matches, parse_error) is meaningfully populated.
+ */
+export type PasteCreateResponse = {
+    listing?: CreateUserListingResponse | null;
+    /**
+     * Dedupe Matches
+     */
+    dedupe_matches?: Array<DedupeMatch>;
+    /**
+     * Parse Error
+     */
+    parse_error?: string | null;
 };
 
 /**
@@ -7047,6 +7185,53 @@ export type PoiNearbyListingsPoiNearbyGetResponses = {
 
 export type PoiNearbyListingsPoiNearbyGetResponse = PoiNearbyListingsPoiNearbyGetResponses[keyof PoiNearbyListingsPoiNearbyGetResponses];
 
+export type NearestTransitListingsNearestTransitGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Latitude
+         */
+        latitude: number;
+        /**
+         * Longitude
+         */
+        longitude: number;
+        /**
+         * Systems
+         * Comma-separated list of transit systems to consider (e.g. 'path,hblr,ferry'). Omit for all systems.
+         */
+        systems?: string | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Max Walk Minutes
+         */
+        max_walk_minutes?: number | null;
+    };
+    url: '/listings/nearest-transit';
+};
+
+export type NearestTransitListingsNearestTransitGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type NearestTransitListingsNearestTransitGetError = NearestTransitListingsNearestTransitGetErrors[keyof NearestTransitListingsNearestTransitGetErrors];
+
+export type NearestTransitListingsNearestTransitGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: NearestTransitResponse;
+};
+
+export type NearestTransitListingsNearestTransitGetResponse = NearestTransitListingsNearestTransitGetResponses[keyof NearestTransitListingsNearestTransitGetResponses];
+
 export type ListFavoritesPropertiesFavoritesGetData = {
     body?: never;
     path?: never;
@@ -7161,6 +7346,36 @@ export type UpsertPropertyNotePropertiesNotesPropertyKeyPutResponses = {
 };
 
 export type UpsertPropertyNotePropertiesNotesPropertyKeyPutResponse = UpsertPropertyNotePropertiesNotesPropertyKeyPutResponses[keyof UpsertPropertyNotePropertiesNotesPropertyKeyPutResponses];
+
+export type ListCommentedPropertiesPropertiesCommentedGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    url: '/properties/commented';
+};
+
+export type ListCommentedPropertiesPropertiesCommentedGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListCommentedPropertiesPropertiesCommentedGetError = ListCommentedPropertiesPropertiesCommentedGetErrors[keyof ListCommentedPropertiesPropertiesCommentedGetErrors];
+
+export type ListCommentedPropertiesPropertiesCommentedGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: CommentedPropertiesListResponse;
+};
+
+export type ListCommentedPropertiesPropertiesCommentedGetResponse = ListCommentedPropertiesPropertiesCommentedGetResponses[keyof ListCommentedPropertiesPropertiesCommentedGetResponses];
 
 export type ListGroupNotesPropertiesGroupNotesPropertyKeyGetData = {
     body?: never;
@@ -8224,6 +8439,31 @@ export type CreateListingUserListingsPostResponses = {
 };
 
 export type CreateListingUserListingsPostResponse = CreateListingUserListingsPostResponses[keyof CreateListingUserListingsPostResponses];
+
+export type PasteAndCreateUserListingsPastePostData = {
+    body: PasteCreateRequest;
+    path?: never;
+    query?: never;
+    url: '/user-listings/paste';
+};
+
+export type PasteAndCreateUserListingsPastePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PasteAndCreateUserListingsPastePostError = PasteAndCreateUserListingsPastePostErrors[keyof PasteAndCreateUserListingsPastePostErrors];
+
+export type PasteAndCreateUserListingsPastePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: PasteCreateResponse;
+};
+
+export type PasteAndCreateUserListingsPastePostResponse = PasteAndCreateUserListingsPastePostResponses[keyof PasteAndCreateUserListingsPastePostResponses];
 
 export type UpdateVisibilityUserListingsPropertyKeyVisibilityPatchData = {
     body: VisibilityUpdateRequest;

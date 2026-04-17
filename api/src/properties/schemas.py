@@ -63,6 +63,20 @@ class GroupNotesListResponse(BaseModel):
     notes: list[GroupNoteResponse]
 
 
+class CommentedPropertyResponse(BaseModel):
+    property_key: str
+    property_name: str | None = None
+    property_address: str | None = None
+    note_count: int
+    latest_note_at: datetime
+    latest_note_preview: str
+    latest_note_author_email: str
+
+
+class CommentedPropertiesListResponse(BaseModel):
+    properties: list[CommentedPropertyResponse]
+
+
 ReactionKind = Literal["thumbs_up", "thumbs_down", "heart"]
 
 

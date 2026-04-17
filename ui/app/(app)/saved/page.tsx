@@ -8,11 +8,16 @@ import {
   CalendarPlus,
   ExternalLink,
   Loader2,
+  MessageSquareText,
   Search,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePropertyFavorites, useToggleFavorite } from "@/lib/properties/api";
+import {
+  useCommentedProperties,
+  usePropertyFavorites,
+  useToggleFavorite,
+} from "@/lib/properties/api";
 import { useActiveGroupId } from "@/lib/groups/activeGroup";
 import { useMyGroups } from "@/lib/groups/api";
 import { AddPropertyModal } from "@/components/tours/AddPropertyModal";
@@ -46,6 +51,7 @@ function tourPropertyFrom(
 export default function SavedPage() {
   const activeGroupId = useActiveGroupId();
   const favoritesQuery = usePropertyFavorites({ groupId: activeGroupId });
+  const commentedQuery = useCommentedProperties(activeGroupId);
   const groupsQuery = useMyGroups();
   const qc = useQueryClient();
   const toggleFavorite = useToggleFavorite({ groupId: activeGroupId });
@@ -58,6 +64,7 @@ export default function SavedPage() {
   const [removingKey, setRemovingKey] = useState<string | null>(null);
 
   const favorites = favoritesQuery.data?.favorites ?? [];
+  const commented = commentedQuery.data?.properties ?? [];
   const activeGroup = activeGroupId
     ? groupsQuery.data?.groups.find((g) => g.id === activeGroupId)
     : undefined;
@@ -213,6 +220,85 @@ export default function SavedPage() {
               );
             })}
           </ul>
+        )}
+
+        {activeGroup && (
+          <div className="space-y-2 pt-2">
+            <div className="flex items-center gap-2">
+              <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold">
+                Properties with group notes
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Only visible to members of {activeGroup.name}.
+            </p>
+            {commentedQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : commented.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-4 text-center">
+                <p className="text-xs text-muted-foreground">
+                  No notes yet. Open a saved property and post a note to your
+                  group — it will show up here.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y rounded-md border bg-card">
+                {commented.map((c) => {
+                  const displayName = c.property_name || c.property_key;
+                  const displayAddress = c.property_address || "";
+                  return (
+                    <li
+                      key={c.property_key}
+                      className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30"
+                    >
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <Link
+                          href={`/properties/${encodeURIComponent(c.property_key)}`}
+                          className="truncate text-sm font-medium hover:underline"
+                        >
+                          {displayName}
+                        </Link>
+                        {displayAddress && (
+                          <p className="truncate text-xs text-muted-foreground">
+                            {displayAddress}
+                          </p>
+                        )}
+                        <p className="line-clamp-2 text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {c.latest_note_author_email}
+                          </span>
+                          : {c.latest_note_preview}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {c.note_count} note{c.note_count === 1 ? "" : "s"} ·{" "}
+                          {new Date(c.latest_note_at).toLocaleString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        asChild
+                        className="h-7 gap-1 text-[11px]"
+                      >
+                        <Link
+                          href={`/properties/${encodeURIComponent(c.property_key)}`}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          View
+                        </Link>
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
         )}
       </div>
 

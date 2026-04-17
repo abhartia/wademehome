@@ -22,3 +22,4 @@ scripts/.listing_amenities_scrape.checkpoint.json
 /corcoran_scraper/env=local
 /elliman_scraper/env=local
 /analytics
+/corcoran_scraper/__pycache__

@@ -15,12 +15,14 @@ UI can one-click save without a separate geocode round trip.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
+from typing import Any
 
 from llama_index.core.base.llms.types import ChatMessage
 from llama_index.core.llms import LLM
@@ -35,7 +37,20 @@ logger = get_logger(__name__)
 
 _FETCH_TIMEOUT = 8.0
 _MAX_HTML_BYTES = 2_000_000
-_MAX_LLM_CHARS = 15_000
+_MAX_LLM_CHARS = 8_000
+_PASTE_SNIPPET_CHARS = 1_500
+
+# Reasoning-effort variants tried in order; first one that returns parseable
+# JSON wins. Empirical: on our Azure gpt-5-nano deployment, omitting the param
+# entirely is ~2x faster than passing "none" explicitly (the "none" code path
+# routes through a slower pipeline). "minimal" is kept as a second-choice fallback
+# in case a future model rejects the bare default.
+_REASONING_VARIANTS: tuple[dict[str, Any], ...] = (
+    {},
+    {"reasoning_effort": "minimal"},
+)
+
+_URL_RE = re.compile(r"https?://[^\s<>()\[\]{}\"']+", flags=re.IGNORECASE)
 
 # Zillow whitelists this honest-bot pattern; browser UAs get 403'd there. Apartments.com's
 # Akamai WAF blocks both — for that case we fall back to the address the user pasted in the
@@ -282,56 +297,83 @@ _LLM_USER_TEMPLATE = """Extract rental-listing fields from this page text. Unkno
 """
 
 
-async def _extract_with_llm(visible_text: str, llm: LLM | None = None) -> PrefillFields:
-    snippet = (visible_text or "").strip()[:_MAX_LLM_CHARS]
-    if not snippet:
-        return PrefillFields()
-    active = llm or get_llm()
-    try:
-        resp = await active.achat(
-            messages=[
-                ChatMessage(role="system", content=_LLM_SYSTEM),
-                ChatMessage(role="user", content=_LLM_USER_TEMPLATE.format(snippet=snippet)),
-            ],
-            response_format={"type": "json_object"},
-            max_tokens=400,
-        )
-    except Exception:
-        logger.exception("user_listings url_parser: LLM extraction failed")
-        return PrefillFields()
-    raw = (resp.message.content if resp and resp.message else None) or ""
-    try:
-        payload = raw if isinstance(raw, dict) else json.loads(str(raw))
-    except (json.JSONDecodeError, TypeError):
-        logger.warning("user_listings url_parser: invalid JSON from LLM")
-        return PrefillFields()
-    if not isinstance(payload, dict):
-        return PrefillFields()
+async def _achat_json(
+    llm: LLM,
+    messages: list[ChatMessage],
+    *,
+    max_tokens: int,
+) -> dict | None:
+    """Wrap achat with reasoning-effort variants. Tries no-reasoning first, falls
+    back to minimal, then default — mirrors ai_search.py's planner. This is pure
+    extraction; reasoning spend is wasted latency here."""
+    base = {"response_format": {"type": "json_object"}, "max_tokens": max_tokens}
+    last_exc: Exception | None = None
+    for variant in _REASONING_VARIANTS:
+        try:
+            resp = await llm.achat(messages=messages, **base, **variant)
+        except Exception as exc:  # noqa: BLE001 — try next variant
+            last_exc = exc
+            continue
+        raw = (resp.message.content if resp and resp.message else None) or ""
+        if isinstance(raw, dict):
+            return raw
+        try:
+            payload = json.loads(str(raw))
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(payload, dict):
+            return payload
+    if last_exc is not None:
+        logger.warning("user_listings url_parser: all LLM variants failed: %s", last_exc)
+    return None
 
-    def _str_or_none(v: object) -> str | None:
+
+def _payload_to_prefill(payload: dict) -> PrefillFields:
+    def _s(v: object) -> str | None:
         if v is None:
             return None
         s = str(v).strip()
         return s or None
 
     return PrefillFields(
-        name=_str_or_none(payload.get("name")),
-        address=_str_or_none(payload.get("address")),
-        unit=_str_or_none(payload.get("unit")),
-        price=_str_or_none(payload.get("price")),
-        beds=_str_or_none(payload.get("beds")),
-        baths=_str_or_none(payload.get("baths")),
-        image_url=_str_or_none(payload.get("image_url")),
+        name=_s(payload.get("name")),
+        address=_s(payload.get("address")),
+        unit=_s(payload.get("unit")),
+        price=_s(payload.get("price")),
+        beds=_s(payload.get("beds")),
+        baths=_s(payload.get("baths")),
+        image_url=_s(payload.get("image_url")),
     )
 
 
-async def _fetch_and_extract(url: str) -> PrefillFields:
-    """Fetch URL (urllib follows redirects, so share.google shorteners resolve),
-    parse JSON-LD + OG, fall back to LLM extraction on visible text.
+async def _extract_with_llm(visible_text: str, llm: LLM | None = None) -> PrefillFields:
+    snippet = (visible_text or "").strip()[:_MAX_LLM_CHARS]
+    if not snippet:
+        return PrefillFields()
+    active = llm or get_llm()
+    payload = await _achat_json(
+        active,
+        [
+            ChatMessage(role="system", content=_LLM_SYSTEM),
+            ChatMessage(role="user", content=_LLM_USER_TEMPLATE.format(snippet=snippet)),
+        ],
+        max_tokens=400,
+    )
+    if payload is None:
+        return PrefillFields()
+    return _payload_to_prefill(payload)
+
+
+async def _fetch_structured(url: str) -> tuple[PrefillFields, _MetaParser | None]:
+    """Fetch URL + pull JSON-LD/OG. Returns (structured_prefill, parser_or_None).
+
+    The parser handle is returned so callers can decide whether to burn a second
+    LLM round trip on visible_text — in the paste flow we already got the
+    address from the paste LLM, so we skip the fallback.
     """
-    html = _fetch_html(url)
+    html = await asyncio.to_thread(_fetch_html, url)
     if html is None:
-        return PrefillFields(source_host=_host_of(url), source_url=url)
+        return PrefillFields(source_host=_host_of(url), source_url=url), None
 
     parser = _MetaParser()
     try:
@@ -344,19 +386,20 @@ async def _fetch_and_extract(url: str) -> PrefillFields:
     merged = _merge(from_jsonld, from_og)
     merged.source_host = _host_of(url)
     merged.source_url = url
+    return merged, parser
 
-    if not merged.address or not merged.price:
+
+async def _fetch_and_extract(url: str) -> PrefillFields:
+    """URL-only entry point: fetch + structured parse + LLM fallback if missing.
+
+    Used by parse_listing_url (no paste context). The paste flow uses
+    _fetch_structured directly and pairs it with the paste LLM extraction.
+    """
+    merged, parser = await _fetch_structured(url)
+    if parser is not None and (not merged.address or not merged.price):
         from_llm = await _extract_with_llm(parser.visible_text())
         merged = _merge(merged, from_llm)
-
     return merged
-
-
-async def parse_listing_url(url: str) -> tuple[PrefillFields, bool]:
-    """Returns (prefill, parsed). parsed=True if at least an address was recovered."""
-    prefill = await _fetch_and_extract(url)
-    prefill = _geocode_prefill(prefill)
-    return prefill, bool(prefill.address)
 
 
 _PASTE_LLM_SYSTEM = (
@@ -379,30 +422,19 @@ async def _extract_from_paste(
     text: str, llm: LLM | None = None
 ) -> tuple[str | None, PrefillFields]:
     """Returns (extracted_url, hint_fields). Never invents values."""
-    snippet = (text or "").strip()[:3000]
+    snippet = (text or "").strip()[:_PASTE_SNIPPET_CHARS]
     if not snippet:
         return None, PrefillFields()
     active = llm or get_llm()
-    try:
-        resp = await active.achat(
-            messages=[
-                ChatMessage(role="system", content=_PASTE_LLM_SYSTEM),
-                ChatMessage(role="user", content=_PASTE_LLM_USER.format(snippet=snippet)),
-            ],
-            response_format={"type": "json_object"},
-            max_tokens=400,
-        )
-    except Exception:
-        logger.exception("user_listings url_parser: paste LLM extraction failed")
-        return None, PrefillFields()
-
-    raw = (resp.message.content if resp and resp.message else None) or ""
-    try:
-        payload = raw if isinstance(raw, dict) else json.loads(str(raw))
-    except (json.JSONDecodeError, TypeError):
-        logger.warning("user_listings url_parser: invalid JSON from paste LLM")
-        return None, PrefillFields()
-    if not isinstance(payload, dict):
+    payload = await _achat_json(
+        active,
+        [
+            ChatMessage(role="system", content=_PASTE_LLM_SYSTEM),
+            ChatMessage(role="user", content=_PASTE_LLM_USER.format(snippet=snippet)),
+        ],
+        max_tokens=200,
+    )
+    if payload is None:
         return None, PrefillFields()
 
     def _s(key: str) -> str | None:
@@ -413,7 +445,6 @@ async def _extract_from_paste(
         return s or None
 
     url = _s("url")
-    # Guard: only accept plausible http(s) URLs that actually appear in the text.
     if url and not re.match(r"^https?://", url, flags=re.IGNORECASE):
         url = None
     if url and url not in snippet:
@@ -428,21 +459,70 @@ async def _extract_from_paste(
     )
 
 
+def _first_url_in(text: str) -> str | None:
+    """Cheap regex URL extractor — used to kick off the HTML fetch concurrently
+    with the LLM extraction when a URL is obviously present in the paste."""
+    m = _URL_RE.search(text or "")
+    if not m:
+        return None
+    url = m.group(0).rstrip(".,);]")
+    return url if url.lower().startswith(("http://", "https://")) else None
+
+
 async def parse_listing_paste(text: str) -> tuple[PrefillFields, bool]:
-    """Parse a free-form share blob. Returns (prefill, parsed)."""
-    extracted_url, paste_hints = await _extract_from_paste(text)
+    """Parse a free-form share blob. Returns (prefill, parsed).
 
-    if extracted_url:
-        fetched = await _fetch_and_extract(extracted_url)
-        # Fetched HTML wins for anything it recovered; paste hints fill gaps.
-        # If the fetch failed (share.google fronted, anti-bot, etc.) the paste
-        # address is enough to geocode and save.
-        merged = _merge(fetched, paste_hints)
+    Fast-path optimizations over the naive sequential version:
+      1. Regex-detect the URL up-front (cheap) so the HTTP fetch can start
+         concurrently with the LLM paste-hint extraction.
+      2. Use _fetch_structured (no internal LLM fallback). The paste LLM
+         already recovers the address — the URL-page visible-text fallback is
+         only needed when BOTH the paste LLM and JSON-LD/OG miss the address.
+    """
+    regex_url = _first_url_in(text)
+
+    paste_coro = _extract_from_paste(text)
+    if regex_url:
+        # Run LLM and HTTP fetch concurrently. Each is 2-4s on its own; this
+        # dominates the total wall-clock.
+        (llm_url, paste_hints), (fetched, parser) = await asyncio.gather(
+            paste_coro, _fetch_structured(regex_url)
+        )
+        # If the LLM flagged a different URL than regex and regex fetch came
+        # back empty, try the LLM's URL as a last resort.
+        if (
+            llm_url
+            and llm_url != regex_url
+            and not fetched.address
+            and not fetched.price
+        ):
+            fetched, parser = await _fetch_structured(llm_url)
     else:
-        merged = paste_hints
+        llm_url, paste_hints = await paste_coro
+        if llm_url:
+            fetched, parser = await _fetch_structured(llm_url)
+        else:
+            fetched, parser = PrefillFields(), None
 
-    merged = _geocode_prefill(merged)
+    merged = _merge(fetched, paste_hints)
+
+    # Only burn a second LLM call on visible_text when BOTH the paste LLM and
+    # the structured fetch failed to recover an address. In the common case
+    # (paste contains the address, like every Zillow/apartments.com share) we
+    # skip this round trip entirely.
+    if parser is not None and not merged.address:
+        from_llm = await _extract_with_llm(parser.visible_text())
+        merged = _merge(merged, from_llm)
+
+    merged = await asyncio.to_thread(_geocode_prefill, merged)
     return merged, bool(merged.address)
+
+
+async def parse_listing_url(url: str) -> tuple[PrefillFields, bool]:
+    """Returns (prefill, parsed). parsed=True if at least an address was recovered."""
+    prefill = await _fetch_and_extract(url)
+    prefill = await asyncio.to_thread(_geocode_prefill, prefill)
+    return prefill, bool(prefill.address)
 
 
 def _geocode_prefill(prefill: PrefillFields) -> PrefillFields:

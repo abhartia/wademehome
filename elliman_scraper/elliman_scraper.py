@@ -1,16 +1,26 @@
 """
 Douglas Elliman rental listing scraper.
 
-Elliman.com is a Next.js app (React Server Components) powered by Purlin.AI.
-Uses Playwright to render pages and intercept the underlying data API.
+As of 2026-04, Elliman's old `core.api.elliman.com/listing/filter` returns 404.
+The working flow is:
+
+1. `/listing/map/clustered` (POST) — returns either cluster markers or, at tight
+   bboxes, `groupedListings` containing individual `coreListingId`s.
+   This endpoint requires a dynamic `Cookies` header generated client-side, so
+   it cannot be called from plain requests. We use Playwright and trigger it by
+   navigating to Elliman's `map-view` URL (the page JS signs the request).
+
+2. For each `coreListingId` we fetch `https://www.elliman.com/listing/{id}` as
+   plain HTML (no anti-bot on the detail page) and parse the listing object
+   out of the Next.js streaming payload in `self.__next_f`.
 
 Modes:
-  scrape   — launch headless browser, crawl rental search pages, save raw JSON + HTML
-  process_local — reprocess saved raw files into units.parquet + images.parquet
+  scrape         — run the full pipeline (map-tile discovery + detail fetch)
+  process_local  — reprocess saved raw JSON files into parquet
 
 Usage:
-  python elliman_scraper.py --env local --mode scrape --max_pages 10
-  python elliman_scraper.py --env local --mode process_local --scrape_date 2026-04-02
+  python elliman_scraper.py --env local --mode scrape
+  python elliman_scraper.py --env local --mode process_local --scrape_date 2026-04-17
 """
 from __future__ import annotations
 
@@ -22,10 +32,11 @@ import os
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from glob import glob
 from pathlib import Path
-from urllib.parse import urlencode, urlparse
+from typing import Iterable
 
 import pandas as pd
 import requests
@@ -38,18 +49,36 @@ GCS_BUCKET = "scrapers-v2"
 COMPANY = "Douglas Elliman"
 SOURCE = "elliman"
 
-# NYC metro bounding box for geo-filtering
-NYC_BBOX = {"south": 40.25, "north": 41.12, "west": -74.45, "east": -73.55}
+# Bounding boxes keyed by a human label.
+# Format: (north, west, south, east) – matches Elliman's map-view URL order.
+REGIONS: dict[str, tuple[float, float, float, float]] = {
+    # NYC five boroughs
+    "manhattan":      (40.882, -74.020, 40.700, -73.907),
+    "brooklyn":       (40.740, -74.045, 40.570, -73.855),
+    "queens":         (40.800, -73.960, 40.540, -73.700),
+    "bronx":          (40.920, -73.935, 40.785, -73.760),
+    "staten-island":  (40.655, -74.260, 40.495, -74.050),
+    # Adjacent NJ priority markets
+    "jersey-city":    (40.775, -74.095, 40.690, -74.020),
+    "hoboken":        (40.760, -74.040, 40.730, -74.010),
+}
 
-# Search entry points for NYC rental pages
-NYC_SEARCH_URLS = [
-    "https://www.elliman.com/rentals/new-york-city",
-    "https://www.elliman.com/rentals/brooklyn",
-    "https://www.elliman.com/rentals/queens",
-    "https://www.elliman.com/rentals/bronx",
-    "https://www.elliman.com/rentals/hoboken-nj",
-    "https://www.elliman.com/rentals/jersey-city-nj",
-]
+# Tile size for discovery. Smaller = more requests, but avoids clustered
+# responses hiding listings behind cluster markers. 0.03 degrees (~3km) at
+# zoom 13 reliably yields `groupedListings` in dense NYC areas.
+TILE_SIZE_DEG = 0.03
+TILE_ZOOM = 13
+
+# Headers for plain-HTTP listing-detail fetches
+_HTML_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+}
 
 Path("logs").mkdir(exist_ok=True)
 log_filename = f"logs/elliman_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
@@ -79,13 +108,6 @@ def _parse_int(v) -> int | None:
     return int(f) if f is not None else None
 
 
-def in_nyc_bbox(lat: float | None, lon: float | None) -> bool:
-    if lat is None or lon is None:
-        return False
-    return (NYC_BBOX["south"] <= lat <= NYC_BBOX["north"]
-            and NYC_BBOX["west"] <= lon <= NYC_BBOX["east"])
-
-
 def _gcs_client():
     try:
         from google.cloud import storage
@@ -97,7 +119,7 @@ def _gcs_client():
 # ── Raw save / load ─────────────────────────────────────────────────────────
 
 
-def save_raw_gz(env: str, data: dict | str, listing_id: str, scraped_at: str):
+def save_raw_gz(env: str, data: dict | str, listing_id: str, scraped_at: str) -> None:
     text = data if isinstance(data, str) else json.dumps(data, ensure_ascii=False)
     path = (
         f"env={env}/source={SOURCE}/stage=raw/entity=property/"
@@ -128,370 +150,69 @@ def load_raw_files(env: str, scrape_date: str) -> list[dict]:
     return out
 
 
-# ── Parsing ──────────────────────────────────────────────────────────────────
+# ── Tile discovery via Playwright ───────────────────────────────────────────
 
 
-def parse_listing_from_api(item: dict, scraped_ts: str) -> tuple[dict | None, list[dict]]:
-    """
-    Parse a single listing from Elliman's API/data response.
-    Elliman uses Purlin.AI; schema varies — this handles common patterns.
-    """
-    listing_id_raw = (item.get("listingId") or item.get("coreListingId")
-                      or item.get("id") or item.get("webId")
-                      or item.get("mlsId") or item.get("listingKey"))
-    if not listing_id_raw:
-        return None, []
-
-    listing_id = f"elliman_{listing_id_raw}"
-
-    # Address extraction (multiple possible shapes)
-    address_obj = item.get("address", {})
-    if isinstance(address_obj, str):
-        address = address_obj
-        city = state = zipcode = None
-    else:
-        address = (address_obj.get("streetAddress") or address_obj.get("line1")
-                   or address_obj.get("fullAddress") or "")
-        city = (address_obj.get("city") or address_obj.get("addressLocality")
-                or item.get("city"))
-        state = (address_obj.get("state") or address_obj.get("addressRegion")
-                 or item.get("state"))
-        zipcode = (address_obj.get("zipCode") or address_obj.get("postalCode")
-                   or item.get("zipCode"))
-
-    loc_obj = item.get("location") or {}
-    if isinstance(loc_obj, str):
-        loc_obj = {}
-    lat = _parse_float(item.get("latitude") or item.get("lat")
-                       or loc_obj.get("lat") or loc_obj.get("latitude")
-                       or (item.get("geo", {}) or {}).get("latitude")
-                       or (item.get("coordinates", {}) or {}).get("lat"))
-    lon = _parse_float(item.get("longitude") or item.get("lng") or item.get("lon")
-                       or loc_obj.get("lng") or loc_obj.get("longitude")
-                       or (item.get("geo", {}) or {}).get("longitude")
-                       or (item.get("coordinates", {}) or {}).get("lng"))
-
-    price = _parse_float(item.get("price") or item.get("listPrice")
-                         or item.get("rent") or item.get("monthlyRent")
-                         or item.get("askingRent"))
-    beds = _parse_float(item.get("bedrooms") or item.get("beds") or item.get("bedroomCount"))
-    baths = _parse_float(item.get("bathrooms") or item.get("baths") or item.get("bathroomCount"))
-    sqft = _parse_float(item.get("squareFeet") or item.get("sqft")
-                        or item.get("livingArea") or item.get("interiorSqft"))
-
-    property_name = item.get("buildingName") or item.get("propertyName") or ""
-    description = item.get("description") or item.get("remarks") or ""
-    listing_url = item.get("url") or item.get("detailUrl") or item.get("listingUrl") or ""
-    if listing_url and not listing_url.startswith("http"):
-        listing_url = f"https://www.elliman.com{listing_url}"
-
-    # Images
-    photos: list[dict] = []
-    raw_images = item.get("images") or item.get("photos") or item.get("media") or []
-    image_urls = []
-    for img in raw_images:
-        url = img if isinstance(img, str) else (img.get("url") or img.get("uri") or "")
-        if url:
-            image_urls.append(url)
-            photos.append({
-                "listing_id": listing_id,
-                "property_id": str(listing_id_raw),
-                "image_url": url,
-                "image_alt": img.get("caption", "") if isinstance(img, dict) else "",
-            })
-
-    row = {
-        "listing_id": listing_id,
-        "property_id": str(listing_id_raw),
-        "alternate_property_id": item.get("mlsId"),
-        "property_name": property_name[:500] if property_name else None,
-        "address": address,
-        "city": city,
-        "state": state,
-        "zipcode": zipcode,
-        "latitude": lat,
-        "longitude": lon,
-        "floor_plan": None,
-        "unit_name": item.get("unitNumber") or item.get("unit") or item.get("aptNumber"),
-        "unit_id": str(listing_id_raw),
-        "beds": beds,
-        "baths": baths,
-        "sqft": sqft,
-        "rent_price": price,
-        "rent_max": price,
-        "deposit": None,
-        "availability_status": "available",
-        "available_at": item.get("availableDate") or item.get("dateAvailable"),
-        "lease_url": None,
-        "lease_term": None,
-        "listing_url": listing_url,
-        "email": None,
-        "phone": item.get("agentPhone") or item.get("contactPhone"),
-        "description": description[:2000] if description else None,
-        "images": json.dumps(image_urls),
-        "website": "www.elliman.com",
-        "company": COMPANY,
-        "building_type": item.get("propertyType", "apartment"),
-        "building_subtype": item.get("propertySubType"),
-        "floor_number": _parse_float(item.get("floor")),
-        "fees": json.dumps([]),
-        "year_built": item.get("yearBuilt"),
-        "total_units": None,
-        "stories": None,
-        "scraped_timestamp": scraped_ts,
-    }
-    return row, photos
+def _tile_bbox(
+    region_bbox: tuple[float, float, float, float],
+    tile_size: float = TILE_SIZE_DEG,
+) -> list[tuple[float, float, float, float]]:
+    """Split a region (north,west,south,east) into smaller tiles of roughly
+    tile_size degrees each. Returns list of (north, west, south, east)."""
+    n, w, s, e = region_bbox
+    tiles: list[tuple[float, float, float, float]] = []
+    lat = s
+    while lat < n:
+        lat2 = min(n, lat + tile_size)
+        lng = w
+        while lng < e:
+            lng2 = min(e, lng + tile_size)
+            tiles.append((lat2, lng, lat, lng2))
+            lng = lng2
+        lat = lat2
+    return tiles
 
 
-def parse_listing_from_html(card_el, scraped_ts: str) -> tuple[dict | None, list[dict]]:
-    """Fallback: parse a listing card from rendered HTML."""
-    from bs4 import Tag
-    if not isinstance(card_el, Tag):
-        return None, []
-
-    link = card_el.find("a", href=True)
-    listing_url = ""
-    listing_id_raw = ""
-    if link:
-        href = link["href"]
-        listing_url = href if href.startswith("http") else f"https://www.elliman.com{href}"
-        parts = href.rstrip("/").split("/")
-        listing_id_raw = parts[-1] if parts else ""
-
-    if not listing_id_raw:
-        return None, []
-
-    listing_id = f"elliman_{listing_id_raw}"
-
-    # Price
-    price = None
-    price_el = card_el.find(string=re.compile(r"\$[\d,]+"))
-    if price_el:
-        m = re.search(r"\$([\d,]+)", str(price_el))
-        if m:
-            price = _parse_float(m.group(1))
-
-    # Address
-    address_el = card_el.find(class_=re.compile(r"address|location|street", re.I))
-    address = address_el.get_text(strip=True) if address_el else None
-
-    # Beds/baths/sqft from text
-    beds = baths = sqft = None
-    detail_text = card_el.get_text(" ", strip=True)
-    bed_match = re.search(r"(\d+)\s*(?:bed|br|bedroom)", detail_text, re.I)
-    bath_match = re.search(r"(\d+(?:\.\d+)?)\s*(?:bath|ba|bathroom)", detail_text, re.I)
-    sqft_match = re.search(r"([\d,]+)\s*(?:sq\.?\s*ft|sqft|sf)", detail_text, re.I)
-    if bed_match:
-        beds = _parse_float(bed_match.group(1))
-    if bath_match:
-        baths = _parse_float(bath_match.group(1))
-    if sqft_match:
-        sqft = _parse_float(sqft_match.group(1))
-
-    # Image
-    photos = []
-    img_el = card_el.find("img", src=True)
-    image_urls = []
-    if img_el:
-        img_url = img_el["src"]
-        if img_url.startswith("//"):
-            img_url = f"https:{img_url}"
-        image_urls.append(img_url)
-        photos.append({
-            "listing_id": listing_id,
-            "property_id": listing_id_raw,
-            "image_url": img_url,
-            "image_alt": img_el.get("alt", ""),
-        })
-
-    row = {
-        "listing_id": listing_id,
-        "property_id": listing_id_raw,
-        "alternate_property_id": None,
-        "property_name": None,
-        "address": address,
-        "city": None,
-        "state": "NY",
-        "zipcode": None,
-        "latitude": None,
-        "longitude": None,
-        "floor_plan": None,
-        "unit_name": None,
-        "unit_id": listing_id_raw,
-        "beds": beds,
-        "baths": baths,
-        "sqft": sqft,
-        "rent_price": price,
-        "rent_max": price,
-        "deposit": None,
-        "availability_status": "available" if price else None,
-        "available_at": None,
-        "lease_url": None,
-        "lease_term": None,
-        "listing_url": listing_url,
-        "email": None,
-        "phone": None,
-        "description": None,
-        "images": json.dumps(image_urls),
-        "website": "www.elliman.com",
-        "company": COMPANY,
-        "building_type": "apartment",
-        "building_subtype": None,
-        "floor_number": None,
-        "fees": json.dumps([]),
-        "year_built": None,
-        "total_units": None,
-        "stories": None,
-        "scraped_timestamp": scraped_ts,
-    }
-    return row, photos
+def _extract_ids_from_clustered(
+    data: dict,
+) -> tuple[list[int], list[dict], int]:
+    """Pull coreListingIds and any summary data from a clustered response.
+    Returns (ids, single_unit_summaries, unresolved_clusters).
+    unresolved_clusters > 0 means we still have un-split clusters — that
+    tile should be subdivided with a higher zoom / smaller tile."""
+    ids: list[int] = []
+    summaries: list[dict] = []
+    cluster_count = len(data.get("clusterMarkers") or [])
+    for item in data.get("groupedListings") or []:
+        t = item.get("type")
+        if t == "singleUnit":
+            su = item.get("singleUnit") or {}
+            cid = su.get("coreListingId")
+            if cid:
+                ids.append(int(cid))
+                summaries.append(su)
+        elif t == "multiUnit":
+            mu = item.get("multiUnit") or {}
+            for cid in mu.get("coreListingIds") or []:
+                ids.append(int(cid))
+    return ids, summaries, cluster_count
 
 
-# ── Scrape mode ──────────────────────────────────────────────────────────────
-
-
-def scrape_via_api(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict]]:
-    """
-    Directly call the Elliman core API (core.api.elliman.com/listing/filter).
-    This is a POST JSON endpoint that accepts filter criteria and a geometry polygon.
-    Paginate using skip/take parameters.
-    """
-    scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    all_rows: list[dict] = []
-    all_photos: list[dict] = []
-    seen_ids: set[str] = set()
-
-    TAKE = 50  # listings per page
-    API_URL = "https://core.api.elliman.com/listing/filter"
-
-    # NYC metro bounding box as a polygon
-    w, s, e, n = NYC_BBOX["west"], NYC_BBOX["south"], NYC_BBOX["east"], NYC_BBOX["north"]
-    nyc_polygon = [[[w, s], [e, s], [e, n], [w, n], [w, s]]]
-
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        ),
-        "Accept": "application/json, text/plain, */*",
-        "Content-Type": "application/json",
-        "Referer": "https://www.elliman.com/",
-        "Origin": "https://www.elliman.com",
-    }
-
-    for page_idx in range(max_pages):
-        skip = page_idx * TAKE
-        payload = {
-            "filter": {
-                "styles": None,
-                "statuses": ["Active", "ActiveUnderContract", "Pending", "ComingSoon"],
-                "features": None,
-                "homeTypes": None,
-                "timeOnMls": None,
-                "isAgencyOnly": False,
-                "isPetAllowed": False,
-                "hasOpenHouse": False,
-                "rentalPeriods": None,
-                "bedroomsTotal": None,
-                "isPriceReduced": False,
-                "hasVirtualTour": False,
-                "isNewConstruction": False,
-                "onlyInternationalListings": False,
-                "listingTypes": ["ResidentialLease"],
-                "bathroom": {"queryField": "TotalDecimal", "operator": "Ge", "value": None},
-                "listPrice": {"min": None, "max": None},
-                "yearBuilt": {"min": None, "max": None},
-                "lotSizeSquareFeet": {"min": None, "max": None},
-                "livingAreaSquareFeet": {"min": None, "max": None},
-                "orderBy": "PriceDesc",
-                "parkingTotal": {"min": None, "max": None},
-                "schoolFilter": {"score": None, "isPrivate": None},
-                "moveIn": {"date": None, "skipNulls": None},
-                "skip": skip,
-                "take": TAKE,
-                "places": [],
-            },
-            "map": {
-                "zoomLevel": 11,
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": nyc_polygon,
-                },
-            },
-            "currencyTo": "USD",
-        }
-
-        logger.info("API page %d (skip=%d, take=%d)...", page_idx + 1, skip, TAKE)
-        try:
-            resp = requests.post(API_URL, json=payload, headers=headers, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-        except Exception as exc:
-            logger.error("API request failed: %s", exc)
-            break
-
-        listings = data.get("listings") or []
-        total_count = data.get("totalCount")
-        logger.info("  Got %d listings (totalCount=%s)", len(listings), total_count)
-
-        if not listings:
-            logger.info("  No more listings, stopping pagination.")
-            break
-
-        for item in listings:
-            row, photos = parse_listing_from_api(item, scraped_ts)
-            if row and row["listing_id"] not in seen_ids:
-                seen_ids.add(row["listing_id"])
-                all_rows.append(row)
-                all_photos.extend(photos)
-                if env == "local":
-                    save_raw_gz(env, item, row["listing_id"], scraped_ts.split()[0])
-
-        # Stop if we've fetched all
-        if total_count is not None and skip + TAKE >= total_count:
-            logger.info("  Reached totalCount=%d, done.", total_count)
-            break
-
-        time.sleep(1)  # Be polite
-
-    logger.info("API scrape complete: %d listings, %d photos", len(all_rows), len(all_photos))
-    return all_rows, all_photos
-
-
-def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], list[dict]]:
-    """Use Playwright to render Elliman search pages and intercept listing API data."""
+def discover_listing_ids(
+    regions: dict[str, tuple[float, float, float, float]],
+    headless: bool = True,
+) -> list[int]:
+    """Drive Playwright across tiles of each region, capturing
+    /listing/map/clustered responses. Returns a deduped list of listing ids."""
     try:
         from playwright.sync_api import sync_playwright
-    except ImportError:
-        logger.error("playwright required for browser fallback")
-        return [], []
+    except ImportError as e:
+        raise ImportError("playwright is required for scraping") from e
 
-    scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    all_rows: list[dict] = []
-    all_photos: list[dict] = []
-    seen_ids: set[str] = set()
-    captured_api_responses: list[dict] = []
-
-    def on_response(response):
-        """Intercept ALL core.api.elliman.com JSON responses."""
-        url = response.url
-        if response.status != 200:
-            return
-        content_type = response.headers.get("content-type", "")
-        if "json" not in content_type:
-            return
-        # Capture ALL Elliman API responses (not just listing/filter)
-        if "core.api.elliman.com" in url:
-            try:
-                body = response.json()
-                if isinstance(body, (dict, list)):
-                    captured_api_responses.append({"url": url, "data": body})
-                    logger.info("Captured API: %s", url[:80])
-            except Exception:
-                pass
+    seen_ids: set[int] = set()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=headless)
         context = browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -500,145 +221,349 @@ def scrape_with_playwright(env: str, max_pages: int = 20) -> tuple[list[dict], l
             viewport={"width": 1440, "height": 900},
         )
         page = context.new_page()
+
+        # Shared state for response handler
+        latest: dict[str, dict | None] = {"data": None}
+
+        def on_response(response):
+            if "core.api.elliman.com/listing/map/clustered" in response.url:
+                try:
+                    latest["data"] = response.json()
+                except Exception:
+                    latest["data"] = None
+
         page.on("response", on_response)
 
-        for search_url in NYC_SEARCH_URLS:
-            logger.info("Loading: %s", search_url)
+        # Warm-up: load a rentals page so the anti-bot JS initializes
+        try:
+            page.goto(
+                "https://www.elliman.com/rentals/new-york-ny",
+                wait_until="domcontentloaded",
+                timeout=60000,
+            )
+            time.sleep(2)
+        except Exception as exc:
+            logger.warning("Warm-up load failed: %s", exc)
+
+        pending: list[tuple[str, tuple[float, float, float, float], int]] = []
+        for region_name, bbox in regions.items():
+            for tile in _tile_bbox(bbox):
+                pending.append((region_name, tile, TILE_ZOOM))
+
+        logger.info("Planned %d tiles across %d regions", len(pending), len(regions))
+
+        total_tiles = 0
+        while pending:
+            region_name, (n, w, s, e), zoom = pending.pop(0)
+            total_tiles += 1
+            latest["data"] = None
+            url = f"https://www.elliman.com/rentals/map-view={n},{w},{s},{e}/zoom={zoom}"
             try:
-                page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
-                # Wait for any Elliman API response
-                try:
-                    page.wait_for_response(
-                        lambda r: "core.api.elliman.com" in r.url and r.status == 200,
-                        timeout=15000
-                    )
-                except Exception:
-                    pass
-                time.sleep(3)
-                # Scroll to trigger more data
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
-                time.sleep(1)
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                time.sleep(2)
+                page.goto(url, wait_until="networkidle", timeout=45000)
             except Exception as exc:
-                logger.warning("Failed: %s: %s", search_url, exc)
+                logger.warning("[%s] tile %s load failed: %s", region_name, url, exc)
                 continue
 
-            # Extract __NEXT_DATA__ from rendered HTML (Next.js hydration)
-            try:
-                next_data_json = page.evaluate("""
-                    (() => {
-                        const el = document.getElementById('__NEXT_DATA__');
-                        return el ? el.textContent : null;
-                    })()
-                """)
-                if next_data_json:
-                    next_data = json.loads(next_data_json)
-                    captured_api_responses.append({
-                        "url": f"__NEXT_DATA__:{search_url}",
-                        "data": next_data,
-                    })
-                    logger.info("  Captured __NEXT_DATA__ from %s", search_url)
-            except Exception as exc:
-                logger.debug("  __NEXT_DATA__ extraction failed: %s", exc)
+            # Some tiles need extra time for the xhr to land after networkidle
+            for _ in range(5):
+                if latest["data"] is not None:
+                    break
+                time.sleep(0.6)
 
-        # Process ALL accumulated API responses + __NEXT_DATA__
-        logger.info("Processing %d captured responses...", len(captured_api_responses))
-        for captured in list(captured_api_responses):
-            data = captured["data"]
-            url = captured["url"]
-            # Direct extraction for known Elliman API format
-            if isinstance(data, dict) and "listings" in data and isinstance(data["listings"], list):
-                listings = data["listings"]
-                logger.info("  Direct 'listings' key from %s: %d items (totalCount=%s)",
-                           url[:60], len(listings), data.get("totalCount"))
-            # Handle clustered endpoint: groupedListings may contain individual listings
-            elif isinstance(data, dict) and "groupedListings" in data:
-                listings = []
-                for group in (data.get("groupedListings") or []):
-                    if isinstance(group, dict) and _looks_like_listing(group):
-                        listings.append(group)
-                    elif isinstance(group, list):
-                        listings.extend(g for g in group if isinstance(g, dict) and _looks_like_listing(g))
-                # Also check clusterMarkers for individual listing data
-                for marker in (data.get("clusterMarkers") or []):
-                    if isinstance(marker, dict) and _looks_like_listing(marker):
-                        listings.append(marker)
-                logger.info("  Clustered/grouped from %s: %d items", url[:60], len(listings))
-            else:
-                listings = _extract_listings_from_response(data)
-                if listings:
-                    logger.info("  Heuristic from %s: %d items", url[:60], len(listings))
-            for item in listings:
-                row, photos = parse_listing_from_api(item, scraped_ts)
-                if row and row["listing_id"] not in seen_ids:
-                    seen_ids.add(row["listing_id"])
-                    all_rows.append(row)
-                    all_photos.extend(photos)
-                    if env == "local":
-                        save_raw_gz(env, item, row["listing_id"], scraped_ts.split()[0])
+            data = latest["data"]
+            if not data:
+                logger.debug("[%s] tile returned no data", region_name)
+                continue
 
-        logger.info("Extracted %d listings from intercepted API responses", len(all_rows))
+            ids, _, cluster_count = _extract_ids_from_clustered(data)
+            total_in_tile = data.get("totalCount")
+            new_ids = [i for i in ids if i not in seen_ids]
+            seen_ids.update(new_ids)
+
+            logger.info(
+                "[%s] tile tc=%s clusters=%s gl_ids=%d new=%d running=%d",
+                region_name, total_in_tile, cluster_count,
+                len(ids), len(new_ids), len(seen_ids),
+            )
+
+            # If cluster markers present, subdivide the tile and try zoom+1
+            if cluster_count > 0 and zoom < 17:
+                lat_mid = (n + s) / 2.0
+                lng_mid = (w + e) / 2.0
+                subs = [
+                    (n, w, lat_mid, lng_mid),
+                    (n, lng_mid, lat_mid, e),
+                    (lat_mid, w, s, lng_mid),
+                    (lat_mid, lng_mid, s, e),
+                ]
+                for sub in subs:
+                    pending.append((region_name, sub, zoom + 1))
 
         browser.close()
-    logger.info("Playwright scrape complete: %d listings, %d photos", len(all_rows), len(all_photos))
-    return all_rows, all_photos
+
+    logger.info("Discovery complete: %d unique listing ids across %d tiles",
+                len(seen_ids), total_tiles)
+    return sorted(seen_ids)
 
 
-def _extract_listings_from_response(data) -> list[dict]:
-    """Recursively find listing-like objects in an API response."""
-    results: list[dict] = []
+# ── Listing detail fetch & parse ────────────────────────────────────────────
 
-    if isinstance(data, list):
-        for item in data:
-            if isinstance(item, dict) and _looks_like_listing(item):
-                results.append(item)
-            elif isinstance(item, (dict, list)):
-                results.extend(_extract_listings_from_response(item))
-        return results
 
-    if isinstance(data, dict):
-        for key in ("results", "listings", "properties", "data", "items",
-                     "searchResults", "rentals", "records", "edges", "nodes"):
-            if key in data:
-                child = data[key]
-                if isinstance(child, list):
-                    for item in child:
-                        if isinstance(item, dict):
-                            # Handle GraphQL edge/node pattern
-                            node = item.get("node", item)
-                            if isinstance(node, dict) and _looks_like_listing(node):
-                                results.append(node)
-                            elif isinstance(node, (dict, list)):
-                                results.extend(_extract_listings_from_response(node))
-                elif isinstance(child, dict):
-                    results.extend(_extract_listings_from_response(child))
-                if results:
-                    return results
+_NEXT_F_CHUNK_RE = re.compile(
+    r'self\.__next_f\.push\(\[\s*(\d+)\s*,\s*"((?:[^"\\]|\\.)*)"\s*\]\)'
+)
 
-        if _looks_like_listing(data):
-            results.append(data)
+
+def _assemble_next_f(html: str) -> str:
+    """Concatenate all Next.js streaming chunks into a single string."""
+    out: list[str] = []
+    for kind, content in _NEXT_F_CHUNK_RE.findall(html):
+        try:
+            out.append(json.loads('"' + content + '"'))
+        except Exception:
+            out.append(content)
+    return "".join(out)
+
+
+def _find_enclosing_object(s: str, anchor_idx: int) -> str | None:
+    """Given an index inside a stringified object, return the smallest enclosing
+    JSON object substring (matching {...}). Returns None on failure."""
+    # Walk backward to find the enclosing '{'
+    depth = 0
+    start = -1
+    for i in range(anchor_idx, -1, -1):
+        c = s[i]
+        if c == "}":
+            depth += 1
+        elif c == "{":
+            if depth == 0:
+                start = i
+                break
+            depth -= 1
+    if start < 0:
+        return None
+    # Walk forward to find matching '}'
+    depth = 0
+    in_str = False
+    esc = False
+    for i in range(start, len(s)):
+        c = s[i]
+        if esc:
+            esc = False
+            continue
+        if c == "\\":
+            esc = True
+            continue
+        if c == '"':
+            in_str = not in_str
+            continue
+        if in_str:
+            continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return s[start:i + 1]
+    return None
+
+
+def fetch_listing_detail(core_listing_id: int, timeout: int = 30) -> dict | None:
+    """Fetch a single Elliman listing detail page and return the embedded
+    listing object as a dict, or None if it cannot be parsed."""
+    url = f"https://www.elliman.com/listing/{core_listing_id}"
+    try:
+        r = requests.get(url, headers=_HTML_HEADERS, timeout=timeout, allow_redirects=True)
+    except Exception as exc:
+        logger.warning("fetch_listing_detail %s: request error %s", core_listing_id, exc)
+        return None
+    if r.status_code != 200:
+        logger.warning("fetch_listing_detail %s: status %s", core_listing_id, r.status_code)
+        return None
+
+    full = _assemble_next_f(r.text)
+    anchor = f'"coreListingId":{core_listing_id}'
+    idx = full.find(anchor)
+    if idx < 0:
+        # Some listing pages redirect to a different id; fall back to the first
+        # coreListingId we see.
+        m = re.search(r'"coreListingId"\s*:\s*(\d+)', full)
+        if m:
+            idx = m.start()
         else:
-            for v in data.values():
-                if isinstance(v, (dict, list)):
-                    results.extend(_extract_listings_from_response(v))
-    return results
+            logger.warning("fetch_listing_detail %s: no coreListingId in HTML", core_listing_id)
+            return None
+
+    candidate = _find_enclosing_object(full, idx)
+    if not candidate:
+        logger.warning("fetch_listing_detail %s: failed to locate enclosing object", core_listing_id)
+        return None
+
+    try:
+        obj = json.loads(candidate)
+    except Exception as exc:
+        logger.warning("fetch_listing_detail %s: JSON parse error: %s", core_listing_id, exc)
+        return None
+
+    # Attach the canonical URL so downstream code can trace back
+    obj.setdefault("_sourceUrl", r.url)
+    return obj
 
 
-def _looks_like_listing(d: dict) -> bool:
-    """Heuristic: does this dict look like a rental listing?"""
-    keys_lower = {k.lower() for k in d.keys()}
-    has_price = bool(keys_lower & {"price", "listprice", "rent", "monthlyrent",
-                                    "rentprice", "askingrent", "currentprice",
-                                    "priceint", "closeprice"})
-    has_location = bool(keys_lower & {"address", "streetaddress", "latitude", "lat",
-                                       "city", "fulladdress", "displayaddress"})
-    has_id = bool(keys_lower & {"listingid", "id", "mlsid", "propertyid",
-                                 "listingkey", "corelistingid", "webid"})
-    # Elliman-specific: check for nested address objects
-    if not has_location and "address" in d and isinstance(d["address"], dict):
-        has_location = True
-    return has_price and (has_location or has_id)
+def fetch_listing_details_parallel(
+    ids: Iterable[int], max_workers: int = 8,
+) -> list[dict]:
+    """Fetch detail pages in parallel, returning raw listing dicts."""
+    ids = list(ids)
+    out: list[dict] = []
+    if not ids:
+        return out
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        fut_to_id = {ex.submit(fetch_listing_detail, i): i for i in ids}
+        done = 0
+        for fut in as_completed(fut_to_id):
+            done += 1
+            data = fut.result()
+            if data is not None:
+                out.append(data)
+            if done % 50 == 0 or done == len(ids):
+                logger.info("Detail fetch progress: %d/%d ok=%d", done, len(ids), len(out))
+    return out
+
+
+# ── Parsing ──────────────────────────────────────────────────────────────────
+
+
+def parse_listing_detail(item: dict, scraped_ts: str) -> tuple[dict | None, list[dict]]:
+    """Normalize a detail-page object into the canonical listings schema."""
+    core_id = item.get("coreListingId")
+    if not core_id:
+        return None, []
+    listing_id = f"elliman_{core_id}"
+
+    addr = item.get("address") or {}
+    if not isinstance(addr, dict):
+        addr = {}
+    street = (
+        addr.get("unparsedAddress")
+        or addr.get("streetAddress")
+        or addr.get("fullAddress")
+        or addr.get("line1")
+        or ""
+    )
+    # Fall back to joining components
+    if not street:
+        comps = [addr.get("streetNumber"), addr.get("streetName"), addr.get("streetSuffix")]
+        street = " ".join([c for c in comps if c]).strip()
+    if item.get("unitNumber"):
+        if item["unitNumber"] not in street:
+            street = f"{street} {item['unitNumber']}".strip()
+
+    city = addr.get("city") or item.get("city")
+    state = addr.get("stateOrProvince") or addr.get("state") or item.get("state")
+    zipcode = addr.get("postalCode") or addr.get("zip") or addr.get("zipCode")
+
+    latlng = item.get("latLng") or {}
+    lat = _parse_float(latlng.get("lat") or addr.get("latitude"))
+    lon = _parse_float(latlng.get("lng") or addr.get("longitude"))
+
+    price = _parse_float(item.get("listPrice") or item.get("localListPrice"))
+    beds = _parse_float(item.get("bedroomsTotal"))
+    baths = _parse_float(item.get("bathroomsTotal"))
+    sqft = _parse_float(item.get("livingAreaSquareFeet"))
+
+    images_raw = item.get("images") or []
+    image_urls: list[str] = []
+    photos: list[dict] = []
+    for img in images_raw:
+        url = img if isinstance(img, str) else (img.get("url") or img.get("uri") or "")
+        if url:
+            image_urls.append(url)
+            photos.append({
+                "listing_id": listing_id,
+                "property_id": str(core_id),
+                "image_url": url,
+                "image_alt": (img.get("caption") if isinstance(img, dict) else "") or "",
+            })
+
+    description = item.get("publicRemarks") or item.get("privateRemarks") or ""
+    if description and description.startswith("$"):  # RSC sentinel like "$2e"
+        description = ""
+
+    building_name = item.get("buildingName") or ""
+    property_type = item.get("propertyLabel") or item.get("homeType") or "apartment"
+
+    agents = item.get("agents") or []
+    email = None
+    phone = None
+    for a in agents:
+        if not isinstance(a, dict):
+            continue
+        if not email:
+            email = a.get("email")
+        if not phone:
+            phone = a.get("phone") or a.get("officePhone") or a.get("mobilePhone")
+
+    unit_number = item.get("unitNumber")
+    fees_list = []
+    if item.get("associationFee") not in (None, 0, "0"):
+        fees_list.append({
+            "name": "associationFee",
+            "amount": item.get("associationFee"),
+            "frequency": item.get("associationFeeFrequency"),
+        })
+
+    # Build canonical listing_url
+    slug = item.get("urlKey") or item.get("slug") or ""
+    if slug:
+        listing_url = f"https://www.elliman.com/listing/{slug}/{core_id}"
+    else:
+        listing_url = item.get("_sourceUrl") or f"https://www.elliman.com/listing/{core_id}"
+
+    status_raw = (item.get("listingStatus") or "").lower()
+    availability = "available" if status_raw in ("active", "activeundercontract", "comingsoon", "pending") else status_raw or None
+
+    row = {
+        "listing_id": listing_id,
+        "property_id": str(core_id),
+        "alternate_property_id": item.get("integrationListingId") or item.get("legacyListingId"),
+        "property_name": building_name[:500] if building_name else None,
+        "address": street or None,
+        "city": city,
+        "state": state,
+        "zipcode": str(zipcode) if zipcode is not None else None,
+        "latitude": lat,
+        "longitude": lon,
+        "floor_plan": json.dumps(item.get("floorPlans") or []) if item.get("floorPlans") else None,
+        "unit_name": unit_number,
+        "unit_id": str(core_id),
+        "beds": beds,
+        "baths": baths,
+        "sqft": sqft,
+        "rent_price": price,
+        "rent_max": price,
+        "deposit": None,
+        "availability_status": availability,
+        "available_at": item.get("moveInDate"),
+        "lease_url": None,
+        "lease_term": item.get("leaseTerms"),
+        "listing_url": listing_url,
+        "email": email,
+        "phone": phone,
+        "description": description[:2000] if description else None,
+        "images": json.dumps(image_urls),
+        "website": "www.elliman.com",
+        "company": COMPANY,
+        "building_type": property_type,
+        "building_subtype": item.get("propertySubType"),
+        "floor_number": _parse_float(item.get("floorNumber")),
+        "fees": json.dumps(fees_list),
+        "year_built": item.get("yearBuilt"),
+        "total_units": _parse_int(item.get("numberOfUnits")),
+        "stories": _parse_int(item.get("stories")),
+        "scraped_timestamp": scraped_ts,
+    }
+    return row, photos
 
 
 # ── Output ───────────────────────────────────────────────────────────────────
@@ -653,7 +578,7 @@ def enforce_unit_types(df: pd.DataFrame) -> pd.DataFrame:
         "unit_id", "availability_status", "available_at", "lease_url",
         "listing_url", "email", "phone", "description", "images",
         "website", "company", "building_type", "building_subtype",
-        "fees", "year_built", "scraped_timestamp",
+        "fees", "year_built", "scraped_timestamp", "lease_term",
     ]
     float_cols = ["latitude", "longitude", "beds", "baths", "sqft",
                   "rent_price", "rent_max", "deposit", "floor_number",
@@ -712,7 +637,9 @@ def empty_typed_units_dataframe() -> pd.DataFrame:
     ).iloc[:0]
 
 
-def save_parquet(env: str, rows: list[dict], photos: list[dict], load_date: str):
+def save_parquet(
+    env: str, rows: list[dict], photos: list[dict], load_date: str,
+) -> tuple[str, str]:
     base = f"env={env}/source={SOURCE}/stage=processed/entity=property/load_date={load_date}"
     os.makedirs(base, exist_ok=True)
 
@@ -735,43 +662,100 @@ def save_parquet(env: str, rows: list[dict], photos: list[dict], load_date: str)
     return units_path, photos_path
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ── Main pipeline ────────────────────────────────────────────────────────────
+
+
+def run_scrape(
+    env: str,
+    regions: dict[str, tuple[float, float, float, float]] | None = None,
+    max_listings: int | None = None,
+    detail_workers: int = 8,
+) -> tuple[list[dict], list[dict]]:
+    regions = regions or REGIONS
+    scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    logger.info("Phase 1: discovering listing ids across %d regions", len(regions))
+    ids = discover_listing_ids(regions)
+    if max_listings:
+        ids = ids[:max_listings]
+        logger.info("Limiting to first %d ids for this run", max_listings)
+
+    if not ids:
+        logger.warning("No listing ids discovered — aborting")
+        return [], []
+
+    logger.info("Phase 2: fetching detail pages for %d listings", len(ids))
+    raw_items = fetch_listing_details_parallel(ids, max_workers=detail_workers)
+    logger.info("Got %d/%d detail objects", len(raw_items), len(ids))
+
+    all_rows: list[dict] = []
+    all_photos: list[dict] = []
+    seen: set[str] = set()
+    for item in raw_items:
+        row, photos = parse_listing_detail(item, scraped_ts)
+        if not row or row["listing_id"] in seen:
+            continue
+        # Enforce NOT NULL requirements: lat/lng/address
+        if row["latitude"] is None or row["longitude"] is None:
+            logger.warning("Skipping %s: missing lat/lng", row["listing_id"])
+            continue
+        if not row.get("address"):
+            logger.warning("Skipping %s: missing address", row["listing_id"])
+            continue
+        seen.add(row["listing_id"])
+        all_rows.append(row)
+        all_photos.extend(photos)
+        if env == "local":
+            save_raw_gz(env, item, row["listing_id"], scraped_ts.split()[0])
+
+    logger.info("Pipeline complete: %d rows, %d photos (from %d raw)",
+                len(all_rows), len(all_photos), len(raw_items))
+    return all_rows, all_photos
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Douglas Elliman rental listing scraper")
     parser.add_argument("--env", choices=("local", "dev", "test", "prod"), default="local")
     parser.add_argument("--mode", choices=("scrape", "process_local"), default="scrape")
-    parser.add_argument("--max_pages", type=int, default=20, help="Max search pages to crawl")
+    parser.add_argument("--max_listings", type=int, default=None,
+                        help="Cap on total listings (useful for quick verification runs)")
+    parser.add_argument("--regions", type=str, default=None,
+                        help="Comma-separated region keys to scrape (defaults to all)")
     parser.add_argument("--scrape_date", type=str, default=None,
                         help="Date to reprocess (YYYY-MM-DD), for process_local mode")
-    parser.add_argument("--format", choices=("parquet", "csv"), default="parquet")
+    parser.add_argument("--detail_workers", type=int, default=8)
     args = parser.parse_args()
 
     load_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     if args.mode == "scrape":
-        logger.info("Starting Elliman scrape (env=%s, max_pages=%d)", args.env, args.max_pages)
-        rows, photos = scrape_via_api(args.env, max_pages=args.max_pages)
-        if not rows:
-            logger.info("Direct API returned 0 listings, falling back to Playwright...")
-            rows, photos = scrape_with_playwright(args.env, max_pages=args.max_pages)
-        if rows:
-            save_parquet(args.env, rows, photos, load_date)
+        if args.regions:
+            wanted = {k.strip(): REGIONS[k.strip()]
+                      for k in args.regions.split(",") if k.strip() in REGIONS}
+            if not wanted:
+                logger.error("No valid region keys in --regions=%s (available: %s)",
+                             args.regions, ",".join(REGIONS))
+                return 2
+            regions = wanted
         else:
-            logger.warning("No listings scraped")
-            save_parquet(args.env, [], [], load_date)
+            regions = REGIONS
+        rows, photos = run_scrape(
+            args.env, regions=regions,
+            max_listings=args.max_listings,
+            detail_workers=args.detail_workers,
+        )
+        save_parquet(args.env, rows, photos, load_date)
 
     elif args.mode == "process_local":
         date = args.scrape_date or load_date
         logger.info("Reprocessing raw files for %s", date)
         raw_items = load_raw_files(args.env, date)
         scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-        rows = []
-        photos = []
+        rows: list[dict] = []
+        photos: list[dict] = []
         for item in raw_items:
-            row, ph = parse_listing_from_api(item, scraped_ts)
-            if row:
+            row, ph = parse_listing_detail(item, scraped_ts)
+            if row and row["latitude"] is not None and row["longitude"] is not None and row.get("address"):
                 rows.append(row)
                 photos.extend(ph)
         save_parquet(args.env, rows, photos, date)
