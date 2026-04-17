@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     path === "/" ||
     path === "/login" ||
     path === "/signup" ||
+    path.startsWith("/properties/") ||
     !isMarketingPath(path);
 
   const { data, isPending, isFetching, isError } = useQuery({

@@ -363,6 +363,14 @@ export default function NYCApartmentSearchGuidePage() {
                     Cost of Moving to NYC: Full Budget Breakdown
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/bad-landlord-nj-ny"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Bad Landlord in NJ or NY? How to Report &amp; Vet Before Signing
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

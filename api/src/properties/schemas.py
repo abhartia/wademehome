@@ -1,4 +1,6 @@
+import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -7,6 +9,7 @@ class FavoriteToggleRequest(BaseModel):
     property_key: str = Field(min_length=3, max_length=255)
     property_name: str = Field(min_length=1, max_length=255)
     property_address: str = Field(min_length=1, max_length=255)
+    group_id: uuid.UUID | None = None
 
 
 class FavoriteResponse(BaseModel):
@@ -14,6 +17,8 @@ class FavoriteResponse(BaseModel):
     property_name: str
     property_address: str
     created_at: datetime
+    added_by_user_id: uuid.UUID | None = None
+    added_by_email: str | None = None
 
 
 class FavoriteListResponse(BaseModel):
@@ -36,6 +41,50 @@ class PropertyNoteResponse(BaseModel):
 
 class PropertyNoteGetResponse(BaseModel):
     note: PropertyNoteResponse | None
+
+
+class GroupNoteCreateRequest(BaseModel):
+    group_id: uuid.UUID
+    property_key: str = Field(min_length=3, max_length=255)
+    note: str = Field(min_length=1, max_length=6000)
+
+
+class GroupNoteResponse(BaseModel):
+    id: uuid.UUID
+    property_key: str
+    note: str
+    author_user_id: uuid.UUID
+    author_email: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class GroupNotesListResponse(BaseModel):
+    notes: list[GroupNoteResponse]
+
+
+ReactionKind = Literal["thumbs_up", "thumbs_down", "heart"]
+
+
+class ReactionToggleRequest(BaseModel):
+    group_id: uuid.UUID
+    property_key: str = Field(min_length=3, max_length=255)
+    reaction: ReactionKind
+
+
+class ReactionEntry(BaseModel):
+    user_id: uuid.UUID
+    email: str
+    reaction: ReactionKind
+    created_at: datetime
+
+
+class ReactionListResponse(BaseModel):
+    reactions: list[ReactionEntry]
+
+
+class ReactionToggleResponse(BaseModel):
+    active: bool
 
 
 class TourRequestCreate(BaseModel):

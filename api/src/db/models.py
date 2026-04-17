@@ -398,6 +398,7 @@ class UserTours(Base):
         Index("ix_user_tours_user_id", "user_id"),
         Index("ix_user_tours_user_status_date", "user_id", "status", "tour_date"),
         Index("ix_user_tours_user_created_at", "user_id", "created_at"),
+        Index("ix_user_tours_group_id", "group_id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -405,6 +406,9 @@ class UserTours(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    group_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="SET NULL"), nullable=True
     )
     property_ref_id: Mapped[str | None] = mapped_column(String(128))
     property_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -439,7 +443,7 @@ class PropertyFavorites(Base):
     __tablename__ = "property_favorites"
     __table_args__ = (
         Index("ix_property_favorites_user_id", "user_id"),
-        UniqueConstraint("user_id", "property_key", name="uq_property_favorites_user_property"),
+        Index("ix_property_favorites_group_id", "group_id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -447,6 +451,9 @@ class PropertyFavorites(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    group_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=True
     )
     property_key: Mapped[str] = mapped_column(String(255), nullable=False)
     property_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -462,7 +469,7 @@ class PropertyNotes(Base):
     __tablename__ = "property_notes"
     __table_args__ = (
         Index("ix_property_notes_user_id", "user_id"),
-        UniqueConstraint("user_id", "property_key", name="uq_property_notes_user_property"),
+        Index("ix_property_notes_group_id", "group_id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -470,6 +477,9 @@ class PropertyNotes(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    group_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=True
     )
     property_key: Mapped[str] = mapped_column(String(255), nullable=False)
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -1492,3 +1502,760 @@ class LandlordLeaseSignatures(Base):
     )
 
     lease_offer: Mapped["LandlordLeaseOffers"] = relationship(back_populates="signatures")
+
+
+# ---------------------------------------------------------------------------
+# Building / Landlord-entity / Review system
+# ---------------------------------------------------------------------------
+
+
+class LandlordEntityKind(str, Enum):
+    individual = "individual"
+    llc = "llc"
+    corp = "corp"
+    mgmt_company = "mgmt_company"
+    unknown = "unknown"
+
+
+class LandlordAliasType(str, Enum):
+    llc_name = "llc_name"
+    dba = "dba"
+    principal_name = "principal_name"
+    acris_party = "acris_party"
+    email = "email"
+    phone = "phone"
+    address = "address"
+
+
+class LandlordAliasSource(str, Enum):
+    acris = "acris"
+    crowdsourced = "crowdsourced"
+    admin = "admin"
+    claimed = "claimed"
+
+
+class OwnershipRole(str, Enum):
+    owner = "owner"
+    manager = "manager"
+
+
+class OwnershipSource(str, Enum):
+    acris_deed = "acris_deed"
+    crowdsourced = "crowdsourced"
+    claimed = "claimed"
+    admin = "admin"
+
+
+class ReviewStatus(str, Enum):
+    draft = "draft"
+    pending_cooldown = "pending_cooldown"
+    published = "published"
+    flagged = "flagged"
+    hidden = "hidden"
+    removed = "removed"
+
+
+class ReviewLandlordRelation(str, Enum):
+    owner = "owner"
+    manager = "manager"
+    both = "both"
+
+
+class ReviewDimension(str, Enum):
+    responsiveness = "responsiveness"
+    maintenance = "maintenance"
+    deposit_return = "deposit_return"
+    heat_hot_water = "heat_hot_water"
+    pest_control = "pest_control"
+    harassment = "harassment"
+    building_condition = "building_condition"
+    noise = "noise"
+    value = "value"
+
+
+# Classification of each review dimension as either traveling with the landlord
+# (applies to the person / entity) or staying with the building (applies to the
+# physical property). Used when aggregating subratings on the building and the
+# landlord-entity pages.
+REVIEW_DIMENSION_SCOPE: dict[ReviewDimension, str] = {
+    ReviewDimension.responsiveness: "landlord",
+    ReviewDimension.maintenance: "landlord",
+    ReviewDimension.deposit_return: "landlord",
+    ReviewDimension.heat_hot_water: "building",
+    ReviewDimension.pest_control: "building",
+    ReviewDimension.harassment: "landlord",
+    ReviewDimension.building_condition: "building",
+    ReviewDimension.noise: "building",
+    ReviewDimension.value: "building",
+}
+
+
+class ReviewVerificationProofType(str, Enum):
+    lease = "lease"
+    utility_bill = "utility_bill"
+    rent_receipt = "rent_receipt"
+    mail = "mail"
+
+
+class ReviewVerificationStatus(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+
+
+class ReviewFlagType(str, Enum):
+    defamation = "defamation"
+    factual_error = "factual_error"
+    spam = "spam"
+    harassment = "harassment"
+    off_topic = "off_topic"
+    other = "other"
+
+
+class ReviewFlagSubmitterRole(str, Enum):
+    tenant = "tenant"
+    landlord = "landlord"
+    public = "public"
+    system = "system"
+
+
+class ReviewFlagStatus(str, Enum):
+    open = "open"
+    accepted = "accepted"
+    rejected = "rejected"
+
+
+class IngestSource(str, Enum):
+    hpd_violations = "hpd_violations"
+    dob_complaints = "dob_complaints"
+    acris_documents = "acris_documents"
+    acris_parties = "acris_parties"
+    geosupport = "geosupport"
+
+
+class IngestStatus(str, Enum):
+    running = "running"
+    completed = "completed"
+    failed = "failed"
+
+
+class Buildings(Base):
+    __tablename__ = "buildings"
+    __table_args__ = (
+        UniqueConstraint("bbl", "bin", name="uq_buildings_bbl_bin"),
+        Index("ix_buildings_bbl", "bbl"),
+        Index("ix_buildings_bin", "bin"),
+        Index("ix_buildings_normalized_addr", "normalized_addr"),
+        Index("ix_buildings_borough", "borough"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    bbl: Mapped[str | None] = mapped_column(String(10))
+    bin: Mapped[str | None] = mapped_column(String(7))
+    borough: Mapped[int | None] = mapped_column(Integer)
+    street_line1: Mapped[str] = mapped_column(String(255), nullable=False)
+    unit_count: Mapped[int | None] = mapped_column(Integer)
+    city: Mapped[str] = mapped_column(String(128), nullable=False, default="New York")
+    state: Mapped[str] = mapped_column(String(64), nullable=False, default="NY")
+    postal_code: Mapped[str | None] = mapped_column(String(32))
+    latitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
+    longitude: Mapped[Decimal] = mapped_column(Numeric(11, 7), nullable=False)
+    normalized_addr: Mapped[str] = mapped_column(String(512), nullable=False)
+    geohash: Mapped[str | None] = mapped_column(String(12))
+    building_group_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("buildings.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    ownership_periods: Mapped[list["BuildingOwnershipPeriods"]] = relationship(
+        back_populates="building", cascade="all, delete-orphan"
+    )
+    reviews: Mapped[list["Reviews"]] = relationship(back_populates="building")
+
+
+class LandlordEntities(Base):
+    __tablename__ = "landlord_entities"
+    __table_args__ = (
+        Index("ix_landlord_entities_head_entity_id", "head_entity_id"),
+        Index("ix_landlord_entities_claimed_profile_id", "claimed_profile_id"),
+        Index("ix_landlord_entities_canonical_name", "canonical_name"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    kind: Mapped[LandlordEntityKind] = mapped_column(
+        SQLEnum(LandlordEntityKind, name="landlord_entity_kind"),
+        nullable=False,
+        default=LandlordEntityKind.unknown,
+    )
+    canonical_name: Mapped[str] = mapped_column(String(512), nullable=False)
+    claimed_profile_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_profiles.id", ondelete="SET NULL"),
+    )
+    head_entity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_entities.id", ondelete="SET NULL"),
+    )
+    portfolio_size_cached: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    avg_rating_cached: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    aliases: Mapped[list["LandlordEntityAliases"]] = relationship(
+        back_populates="entity", cascade="all, delete-orphan"
+    )
+    ownership_periods: Mapped[list["BuildingOwnershipPeriods"]] = relationship(
+        back_populates="landlord_entity"
+    )
+    reviews: Mapped[list["Reviews"]] = relationship(back_populates="landlord_entity")
+
+
+class LandlordEntityAliases(Base):
+    __tablename__ = "landlord_entity_aliases"
+    __table_args__ = (
+        UniqueConstraint("alias_type", "value", name="uq_landlord_entity_aliases_type_value"),
+        Index("ix_landlord_entity_aliases_entity_id", "entity_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    entity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_entities.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    alias_type: Mapped[LandlordAliasType] = mapped_column(
+        SQLEnum(LandlordAliasType, name="landlord_alias_type"), nullable=False
+    )
+    value: Mapped[str] = mapped_column(String(512), nullable=False)
+    source: Mapped[LandlordAliasSource] = mapped_column(
+        SQLEnum(LandlordAliasSource, name="landlord_alias_source"), nullable=False
+    )
+    confidence: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
+    verified_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    entity: Mapped["LandlordEntities"] = relationship(back_populates="aliases")
+
+
+class BuildingOwnershipPeriods(Base):
+    __tablename__ = "building_ownership_periods"
+    __table_args__ = (
+        Index(
+            "ix_building_ownership_periods_building_id_start",
+            "building_id",
+            "start_date",
+        ),
+        Index("ix_building_ownership_periods_landlord_entity_id", "landlord_entity_id"),
+        Index("ix_building_ownership_periods_role", "role"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    building_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("buildings.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    landlord_entity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_entities.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    role: Mapped[OwnershipRole] = mapped_column(
+        SQLEnum(OwnershipRole, name="ownership_role"),
+        nullable=False,
+        default=OwnershipRole.owner,
+    )
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date | None] = mapped_column(Date)
+    source: Mapped[OwnershipSource] = mapped_column(
+        SQLEnum(OwnershipSource, name="ownership_source"), nullable=False
+    )
+    acris_document_id: Mapped[str | None] = mapped_column(String(64))
+    confidence: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    building: Mapped["Buildings"] = relationship(back_populates="ownership_periods")
+    landlord_entity: Mapped["LandlordEntities"] = relationship(
+        back_populates="ownership_periods"
+    )
+
+
+class Reviews(Base):
+    __tablename__ = "reviews"
+    __table_args__ = (
+        Index("ix_reviews_building_id", "building_id"),
+        Index("ix_reviews_landlord_entity_id", "landlord_entity_id"),
+        Index("ix_reviews_author_user_id", "author_user_id"),
+        Index("ix_reviews_status", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    author_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    building_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("buildings.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    landlord_entity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("landlord_entities.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    ownership_period_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("building_ownership_periods.id", ondelete="SET NULL"),
+    )
+    landlord_relation: Mapped[ReviewLandlordRelation] = mapped_column(
+        SQLEnum(ReviewLandlordRelation, name="review_landlord_relation"),
+        nullable=False,
+        default=ReviewLandlordRelation.both,
+    )
+    tenancy_start: Mapped[date] = mapped_column(Date, nullable=False)
+    tenancy_end: Mapped[date | None] = mapped_column(Date)
+    overall_rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str | None] = mapped_column(String(255))
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    verified_tenant: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    status: Mapped[ReviewStatus] = mapped_column(
+        SQLEnum(ReviewStatus, name="review_status"),
+        nullable=False,
+        default=ReviewStatus.pending_cooldown,
+    )
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    building: Mapped["Buildings"] = relationship(back_populates="reviews")
+    landlord_entity: Mapped["LandlordEntities"] = relationship(back_populates="reviews")
+    subratings: Mapped[list["ReviewSubratings"]] = relationship(
+        back_populates="review", cascade="all, delete-orphan"
+    )
+    verification: Mapped["ReviewVerifications | None"] = relationship(
+        back_populates="review", uselist=False, cascade="all, delete-orphan"
+    )
+    response: Mapped["ReviewResponses | None"] = relationship(
+        back_populates="review", uselist=False, cascade="all, delete-orphan"
+    )
+    moderation_flags: Mapped[list["ReviewModeration"]] = relationship(
+        back_populates="review", cascade="all, delete-orphan"
+    )
+
+
+class ReviewSubratings(Base):
+    __tablename__ = "review_subratings"
+
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("reviews.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    dimension: Mapped[ReviewDimension] = mapped_column(
+        SQLEnum(ReviewDimension, name="review_dimension"), primary_key=True
+    )
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    review: Mapped["Reviews"] = relationship(back_populates="subratings")
+
+
+class ReviewVerifications(Base):
+    __tablename__ = "review_verifications"
+    __table_args__ = (
+        UniqueConstraint("review_id", name="uq_review_verifications_review_id"),
+        Index("ix_review_verifications_status", "status"),
+        Index("ix_review_verifications_user_id", "user_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("reviews.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    tenancy_start: Mapped[date | None] = mapped_column(Date)
+    tenancy_end: Mapped[date | None] = mapped_column(Date)
+    proof_type: Mapped[ReviewVerificationProofType] = mapped_column(
+        SQLEnum(ReviewVerificationProofType, name="review_verification_proof_type"),
+        nullable=False,
+    )
+    storage_key: Mapped[str] = mapped_column(String(1024), nullable=False)
+    status: Mapped[ReviewVerificationStatus] = mapped_column(
+        SQLEnum(ReviewVerificationStatus, name="review_verification_status"),
+        nullable=False,
+        default=ReviewVerificationStatus.pending,
+    )
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rejection_reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    review: Mapped["Reviews"] = relationship(
+        back_populates="verification", foreign_keys=[review_id]
+    )
+
+
+class ReviewResponses(Base):
+    __tablename__ = "review_responses"
+    __table_args__ = (
+        UniqueConstraint("review_id", name="uq_review_responses_review_id"),
+        Index("ix_review_responses_author_user_id", "author_user_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("reviews.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    author_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    review: Mapped["Reviews"] = relationship(back_populates="response")
+
+
+class ReviewModeration(Base):
+    __tablename__ = "review_moderation"
+    __table_args__ = (
+        Index("ix_review_moderation_review_id", "review_id"),
+        Index("ix_review_moderation_status", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("reviews.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    flag_type: Mapped[ReviewFlagType] = mapped_column(
+        SQLEnum(ReviewFlagType, name="review_flag_type"), nullable=False
+    )
+    submitted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    submitted_by_role: Mapped[ReviewFlagSubmitterRole] = mapped_column(
+        SQLEnum(ReviewFlagSubmitterRole, name="review_flag_submitter_role"),
+        nullable=False,
+    )
+    details: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[ReviewFlagStatus] = mapped_column(
+        SQLEnum(ReviewFlagStatus, name="review_flag_status"),
+        nullable=False,
+        default=ReviewFlagStatus.open,
+    )
+    resolution_note: Mapped[str | None] = mapped_column(Text)
+    resolved_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    review: Mapped["Reviews"] = relationship(back_populates="moderation_flags")
+
+
+# ---------------------------------------------------------------------------
+# NYC OpenData ingest tables
+# ---------------------------------------------------------------------------
+
+
+class HpdViolations(Base):
+    __tablename__ = "hpd_violations"
+    __table_args__ = (
+        Index("ix_hpd_violations_bbl", "bbl"),
+        Index("ix_hpd_violations_bin", "bin"),
+        Index("ix_hpd_violations_status", "status"),
+    )
+
+    violation_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    bbl: Mapped[str | None] = mapped_column(String(10))
+    bin: Mapped[str | None] = mapped_column(String(7))
+    violation_class: Mapped[str | None] = mapped_column(String(8))
+    status: Mapped[str | None] = mapped_column(String(32))
+    novissued_date: Mapped[date | None] = mapped_column(Date)
+    certified_date: Mapped[date | None] = mapped_column(Date)
+    apartment: Mapped[str | None] = mapped_column(String(32))
+    description: Mapped[str | None] = mapped_column(Text)
+    raw: Mapped[dict | None] = mapped_column(JSONB)
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class DobComplaints(Base):
+    __tablename__ = "dob_complaints"
+    __table_args__ = (
+        Index("ix_dob_complaints_bbl", "bbl"),
+        Index("ix_dob_complaints_bin", "bin"),
+        Index("ix_dob_complaints_status", "status"),
+    )
+
+    complaint_number: Mapped[str] = mapped_column(String(32), primary_key=True)
+    bbl: Mapped[str | None] = mapped_column(String(10))
+    bin: Mapped[str | None] = mapped_column(String(7))
+    category: Mapped[str | None] = mapped_column(String(64))
+    status: Mapped[str | None] = mapped_column(String(32))
+    date_entered: Mapped[date | None] = mapped_column(Date)
+    resolution: Mapped[str | None] = mapped_column(Text)
+    raw: Mapped[dict | None] = mapped_column(JSONB)
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class AcrisDocuments(Base):
+    __tablename__ = "acris_documents"
+    __table_args__ = (
+        Index("ix_acris_documents_bbl", "bbl"),
+        Index("ix_acris_documents_recorded_datetime", "recorded_datetime"),
+    )
+
+    document_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    doc_type: Mapped[str | None] = mapped_column(String(32))
+    recorded_datetime: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    bbl: Mapped[str | None] = mapped_column(String(10))
+    raw: Mapped[dict | None] = mapped_column(JSONB)
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    parties: Mapped[list["AcrisParties"]] = relationship(
+        back_populates="document", cascade="all, delete-orphan"
+    )
+
+
+class AcrisParties(Base):
+    __tablename__ = "acris_parties"
+    __table_args__ = (
+        Index("ix_acris_parties_document_id", "document_id"),
+        Index("ix_acris_parties_name", "name"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    document_id: Mapped[str] = mapped_column(
+        String(32),
+        ForeignKey("acris_documents.document_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    party_type: Mapped[str | None] = mapped_column(String(16))
+    name: Mapped[str | None] = mapped_column(String(512))
+    address: Mapped[str | None] = mapped_column(Text)
+    role: Mapped[str | None] = mapped_column(String(32))
+    raw: Mapped[dict | None] = mapped_column(JSONB)
+
+    document: Mapped["AcrisDocuments"] = relationship(back_populates="parties")
+
+
+class DataIngestRuns(Base):
+    __tablename__ = "data_ingest_runs"
+    __table_args__ = (
+        Index("ix_data_ingest_runs_source_started", "source", "started_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    source: Mapped[IngestSource] = mapped_column(
+        SQLEnum(IngestSource, name="ingest_source"), nullable=False
+    )
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rows_upserted: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    status: Mapped[IngestStatus] = mapped_column(
+        SQLEnum(IngestStatus, name="ingest_status"),
+        nullable=False,
+        default=IngestStatus.running,
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+
+
+class Groups(Base):
+    __tablename__ = "groups"
+    __table_args__ = (
+        Index("ix_groups_created_by", "created_by"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    members: Mapped[list["GroupMembers"]] = relationship(
+        back_populates="group", passive_deletes=True
+    )
+    invites: Mapped[list["GroupInvites"]] = relationship(
+        back_populates="group", passive_deletes=True
+    )
+
+
+class GroupMembers(Base):
+    __tablename__ = "group_members"
+    __table_args__ = (
+        UniqueConstraint("group_id", "user_id", name="uq_group_members_group_user"),
+        Index("ix_group_members_user_id", "user_id"),
+        Index("ix_group_members_group_id", "group_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    role: Mapped[str] = mapped_column(String(32), nullable=False, default="member")
+    joined_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    group: Mapped["Groups"] = relationship(back_populates="members")
+    user: Mapped["Users"] = relationship()
+
+
+class GroupInvites(Base):
+    __tablename__ = "group_invites"
+    __table_args__ = (
+        Index("ix_group_invites_group_id", "group_id"),
+        Index("ix_group_invites_token", "token"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
+    )
+    invited_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    token: Mapped[str] = mapped_column(String(96), nullable=False, unique=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)  # "email" | "link"
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    accepted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    group: Mapped["Groups"] = relationship(back_populates="invites")
+
+
+class PropertyReactions(Base):
+    __tablename__ = "property_reactions"
+    __table_args__ = (
+        UniqueConstraint(
+            "group_id",
+            "user_id",
+            "property_key",
+            "reaction",
+            name="uq_property_reactions_group_user_prop_kind",
+        ),
+        Index("ix_property_reactions_group_property", "group_id", "property_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    property_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    reaction: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

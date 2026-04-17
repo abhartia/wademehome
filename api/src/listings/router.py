@@ -36,6 +36,16 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/listings", tags=["listings"])
 
 
+def _visibility_where(cols: set[str], alias: str | None = None) -> str:
+    """Restrict /listings/nearby to public rows. User-contributed private rows are tracked
+    via the user's Saved tab, not surfaced on the map. Defensive against NULLs in case
+    any legacy rows slipped through the migration default."""
+    if "visibility" not in cols:
+        return "TRUE"
+    p = f"{alias}." if alias else ""
+    return f"({p}visibility = 'public' OR {p}visibility IS NULL)"
+
+
 def _haversine_mi_sql(*, table_alias: str | None = None) -> str:
     """Spherical law of cosines, miles. Optional table alias for qualified columns."""
     p = f"{table_alias}." if table_alias else ""
@@ -260,6 +270,7 @@ def _run_nearby_radius_query(
         "radius": radius_miles,
         "radius_m": float(radius_miles) * 1609.344,
     }
+    vis = _visibility_where(cols, "t_inner")
     if "geog" in cols:
         total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
         select_sql = text(
@@ -278,6 +289,7 @@ def _run_nearby_radius_query(
                 ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
                 :radius_m
               )
+              AND {vis}
             ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
             LIMIT :prefetch_limit
             """
@@ -294,6 +306,7 @@ def _run_nearby_radius_query(
             WHERE t_inner.latitude IS NOT NULL
               AND t_inner.longitude IS NOT NULL
               AND ({hav_inner}) <= :radius
+              AND {vis}
             ORDER BY ({hav_inner}) ASC
             LIMIT :prefetch_limit
             """
@@ -319,6 +332,7 @@ def _run_nearby_radius_query(
         FROM {qtable} AS t_inner
         WHERE t_inner.latitude IS NOT NULL
           AND t_inner.longitude IS NOT NULL
+          AND {vis}
         ORDER BY ({hav_inner}) ASC
         LIMIT :prefetch_limit
         """
@@ -517,11 +531,13 @@ def get_nearby_listings(
                   AND latitude BETWEEN :south AND :north
                   AND longitude BETWEEN :west AND :east
                 """
-                bbox_where_inner = """
+                _vis_inner = _visibility_where(cols, "t_inner")
+                bbox_where_inner = f"""
                 t_inner.latitude IS NOT NULL
                   AND t_inner.longitude IS NOT NULL
                   AND t_inner.latitude BETWEEN :south AND :north
                   AND t_inner.longitude BETWEEN :west AND :east
+                  AND {_vis_inner}
                 """
                 # Circle that fully covers the requested bbox for indexed prefiltering.
                 params["bbox_radius_m"] = (
@@ -548,6 +564,7 @@ def get_nearby_listings(
                           )
                           AND t_inner.latitude BETWEEN :south AND :north
                           AND t_inner.longitude BETWEEN :west AND :east
+                          AND {_vis_inner}
                         ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
                         LIMIT :prefetch_limit
                         """
@@ -584,6 +601,7 @@ def get_nearby_listings(
                         FROM {qtable} AS t_inner
                         WHERE t_inner.latitude IS NOT NULL
                           AND t_inner.longitude IS NOT NULL
+                          AND {_vis_inner}
                         ORDER BY ({hav_inner}) ASC
                         LIMIT :prefetch_limit
                         """

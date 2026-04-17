@@ -8,6 +8,7 @@ import { useTours } from "@/components/providers/ToursProvider";
 import { TourCard } from "@/components/tours/TourCard";
 import { ScheduleTourSheet } from "@/components/tours/ScheduleTourSheet";
 import { TourNotesSheet } from "@/components/tours/TourNotesSheet";
+import { AddPropertyModal } from "@/components/tours/AddPropertyModal";
 import { Tour, TourProperty } from "@/lib/types/tours";
 import { CalendarPlus, Search, Bookmark, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -228,11 +229,14 @@ export default function ToursPage() {
         {/* Saved properties */}
         <TabsContent value="saved" className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl space-y-3 p-4">
-            <div>
-              <h2 className="text-base font-semibold">Saved Properties</h2>
-              <p className="text-xs text-muted-foreground">
-                Properties you&apos;re interested in but haven&apos;t scheduled yet.
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Saved Properties</h2>
+                <p className="text-xs text-muted-foreground">
+                  Properties you&apos;re interested in but haven&apos;t scheduled yet.
+                </p>
+              </div>
+              <AddPropertyModal />
             </div>
 
             {saved.length === 0 ? (

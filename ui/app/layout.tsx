@@ -13,6 +13,7 @@ import { AnalyticsBootstrap } from "@/components/analytics/AnalyticsBootstrap";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { LandlordProvider } from "@/components/providers/LandlordProvider";
+import { ActiveGroupProvider } from "@/lib/groups/activeGroup";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -72,7 +73,9 @@ try {
                   <ToursProvider>
                     <GuarantorProvider>
                       <MoveInProvider>
-                        <LandlordProvider>{children}</LandlordProvider>
+                        <LandlordProvider>
+                          <ActiveGroupProvider>{children}</ActiveGroupProvider>
+                        </LandlordProvider>
                       </MoveInProvider>
                     </GuarantorProvider>
                   </ToursProvider>

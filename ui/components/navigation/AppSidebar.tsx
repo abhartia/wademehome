@@ -28,6 +28,7 @@ import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import { Badge } from "@/components/ui/badge";
 import { BrandLogo } from "@/components/branding/BrandLogo";
 import { JOURNEY_STAGE_DEFAULT_PATH } from "@/lib/defaultAppLandingPath";
+import { GroupSwitcher } from "@/components/groups/GroupSwitcher";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -47,6 +48,7 @@ export function AppSidebar() {
     { title: "Home", href: "/app", icon: Home },
     { title: "Search", href: "/search", icon: Search },
     { title: "Tours", href: "/tours", icon: CalendarCheck },
+    { title: "Groups", href: "/groups", icon: Users2 },
   ];
 
   const moveInItem = showMoveIn
@@ -78,6 +80,11 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup className="pb-0 group-data-[collapsible=icon]:hidden">
+          <SidebarGroupContent>
+            <GroupSwitcher />
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

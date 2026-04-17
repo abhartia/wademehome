@@ -32,14 +32,20 @@ from core.sse import stop_event_result_to_sse_chunk
 from auth.router import router as auth_router
 from listings.router import router as listings_router
 from properties.router import router as properties_router
+from groups.router import router as groups_router
 from portal.router import router as portal_router
 from tours.router import router as tours_router
+from user_listings.router import router as user_listings_router
 from guarantors.public_router import router as guarantors_public_router
 from guarantors.router import router as guarantors_router
 from movein.router import router as movein_router
 from movein.photo_router import router as movein_photo_router
 from roommates.router import router as roommates_router
 from landlord.router import router as landlord_router
+from buildings.router import router as buildings_router
+from reviews.router import router as reviews_router
+from landlord_entities.router import router as landlord_entities_router
+from reviews_admin.router import router as reviews_admin_router
 from admin.router import router as admin_router
 from property_manager.router import internal_router as pm_internal_router
 from property_manager.router import router as pm_router
@@ -71,14 +77,20 @@ app = FastAPI(title="Multi-Agent API", description="API with listing and markets
 app.include_router(auth_router)
 app.include_router(listings_router)
 app.include_router(properties_router)
+app.include_router(groups_router)
 app.include_router(portal_router)
 app.include_router(tours_router)
+app.include_router(user_listings_router)
 app.include_router(guarantors_router)
 app.include_router(guarantors_public_router)
 app.include_router(movein_router)
 app.include_router(movein_photo_router)
 app.include_router(roommates_router)
 app.include_router(landlord_router)
+app.include_router(buildings_router)
+app.include_router(reviews_router)
+app.include_router(landlord_entities_router)
+app.include_router(reviews_admin_router)
 app.include_router(admin_router)
 app.include_router(pm_router)
 app.include_router(pm_internal_router)

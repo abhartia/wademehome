@@ -3,13 +3,20 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/branding/BrandLogo";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PublicSiteMenu } from "@/components/navigation/PublicSiteMenu";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserProfile } from "@/components/providers/UserProfileProvider";
+import { defaultAppLandingPath } from "@/lib/defaultAppLandingPath";
 
 /**
  * Slim header for public listing pages (no authenticated app shell).
  * Matches guest home branding without the full marketing hero chrome.
  */
 export function PublicListingTopBar() {
+  const { user, loading } = useAuth();
+  const { journeyStage } = useUserProfile();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-6">
@@ -26,12 +33,22 @@ export function PublicListingTopBar() {
             <Link href="/">Search homes</Link>
           </Button>
           <PublicSiteMenu />
-          <Button asChild variant="outline" size="sm">
-            <Link href="/login">Log in</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/signup">Sign up</Link>
-          </Button>
+          {loading ? (
+            <Skeleton className="h-8 w-28" />
+          ) : user ? (
+            <Button asChild size="sm">
+              <Link href={defaultAppLandingPath(journeyStage)}>Go to app</Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/login">Log in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Sign up</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

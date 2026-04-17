@@ -98,6 +98,28 @@ export type BedroomSupply = {
 };
 
 /**
+ * Body_post_verification_upload_reviews__review_id__verification_upload_post
+ */
+export type BodyPostVerificationUploadReviewsReviewIdVerificationUploadPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
+    /**
+     * Proof Type
+     */
+    proof_type: string;
+    /**
+     * Tenancy Start
+     */
+    tenancy_start?: string | null;
+    /**
+     * Tenancy End
+     */
+    tenancy_end?: string | null;
+};
+
+/**
  * Body_upload_guarantor_invite_documents_guarantor_invite__token__documents_post
  */
 export type BodyUploadGuarantorInviteDocumentsGuarantorInviteTokenDocumentsPost = {
@@ -148,6 +170,30 @@ export type BodyUploadRoomPhotoMoveInPhotosRoomsRoomIdPhotosPost = {
 };
 
 /**
+ * BuildingAggregates
+ */
+export type BuildingAggregates = {
+    /**
+     * Review Count
+     */
+    review_count: number;
+    /**
+     * Avg Overall Rating
+     */
+    avg_overall_rating: string | null;
+    /**
+     * Verified Tenant Review Count
+     */
+    verified_tenant_review_count: number;
+    /**
+     * Dimension Averages
+     */
+    dimension_averages: {
+        [key: string]: string;
+    };
+};
+
+/**
  * BuildingDelta
  */
 export type BuildingDelta = {
@@ -191,6 +237,16 @@ export type BuildingDelta = {
      * Is New
      */
     is_new?: boolean;
+};
+
+/**
+ * BuildingDetailResponse
+ */
+export type BuildingDetailResponse = {
+    building: BuildingPayload;
+    current_owner: LandlordEntitySummary | null;
+    current_manager: LandlordEntitySummary | null;
+    aggregates: BuildingAggregates;
 };
 
 /**
@@ -313,6 +369,136 @@ export type BuildingFinancials = {
      * Buildings
      */
     buildings?: Array<BuildingFinancialProfile>;
+};
+
+/**
+ * BuildingPayload
+ */
+export type BuildingPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Bbl
+     */
+    bbl: string | null;
+    /**
+     * Bin
+     */
+    bin: string | null;
+    /**
+     * Borough
+     */
+    borough: number | null;
+    /**
+     * Street Line1
+     */
+    street_line1: string;
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * State
+     */
+    state: string;
+    /**
+     * Postal Code
+     */
+    postal_code: string | null;
+    /**
+     * Latitude
+     */
+    latitude: string;
+    /**
+     * Longitude
+     */
+    longitude: string;
+    /**
+     * Normalized Addr
+     */
+    normalized_addr: string;
+    /**
+     * Unit Count
+     */
+    unit_count: number | null;
+};
+
+/**
+ * BuildingResolveRequest
+ * Lookup-or-create a building by address + lat/lng.
+ *
+ * BBL/BIN is optional (filled in later by the Geosupport ingest job). A client
+ * calling this endpoint with just an address and Mapbox-geocoded lat/lng is
+ * enough to give us a canonical building row for review attribution.
+ */
+export type BuildingResolveRequest = {
+    /**
+     * Street Line1
+     */
+    street_line1: string;
+    /**
+     * City
+     */
+    city?: string;
+    /**
+     * State
+     */
+    state?: string;
+    /**
+     * Postal Code
+     */
+    postal_code?: string | null;
+    /**
+     * Latitude
+     */
+    latitude: number | string;
+    /**
+     * Longitude
+     */
+    longitude: number | string;
+    /**
+     * Bbl
+     */
+    bbl?: string | null;
+    /**
+     * Bin
+     */
+    bin?: string | null;
+};
+
+/**
+ * BuildingResolveResponse
+ */
+export type BuildingResolveResponse = {
+    building: BuildingPayload;
+    /**
+     * Is New
+     */
+    is_new: boolean;
+};
+
+/**
+ * BuildingReviewsResponse
+ */
+export type BuildingReviewsResponse = {
+    /**
+     * Reviews
+     */
+    reviews: Array<ReviewSummaryPayload>;
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Limit
+     */
+    limit: number;
+    /**
+     * Offset
+     */
+    offset: number;
 };
 
 /**
@@ -656,6 +842,172 @@ export type CompetitorPosition = {
 };
 
 /**
+ * CreateUserListingRequest
+ */
+export type CreateUserListingRequest = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Address
+     */
+    address: string;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+    /**
+     * City
+     */
+    city?: string | null;
+    /**
+     * State
+     */
+    state?: string | null;
+    /**
+     * Zipcode
+     */
+    zipcode?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+    /**
+     * Price
+     */
+    price?: string | null;
+    /**
+     * Beds
+     */
+    beds?: string | null;
+    /**
+     * Baths
+     */
+    baths?: string | null;
+    /**
+     * Source Url
+     */
+    source_url?: string | null;
+    /**
+     * Image Url
+     */
+    image_url?: string | null;
+};
+
+/**
+ * CreateUserListingResponse
+ */
+export type CreateUserListingResponse = {
+    /**
+     * Property Key
+     */
+    property_key: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Address
+     */
+    address: string;
+    /**
+     * Latitude
+     */
+    latitude: number;
+    /**
+     * Longitude
+     */
+    longitude: number;
+    /**
+     * Image Url
+     */
+    image_url?: string | null;
+    /**
+     * Visibility
+     */
+    visibility: 'private' | 'public';
+};
+
+/**
+ * DedupeCheckRequest
+ */
+export type DedupeCheckRequest = {
+    /**
+     * Latitude
+     */
+    latitude: number;
+    /**
+     * Longitude
+     */
+    longitude: number;
+    /**
+     * Address
+     */
+    address: string;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+};
+
+/**
+ * DedupeCheckResponse
+ */
+export type DedupeCheckResponse = {
+    /**
+     * Matches
+     */
+    matches: Array<DedupeMatch>;
+};
+
+/**
+ * DedupeMatch
+ */
+export type DedupeMatch = {
+    /**
+     * Property Key
+     */
+    property_key: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Address
+     */
+    address: string;
+    /**
+     * Latitude
+     */
+    latitude: number;
+    /**
+     * Longitude
+     */
+    longitude: number;
+    /**
+     * Image Url
+     */
+    image_url?: string | null;
+    /**
+     * Distance Meters
+     */
+    distance_meters: number;
+    /**
+     * Score
+     */
+    score: number;
+    /**
+     * Is User Contributed
+     */
+    is_user_contributed: boolean;
+};
+
+/**
  * DemographicsOut
  */
 export type DemographicsOut = {
@@ -694,6 +1046,56 @@ export type DemographicsOut = {
 };
 
 /**
+ * DobComplaintPayload
+ */
+export type DobComplaintPayload = {
+    /**
+     * Complaint Number
+     */
+    complaint_number: string;
+    /**
+     * Category
+     */
+    category: string | null;
+    /**
+     * Status
+     */
+    status: string | null;
+    /**
+     * Date Entered
+     */
+    date_entered: string | null;
+    /**
+     * Resolution
+     */
+    resolution: string | null;
+};
+
+/**
+ * DobComplaintsResponse
+ */
+export type DobComplaintsResponse = {
+    /**
+     * Complaints
+     */
+    complaints: Array<DobComplaintPayload>;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
+ * EmptyResponse
+ */
+export type EmptyResponse = {
+    /**
+     * Ok
+     */
+    ok?: boolean;
+};
+
+/**
  * FavoriteListResponse
  */
 export type FavoriteListResponse = {
@@ -723,6 +1125,14 @@ export type FavoriteResponse = {
      * Created At
      */
     created_at: string;
+    /**
+     * Added By User Id
+     */
+    added_by_user_id?: string | null;
+    /**
+     * Added By Email
+     */
+    added_by_email?: string | null;
 };
 
 /**
@@ -741,6 +1151,10 @@ export type FavoriteToggleRequest = {
      * Property Address
      */
     property_address: string;
+    /**
+     * Group Id
+     */
+    group_id?: string | null;
 };
 
 /**
@@ -850,6 +1264,218 @@ export type GeocodeResponse = {
      * Longitude
      */
     longitude: number;
+};
+
+/**
+ * GroupCreateRequest
+ */
+export type GroupCreateRequest = {
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * GroupInviteCreateRequest
+ */
+export type GroupInviteCreateRequest = {
+    /**
+     * Kind
+     */
+    kind: 'email' | 'link';
+    /**
+     * Email
+     */
+    email?: string | null;
+};
+
+/**
+ * GroupInviteResponse
+ */
+export type GroupInviteResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Email
+     */
+    email: string | null;
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Accept Url
+     */
+    accept_url: string;
+    /**
+     * Expires At
+     */
+    expires_at: string;
+    /**
+     * Accepted At
+     */
+    accepted_at: string | null;
+    /**
+     * Revoked At
+     */
+    revoked_at: string | null;
+};
+
+/**
+ * GroupInvitesListResponse
+ */
+export type GroupInvitesListResponse = {
+    /**
+     * Invites
+     */
+    invites: Array<GroupInviteResponse>;
+};
+
+/**
+ * GroupListResponse
+ */
+export type GroupListResponse = {
+    /**
+     * Groups
+     */
+    groups: Array<GroupResponse>;
+};
+
+/**
+ * GroupMemberResponse
+ */
+export type GroupMemberResponse = {
+    /**
+     * User Id
+     */
+    user_id: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Role
+     */
+    role: string;
+    /**
+     * Joined At
+     */
+    joined_at: string;
+};
+
+/**
+ * GroupMembersListResponse
+ */
+export type GroupMembersListResponse = {
+    /**
+     * Members
+     */
+    members: Array<GroupMemberResponse>;
+};
+
+/**
+ * GroupNoteCreateRequest
+ */
+export type GroupNoteCreateRequest = {
+    /**
+     * Group Id
+     */
+    group_id: string;
+    /**
+     * Property Key
+     */
+    property_key: string;
+    /**
+     * Note
+     */
+    note: string;
+};
+
+/**
+ * GroupNoteResponse
+ */
+export type GroupNoteResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Property Key
+     */
+    property_key: string;
+    /**
+     * Note
+     */
+    note: string;
+    /**
+     * Author User Id
+     */
+    author_user_id: string;
+    /**
+     * Author Email
+     */
+    author_email: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * GroupNotesListResponse
+ */
+export type GroupNotesListResponse = {
+    /**
+     * Notes
+     */
+    notes: Array<GroupNoteResponse>;
+};
+
+/**
+ * GroupRenameRequest
+ */
+export type GroupRenameRequest = {
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * GroupResponse
+ */
+export type GroupResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Role
+     */
+    role: string;
+    /**
+     * Member Count
+     */
+    member_count: number;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -1050,6 +1676,54 @@ export type HttpValidationError = {
 };
 
 /**
+ * HpdViolationPayload
+ */
+export type HpdViolationPayload = {
+    /**
+     * Violation Id
+     */
+    violation_id: string;
+    /**
+     * Violation Class
+     */
+    violation_class: string | null;
+    /**
+     * Status
+     */
+    status: string | null;
+    /**
+     * Novissued Date
+     */
+    novissued_date: string | null;
+    /**
+     * Certified Date
+     */
+    certified_date: string | null;
+    /**
+     * Apartment
+     */
+    apartment: string | null;
+    /**
+     * Description
+     */
+    description: string | null;
+};
+
+/**
+ * HpdViolationsResponse
+ */
+export type HpdViolationsResponse = {
+    /**
+     * Violations
+     */
+    violations: Array<HpdViolationPayload>;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
  * InsightsRequest
  */
 export type InsightsRequest = {
@@ -1170,6 +1844,68 @@ export type InventoryAnalyticsResponse = {
      * Cms Market Share Pie
      */
     cms_market_share_pie: Array<CmsMarketShareSlice>;
+};
+
+/**
+ * InviteAcceptRequest
+ */
+export type InviteAcceptRequest = {
+    /**
+     * Token
+     */
+    token: string;
+};
+
+/**
+ * InviteAcceptResponse
+ */
+export type InviteAcceptResponse = {
+    /**
+     * Group Id
+     */
+    group_id: string;
+    /**
+     * Group Name
+     */
+    group_name: string;
+};
+
+/**
+ * InvitePreviewResponse
+ */
+export type InvitePreviewResponse = {
+    /**
+     * Group Id
+     */
+    group_id: string;
+    /**
+     * Group Name
+     */
+    group_name: string;
+    /**
+     * Inviter Email
+     */
+    inviter_email: string | null;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Email
+     */
+    email: string | null;
+    /**
+     * Expired
+     */
+    expired: boolean;
+    /**
+     * Revoked
+     */
+    revoked: boolean;
+    /**
+     * Already Accepted
+     */
+    already_accepted: boolean;
 };
 
 /**
@@ -1340,6 +2076,176 @@ export type LandlordApplicationsResponse = {
      * Applications
      */
     applications?: Array<LandlordApplicationPayload>;
+};
+
+/**
+ * LandlordClaimRequest
+ */
+export type LandlordClaimRequest = {
+    /**
+     * Display Name
+     */
+    display_name?: string | null;
+    /**
+     * Company Name
+     */
+    company_name?: string | null;
+    /**
+     * Phone Number
+     */
+    phone_number?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * LandlordEntityAliasPayload
+ */
+export type LandlordEntityAliasPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Alias Type
+     */
+    alias_type: string;
+    /**
+     * Value
+     */
+    value: string;
+    /**
+     * Source
+     */
+    source: string;
+    /**
+     * Confidence
+     */
+    confidence: string | null;
+    /**
+     * Verified By Admin
+     */
+    verified_by_admin: boolean;
+};
+
+/**
+ * LandlordEntityClaimApproveRequest
+ */
+export type LandlordEntityClaimApproveRequest = {
+    /**
+     * Landlord Profile Id
+     */
+    landlord_profile_id: string;
+};
+
+/**
+ * LandlordEntityDetail
+ */
+export type LandlordEntityDetail = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Canonical Name
+     */
+    canonical_name: string;
+    /**
+     * Portfolio Size
+     */
+    portfolio_size: number;
+    /**
+     * Avg Rating
+     */
+    avg_rating: string | null;
+    /**
+     * Claimed
+     */
+    claimed: boolean;
+    /**
+     * Claimed Profile Id
+     */
+    claimed_profile_id: string | null;
+    /**
+     * Head Entity Id
+     */
+    head_entity_id: string | null;
+    /**
+     * Aliases
+     */
+    aliases: Array<LandlordEntityAliasPayload>;
+    /**
+     * Review Count
+     */
+    review_count: number;
+    /**
+     * Verified Tenant Review Count
+     */
+    verified_tenant_review_count: number;
+    /**
+     * Dimension Averages
+     */
+    dimension_averages: {
+        [key: string]: string;
+    };
+};
+
+/**
+ * LandlordEntityReviewsResponse
+ */
+export type LandlordEntityReviewsResponse = {
+    /**
+     * Reviews
+     */
+    reviews: Array<ReviewSummaryPayload>;
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Limit
+     */
+    limit: number;
+    /**
+     * Offset
+     */
+    offset: number;
+};
+
+/**
+ * LandlordEntitySummary
+ */
+export type LandlordEntitySummary = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Canonical Name
+     */
+    canonical_name: string;
+    /**
+     * Portfolio Size Cached
+     */
+    portfolio_size_cached: number;
+    /**
+     * Avg Rating Cached
+     */
+    avg_rating_cached: string | null;
+    /**
+     * Claimed
+     */
+    claimed: boolean;
 };
 
 /**
@@ -1712,6 +2618,57 @@ export type LandlordMediaUpdate = {
      * Sort Order
      */
     sort_order?: number | null;
+};
+
+/**
+ * LandlordMergeRequest
+ */
+export type LandlordMergeRequest = {
+    /**
+     * Source Entity Id
+     */
+    source_entity_id: string;
+    /**
+     * Target Entity Id
+     */
+    target_entity_id: string;
+};
+
+/**
+ * LandlordPortfolioBuilding
+ */
+export type LandlordPortfolioBuilding = {
+    building: BuildingPayload;
+    /**
+     * Review Count
+     */
+    review_count: number;
+    /**
+     * Avg Rating
+     */
+    avg_rating: string | null;
+    /**
+     * Role
+     */
+    role: string;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+};
+
+/**
+ * LandlordPortfolioResponse
+ */
+export type LandlordPortfolioResponse = {
+    /**
+     * Buildings
+     */
+    buildings: Array<LandlordPortfolioBuilding>;
 };
 
 /**
@@ -2665,6 +3622,88 @@ export type MetroCoveragePieSlice = {
 };
 
 /**
+ * ModerationDecisionRequest
+ */
+export type ModerationDecisionRequest = {
+    /**
+     * Decision
+     */
+    decision: 'accepted' | 'rejected';
+    /**
+     * Review Action
+     */
+    review_action?: 'hide' | 'remove' | 'none';
+    /**
+     * Resolution Note
+     */
+    resolution_note?: string | null;
+};
+
+/**
+ * ModerationQueueItem
+ */
+export type ModerationQueueItem = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Review Id
+     */
+    review_id: string;
+    /**
+     * Flag Type
+     */
+    flag_type: string;
+    /**
+     * Submitted By Role
+     */
+    submitted_by_role: string;
+    /**
+     * Submitted By User Id
+     */
+    submitted_by_user_id: string | null;
+    /**
+     * Details
+     */
+    details: string | null;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Review Title
+     */
+    review_title: string | null;
+    /**
+     * Review Body Preview
+     */
+    review_body_preview: string;
+    /**
+     * Review Status
+     */
+    review_status: string;
+};
+
+/**
+ * ModerationQueueResponse
+ */
+export type ModerationQueueResponse = {
+    /**
+     * Items
+     */
+    items: Array<ModerationQueueItem>;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
  * MoveInPlanOut
  */
 export type MoveInPlanOut = {
@@ -2958,6 +3997,114 @@ export type NearbyListingsResponse = {
 };
 
 /**
+ * OwnershipHistoryResponse
+ */
+export type OwnershipHistoryResponse = {
+    /**
+     * Periods
+     */
+    periods: Array<OwnershipPeriodPayload>;
+};
+
+/**
+ * OwnershipPeriodPayload
+ */
+export type OwnershipPeriodPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    landlord_entity: LandlordEntitySummary;
+    /**
+     * Role
+     */
+    role: string;
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date: string | null;
+    /**
+     * Source
+     */
+    source: string;
+    /**
+     * Confidence
+     */
+    confidence: string | null;
+};
+
+/**
+ * OwnershipPeriodUpsert
+ */
+export type OwnershipPeriodUpsert = {
+    /**
+     * Id
+     */
+    id?: string | null;
+    /**
+     * Building Id
+     */
+    building_id: string;
+    /**
+     * Landlord Entity Id
+     */
+    landlord_entity_id: string;
+    /**
+     * Role
+     */
+    role?: 'owner' | 'manager';
+    /**
+     * Start Date
+     */
+    start_date: string;
+    /**
+     * End Date
+     */
+    end_date?: string | null;
+    /**
+     * Source
+     */
+    source?: 'acris_deed' | 'crowdsourced' | 'claimed' | 'admin';
+    /**
+     * Acris Document Id
+     */
+    acris_document_id?: string | null;
+    /**
+     * Confidence
+     */
+    confidence?: number | string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * ParseUrlRequest
+ */
+export type ParseUrlRequest = {
+    /**
+     * Url
+     */
+    url: string;
+};
+
+/**
+ * ParseUrlResponse
+ */
+export type ParseUrlResponse = {
+    prefill: PrefillFields;
+    /**
+     * Parsed
+     */
+    parsed: boolean;
+};
+
+/**
  * PhotoDocumentationSummary
  */
 export type PhotoDocumentationSummary = {
@@ -3136,6 +4283,44 @@ export type PoiNearbyResponse = {
      * Items
      */
     items: Array<PoiHit>;
+};
+
+/**
+ * PrefillFields
+ */
+export type PrefillFields = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+    /**
+     * Unit
+     */
+    unit?: string | null;
+    /**
+     * Price
+     */
+    price?: string | null;
+    /**
+     * Beds
+     */
+    beds?: string | null;
+    /**
+     * Baths
+     */
+    baths?: string | null;
+    /**
+     * Image Url
+     */
+    image_url?: string | null;
+    /**
+     * Source Host
+     */
+    source_host?: string | null;
 };
 
 /**
@@ -3482,6 +4667,66 @@ export type QualityMetrics = {
 };
 
 /**
+ * ReactionEntry
+ */
+export type ReactionEntry = {
+    /**
+     * User Id
+     */
+    user_id: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Reaction
+     */
+    reaction: 'thumbs_up' | 'thumbs_down' | 'heart';
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * ReactionListResponse
+ */
+export type ReactionListResponse = {
+    /**
+     * Reactions
+     */
+    reactions: Array<ReactionEntry>;
+};
+
+/**
+ * ReactionToggleRequest
+ */
+export type ReactionToggleRequest = {
+    /**
+     * Group Id
+     */
+    group_id: string;
+    /**
+     * Property Key
+     */
+    property_key: string;
+    /**
+     * Reaction
+     */
+    reaction: 'thumbs_up' | 'thumbs_down' | 'heart';
+};
+
+/**
+ * ReactionToggleResponse
+ */
+export type ReactionToggleResponse = {
+    /**
+     * Active
+     */
+    active: boolean;
+};
+
+/**
  * ReportPreviewRequest
  */
 export type ReportPreviewRequest = {
@@ -3605,6 +4850,349 @@ export type ResendVerificationRequest = {
      * Email
      */
     email: string;
+};
+
+/**
+ * ReviewCreateRequest
+ */
+export type ReviewCreateRequest = {
+    /**
+     * Building Id
+     */
+    building_id: string;
+    /**
+     * Landlord Relation
+     */
+    landlord_relation?: 'owner' | 'manager' | 'both';
+    /**
+     * Tenancy Start
+     */
+    tenancy_start: string;
+    /**
+     * Tenancy End
+     */
+    tenancy_end?: string | null;
+    /**
+     * Overall Rating
+     */
+    overall_rating: number;
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Body
+     */
+    body: string;
+    /**
+     * Subratings
+     */
+    subratings?: Array<ReviewSubratingInput>;
+    /**
+     * Landlord Hint Name
+     */
+    landlord_hint_name?: string | null;
+};
+
+/**
+ * ReviewFlagPayload
+ */
+export type ReviewFlagPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Flag Type
+     */
+    flag_type: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Details
+     */
+    details: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * ReviewFlagRequest
+ */
+export type ReviewFlagRequest = {
+    /**
+     * Flag Type
+     */
+    flag_type: 'defamation' | 'factual_error' | 'spam' | 'harassment' | 'off_topic' | 'other';
+    /**
+     * Details
+     */
+    details?: string | null;
+};
+
+/**
+ * ReviewListResponse
+ */
+export type ReviewListResponse = {
+    /**
+     * Reviews
+     */
+    reviews: Array<ReviewPayload>;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
+ * ReviewPayload
+ */
+export type ReviewPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Author User Id
+     */
+    author_user_id: string;
+    /**
+     * Building Id
+     */
+    building_id: string;
+    /**
+     * Landlord Entity Id
+     */
+    landlord_entity_id: string;
+    /**
+     * Landlord Entity Name
+     */
+    landlord_entity_name: string;
+    /**
+     * Ownership Period Id
+     */
+    ownership_period_id: string | null;
+    /**
+     * Landlord Relation
+     */
+    landlord_relation: string;
+    /**
+     * Tenancy Start
+     */
+    tenancy_start: string;
+    /**
+     * Tenancy End
+     */
+    tenancy_end: string | null;
+    /**
+     * Overall Rating
+     */
+    overall_rating: number;
+    /**
+     * Title
+     */
+    title: string | null;
+    /**
+     * Body
+     */
+    body: string;
+    /**
+     * Verified Tenant
+     */
+    verified_tenant: boolean;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Published At
+     */
+    published_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Subratings
+     */
+    subratings: {
+        [key: string]: number;
+    };
+    response: ReviewResponsePayload | null;
+};
+
+/**
+ * ReviewResponseCreate
+ */
+export type ReviewResponseCreate = {
+    /**
+     * Body
+     */
+    body: string;
+};
+
+/**
+ * ReviewResponsePayload
+ */
+export type ReviewResponsePayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Author User Id
+     */
+    author_user_id: string;
+    /**
+     * Body
+     */
+    body: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * ReviewSubratingInput
+ */
+export type ReviewSubratingInput = {
+    /**
+     * Dimension
+     */
+    dimension: 'responsiveness' | 'maintenance' | 'deposit_return' | 'heat_hot_water' | 'pest_control' | 'harassment' | 'building_condition' | 'noise' | 'value';
+    /**
+     * Score
+     */
+    score: number;
+};
+
+/**
+ * ReviewSummaryPayload
+ */
+export type ReviewSummaryPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Author Display Name
+     */
+    author_display_name: string;
+    /**
+     * Overall Rating
+     */
+    overall_rating: number;
+    /**
+     * Title
+     */
+    title: string | null;
+    /**
+     * Body
+     */
+    body: string;
+    /**
+     * Tenancy Start
+     */
+    tenancy_start: string;
+    /**
+     * Tenancy End
+     */
+    tenancy_end: string | null;
+    /**
+     * Verified Tenant
+     */
+    verified_tenant: boolean;
+    /**
+     * Landlord Relation
+     */
+    landlord_relation: string;
+    /**
+     * Landlord Entity Id
+     */
+    landlord_entity_id: string;
+    /**
+     * Landlord Entity Name
+     */
+    landlord_entity_name: string;
+    /**
+     * Subratings
+     */
+    subratings: {
+        [key: string]: number;
+    };
+    /**
+     * Response Body
+     */
+    response_body: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * ReviewVerificationCreate
+ */
+export type ReviewVerificationCreate = {
+    /**
+     * Proof Type
+     */
+    proof_type: 'lease' | 'utility_bill' | 'rent_receipt' | 'mail';
+    /**
+     * Storage Key
+     */
+    storage_key: string;
+    /**
+     * Tenancy Start
+     */
+    tenancy_start?: string | null;
+    /**
+     * Tenancy End
+     */
+    tenancy_end?: string | null;
+};
+
+/**
+ * ReviewVerificationPayload
+ */
+export type ReviewVerificationPayload = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Review Id
+     */
+    review_id: string;
+    /**
+     * Proof Type
+     */
+    proof_type: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Storage Key
+     */
+    storage_key: string;
+    /**
+     * Rejection Reason
+     */
+    rejection_reason: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -4803,6 +6391,84 @@ export type VendorPlanOut = {
 };
 
 /**
+ * VerificationDecisionRequest
+ */
+export type VerificationDecisionRequest = {
+    /**
+     * Decision
+     */
+    decision: 'approved' | 'rejected';
+    /**
+     * Rejection Reason
+     */
+    rejection_reason?: string | null;
+};
+
+/**
+ * VerificationQueueItem
+ */
+export type VerificationQueueItem = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Review Id
+     */
+    review_id: string;
+    /**
+     * User Id
+     */
+    user_id: string;
+    /**
+     * Author Display Name
+     */
+    author_display_name: string | null;
+    /**
+     * Proof Type
+     */
+    proof_type: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Storage Key
+     */
+    storage_key: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Review Title
+     */
+    review_title: string | null;
+    /**
+     * Review Body Preview
+     */
+    review_body_preview: string;
+    /**
+     * Review Overall Rating
+     */
+    review_overall_rating: number;
+};
+
+/**
+ * VerificationQueueResponse
+ */
+export type VerificationQueueResponse = {
+    /**
+     * Items
+     */
+    items: Array<VerificationQueueItem>;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
  * VerifyEmailRequest
  */
 export type VerifyEmailRequest = {
@@ -4810,6 +6476,16 @@ export type VerifyEmailRequest = {
      * Token
      */
     token: string;
+};
+
+/**
+ * VisibilityUpdateRequest
+ */
+export type VisibilityUpdateRequest = {
+    /**
+     * Visibility
+     */
+    visibility: 'private' | 'public';
 };
 
 /**
@@ -5323,9 +6999,23 @@ export type PoiNearbyListingsPoiNearbyGetResponse = PoiNearbyListingsPoiNearbyGe
 export type ListFavoritesPropertiesFavoritesGetData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Group Id
+         */
+        group_id?: string | null;
+    };
     url: '/properties/favorites';
 };
+
+export type ListFavoritesPropertiesFavoritesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListFavoritesPropertiesFavoritesGetError = ListFavoritesPropertiesFavoritesGetErrors[keyof ListFavoritesPropertiesFavoritesGetErrors];
 
 export type ListFavoritesPropertiesFavoritesGetResponses = {
     /**
@@ -5421,6 +7111,156 @@ export type UpsertPropertyNotePropertiesNotesPropertyKeyPutResponses = {
 
 export type UpsertPropertyNotePropertiesNotesPropertyKeyPutResponse = UpsertPropertyNotePropertiesNotesPropertyKeyPutResponses[keyof UpsertPropertyNotePropertiesNotesPropertyKeyPutResponses];
 
+export type ListGroupNotesPropertiesGroupNotesPropertyKeyGetData = {
+    body?: never;
+    path: {
+        /**
+         * Property Key
+         */
+        property_key: string;
+    };
+    query: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    url: '/properties/group-notes/{property_key}';
+};
+
+export type ListGroupNotesPropertiesGroupNotesPropertyKeyGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListGroupNotesPropertiesGroupNotesPropertyKeyGetError = ListGroupNotesPropertiesGroupNotesPropertyKeyGetErrors[keyof ListGroupNotesPropertiesGroupNotesPropertyKeyGetErrors];
+
+export type ListGroupNotesPropertiesGroupNotesPropertyKeyGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupNotesListResponse;
+};
+
+export type ListGroupNotesPropertiesGroupNotesPropertyKeyGetResponse = ListGroupNotesPropertiesGroupNotesPropertyKeyGetResponses[keyof ListGroupNotesPropertiesGroupNotesPropertyKeyGetResponses];
+
+export type CreateGroupNotePropertiesGroupNotesPostData = {
+    body: GroupNoteCreateRequest;
+    path?: never;
+    query?: never;
+    url: '/properties/group-notes';
+};
+
+export type CreateGroupNotePropertiesGroupNotesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateGroupNotePropertiesGroupNotesPostError = CreateGroupNotePropertiesGroupNotesPostErrors[keyof CreateGroupNotePropertiesGroupNotesPostErrors];
+
+export type CreateGroupNotePropertiesGroupNotesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupNoteResponse;
+};
+
+export type CreateGroupNotePropertiesGroupNotesPostResponse = CreateGroupNotePropertiesGroupNotesPostResponses[keyof CreateGroupNotePropertiesGroupNotesPostResponses];
+
+export type DeleteGroupNotePropertiesGroupNotesNoteIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Note Id
+         */
+        note_id: string;
+    };
+    query?: never;
+    url: '/properties/group-notes/{note_id}';
+};
+
+export type DeleteGroupNotePropertiesGroupNotesNoteIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteGroupNotePropertiesGroupNotesNoteIdDeleteError = DeleteGroupNotePropertiesGroupNotesNoteIdDeleteErrors[keyof DeleteGroupNotePropertiesGroupNotesNoteIdDeleteErrors];
+
+export type DeleteGroupNotePropertiesGroupNotesNoteIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteGroupNotePropertiesGroupNotesNoteIdDeleteResponse = DeleteGroupNotePropertiesGroupNotesNoteIdDeleteResponses[keyof DeleteGroupNotePropertiesGroupNotesNoteIdDeleteResponses];
+
+export type ListReactionsPropertiesReactionsPropertyKeyGetData = {
+    body?: never;
+    path: {
+        /**
+         * Property Key
+         */
+        property_key: string;
+    };
+    query: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    url: '/properties/reactions/{property_key}';
+};
+
+export type ListReactionsPropertiesReactionsPropertyKeyGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListReactionsPropertiesReactionsPropertyKeyGetError = ListReactionsPropertiesReactionsPropertyKeyGetErrors[keyof ListReactionsPropertiesReactionsPropertyKeyGetErrors];
+
+export type ListReactionsPropertiesReactionsPropertyKeyGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReactionListResponse;
+};
+
+export type ListReactionsPropertiesReactionsPropertyKeyGetResponse = ListReactionsPropertiesReactionsPropertyKeyGetResponses[keyof ListReactionsPropertiesReactionsPropertyKeyGetResponses];
+
+export type ToggleReactionPropertiesReactionsTogglePostData = {
+    body: ReactionToggleRequest;
+    path?: never;
+    query?: never;
+    url: '/properties/reactions/toggle';
+};
+
+export type ToggleReactionPropertiesReactionsTogglePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ToggleReactionPropertiesReactionsTogglePostError = ToggleReactionPropertiesReactionsTogglePostErrors[keyof ToggleReactionPropertiesReactionsTogglePostErrors];
+
+export type ToggleReactionPropertiesReactionsTogglePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReactionToggleResponse;
+};
+
+export type ToggleReactionPropertiesReactionsTogglePostResponse = ToggleReactionPropertiesReactionsTogglePostResponses[keyof ToggleReactionPropertiesReactionsTogglePostResponses];
+
 export type CreateTourRequestPropertiesTourRequestsPostData = {
     body: TourRequestCreate;
     path?: never;
@@ -5445,6 +7285,350 @@ export type CreateTourRequestPropertiesTourRequestsPostResponses = {
 };
 
 export type CreateTourRequestPropertiesTourRequestsPostResponse = CreateTourRequestPropertiesTourRequestsPostResponses[keyof CreateTourRequestPropertiesTourRequestsPostResponses];
+
+export type ListGroupsGroupsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/groups';
+};
+
+export type ListGroupsGroupsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupListResponse;
+};
+
+export type ListGroupsGroupsGetResponse = ListGroupsGroupsGetResponses[keyof ListGroupsGroupsGetResponses];
+
+export type CreateGroupGroupsPostData = {
+    body: GroupCreateRequest;
+    path?: never;
+    query?: never;
+    url: '/groups';
+};
+
+export type CreateGroupGroupsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateGroupGroupsPostError = CreateGroupGroupsPostErrors[keyof CreateGroupGroupsPostErrors];
+
+export type CreateGroupGroupsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupResponse;
+};
+
+export type CreateGroupGroupsPostResponse = CreateGroupGroupsPostResponses[keyof CreateGroupGroupsPostResponses];
+
+export type DeleteGroupGroupsGroupIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}';
+};
+
+export type DeleteGroupGroupsGroupIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteGroupGroupsGroupIdDeleteError = DeleteGroupGroupsGroupIdDeleteErrors[keyof DeleteGroupGroupsGroupIdDeleteErrors];
+
+export type DeleteGroupGroupsGroupIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteGroupGroupsGroupIdDeleteResponse = DeleteGroupGroupsGroupIdDeleteResponses[keyof DeleteGroupGroupsGroupIdDeleteResponses];
+
+export type RenameGroupGroupsGroupIdPatchData = {
+    body: GroupRenameRequest;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}';
+};
+
+export type RenameGroupGroupsGroupIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RenameGroupGroupsGroupIdPatchError = RenameGroupGroupsGroupIdPatchErrors[keyof RenameGroupGroupsGroupIdPatchErrors];
+
+export type RenameGroupGroupsGroupIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupResponse;
+};
+
+export type RenameGroupGroupsGroupIdPatchResponse = RenameGroupGroupsGroupIdPatchResponses[keyof RenameGroupGroupsGroupIdPatchResponses];
+
+export type LeaveGroupGroupsGroupIdLeavePostData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/leave';
+};
+
+export type LeaveGroupGroupsGroupIdLeavePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LeaveGroupGroupsGroupIdLeavePostError = LeaveGroupGroupsGroupIdLeavePostErrors[keyof LeaveGroupGroupsGroupIdLeavePostErrors];
+
+export type LeaveGroupGroupsGroupIdLeavePostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type LeaveGroupGroupsGroupIdLeavePostResponse = LeaveGroupGroupsGroupIdLeavePostResponses[keyof LeaveGroupGroupsGroupIdLeavePostResponses];
+
+export type ListMembersGroupsGroupIdMembersGetData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/members';
+};
+
+export type ListMembersGroupsGroupIdMembersGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMembersGroupsGroupIdMembersGetError = ListMembersGroupsGroupIdMembersGetErrors[keyof ListMembersGroupsGroupIdMembersGetErrors];
+
+export type ListMembersGroupsGroupIdMembersGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupMembersListResponse;
+};
+
+export type ListMembersGroupsGroupIdMembersGetResponse = ListMembersGroupsGroupIdMembersGetResponses[keyof ListMembersGroupsGroupIdMembersGetResponses];
+
+export type RemoveMemberGroupsGroupIdMembersUserIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+        /**
+         * User Id
+         */
+        user_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/members/{user_id}';
+};
+
+export type RemoveMemberGroupsGroupIdMembersUserIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemoveMemberGroupsGroupIdMembersUserIdDeleteError = RemoveMemberGroupsGroupIdMembersUserIdDeleteErrors[keyof RemoveMemberGroupsGroupIdMembersUserIdDeleteErrors];
+
+export type RemoveMemberGroupsGroupIdMembersUserIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RemoveMemberGroupsGroupIdMembersUserIdDeleteResponse = RemoveMemberGroupsGroupIdMembersUserIdDeleteResponses[keyof RemoveMemberGroupsGroupIdMembersUserIdDeleteResponses];
+
+export type ListInvitesGroupsGroupIdInvitesGetData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/invites';
+};
+
+export type ListInvitesGroupsGroupIdInvitesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListInvitesGroupsGroupIdInvitesGetError = ListInvitesGroupsGroupIdInvitesGetErrors[keyof ListInvitesGroupsGroupIdInvitesGetErrors];
+
+export type ListInvitesGroupsGroupIdInvitesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupInvitesListResponse;
+};
+
+export type ListInvitesGroupsGroupIdInvitesGetResponse = ListInvitesGroupsGroupIdInvitesGetResponses[keyof ListInvitesGroupsGroupIdInvitesGetResponses];
+
+export type CreateInviteGroupsGroupIdInvitesPostData = {
+    body: GroupInviteCreateRequest;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/invites';
+};
+
+export type CreateInviteGroupsGroupIdInvitesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateInviteGroupsGroupIdInvitesPostError = CreateInviteGroupsGroupIdInvitesPostErrors[keyof CreateInviteGroupsGroupIdInvitesPostErrors];
+
+export type CreateInviteGroupsGroupIdInvitesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupInviteResponse;
+};
+
+export type CreateInviteGroupsGroupIdInvitesPostResponse = CreateInviteGroupsGroupIdInvitesPostResponses[keyof CreateInviteGroupsGroupIdInvitesPostResponses];
+
+export type RevokeInviteGroupsGroupIdInvitesInviteIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+        /**
+         * Invite Id
+         */
+        invite_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/invites/{invite_id}';
+};
+
+export type RevokeInviteGroupsGroupIdInvitesInviteIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RevokeInviteGroupsGroupIdInvitesInviteIdDeleteError = RevokeInviteGroupsGroupIdInvitesInviteIdDeleteErrors[keyof RevokeInviteGroupsGroupIdInvitesInviteIdDeleteErrors];
+
+export type RevokeInviteGroupsGroupIdInvitesInviteIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RevokeInviteGroupsGroupIdInvitesInviteIdDeleteResponse = RevokeInviteGroupsGroupIdInvitesInviteIdDeleteResponses[keyof RevokeInviteGroupsGroupIdInvitesInviteIdDeleteResponses];
+
+export type PreviewInviteInvitesTokenGetData = {
+    body?: never;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/invites/{token}';
+};
+
+export type PreviewInviteInvitesTokenGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewInviteInvitesTokenGetError = PreviewInviteInvitesTokenGetErrors[keyof PreviewInviteInvitesTokenGetErrors];
+
+export type PreviewInviteInvitesTokenGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: InvitePreviewResponse;
+};
+
+export type PreviewInviteInvitesTokenGetResponse = PreviewInviteInvitesTokenGetResponses[keyof PreviewInviteInvitesTokenGetResponses];
+
+export type AcceptInviteInvitesAcceptPostData = {
+    body: InviteAcceptRequest;
+    path?: never;
+    query?: never;
+    url: '/invites/accept';
+};
+
+export type AcceptInviteInvitesAcceptPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AcceptInviteInvitesAcceptPostError = AcceptInviteInvitesAcceptPostErrors[keyof AcceptInviteInvitesAcceptPostErrors];
+
+export type AcceptInviteInvitesAcceptPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: InviteAcceptResponse;
+};
+
+export type AcceptInviteInvitesAcceptPostResponse = AcceptInviteInvitesAcceptPostResponses[keyof AcceptInviteInvitesAcceptPostResponses];
 
 export type DeleteLeaseDocumentPortalLeaseDeleteData = {
     body?: never;
@@ -5876,6 +8060,141 @@ export type UpsertTourNoteRouteToursTourIdNotePutResponses = {
 };
 
 export type UpsertTourNoteRouteToursTourIdNotePutResponse = UpsertTourNoteRouteToursTourIdNotePutResponses[keyof UpsertTourNoteRouteToursTourIdNotePutResponses];
+
+export type ParseUrlUserListingsParseUrlPostData = {
+    body: ParseUrlRequest;
+    path?: never;
+    query?: never;
+    url: '/user-listings/parse-url';
+};
+
+export type ParseUrlUserListingsParseUrlPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ParseUrlUserListingsParseUrlPostError = ParseUrlUserListingsParseUrlPostErrors[keyof ParseUrlUserListingsParseUrlPostErrors];
+
+export type ParseUrlUserListingsParseUrlPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ParseUrlResponse;
+};
+
+export type ParseUrlUserListingsParseUrlPostResponse = ParseUrlUserListingsParseUrlPostResponses[keyof ParseUrlUserListingsParseUrlPostResponses];
+
+export type DedupeCheckUserListingsDedupeCheckPostData = {
+    body: DedupeCheckRequest;
+    path?: never;
+    query?: never;
+    url: '/user-listings/dedupe-check';
+};
+
+export type DedupeCheckUserListingsDedupeCheckPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DedupeCheckUserListingsDedupeCheckPostError = DedupeCheckUserListingsDedupeCheckPostErrors[keyof DedupeCheckUserListingsDedupeCheckPostErrors];
+
+export type DedupeCheckUserListingsDedupeCheckPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: DedupeCheckResponse;
+};
+
+export type DedupeCheckUserListingsDedupeCheckPostResponse = DedupeCheckUserListingsDedupeCheckPostResponses[keyof DedupeCheckUserListingsDedupeCheckPostResponses];
+
+export type CreateListingUserListingsPostData = {
+    body: CreateUserListingRequest;
+    path?: never;
+    query?: never;
+    url: '/user-listings';
+};
+
+export type CreateListingUserListingsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateListingUserListingsPostError = CreateListingUserListingsPostErrors[keyof CreateListingUserListingsPostErrors];
+
+export type CreateListingUserListingsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: CreateUserListingResponse;
+};
+
+export type CreateListingUserListingsPostResponse = CreateListingUserListingsPostResponses[keyof CreateListingUserListingsPostResponses];
+
+export type UpdateVisibilityUserListingsPropertyKeyVisibilityPatchData = {
+    body: VisibilityUpdateRequest;
+    path: {
+        /**
+         * Property Key
+         */
+        property_key: string;
+    };
+    query?: never;
+    url: '/user-listings/{property_key}/visibility';
+};
+
+export type UpdateVisibilityUserListingsPropertyKeyVisibilityPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateVisibilityUserListingsPropertyKeyVisibilityPatchError = UpdateVisibilityUserListingsPropertyKeyVisibilityPatchErrors[keyof UpdateVisibilityUserListingsPropertyKeyVisibilityPatchErrors];
+
+export type UpdateVisibilityUserListingsPropertyKeyVisibilityPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: CreateUserListingResponse;
+};
+
+export type UpdateVisibilityUserListingsPropertyKeyVisibilityPatchResponse = UpdateVisibilityUserListingsPropertyKeyVisibilityPatchResponses[keyof UpdateVisibilityUserListingsPropertyKeyVisibilityPatchResponses];
+
+export type DeleteListingUserListingsPropertyKeyDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Property Key
+         */
+        property_key: string;
+    };
+    query?: never;
+    url: '/user-listings/{property_key}';
+};
+
+export type DeleteListingUserListingsPropertyKeyDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteListingUserListingsPropertyKeyDeleteError = DeleteListingUserListingsPropertyKeyDeleteErrors[keyof DeleteListingUserListingsPropertyKeyDeleteErrors];
+
+export type DeleteListingUserListingsPropertyKeyDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteListingUserListingsPropertyKeyDeleteResponse = DeleteListingUserListingsPropertyKeyDeleteResponses[keyof DeleteListingUserListingsPropertyKeyDeleteResponses];
 
 export type ReadSavedGuarantorsGuarantorsGetData = {
     body?: never;
@@ -8081,6 +10400,820 @@ export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses 
 };
 
 export type PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponse = PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses[keyof PatchLeaseSignatureLandlordLeaseSignaturesSignatureIdPatchResponses];
+
+export type ResolveBuildingBuildingsResolvePostData = {
+    body: BuildingResolveRequest;
+    path?: never;
+    query?: never;
+    url: '/buildings/resolve';
+};
+
+export type ResolveBuildingBuildingsResolvePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResolveBuildingBuildingsResolvePostError = ResolveBuildingBuildingsResolvePostErrors[keyof ResolveBuildingBuildingsResolvePostErrors];
+
+export type ResolveBuildingBuildingsResolvePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: BuildingResolveResponse;
+};
+
+export type ResolveBuildingBuildingsResolvePostResponse = ResolveBuildingBuildingsResolvePostResponses[keyof ResolveBuildingBuildingsResolvePostResponses];
+
+export type ReadBuildingBuildingsBuildingIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Building Id
+         */
+        building_id: string;
+    };
+    query?: never;
+    url: '/buildings/{building_id}';
+};
+
+export type ReadBuildingBuildingsBuildingIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadBuildingBuildingsBuildingIdGetError = ReadBuildingBuildingsBuildingIdGetErrors[keyof ReadBuildingBuildingsBuildingIdGetErrors];
+
+export type ReadBuildingBuildingsBuildingIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: BuildingDetailResponse;
+};
+
+export type ReadBuildingBuildingsBuildingIdGetResponse = ReadBuildingBuildingsBuildingIdGetResponses[keyof ReadBuildingBuildingsBuildingIdGetResponses];
+
+export type ReadBuildingReviewsBuildingsBuildingIdReviewsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Building Id
+         */
+        building_id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+        /**
+         * Verified Only
+         */
+        verified_only?: boolean;
+    };
+    url: '/buildings/{building_id}/reviews';
+};
+
+export type ReadBuildingReviewsBuildingsBuildingIdReviewsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadBuildingReviewsBuildingsBuildingIdReviewsGetError = ReadBuildingReviewsBuildingsBuildingIdReviewsGetErrors[keyof ReadBuildingReviewsBuildingsBuildingIdReviewsGetErrors];
+
+export type ReadBuildingReviewsBuildingsBuildingIdReviewsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: BuildingReviewsResponse;
+};
+
+export type ReadBuildingReviewsBuildingsBuildingIdReviewsGetResponse = ReadBuildingReviewsBuildingsBuildingIdReviewsGetResponses[keyof ReadBuildingReviewsBuildingsBuildingIdReviewsGetResponses];
+
+export type ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetData = {
+    body?: never;
+    path: {
+        /**
+         * Building Id
+         */
+        building_id: string;
+    };
+    query?: never;
+    url: '/buildings/{building_id}/ownership-history';
+};
+
+export type ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetError = ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetErrors[keyof ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetErrors];
+
+export type ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: OwnershipHistoryResponse;
+};
+
+export type ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetResponse = ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetResponses[keyof ReadOwnershipHistoryBuildingsBuildingIdOwnershipHistoryGetResponses];
+
+export type ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Building Id
+         */
+        building_id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Open Only
+         */
+        open_only?: boolean;
+    };
+    url: '/buildings/{building_id}/hpd-violations';
+};
+
+export type ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetError = ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetErrors[keyof ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetErrors];
+
+export type ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: HpdViolationsResponse;
+};
+
+export type ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetResponse = ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetResponses[keyof ReadHpdViolationsBuildingsBuildingIdHpdViolationsGetResponses];
+
+export type ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Building Id
+         */
+        building_id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Open Only
+         */
+        open_only?: boolean;
+    };
+    url: '/buildings/{building_id}/dob-complaints';
+};
+
+export type ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetError = ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetErrors[keyof ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetErrors];
+
+export type ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: DobComplaintsResponse;
+};
+
+export type ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetResponse = ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetResponses[keyof ReadDobComplaintsBuildingsBuildingIdDobComplaintsGetResponses];
+
+export type PostReviewReviewsPostData = {
+    body: ReviewCreateRequest;
+    path?: never;
+    query?: never;
+    url: '/reviews';
+};
+
+export type PostReviewReviewsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostReviewReviewsPostError = PostReviewReviewsPostErrors[keyof PostReviewReviewsPostErrors];
+
+export type PostReviewReviewsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: ReviewPayload;
+};
+
+export type PostReviewReviewsPostResponse = PostReviewReviewsPostResponses[keyof PostReviewReviewsPostResponses];
+
+export type ReadMyReviewsReviewsMineGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/reviews/mine';
+};
+
+export type ReadMyReviewsReviewsMineGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadMyReviewsReviewsMineGetError = ReadMyReviewsReviewsMineGetErrors[keyof ReadMyReviewsReviewsMineGetErrors];
+
+export type ReadMyReviewsReviewsMineGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReviewListResponse;
+};
+
+export type ReadMyReviewsReviewsMineGetResponse = ReadMyReviewsReviewsMineGetResponses[keyof ReadMyReviewsReviewsMineGetResponses];
+
+export type ReadLandlordInboxReviewsLandlordInboxGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/reviews/landlord-inbox';
+};
+
+export type ReadLandlordInboxReviewsLandlordInboxGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadLandlordInboxReviewsLandlordInboxGetError = ReadLandlordInboxReviewsLandlordInboxGetErrors[keyof ReadLandlordInboxReviewsLandlordInboxGetErrors];
+
+export type ReadLandlordInboxReviewsLandlordInboxGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReviewListResponse;
+};
+
+export type ReadLandlordInboxReviewsLandlordInboxGetResponse = ReadLandlordInboxReviewsLandlordInboxGetResponses[keyof ReadLandlordInboxReviewsLandlordInboxGetResponses];
+
+export type ReadReviewReviewsReviewIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Review Id
+         */
+        review_id: string;
+    };
+    query?: never;
+    url: '/reviews/{review_id}';
+};
+
+export type ReadReviewReviewsReviewIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadReviewReviewsReviewIdGetError = ReadReviewReviewsReviewIdGetErrors[keyof ReadReviewReviewsReviewIdGetErrors];
+
+export type ReadReviewReviewsReviewIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReviewPayload;
+};
+
+export type ReadReviewReviewsReviewIdGetResponse = ReadReviewReviewsReviewIdGetResponses[keyof ReadReviewReviewsReviewIdGetResponses];
+
+export type PostResponseReviewsReviewIdResponsePostData = {
+    body: ReviewResponseCreate;
+    path: {
+        /**
+         * Review Id
+         */
+        review_id: string;
+    };
+    query?: never;
+    url: '/reviews/{review_id}/response';
+};
+
+export type PostResponseReviewsReviewIdResponsePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostResponseReviewsReviewIdResponsePostError = PostResponseReviewsReviewIdResponsePostErrors[keyof PostResponseReviewsReviewIdResponsePostErrors];
+
+export type PostResponseReviewsReviewIdResponsePostResponses = {
+    /**
+     * Successful Response
+     */
+    201: ReviewResponsePayload;
+};
+
+export type PostResponseReviewsReviewIdResponsePostResponse = PostResponseReviewsReviewIdResponsePostResponses[keyof PostResponseReviewsReviewIdResponsePostResponses];
+
+export type PostFlagReviewsReviewIdFlagPostData = {
+    body: ReviewFlagRequest;
+    path: {
+        /**
+         * Review Id
+         */
+        review_id: string;
+    };
+    query?: never;
+    url: '/reviews/{review_id}/flag';
+};
+
+export type PostFlagReviewsReviewIdFlagPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostFlagReviewsReviewIdFlagPostError = PostFlagReviewsReviewIdFlagPostErrors[keyof PostFlagReviewsReviewIdFlagPostErrors];
+
+export type PostFlagReviewsReviewIdFlagPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: ReviewFlagPayload;
+};
+
+export type PostFlagReviewsReviewIdFlagPostResponse = PostFlagReviewsReviewIdFlagPostResponses[keyof PostFlagReviewsReviewIdFlagPostResponses];
+
+export type PostVerificationReviewsReviewIdVerificationPostData = {
+    body: ReviewVerificationCreate;
+    path: {
+        /**
+         * Review Id
+         */
+        review_id: string;
+    };
+    query?: never;
+    url: '/reviews/{review_id}/verification';
+};
+
+export type PostVerificationReviewsReviewIdVerificationPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostVerificationReviewsReviewIdVerificationPostError = PostVerificationReviewsReviewIdVerificationPostErrors[keyof PostVerificationReviewsReviewIdVerificationPostErrors];
+
+export type PostVerificationReviewsReviewIdVerificationPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: ReviewVerificationPayload;
+};
+
+export type PostVerificationReviewsReviewIdVerificationPostResponse = PostVerificationReviewsReviewIdVerificationPostResponses[keyof PostVerificationReviewsReviewIdVerificationPostResponses];
+
+export type PostVerificationUploadReviewsReviewIdVerificationUploadPostData = {
+    body: BodyPostVerificationUploadReviewsReviewIdVerificationUploadPost;
+    path: {
+        /**
+         * Review Id
+         */
+        review_id: string;
+    };
+    query?: never;
+    url: '/reviews/{review_id}/verification/upload';
+};
+
+export type PostVerificationUploadReviewsReviewIdVerificationUploadPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostVerificationUploadReviewsReviewIdVerificationUploadPostError = PostVerificationUploadReviewsReviewIdVerificationUploadPostErrors[keyof PostVerificationUploadReviewsReviewIdVerificationUploadPostErrors];
+
+export type PostVerificationUploadReviewsReviewIdVerificationUploadPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: ReviewVerificationPayload;
+};
+
+export type PostVerificationUploadReviewsReviewIdVerificationUploadPostResponse = PostVerificationUploadReviewsReviewIdVerificationUploadPostResponses[keyof PostVerificationUploadReviewsReviewIdVerificationUploadPostResponses];
+
+export type ReadEntityLandlordEntitiesEntityIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Entity Id
+         */
+        entity_id: string;
+    };
+    query?: never;
+    url: '/landlord-entities/{entity_id}';
+};
+
+export type ReadEntityLandlordEntitiesEntityIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadEntityLandlordEntitiesEntityIdGetError = ReadEntityLandlordEntitiesEntityIdGetErrors[keyof ReadEntityLandlordEntitiesEntityIdGetErrors];
+
+export type ReadEntityLandlordEntitiesEntityIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordEntityDetail;
+};
+
+export type ReadEntityLandlordEntitiesEntityIdGetResponse = ReadEntityLandlordEntitiesEntityIdGetResponses[keyof ReadEntityLandlordEntitiesEntityIdGetResponses];
+
+export type ReadPortfolioLandlordEntitiesEntityIdBuildingsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Entity Id
+         */
+        entity_id: string;
+    };
+    query?: never;
+    url: '/landlord-entities/{entity_id}/buildings';
+};
+
+export type ReadPortfolioLandlordEntitiesEntityIdBuildingsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadPortfolioLandlordEntitiesEntityIdBuildingsGetError = ReadPortfolioLandlordEntitiesEntityIdBuildingsGetErrors[keyof ReadPortfolioLandlordEntitiesEntityIdBuildingsGetErrors];
+
+export type ReadPortfolioLandlordEntitiesEntityIdBuildingsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordPortfolioResponse;
+};
+
+export type ReadPortfolioLandlordEntitiesEntityIdBuildingsGetResponse = ReadPortfolioLandlordEntitiesEntityIdBuildingsGetResponses[keyof ReadPortfolioLandlordEntitiesEntityIdBuildingsGetResponses];
+
+export type ReadReviewsLandlordEntitiesEntityIdReviewsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Entity Id
+         */
+        entity_id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+        /**
+         * Verified Only
+         */
+        verified_only?: boolean;
+    };
+    url: '/landlord-entities/{entity_id}/reviews';
+};
+
+export type ReadReviewsLandlordEntitiesEntityIdReviewsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadReviewsLandlordEntitiesEntityIdReviewsGetError = ReadReviewsLandlordEntitiesEntityIdReviewsGetErrors[keyof ReadReviewsLandlordEntitiesEntityIdReviewsGetErrors];
+
+export type ReadReviewsLandlordEntitiesEntityIdReviewsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: LandlordEntityReviewsResponse;
+};
+
+export type ReadReviewsLandlordEntitiesEntityIdReviewsGetResponse = ReadReviewsLandlordEntitiesEntityIdReviewsGetResponses[keyof ReadReviewsLandlordEntitiesEntityIdReviewsGetResponses];
+
+export type PostClaimLandlordEntitiesEntityIdClaimPostData = {
+    body: LandlordClaimRequest;
+    path: {
+        /**
+         * Entity Id
+         */
+        entity_id: string;
+    };
+    query?: never;
+    url: '/landlord-entities/{entity_id}/claim';
+};
+
+export type PostClaimLandlordEntitiesEntityIdClaimPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostClaimLandlordEntitiesEntityIdClaimPostError = PostClaimLandlordEntitiesEntityIdClaimPostErrors[keyof PostClaimLandlordEntitiesEntityIdClaimPostErrors];
+
+export type PostClaimLandlordEntitiesEntityIdClaimPostResponses = {
+    /**
+     * Successful Response
+     */
+    202: LandlordEntityDetail;
+};
+
+export type PostClaimLandlordEntitiesEntityIdClaimPostResponse = PostClaimLandlordEntitiesEntityIdClaimPostResponses[keyof PostClaimLandlordEntitiesEntityIdClaimPostResponses];
+
+export type ReadVerificationQueueAdminReviewsVerificationsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Status
+         */
+        status?: string | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/admin/reviews/verifications';
+};
+
+export type ReadVerificationQueueAdminReviewsVerificationsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadVerificationQueueAdminReviewsVerificationsGetError = ReadVerificationQueueAdminReviewsVerificationsGetErrors[keyof ReadVerificationQueueAdminReviewsVerificationsGetErrors];
+
+export type ReadVerificationQueueAdminReviewsVerificationsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: VerificationQueueResponse;
+};
+
+export type ReadVerificationQueueAdminReviewsVerificationsGetResponse = ReadVerificationQueueAdminReviewsVerificationsGetResponses[keyof ReadVerificationQueueAdminReviewsVerificationsGetResponses];
+
+export type DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostData = {
+    body: VerificationDecisionRequest;
+    path: {
+        /**
+         * Verification Id
+         */
+        verification_id: string;
+    };
+    query?: never;
+    url: '/admin/reviews/verifications/{verification_id}/decide';
+};
+
+export type DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostError = DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostErrors[keyof DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostErrors];
+
+export type DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: VerificationQueueItem;
+};
+
+export type DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostResponse = DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostResponses[keyof DecideVerificationEndpointAdminReviewsVerificationsVerificationIdDecidePostResponses];
+
+export type ReadModerationQueueAdminReviewsModerationGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Status
+         */
+        status?: string | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/admin/reviews/moderation';
+};
+
+export type ReadModerationQueueAdminReviewsModerationGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadModerationQueueAdminReviewsModerationGetError = ReadModerationQueueAdminReviewsModerationGetErrors[keyof ReadModerationQueueAdminReviewsModerationGetErrors];
+
+export type ReadModerationQueueAdminReviewsModerationGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ModerationQueueResponse;
+};
+
+export type ReadModerationQueueAdminReviewsModerationGetResponse = ReadModerationQueueAdminReviewsModerationGetResponses[keyof ReadModerationQueueAdminReviewsModerationGetResponses];
+
+export type DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostData = {
+    body: ModerationDecisionRequest;
+    path: {
+        /**
+         * Flag Id
+         */
+        flag_id: string;
+    };
+    query?: never;
+    url: '/admin/reviews/moderation/{flag_id}/decide';
+};
+
+export type DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostError = DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostErrors[keyof DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostErrors];
+
+export type DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ModerationQueueItem;
+};
+
+export type DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostResponse = DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostResponses[keyof DecideModerationEndpointAdminReviewsModerationFlagIdDecidePostResponses];
+
+export type UpsertOwnershipAdminReviewsOwnershipPeriodsPostData = {
+    body: OwnershipPeriodUpsert;
+    path?: never;
+    query?: never;
+    url: '/admin/reviews/ownership-periods';
+};
+
+export type UpsertOwnershipAdminReviewsOwnershipPeriodsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpsertOwnershipAdminReviewsOwnershipPeriodsPostError = UpsertOwnershipAdminReviewsOwnershipPeriodsPostErrors[keyof UpsertOwnershipAdminReviewsOwnershipPeriodsPostErrors];
+
+export type UpsertOwnershipAdminReviewsOwnershipPeriodsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EmptyResponse;
+};
+
+export type UpsertOwnershipAdminReviewsOwnershipPeriodsPostResponse = UpsertOwnershipAdminReviewsOwnershipPeriodsPostResponses[keyof UpsertOwnershipAdminReviewsOwnershipPeriodsPostResponses];
+
+export type PostMergeAdminReviewsLandlordEntitiesMergePostData = {
+    body: LandlordMergeRequest;
+    path?: never;
+    query?: never;
+    url: '/admin/reviews/landlord-entities/merge';
+};
+
+export type PostMergeAdminReviewsLandlordEntitiesMergePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostMergeAdminReviewsLandlordEntitiesMergePostError = PostMergeAdminReviewsLandlordEntitiesMergePostErrors[keyof PostMergeAdminReviewsLandlordEntitiesMergePostErrors];
+
+export type PostMergeAdminReviewsLandlordEntitiesMergePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EmptyResponse;
+};
+
+export type PostMergeAdminReviewsLandlordEntitiesMergePostResponse = PostMergeAdminReviewsLandlordEntitiesMergePostResponses[keyof PostMergeAdminReviewsLandlordEntitiesMergePostResponses];
+
+export type PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostData = {
+    body: LandlordEntityClaimApproveRequest;
+    path: {
+        /**
+         * Entity Id
+         */
+        entity_id: string;
+    };
+    query?: never;
+    url: '/admin/reviews/landlord-entities/{entity_id}/approve-claim';
+};
+
+export type PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostError = PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostErrors[keyof PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostErrors];
+
+export type PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EmptyResponse;
+};
+
+export type PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostResponse = PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostResponses[keyof PostApproveClaimAdminReviewsLandlordEntitiesEntityIdApproveClaimPostResponses];
+
+export type PostRefreshPortfolioCacheAdminReviewsPortfolioCacheRefreshPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/reviews/portfolio-cache/refresh';
+};
+
+export type PostRefreshPortfolioCacheAdminReviewsPortfolioCacheRefreshPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EmptyResponse;
+};
+
+export type PostRefreshPortfolioCacheAdminReviewsPortfolioCacheRefreshPostResponse = PostRefreshPortfolioCacheAdminReviewsPortfolioCacheRefreshPostResponses[keyof PostRefreshPortfolioCacheAdminReviewsPortfolioCacheRefreshPostResponses];
 
 export type GetScrapeTargetsAdminScrapeTargetsGetData = {
     body?: never;

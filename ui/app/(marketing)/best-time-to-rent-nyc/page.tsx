@@ -1038,6 +1038,15 @@ export default function BestTimeToRentNycPage() {
                 </Link>{" "}
                 &mdash; check if your apartment qualifies.
               </p>
+              <p>
+                <Link
+                  href="/bad-landlord-nj-ny"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Bad landlord in NJ or NY?
+                </Link>{" "}
+                &mdash; how to vet a landlord before you sign.
+              </p>
             </CardContent>
           </Card>
 

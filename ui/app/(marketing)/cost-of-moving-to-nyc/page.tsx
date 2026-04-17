@@ -1005,6 +1005,14 @@ export default function CostOfMovingToNYCPage() {
                     Best Time to Rent in NYC: Month-by-Month Guide
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/bad-landlord-nj-ny"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Bad Landlord in NJ or NY? How to Report &amp; Avoid Next Time
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

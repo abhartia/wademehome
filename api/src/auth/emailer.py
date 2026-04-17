@@ -130,6 +130,29 @@ def send_tour_request_email(
     )
 
 
+def send_group_invite_email(
+    *,
+    to_email: str,
+    inviter_email: str,
+    group_name: str,
+    accept_url: str,
+) -> None:
+    name = group_name.strip() or "their apartment search"
+    _post_resend(
+        to=[to_email],
+        subject=f"{inviter_email} invited you to their Wademehome apartment search",
+        html=(
+            f"<p>{inviter_email} is using Wademehome to search for an apartment and "
+            f"invited you to collaborate on <strong>{name}</strong>.</p>"
+            "<p>Click below to join. Any favorites, notes, reactions, and tours saved "
+            "inside this group are shared between members.</p>"
+            f'<p><a href="{accept_url}">Join {name}</a></p>'
+            f'<p>Or open this link: <a href="{accept_url}">{accept_url}</a></p>'
+            "<p>This invite expires in 14 days.</p>"
+        ),
+    )
+
+
 def send_property_manager_weekly_report_email(
     *,
     to_email: str,

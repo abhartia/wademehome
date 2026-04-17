@@ -10,6 +10,8 @@ from apscheduler.triggers.cron import CronTrigger
 from core.logger import get_logger
 from db.session import get_session_local
 from property_manager import service as pm_service
+from reviews.service import publish_due_reviews
+from reviews_admin.service import refresh_portfolio_cache
 
 logger = get_logger(__name__)
 
@@ -29,6 +31,29 @@ def _send_weekly_reports() -> None:
         db.close()
 
 
+def _publish_cooldown_reviews() -> None:
+    db = get_session_local()()
+    try:
+        n = publish_due_reviews(db)
+        if n:
+            logger.info("review-cooldown: published %s reviews", n)
+    except Exception:
+        logger.exception("review-cooldown job failed")
+    finally:
+        db.close()
+
+
+def _refresh_landlord_portfolio_cache() -> None:
+    db = get_session_local()()
+    try:
+        n = refresh_portfolio_cache(db)
+        logger.info("landlord-portfolio-cache: refreshed %s entities", n)
+    except Exception:
+        logger.exception("landlord-portfolio-cache job failed")
+    finally:
+        db.close()
+
+
 def start_scheduler() -> None:
     """Register the weekly report job and start the scheduler."""
     scheduler.add_job(
@@ -37,8 +62,24 @@ def start_scheduler() -> None:
         id="pm_weekly_report",
         replace_existing=True,
     )
+    scheduler.add_job(
+        _publish_cooldown_reviews,
+        trigger=CronTrigger(minute="*/15", timezone="UTC"),
+        id="review_cooldown_publish",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _refresh_landlord_portfolio_cache,
+        trigger=CronTrigger(hour=5, minute=0, timezone="UTC"),
+        id="landlord_portfolio_cache",
+        replace_existing=True,
+    )
     scheduler.start()
-    logger.info("pm-weekly-report scheduler started (Monday 14:00 UTC)")
+    logger.info(
+        "scheduler started: pm_weekly_report(Mon 14:00 UTC), "
+        "review_cooldown_publish(every 15m), "
+        "landlord_portfolio_cache(daily 05:00 UTC)"
+    )
 
 
 def shutdown_scheduler() -> None:

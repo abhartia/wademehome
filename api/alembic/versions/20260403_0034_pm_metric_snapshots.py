@@ -1,15 +1,15 @@
 """Create pm_building_snapshots and pm_market_snapshots tables for time-series tracking.
 
-Revision ID: 20260403_0033
-Revises: 20260403_0032
+Revision ID: 20260403_0034
+Revises: 20260403_0033
 Create Date: 2026-04-03
 """
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 
-revision = "20260403_0033"
-down_revision = "20260403_0032"
+revision = "20260403_0034"
+down_revision = "20260403_0033"
 branch_labels = None
 depends_on = None
 
