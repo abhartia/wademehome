@@ -3,14 +3,15 @@
 import {
   ChangeEvent,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   Film,
   Image as ImageIcon,
@@ -31,6 +32,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { usePasteAndCreate } from "@/lib/userListings/useUserListings";
 import { useActiveGroupId } from "@/lib/groups/activeGroup";
 import { useMyGroups } from "@/lib/groups/api";
@@ -44,9 +52,12 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { toursFromApi } from "@/lib/api/portalMappers";
 
+const PERSONAL_GROUP_VALUE = "__personal__";
+
 type Phase = "idle" | "parsing" | "updating" | "uploading" | "done" | "error";
 
 export function LogTourModal() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
@@ -56,6 +67,8 @@ export function LogTourModal() {
   const [phaseDetail, setPhaseDetail] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savedName, setSavedName] = useState<string | null>(null);
+  const [savedTourId, setSavedTourId] = useState<string | null>(null);
+  const [uploadedCount, setUploadedCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -69,12 +82,18 @@ export function LogTourModal() {
   );
   const upsertNoteMut = useMutation(upsertTourNoteRouteToursTourIdNotePutMutation());
 
-  const activeGroupName = useMemo(() => {
-    if (!activeGroupId || !groupsQuery.data?.groups) return null;
-    return (
-      groupsQuery.data.groups.find((g) => g.id === activeGroupId)?.name ?? null
-    );
-  }, [activeGroupId, groupsQuery.data?.groups]);
+  const myGroups = groupsQuery.data?.groups ?? [];
+  // Default the selector to the sidebar's active group; user can override before submitting.
+  const [selectedGroupValue, setSelectedGroupValue] = useState<string>(
+    () => activeGroupId ?? PERSONAL_GROUP_VALUE,
+  );
+  const effectiveGroupId =
+    selectedGroupValue === PERSONAL_GROUP_VALUE ? null : selectedGroupValue;
+
+  const selectedGroupName = useMemo(() => {
+    if (!effectiveGroupId) return null;
+    return myGroups.find((g) => g.id === effectiveGroupId)?.name ?? null;
+  }, [effectiveGroupId, myGroups]);
 
   const busy =
     phase === "parsing" || phase === "updating" || phase === "uploading";
@@ -87,19 +106,16 @@ export function LogTourModal() {
     setPhaseDetail("");
     setErrorMessage(null);
     setSavedName(null);
+    setSavedTourId(null);
+    setUploadedCount(0);
     setTourDate(new Date().toISOString().slice(0, 10));
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    // Keep state if we're mid-flow; just clear on reopen after success.
-    if (phase === "done") reset();
-  }, [open, phase, reset]);
+    setSelectedGroupValue(activeGroupId ?? PERSONAL_GROUP_VALUE);
+  }, [activeGroupId]);
 
   const handleOpenChange = (next: boolean) => {
     if (busy) return; // don't close mid-upload
     setOpen(next);
-    if (!next && phase !== "done") reset();
+    if (!next) reset();
   };
 
   const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +134,8 @@ export function LogTourModal() {
     if (!trimmedAddress) return;
     setErrorMessage(null);
     setSavedName(null);
+    setSavedTourId(null);
+    setUploadedCount(0);
 
     // 1. Paste → create listing, favorite, and a saved tour in the group scope.
     setPhase("parsing");
@@ -128,7 +146,7 @@ export function LogTourModal() {
       const res = await pasteMut.mutateAsync({
         text: trimmedAddress,
         force: true, // bypass dedupe so "already in a group member's list" doesn't block
-        groupId: activeGroupId,
+        groupId: effectiveGroupId,
       });
       if (res.parse_error) {
         setPhase("error");
@@ -155,7 +173,7 @@ export function LogTourModal() {
       limit: 200,
       offset: 0,
       sort: "created_at_desc",
-      ...(activeGroupId ? { group_id: activeGroupId } : {}),
+      ...(effectiveGroupId ? { group_id: effectiveGroupId } : {}),
     };
     try {
       const raw = await qc.fetchQuery({
@@ -170,6 +188,7 @@ export function LogTourModal() {
         setErrorMessage("Saved the place but couldn't locate the tour to mark as toured.");
         return;
       }
+      setSavedTourId(tour.id);
 
       await updateTourMut.mutateAsync({
         path: { tour_id: tour.id },
@@ -226,9 +245,10 @@ export function LogTourModal() {
     setPhase("done");
     setPhaseDetail("");
     setSavedName(propertyName);
+    setUploadedCount(files.length);
   }, [
     address,
-    activeGroupId,
+    effectiveGroupId,
     files,
     notes,
     pasteMut,
@@ -239,7 +259,15 @@ export function LogTourModal() {
     upsertNoteMut,
   ]);
 
-  const canSubmit = address.trim().length > 0 && !busy;
+  const isDone = phase === "done";
+  const formLocked = busy || isDone;
+  const canSubmit = address.trim().length > 0 && !formLocked;
+
+  const goToTour = () => {
+    setOpen(false);
+    reset();
+    router.push("/tours?tab=completed");
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -259,19 +287,44 @@ export function LogTourModal() {
           <DialogDescription>
             Paste the address or a Zillow / StreetEasy URL — we&apos;ll save
             the place, mark it as toured, and attach your video.
-            {activeGroupName ? (
-              <>
-                {" "}Sharing with{" "}
-                <strong className="font-medium text-foreground">
-                  {activeGroupName}
-                </strong>
-                .
-              </>
-            ) : null}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Save to
+            </label>
+            <Select
+              value={selectedGroupValue}
+              onValueChange={setSelectedGroupValue}
+              disabled={formLocked}
+            >
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Choose where to save" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={PERSONAL_GROUP_VALUE}>
+                  Personal (just me)
+                </SelectItem>
+                {myGroups.map((g) => (
+                  <SelectItem key={g.id} value={g.id}>
+                    {g.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {effectiveGroupId && selectedGroupName ? (
+              <p className="text-[11px] text-muted-foreground">
+                Shared with everyone in <strong>{selectedGroupName}</strong>.
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                Only visible to you.
+              </p>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               Address or listing URL
@@ -281,7 +334,7 @@ export function LogTourModal() {
               placeholder={`269 Terrace Ave #B, Jersey City, NJ 07307\nor https://www.zillow.com/…`}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              disabled={busy}
+              disabled={formLocked}
             />
           </div>
 
@@ -294,7 +347,7 @@ export function LogTourModal() {
                 type="date"
                 value={tourDate}
                 onChange={(e) => setTourDate(e.target.value)}
-                disabled={busy}
+                disabled={formLocked}
               />
             </div>
             <div className="space-y-1.5">
@@ -305,7 +358,7 @@ export function LogTourModal() {
                 placeholder="First impression…"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                disabled={busy}
+                disabled={formLocked}
               />
             </div>
           </div>
@@ -328,7 +381,7 @@ export function LogTourModal() {
               variant="outline"
               className="w-full gap-1.5"
               onClick={() => fileInputRef.current?.click()}
-              disabled={busy}
+              disabled={formLocked}
             >
               <Upload className="h-3.5 w-3.5" />
               Choose video or photos
@@ -349,7 +402,7 @@ export function LogTourModal() {
                     <Badge variant="secondary" className="text-[10px]">
                       {formatBytes(file.size)}
                     </Badge>
-                    {!busy && (
+                    {!formLocked && (
                       <button
                         type="button"
                         aria-label="Remove file"
@@ -382,37 +435,61 @@ export function LogTourModal() {
             </div>
           )}
 
-          {phase === "done" && (
-            <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>
-                Logged{savedName ? ` "${savedName}"` : ""} as toured
-                {files.length > 0
-                  ? ` — uploaded ${files.length} file${files.length === 1 ? "" : "s"}.`
-                  : "."}
-              </span>
+          {isDone && (
+            <div className="space-y-2 rounded-md border border-green-200 bg-green-50 px-3 py-3 text-xs text-green-800">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-700" />
+                <div className="flex-1">
+                  <div className="font-medium">
+                    Logged{savedName ? ` "${savedName}"` : ""} as toured
+                  </div>
+                  <div className="text-green-700/80">
+                    {uploadedCount > 0
+                      ? `Uploaded ${uploadedCount} file${uploadedCount === 1 ? "" : "s"}. `
+                      : ""}
+                    {selectedGroupName
+                      ? `Visible to everyone in ${selectedGroupName}.`
+                      : "Saved to your personal list."}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  size="sm"
+                  className="h-7 gap-1 text-xs"
+                  onClick={goToTour}
+                  disabled={!savedTourId}
+                >
+                  View in Tours
+                  <ArrowRight className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={reset}
+                >
+                  Log another
+                </Button>
+              </div>
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleOpenChange(false)}
-              disabled={busy}
-            >
-              {phase === "done" ? "Close" : "Cancel"}
-            </Button>
-            {phase === "done" ? (
-              <Button size="sm" onClick={reset}>
-                Log another
+          {!isDone && (
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleOpenChange(false)}
+                disabled={busy}
+              >
+                Cancel
               </Button>
-            ) : (
               <Button size="sm" disabled={!canSubmit} onClick={submit}>
                 {busy ? "Saving…" : "Save tour"}
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

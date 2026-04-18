@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 
-from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.storage.blob import (
+    BlobSasPermissions,
+    BlobServiceClient,
+    ContentSettings,
+    generate_blob_sas,
+)
 from fastapi import HTTPException, UploadFile
 from sqlalchemy import Select, or_, select
 from sqlalchemy.orm import Session
@@ -69,10 +74,47 @@ def _note_payload(note: TourNotes | None) -> TourNotePayload | None:
     )
 
 
+_SAS_TTL = timedelta(hours=2)
+
+
+def _sas_url_for_media(media_url: str) -> str:
+    """Mint a short-lived read-only SAS URL so the private blob is renderable.
+
+    Container is private — raw blob URLs 401 in <img>/<video> tags. SAS adds a
+    bearer token in the query string scoped to a single blob with read perms
+    only. Falls back to the raw URL if config is missing so we don't 500 on
+    payload assembly.
+    """
+    conn = (Config.get("AZURE_BLOB_CONNECTION_STRING", "") or "").strip()
+    container = (Config.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or "").strip()
+    if not conn or not container:
+        return media_url
+    marker = f"/{container}/"
+    idx = media_url.find(marker)
+    if idx == -1:
+        return media_url
+    blob_name = media_url[idx + len(marker) :]
+    parts = dict(p.split("=", 1) for p in conn.split(";") if "=" in p)
+    account_name = parts.get("AccountName")
+    account_key = parts.get("AccountKey")
+    if not account_name or not account_key:
+        return media_url
+    sas = generate_blob_sas(
+        account_name=account_name,
+        container_name=container,
+        blob_name=blob_name,
+        account_key=account_key,
+        permission=BlobSasPermissions(read=True),
+        expiry=datetime.now(timezone.utc) + _SAS_TTL,
+    )
+    base = media_url.split("?", 1)[0]
+    return f"{base}?{sas}"
+
+
 def _media_payload(media: TourMedia) -> TourMediaPayload:
     return TourMediaPayload(
         id=str(media.id),
-        media_url=media.media_url,
+        media_url=_sas_url_for_media(media.media_url),
         media_kind=media.media_kind.value,
         content_type=media.content_type,
         file_size_bytes=media.file_size_bytes,

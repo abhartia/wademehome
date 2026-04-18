@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,15 @@ import { CalendarPlus, Search, Bookmark, CheckCircle2, ArrowRight } from "lucide
 import Link from "next/link";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 
+const VALID_TABS = new Set(["upcoming", "completed", "saved"]);
+
 export default function ToursPage() {
   const { tours, isReadOnly, updateTour, removeTour } = useTours();
   const { journeyStage } = useUserProfile();
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const initialTab =
+    requestedTab && VALID_TABS.has(requestedTab) ? requestedTab : "upcoming";
 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleProperty, setScheduleProperty] = useState<
@@ -96,7 +103,7 @@ export default function ToursPage() {
           </Button>
         </div>
       )}
-      <Tabs defaultValue="upcoming" className="flex h-full flex-col">
+      <Tabs defaultValue={initialTab} className="flex h-full flex-col">
         {isReadOnly && (
           <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
             Sign in to create and manage tours.

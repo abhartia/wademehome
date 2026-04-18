@@ -50,6 +50,7 @@ from admin.router import router as admin_router
 from property_manager.router import internal_router as pm_internal_router
 from property_manager.router import router as pm_router
 from property_manager.scheduler import start_scheduler, shutdown_scheduler
+from agent.router import router as agent_router
 
 logger = get_logger(__name__)
 langfuse = Langfuse()
@@ -94,6 +95,7 @@ app.include_router(reviews_admin_router)
 app.include_router(admin_router)
 app.include_router(pm_router)
 app.include_router(pm_internal_router)
+app.include_router(agent_router)
 
 
 _TIMED_PATH_PREFIXES: tuple[str, ...] = (

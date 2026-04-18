@@ -546,7 +546,7 @@ def parse_listing_detail(item: dict, scraped_ts: str) -> tuple[dict | None, list
         "availability_status": availability,
         "available_at": item.get("moveInDate"),
         "lease_url": None,
-        "lease_term": item.get("leaseTerms"),
+        "lease_term": _parse_int(item.get("leaseTerms")),
         "listing_url": listing_url,
         "email": email,
         "phone": phone,
@@ -578,11 +578,11 @@ def enforce_unit_types(df: pd.DataFrame) -> pd.DataFrame:
         "unit_id", "availability_status", "available_at", "lease_url",
         "listing_url", "email", "phone", "description", "images",
         "website", "company", "building_type", "building_subtype",
-        "fees", "year_built", "scraped_timestamp", "lease_term",
+        "fees", "year_built", "scraped_timestamp",
     ]
     float_cols = ["latitude", "longitude", "beds", "baths", "sqft",
                   "rent_price", "rent_max", "deposit", "floor_number",
-                  "total_units", "stories"]
+                  "total_units", "stories", "lease_term"]
     for col in string_cols:
         if col in df.columns:
             df[col] = df[col].astype("string")

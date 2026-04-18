@@ -18,13 +18,14 @@ class CORSConfig:
     
     def _load_allowed_origins(self) -> Set[str]:
         """Load allowed origins from environment variables."""
-        # Default allowed origins
+        # Default allowed origins. Localhost wildcards cover dev tools that
+        # bind to ephemeral ports (Claude Code preview tunnel, Playwright,
+        # Storybook, etc.) — pattern matcher converts `*` → `[^./]+` so the
+        # port digits match cleanly.
         default_origins = [
-            "http://localhost:3000",
-            "http://localhost:8000", 
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:8000",
-            "*.markerr.com"
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "*.markerr.com",
         ]
         
         # Get from environment variable

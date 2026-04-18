@@ -1,0 +1,30 @@
+[
+  {
+    "id": "mi_mark_forward_mail",
+    "stage": "movein",
+    "prompt": "mark 'forward mail' as done",
+    "notes": "",
+    "turns": [
+      {
+        "prompt": "mark 'forward mail' as done",
+        "agents_seen": [
+          "orchestrator",
+          "movein_agent"
+        ],
+        "tools_called": [
+          "handoff",
+          "list_movein_tasks",
+          "complete_movein_task"
+        ],
+        "card_types": [
+          "movein_checklist"
+        ],
+        "text": "Nice work marking that off.",
+        "elapsed_s": 18.52386235501035,
+        "error": null
+      }
+    ],
+    "passed": true,
+    "failures": []
+  }
+]

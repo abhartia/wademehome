@@ -12,7 +12,9 @@ export const JOURNEY_STAGE_DEFAULT_PATH: Partial<Record<JourneyStage, string>> =
   "moved-in": "/profile",
 };
 
-export function defaultAppLandingPath(journeyStage: JourneyStage | null): string {
-  if (!journeyStage) return "/app";
-  return JOURNEY_STAGE_DEFAULT_PATH[journeyStage] ?? "/app";
+export function defaultAppLandingPath(_journeyStage: JourneyStage | null): string {
+  // The home tab is now a chat-first concierge that covers every journey
+  // stage, so authenticated users always land there. The journey-stage map
+  // above is still consumed by AppSidebar for nav emphasis.
+  return "/app";
 }
