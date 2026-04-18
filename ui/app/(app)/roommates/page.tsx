@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pencil } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
 
 function MyProfileView() {
   const { myProfile, resetMyProfile } = useRoommate();
@@ -152,7 +151,6 @@ export default function RoommatesPage() {
           <RoommateConnections />
         </TabsContent>
       </Tabs>
-      <Toaster richColors closeButton={true} />
     </div>
   );
 }

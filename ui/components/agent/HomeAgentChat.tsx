@@ -195,9 +195,14 @@ export function HomeAgentChat() {
     fetch: chatFetch,
     onError: (error) => {
       console.error("Agent chat error:", error);
+      const detail = error?.message?.trim();
       toast.error(
         "Couldn't reach the assistant. Check your connection and try again.",
-        { duration: Infinity, dismissible: true },
+        {
+          description: detail && detail.length < 200 ? detail : undefined,
+          duration: Infinity,
+          dismissible: true,
+        },
       );
     },
   });
@@ -211,6 +216,7 @@ export function HomeAgentChat() {
     setMessages,
     stop,
     append,
+    error,
   } = handler;
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -375,6 +381,17 @@ export function HomeAgentChat() {
             {isLoading && messages[messages.length - 1]?.role === "user" ? (
               <PendingAssistantBubble />
             ) : null}
+            {!isLoading && error ? (
+              <ChatErrorBubble
+                error={error}
+                onRetry={() => {
+                  const last = messages[messages.length - 1];
+                  if (last?.role !== "user") return;
+                  setMessages(messages.slice(0, -1));
+                  void append({ role: "user", content: last.content });
+                }}
+              />
+            ) : null}
           </div>
         )}
       </div>
@@ -462,6 +479,38 @@ export function HomeAgentChat() {
             Concierge may make mistakes. Confirm important details.
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatErrorBubble({
+  error,
+  onRetry,
+}: {
+  error: Error;
+  onRetry: () => void;
+}) {
+  const detail = error?.message?.trim();
+  return (
+    <div className="flex w-full justify-start gap-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-rose-500/40 bg-rose-500/10">
+        <Sparkles className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+      </div>
+      <div className="flex max-w-[88%] min-w-0 flex-col gap-2 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
+        <span className="font-medium">Couldn&apos;t reach the assistant.</span>
+        {detail ? (
+          <span className="break-words text-xs opacity-80">{detail}</span>
+        ) : null}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onRetry}
+          className="w-fit gap-1.5 border-rose-500/40 text-rose-700 hover:bg-rose-500/10 dark:text-rose-300"
+        >
+          Try again
+        </Button>
       </div>
     </div>
   );

@@ -38,7 +38,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toaster } from "@/components/ui/sonner";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
 import {
   useCreateInvite,
@@ -203,7 +202,6 @@ export default function GroupDetailPage(props: PageProps) {
   if (!group) {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <Toaster />
         <Link href="/groups" className="text-sm text-muted-foreground">
           <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
           Groups
@@ -220,7 +218,6 @@ export default function GroupDetailPage(props: PageProps) {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      <Toaster />
       <Link href="/groups" className="text-sm text-muted-foreground hover:underline">
         <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
         Groups
