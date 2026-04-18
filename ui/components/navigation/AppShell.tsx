@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "./AppSidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
@@ -64,6 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
           <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
         </div>
+        <Toaster richColors closeButton />
       </TooltipProvider>
     );
   }
@@ -83,6 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
         </SidebarInset>
       </SidebarProvider>
+      <Toaster richColors closeButton />
     </TooltipProvider>
   );
 }

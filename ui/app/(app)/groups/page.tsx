@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toaster } from "@/components/ui/sonner";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
 import { useCreateGroup, useMyGroups } from "@/lib/groups/api";
 
@@ -47,7 +46,6 @@ export default function GroupsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      <Toaster />
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Groups</h1>
