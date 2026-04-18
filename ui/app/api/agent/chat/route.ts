@@ -18,6 +18,16 @@ const API_TARGET =
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function errorResponse(status: number, message: string): Response {
+  // useChat reads `await response.text()` on non-2xx and uses it as the
+  // thrown Error.message — keep this a short, human string so the toast and
+  // inline error bubble render something diagnostic instead of going blank.
+  return new Response(message, {
+    status,
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
+}
+
 export async function POST(req: NextRequest) {
   // Forward the active-group header so the backend can scope "save it" to the
   // group the user has selected in the sidebar (see agent/router.py).
@@ -28,13 +38,37 @@ export async function POST(req: NextRequest) {
   };
   if (activeGroup) forwardHeaders["x-active-group-id"] = activeGroup;
 
-  const upstream = await fetch(`${API_TARGET}/agent/chat`, {
-    method: "POST",
-    headers: forwardHeaders,
-    body: req.body,
-    duplex: "half",
-    cache: "no-store",
-  } as RequestInit & { duplex: "half" });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${API_TARGET}/agent/chat`, {
+      method: "POST",
+      headers: forwardHeaders,
+      body: req.body,
+      duplex: "half",
+      cache: "no-store",
+    } as RequestInit & { duplex: "half" });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("agent/chat proxy: upstream fetch failed", detail);
+    return errorResponse(502, `Upstream unreachable: ${detail}`);
+  }
+
+  if (!upstream.ok) {
+    // Buffer the error body (non-2xx means it's not an SSE stream) so useChat
+    // sees a non-empty Error.message — otherwise the toast / inline bubble
+    // collapse to "Couldn't reach the assistant" with no further detail.
+    const bodyText = await upstream.text().catch(() => "");
+    const snippet = bodyText.trim().slice(0, 300) || upstream.statusText || "no body";
+    console.error(
+      "agent/chat proxy: upstream returned %s — %s",
+      upstream.status,
+      snippet,
+    );
+    return errorResponse(
+      upstream.status,
+      `Upstream ${upstream.status}: ${snippet}`,
+    );
+  }
 
   const headers = new Headers();
   headers.set(
