@@ -626,8 +626,18 @@ MOVEIN = [
         expected_tools={"add_movein_task"},
     ),
     PromptCase(
+        stage="movein", id="mi_add_forward_mail",
+        prompt="add 'forward mail' to my move-in checklist",
+        # Seeds the referent for mi_mark_forward_mail.
+        expected_agents={"movein_agent"},
+        expected_tools={"add_movein_task"},
+    ),
+    PromptCase(
         stage="movein", id="mi_mark_forward_mail",
         prompt="mark 'forward mail' as done",
+        # Depends on mi_add_forward_mail seeding the task in the same run
+        # so the referent exists regardless of pre-test DB state.
+        context_from=["mi_add_forward_mail"],
         expected_agents={"movein_agent"},
         expected_tools={"complete_movein_task"},
     ),
@@ -1172,8 +1182,12 @@ COLD_GUARANTOR = [
         expected_tools={"view_guarantor_center"}),
     PromptCase(stage="cs_guarantor", id="cs_start_request",
         prompt="start a guarantor request",
+        # start_guarantor_request needs property_name/address/monthly_rent +
+        # guarantor_id. With zero context the agent correctly views the
+        # center and asks for the missing property info — don't force a
+        # tool call that would 422. Accept either path.
         expected_agents={"guarantor_agent"},
-        expected_tools={"start_guarantor_request"}),
+        expected_tools={"start_guarantor_request", "view_guarantor_center"}),
     PromptCase(stage="cs_guarantor", id="cs_need_cosigner",
         prompt="I need a co-signer",
         expected_agents={"guarantor_agent"},
