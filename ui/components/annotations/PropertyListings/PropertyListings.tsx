@@ -73,7 +73,7 @@ const PropertyCard = ({
           isConfirmed && "opacity-100",
         )}
       >
-      <div className="relative min-h-48 w-32 shrink-0 self-stretch overflow-hidden rounded-l-md bg-muted">
+      <div className="relative min-h-40 w-24 shrink-0 self-stretch overflow-hidden rounded-l-md bg-muted sm:min-h-48 sm:w-32">
         <ListingImage src={imageUrl} alt={property.name} />
         {extraPhotos > 0 ? (
           <Badge
@@ -84,12 +84,12 @@ const PropertyCard = ({
           </Badge>
         ) : null}
       </div>
-      <div className="flex flex-1 flex-col justify-between px-2 py-3">
-        <div>
-          <h3 className="text-lg font-bold leading-none">{property.name}</h3>
-          <div className="mt-1 flex flex-row items-center gap-1 text-xs text-zinc-500">
-            <MapPin className="h-3 w-3" />
-            <p>{property.address}</p>
+      <div className="flex min-w-0 flex-1 flex-col justify-between px-2 py-3">
+        <div className="min-w-0">
+          <h3 className="break-words text-base font-bold leading-tight sm:text-lg sm:leading-none">{property.name}</h3>
+          <div className="mt-1 flex flex-row items-start gap-1 text-xs text-zinc-500">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <p className="min-w-0 break-words">{property.address}</p>
           </div>
           {(isValidating || isConfirmed) && (
             <div className="mt-1.5 flex items-center gap-1">
@@ -111,7 +111,7 @@ const PropertyCard = ({
           </p>
           <div className="mt-2">
             <div className="text-xs font-medium text-zinc-500">Amenities:</div>
-            <div className="text-xs font-medium leading-none text-zinc-500">
+            <div className="line-clamp-2 break-words text-xs font-medium leading-snug text-zinc-500 sm:line-clamp-none">
               {property.main_amenities.join(", ")}
             </div>
           </div>
@@ -119,7 +119,7 @@ const PropertyCard = ({
 
         <div className="mt-3 text-right text-xs font-medium leading-none text-zinc-500">
           Rent:
-          <div className="text-base font-bold leading-none text-gray-800">
+          <div className="break-words text-sm font-bold leading-tight text-gray-800 sm:text-base sm:leading-none">
             {formatPropertyRangeLabel(property.rent_range)}
           </div>
         </div>
@@ -162,7 +162,7 @@ const BuildingGroupCard = ({
         )}
       >
         <div className="flex flex-row gap-3 border-b border-border/60">
-        <div className="relative min-h-40 w-28 shrink-0 self-stretch overflow-hidden bg-muted md:min-h-44 md:w-32">
+        <div className="relative min-h-36 w-24 shrink-0 self-stretch overflow-hidden bg-muted sm:min-h-40 sm:w-28 md:min-h-44 md:w-32">
           <ListingImage src={imageUrl} alt={representative.name} />
           {extraPhotos > 0 ? (
             <Badge
@@ -174,10 +174,10 @@ const BuildingGroupCard = ({
           ) : null}
         </div>
         <div className="flex min-w-0 flex-1 flex-col px-2 py-3">
-          <h3 className="text-lg font-bold leading-none">{representative.name}</h3>
-          <div className="mt-1 flex flex-row items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3 shrink-0" />
-            <p className="min-w-0">{representative.address}</p>
+          <h3 className="break-words text-base font-bold leading-tight sm:text-lg sm:leading-none">{representative.name}</h3>
+          <div className="mt-1 flex flex-row items-start gap-1 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <p className="min-w-0 break-words">{representative.address}</p>
           </div>
           {(isValidating || isConfirmed) && (
             <div className="mt-1.5 flex items-center gap-1">
@@ -201,7 +201,7 @@ const BuildingGroupCard = ({
           </p>
           <div className="mt-2">
             <div className="text-xs font-medium text-muted-foreground">Amenities</div>
-            <div className="text-xs font-medium leading-snug text-muted-foreground">
+            <div className="line-clamp-2 break-words text-xs font-medium leading-snug text-muted-foreground sm:line-clamp-none">
               {representative.main_amenities.join(", ")}
             </div>
           </div>
@@ -223,7 +223,7 @@ const BuildingGroupCard = ({
               onMouseEnter={() => onHoverProperty?.(unit)}
               onMouseLeave={() => onHoverProperty?.(null)}
             >
-              <span className="text-sm text-foreground">
+              <span className="min-w-0 truncate text-sm text-foreground">
                 {formatPropertyRangeLabel(unit.bedroom_range)}
               </span>
               <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">

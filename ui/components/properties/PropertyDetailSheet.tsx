@@ -252,13 +252,13 @@ export function PropertyDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{property.name}</SheetTitle>
-          <SheetDescription>{property.address}</SheetDescription>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+        <SheetHeader className="pr-10">
+          <SheetTitle className="break-words pr-2">{property.name}</SheetTitle>
+          <SheetDescription className="break-words">{property.address}</SheetDescription>
         </SheetHeader>
 
-        <div className="px-4 pb-4 space-y-4">
+        <div className="space-y-4 px-4 pb-6">
           <PropertyImageGallery property={property} variant="sheet" />
 
           <div className="flex flex-wrap gap-2">
@@ -459,14 +459,14 @@ export function PropertyDetailSheet({
         </SheetContent>
       </Sheet>
       <Sheet open={tourConfirmOpen} onOpenChange={setTourConfirmOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+          <SheetHeader className="pr-10">
             <SheetTitle>Confirm tour request email</SheetTitle>
             <SheetDescription>
               Review and edit the request before sending to our tour operations inbox.
             </SheetDescription>
           </SheetHeader>
-          <div className="space-y-3 px-4 pb-4">
+          <div className="space-y-3 px-4 pb-6">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Preferred date</label>

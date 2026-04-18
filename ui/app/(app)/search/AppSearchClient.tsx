@@ -274,7 +274,7 @@ function AppSearchInner({
 
   return (
     <>
-      <div className="grid h-full min-h-0 flex-1 grid-rows-1 gap-3 overflow-hidden p-3 pb-4 sm:gap-3 sm:p-3 sm:pb-4 lg:grid-cols-[1fr_minmax(320px,380px)]">
+      <div className="grid h-full min-h-0 flex-1 grid-rows-[minmax(220px,40vh)_minmax(0,1fr)] gap-3 overflow-hidden p-2 pb-4 sm:p-3 lg:grid-cols-[1fr_minmax(320px,380px)] lg:grid-rows-1">
         <div className="relative min-h-0 overflow-hidden rounded-lg border border-border/80 bg-muted/10 shadow-sm">
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-2 sm:p-3">
             <div className="pointer-events-auto relative mx-auto w-full max-w-xl sm:mx-0">
@@ -312,7 +312,7 @@ function AppSearchInner({
               </p>
               {useAiSlice && showAiActivity && (
                 <div
-                  className="pointer-events-none absolute left-0 right-0 top-full z-30 mt-2 flex max-h-[min(55vh,26rem)] flex-col gap-2 rounded-md border border-border/60 bg-background/98 p-2 shadow-lg backdrop-blur"
+                  className="pointer-events-none absolute left-0 right-0 top-full z-30 mt-2 flex max-h-[min(32vh,26rem)] flex-col gap-2 rounded-md border border-border/60 bg-background/98 p-2 shadow-lg backdrop-blur sm:max-h-[min(55vh,26rem)]"
                   aria-live="polite"
                 >
                   <div className="pointer-events-auto flex min-h-0 flex-col gap-2">
@@ -350,7 +350,7 @@ function AppSearchInner({
                         </Button>
                       </div>
                       {mapAiPanelOpen ? (
-                        <div className="max-h-[min(40vh,15rem)] min-h-0 overflow-y-auto border-t border-border/40 px-3 py-2">
+                        <div className="max-h-[min(22vh,15rem)] min-h-0 overflow-y-auto border-t border-border/40 px-3 py-2 sm:max-h-[min(40vh,15rem)]">
                             {displaySearchSummary && (
                               <div className="mb-2 rounded-md border border-border/50 bg-background/80 px-2.5 py-2">
                                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -460,7 +460,7 @@ function AppSearchInner({
             />
           </div>
         </div>
-        <div className="flex min-h-0 flex-col rounded-lg border border-border/80 bg-background p-3 shadow-sm">
+        <div className="flex min-h-0 flex-col rounded-lg border border-border/80 bg-background p-2 shadow-sm sm:p-3">
           <div className="mb-2.5 shrink-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
               {useAiSlice ? (
