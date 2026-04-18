@@ -314,19 +314,24 @@ export function HomeAgentChat() {
   };
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col">
+    <div className="relative flex min-h-0 w-full flex-1 flex-col">
       {/* soft ambient gradient — beautiful, performant (no blur on scroll content) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-primary/8 via-primary/[0.03] to-transparent"
       />
 
-      <div className="flex shrink-0 items-center justify-between gap-2 px-3 py-2 sm:px-4">
-        <div className="inline-flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+      <div
+        className={cn(
+          "shrink-0 items-center justify-between gap-2 px-3 py-2 sm:flex sm:px-4",
+          isEmpty ? "hidden sm:flex" : "flex",
+        )}
+      >
+        <div className="hidden min-w-0 items-center gap-2 text-xs text-muted-foreground sm:inline-flex">
           <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
           <span className="truncate">Concierge</span>
           {profileChips.length > 0 ? (
-            <span className="hidden items-center gap-1 sm:inline-flex">
+            <span className="inline-flex items-center gap-1">
               <span className="text-muted-foreground/60">·</span>
               {profileChips.map((p) => (
                 <Badge
@@ -344,7 +349,7 @@ export function HomeAgentChat() {
           <Button
             variant="ghost"
             size="sm"
-            className="shrink-0 gap-1.5 text-muted-foreground"
+            className="ml-auto shrink-0 gap-1.5 text-muted-foreground"
             onClick={() => {
               stop();
               setMessages([]);
@@ -396,7 +401,7 @@ export function HomeAgentChat() {
         )}
       </div>
 
-      <div className="shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="shrink-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto w-full max-w-3xl px-3 py-3 sm:px-4">
           {attachment ? (
             <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-full border bg-muted/50 px-2.5 py-1 text-xs">
@@ -455,11 +460,7 @@ export function HomeAgentChat() {
               onChange={handleInputChange}
               onKeyDown={onKeyDown}
               rows={1}
-              placeholder={
-                isEmpty
-                  ? "Ask anything — find a place, schedule a tour, update preferences…"
-                  : "Reply or ask the next thing…"
-              }
+              placeholder={isEmpty ? "Ask anything…" : "Reply or ask the next thing…"}
               className={cn(
                 "min-h-[32px] flex-1 resize-none border-0 bg-transparent px-1 py-1.5 text-[15px] leading-relaxed",
                 "placeholder:text-muted-foreground/70 focus:outline-none",

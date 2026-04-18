@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isOnboarding) {
     return (
       <TooltipProvider>
-        <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden pt-[env(safe-area-inset-top)]">
+        <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden">
           <header className="flex h-12 shrink-0 items-center border-b px-4">
             <span className="text-sm font-medium text-muted-foreground">
               {pageTitle}
@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <TooltipProvider>
-      <SidebarProvider className="min-h-0 pt-[env(safe-area-inset-top)]">
+      <SidebarProvider className="min-h-0">
         <AppSidebar />
         <SidebarInset>
           <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {pageTitle}
             </span>
           </header>
-          <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
+          <main className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">{children}</main>
         </SidebarInset>
       </SidebarProvider>
       <Toaster richColors closeButton />
