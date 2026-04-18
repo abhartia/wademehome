@@ -156,7 +156,7 @@ export default function PropertyDetailsClient({
 
   if (!propertyKey) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
         <h1 className="text-2xl font-semibold">Property unavailable</h1>
       </main>
     );
@@ -165,7 +165,7 @@ export default function PropertyDetailsClient({
   const showLoadingShell = !property && (listingQuery.isLoading || (apiBaseConfigured && listingQuery.fetchStatus === "fetching"));
   if (showLoadingShell) {
     return (
-      <main className="mx-auto max-w-5xl px-6 py-10 space-y-4">
+      <main className="mx-auto max-w-5xl space-y-4 px-4 py-6 sm:px-6 sm:py-10">
         <Skeleton className="h-10 w-2/3" />
         <Skeleton className="h-6 w-1/2" />
         <Skeleton className="h-72 w-full" />
@@ -175,7 +175,7 @@ export default function PropertyDetailsClient({
 
   if (!property) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
         <h1 className="text-2xl font-semibold">Property unavailable</h1>
         <p className="mt-2 text-muted-foreground">
           We could not load this listing. It may have been removed, or the link may be invalid. Try opening it again
@@ -210,13 +210,13 @@ export default function PropertyDetailsClient({
   ].join("\n");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold">{property.name}</h1>
-        <p className="text-muted-foreground">{property.address}</p>
+    <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10">
+      <div className="space-y-1.5 sm:space-y-2">
+        <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{property.name}</h1>
+        <p className="text-sm text-muted-foreground sm:text-base">{property.address}</p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
         <div className="space-y-6">
           <PropertyImageGallery property={property} variant="page" />
 
@@ -243,7 +243,7 @@ export default function PropertyDetailsClient({
             </p>
           ) : null}
 
-          <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
             {user ? (
               <Button
                 onClick={async () => {
@@ -387,14 +387,14 @@ export default function PropertyDetailsClient({
         </aside>
       </div>
       <Sheet open={tourConfirmOpen} onOpenChange={setTourConfirmOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+          <SheetHeader className="pr-10">
             <SheetTitle>Confirm tour request email</SheetTitle>
             <SheetDescription>
               Review and edit the request before sending to our tour operations inbox.
             </SheetDescription>
           </SheetHeader>
-          <div className="space-y-3 px-4 pb-4">
+          <div className="space-y-3 px-4 pb-6">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">Preferred date</label>

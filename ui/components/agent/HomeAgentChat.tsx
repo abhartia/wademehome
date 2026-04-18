@@ -308,17 +308,17 @@ export function HomeAgentChat() {
   };
 
   return (
-    <div className="relative flex h-[calc(100vh-3rem)] min-h-0 flex-col">
+    <div className="relative flex h-full min-h-0 flex-col">
       {/* soft ambient gradient — beautiful, performant (no blur on scroll content) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-primary/8 via-primary/[0.03] to-transparent"
       />
 
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <span>Concierge</span>
+      <div className="flex shrink-0 items-center justify-between gap-2 px-3 py-2 sm:px-4">
+        <div className="inline-flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="truncate">Concierge</span>
           {profileChips.length > 0 ? (
             <span className="hidden items-center gap-1 sm:inline-flex">
               <span className="text-muted-foreground/60">·</span>
@@ -338,7 +338,7 @@ export function HomeAgentChat() {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1.5 text-muted-foreground"
+            className="shrink-0 gap-1.5 text-muted-foreground"
             onClick={() => {
               stop();
               setMessages([]);
@@ -363,7 +363,7 @@ export function HomeAgentChat() {
             onPick={submitWithPrompt}
           />
         ) : (
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-3 py-4 sm:gap-6 sm:px-4 sm:py-6">
             {messages.map((m, i) => (
               <AgentMessage
                 key={m.id || i}
@@ -379,8 +379,8 @@ export function HomeAgentChat() {
         )}
       </div>
 
-      <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto w-full max-w-3xl px-4 py-3">
+      <div className="shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto w-full max-w-3xl px-3 py-3 sm:px-4">
           {attachment ? (
             <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-full border bg-muted/50 px-2.5 py-1 text-xs">
               <Paperclip className="h-3 w-3 shrink-0 text-primary" />
@@ -498,7 +498,7 @@ function EmptyState({
   onPick: (prompt: string) => void;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-12 pt-4 text-center">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-8 pt-4 text-center sm:pb-12">
       <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5">
         <Sparkles className="h-5 w-5 text-primary" />
       </div>

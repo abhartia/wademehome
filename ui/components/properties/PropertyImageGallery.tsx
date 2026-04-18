@@ -137,7 +137,7 @@ export function PropertyImageGallery({
           <DialogTitle className="sr-only">
             {property.name} — photo {activeIndex + 1} of {urls.length}
           </DialogTitle>
-          <div className="relative flex min-h-[min(85vh,800px)] w-full items-center justify-center rounded-lg bg-black/20 p-2">
+          <div className="relative flex min-h-[min(60vh,800px)] w-full items-center justify-center rounded-lg bg-black/20 p-2 sm:min-h-[min(85vh,800px)]">
             {!failed[activeIndex] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -158,7 +158,7 @@ export function PropertyImageGallery({
                   type="button"
                   variant="secondary"
                   size="icon"
-                  className="absolute left-1 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full shadow-md"
+                  className="absolute left-2 top-1/2 h-11 w-11 -translate-y-1/2 rounded-full shadow-md sm:left-3"
                   onClick={(e) => {
                     e.stopPropagation();
                     goPrev();
@@ -171,7 +171,7 @@ export function PropertyImageGallery({
                   type="button"
                   variant="secondary"
                   size="icon"
-                  className="absolute right-1 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full shadow-md"
+                  className="absolute right-2 top-1/2 h-11 w-11 -translate-y-1/2 rounded-full shadow-md sm:right-3"
                   onClick={(e) => {
                     e.stopPropagation();
                     goNext();
