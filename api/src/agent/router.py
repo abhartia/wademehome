@@ -11,7 +11,7 @@ from typing import Any
 from azure.storage.blob import BlobServiceClient, ContentSettings
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
-from langfuse import get_client as get_langfuse_client
+from langfuse import get_client as get_langfuse_client, propagate_attributes
 from llama_index.core.agent.workflow import (
     AgentInput,
     AgentOutput,
@@ -270,24 +270,33 @@ async def agent_chat(
         # Langfuse trace per user message. session_id groups the whole
         # conversation under one trace tree; LlamaIndexInstrumentor handles
         # child spans for agent calls and tool executions automatically.
+        #
+        # Langfuse v4 split the old `update_current_trace` into two calls:
+        # span-level fields (input/metadata) go directly onto the observation
+        # constructor, and trace-level attributes (user_id, session_id, tags)
+        # are attached via `propagate_attributes`, which baggages them onto
+        # every child span the workflow creates below. Both context managers
+        # must be entered BEFORE `workflow.run()` so downstream agent/tool
+        # spans inherit the trace context.
         session_id = (
             getattr(chat_request, "id", None)
             or request.headers.get("x-chat-session-id")
             or str(uuid.uuid4())
         )
         langfuse = get_langfuse_client()
-        span_cm = langfuse.start_as_current_span(name="agent_chat")
-        span = span_cm.__enter__()
-        try:
-            langfuse.update_current_trace(
-                user_id=str(user.id),
-                session_id=session_id,
-                tags=["agent_chat"],
-                input={"user_msg": last_msg.content},
-                metadata={"history_len": len(history)},
-            )
-        except Exception:
-            logger.exception("langfuse: failed to set trace metadata")
+        span_cm = langfuse.start_as_current_observation(
+            name="agent_chat",
+            as_type="span",
+            input={"user_msg": last_msg.content},
+            metadata={"history_len": len(history)},
+        )
+        span_cm.__enter__()
+        propagate_cm = propagate_attributes(
+            user_id=str(user.id),
+            session_id=session_id,
+            tags=["agent_chat"],
+        )
+        propagate_cm.__enter__()
 
         handler = workflow.run(
             user_msg=last_msg.content,
@@ -300,6 +309,10 @@ async def agent_chat(
                 async for chunk in gen():
                     yield chunk
             finally:
+                try:
+                    propagate_cm.__exit__(None, None, None)
+                except Exception:
+                    logger.exception("langfuse: failed to exit propagate context")
                 try:
                     span_cm.__exit__(None, None, None)
                 except Exception:
