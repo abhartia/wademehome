@@ -1007,6 +1007,14 @@ export default function CostOfMovingToNYCPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/upper-west-side"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Upper West Side Apartments: Rent Prices &amp; Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/bad-landlord-nj-ny"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

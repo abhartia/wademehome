@@ -1040,6 +1040,16 @@ export default function BestTimeToRentNycPage() {
               </p>
               <p>
                 <Link
+                  href="/nyc/upper-west-side"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Upper West Side apartments
+                </Link>{" "}
+                &mdash; Manhattan&apos;s best pre-war stock; negotiating leverage
+                peaks in January&ndash;February.
+              </p>
+              <p>
+                <Link
                   href="/blog/nyc-rent-stabilization-guide"
                   className="text-primary underline underline-offset-2"
                 >

@@ -775,6 +775,14 @@ export default function EastVillageGuidePage() {
                     Long Island City (LIC) Apartments: Luxury Towers &amp; Rent
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/nyc/upper-west-side"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Upper West Side Apartments: Rent Prices, Transit &amp; Guide
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

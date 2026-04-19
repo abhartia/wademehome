@@ -220,8 +220,15 @@ export default function NYCRentByNeighborhoodPage() {
                   className="text-primary underline underline-offset-2"
                 >
                   East Village neighborhood guide
-                </Link>
-                .
+                </Link>{" "}
+                or our{" "}
+                <Link
+                  href="/nyc/upper-west-side"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Upper West Side guide
+                </Link>{" "}
+                for the uptown Manhattan family market.
               </p>
             </CardContent>
           </Card>
@@ -672,6 +679,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Long Island City (LIC): Luxury Towers &amp; Waterfront Rent
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/upper-west-side"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Upper West Side: Rent Prices, Pre-War Buildings &amp; Guide
                   </Link>
                 </li>
                 <li>

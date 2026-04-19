@@ -60,6 +60,19 @@ interface Bucketed {
   cards: AgentAnnotation[];
 }
 
+function cardIdentity(card: AgentAnnotation): string | null {
+  // The caller's stable identifier — the backend's own id for the entity the
+  // card represents. `title` / `query` are intentionally NOT used here:
+  // they're display strings ("Move-in checklist", "Building") that collide
+  // across unrelated cards and should not drive dedup.
+  const data = (card.data ?? {}) as Record<string, unknown>;
+  const id =
+    (data.id as string | undefined) ??
+    (data.tool_id as string | undefined) ??
+    (data.href as string | undefined);
+  return id ?? null;
+}
+
 function bucket(annotations: unknown[] | undefined): Bucketed {
   const out: Bucketed = {
     steps: [],
@@ -69,6 +82,15 @@ function bucket(annotations: unknown[] | undefined): Bucketed {
     cards: [],
   };
   if (!annotations) return out;
+
+  // Dedup card annotations by (type, stable-id), keeping the LAST emission.
+  // Tools like `view_movein_plan` / `list_movein_tasks` / `add_movein_task`
+  // all emit `movein_checklist` during one turn; streaming can also replay
+  // the same building_profile as it's refined. We want the final payload to
+  // win, not a pile of remounted cards.
+  const cardSlots: (AgentAnnotation | null)[] = [];
+  const slotByKey = new Map<string, number>();
+
   for (const a of annotations) {
     if (!isAgentAnnotation(a)) continue;
     switch (a.type) {
@@ -99,32 +121,37 @@ function bucket(annotations: unknown[] | undefined): Bucketed {
       case "movein_orders":
       case "guarantor_summary":
       case "building_profile":
-      case "landlord_profile":
-        out.cards.push(a);
+      case "landlord_profile": {
+        const id = cardIdentity(a);
+        const dedupKey = id ? `${a.type}:${id}` : null;
+        if (dedupKey && slotByKey.has(dedupKey)) {
+          cardSlots[slotByKey.get(dedupKey)!] = a;
+        } else {
+          const slot = cardSlots.length;
+          cardSlots.push(a);
+          if (dedupKey) slotByKey.set(dedupKey, slot);
+        }
         break;
+      }
       default:
         // Ignore search_plan / search_summary / search_hint / search_stats —
         // useful to UI later but noisy in chat.
         break;
     }
   }
+
+  out.cards = cardSlots.filter((c): c is AgentAnnotation => c !== null);
   return out;
 }
 
 function cardKey(card: AgentAnnotation, idx: number): string {
-  // Build a key that stays stable as later annotations append (React won't
-  // remount earlier cards) AND stays unique when two cards of the same type
-  // land in a single turn — generic titles like "Move-in checklist" collide
-  // across tool calls, so we always include the array index as the primary
-  // disambiguator and tack on a content-derived id for dev clarity.
-  const data = (card.data ?? {}) as Record<string, unknown>;
-  const stable =
-    (data.id as string | undefined) ??
-    (data.tool_id as string | undefined) ??
-    (data.href as string | undefined) ??
-    (data.title as string | undefined) ??
-    (data.query as string | undefined);
-  return `${card.type}-${idx}${stable ? `-${stable}` : ""}`;
+  // Post-dedup, identical (type, id) can no longer repeat, so the id alone
+  // is a unique, render-stable key. Cards without an id (e.g. a
+  // profile_summary that carries only display fields) fall back to
+  // `${type}-${idx}`, which is unique within the siblings produced by a
+  // single map() call.
+  const id = cardIdentity(card);
+  return id ? `${card.type}-${id}` : `${card.type}-${idx}`;
 }
 
 function renderCard(card: AgentAnnotation, idx: number) {

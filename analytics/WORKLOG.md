@@ -4,6 +4,95 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ## How to Use This File
 
+---
+
+## 2026-04-19 -- Session 12 (Upper West Side Guide + Astoria Surge)
+
+### Context
+- Twelfth growth agent run. Astoria SURGING: 5 → 12 impressions, pos 25.4 → 20.9
+  in one session — fastest multi-impression gain for any content page yet.
+- Williamsburg: 1 → 5 impressions (5x jump). Both neighborhood pages gaining
+  traction fast.
+- Apr 17 daily: 17 impressions at pos 11.7 — best sustained position trend.
+- All new pages (Bushwick, LIC, best-time, cost-of-moving) still within reindex
+  windows. E-E-A-T fix for scams also within window.
+- GSC Apr 16 data revised: was 3 imp/9.7 pos in Session 11, now shows 17 imp/18.8
+  pos — normal GSC data latency revision.
+- Preview dev server unresponsive (stale after 24h); build verification confirmed
+  via `npm run build` exit 0 and correct output size.
+
+### Completed
+- [x] Pulled fresh GA4 and GSC data
+- [x] Created /nyc/upper-west-side neighborhood guide (~900 lines)
+  - Target keywords: "Upper West Side apartments", "UWS apartments", "Upper West
+    Side rent", "UWS apartments for rent", "upper west side nyc rent 2026",
+    "pre-war apartments upper west side", "family apartments UWS nyc",
+    "upper west side 1 bedroom rent", "apartments near central park nyc"
+  - 4-row rent table (Studio → 3BR) with income requirements (shadcn Table)
+  - 7-row vs. neighbors comparison table (UWS, UES, EV, Williamsburg, LIC, Astoria, Bushwick)
+  - Detailed transit: 1 local, 2/3 express (7-10 min to Midtown from 72nd), B/C,
+    crosstown Select Bus, Citi Bike to Hudson Greenway
+  - 4 sub-neighborhoods: 72nd-79th (most expensive), 79th-89th (central/museum mile),
+    89th-96th (quieter, 10-15% less), 96th-110th (near Columbia, most affordable)
+  - Pre-war buildings deep dive: steam heat, co-ops vs. rentals, rent stabilization
+    density (unique content angle no listings aggregator covers)
+  - 7-point renter tips; Is UWS right for you? pros/cons
+  - 6-question FAQ + FAQPage JSON-LD; Article + BreadcrumbList
+  - 6th neighborhood page, 2nd Manhattan page (East Village + UWS)
+- [x] Added /nyc/upper-west-side to sitemap
+- [x] Cross-linked FROM 4 pages:
+  - /nyc/east-village — Related Guides list
+  - /nyc-rent-by-neighborhood — Manhattan body text + Related Guides list
+  - /best-time-to-rent-nyc — Related Guides
+  - /cost-of-moving-to-nyc — Related Guides
+- [x] Build verified: `npm run build` → exit 0 (1.42 kB, 198 kB First Load)
+- [x] Wrote analytics report (analytics/reports/2026-04-19.md)
+
+### Not Yet Done (queue for future sessions)
+- [ ] Monitor /nyc/upper-west-side indexing (check after 2026-04-24)
+- [ ] **CRITICAL**: Watch Astoria position — at pos 20.9 and improving ~4 pos/day,
+  could hit page 1 (pos <10) by 2026-04-23 or sooner
+- [ ] Monitor /nyc/bushwick indexing (check after 2026-04-23)
+- [ ] Monitor /blog/nyc-apartment-scams (E-E-A-T fix Apr 18, check after 2026-04-23)
+- [ ] Monitor /nyc/long-island-city indexing (check after 2026-04-22)
+- [ ] Monitor /best-time-to-rent-nyc indexing (check after 2026-04-21)
+- [ ] Monitor /cost-of-moving-to-nyc indexing (check after 2026-04-21)
+- [ ] Next neighborhood candidates: Park Slope (Brooklyn family anchor, natural
+  complement to Williamsburg + Bushwick cluster) or Harlem (value/growth)
+- [ ] Investigate pre-existing React duplicate-key errors (building_profile,
+  movein_checklist) in concierge — out of SEO scope but worth fixing
+- [ ] Investigate missing onboarding funnel events in GA4
+- [ ] Check GA consent management — may block event tracking
+- [ ] Build social/Reddit distribution strategy for content
+
+### SEO Changes Pending Reindex (don't judge before date shown)
+- /nyc/upper-west-side — new page 2026-04-19, check after 2026-04-24
+- Cross-links to UWS from 4 pages — 2026-04-19, check after 2026-04-24
+- /nyc/bushwick — new page 2026-04-18, check after 2026-04-23
+- E-E-A-T fix on /blog/nyc-apartment-scams — 2026-04-18, check after 2026-04-23
+- /nyc/long-island-city — new page 2026-04-17, check after 2026-04-22
+- /best-time-to-rent-nyc — 2026-04-16, check after 2026-04-21
+- /cost-of-moving-to-nyc — 2026-04-16 AM, check after 2026-04-21
+- /nyc/astoria — INDEXED at pos 20.9 SURGING (12 imp) ✓
+- /nyc/williamsburg — INDEXED at pos 59.2 (5 imp, 5x jump) ✓
+- /nyc/east-village — INDEXED at pos 10.0 ✓
+- /nyc-rent-by-neighborhood — INDEXED at pos 10.7 ✓
+- /blog/nyc-rent-stabilization-guide — INDEXED at pos 55.8 ✓
+- /blog/nyc-fare-act-broker-fee-ban — INDEXED at pos 95 ✓
+
+### Key Numbers (2026-04-19)
+- GA4 30d: 13 users, 91 sessions, 609 pageviews, 27.5% bounce
+- GSC 30d: 1 click, ~186 page-impressions, 50 queries
+- GSC daily Apr 17: 17 impressions at pos 11.7 (best sustained position yet)
+- Astoria: pos 25.4 → 20.9 in one session, 5 → 12 impressions
+- Williamsburg: 1 → 5 impressions (5x)
+- Traffic: 100% direct, 0% organic (still)
+- Total blog posts: 27
+- Total guide pages: 7
+- Total neighborhood pages: 6 (EV + Williamsburg + Astoria + LIC + Bushwick + UWS)
+
+---
+
 - Each session adds a dated section at the top
 - Check `Not Yet Done` items from previous sessions before starting new work
 - Don't judge SEO changes for at least 3-5 days after making them

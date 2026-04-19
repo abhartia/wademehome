@@ -1,10 +1,10 @@
 {
   "traffic_summary_30d": {
     "activeUsers": "13",
-    "sessions": "81",
-    "screenPageViews": "541",
-    "averageSessionDuration": "1034.1892686172839",
-    "bounceRate": "0.32098765432098764",
+    "sessions": "91",
+    "screenPageViews": "609",
+    "averageSessionDuration": "1084.1052814175823",
+    "bounceRate": "0.27472527472527475",
     "newUsers": "13"
   },
   "traffic_summary_prev_30d": {
@@ -97,38 +97,44 @@
     {
       "date": "20260417",
       "activeUsers": "2",
-      "sessions": "7",
-      "screenPageViews": "27"
+      "sessions": "11",
+      "screenPageViews": "43"
+    },
+    {
+      "date": "20260418",
+      "activeUsers": "2",
+      "sessions": "6",
+      "screenPageViews": "52"
     }
   ],
   "top_pages": [
     {
       "pagePath": "/",
-      "screenPageViews": "215",
+      "screenPageViews": "226",
       "activeUsers": "9",
-      "averageSessionDuration": "537.31856402941173",
-      "bounceRate": "0.23529411764705882"
+      "averageSessionDuration": "448.54883451219513",
+      "bounceRate": "0.21951219512195122"
     },
     {
       "pagePath": "/search",
-      "screenPageViews": "84",
-      "activeUsers": "3",
-      "averageSessionDuration": "723.40854624",
-      "bounceRate": "0.24"
+      "screenPageViews": "97",
+      "activeUsers": "4",
+      "averageSessionDuration": "751.64299353571437",
+      "bounceRate": "0.2857142857142857"
     },
     {
       "pagePath": "/login",
-      "screenPageViews": "41",
+      "screenPageViews": "58",
       "activeUsers": "9",
-      "averageSessionDuration": "291.7390728333333",
-      "bounceRate": "0.1111111111111111"
+      "averageSessionDuration": "363.33444086956519",
+      "bounceRate": "0.13043478260869565"
     },
     {
       "pagePath": "/app",
-      "screenPageViews": "37",
-      "activeUsers": "4",
-      "averageSessionDuration": "221.70023072222224",
-      "bounceRate": "0.1111111111111111"
+      "screenPageViews": "56",
+      "activeUsers": "5",
+      "averageSessionDuration": "516.4516075",
+      "bounceRate": "0.29166666666666669"
     },
     {
       "pagePath": "/admin/inventory",
@@ -166,6 +172,13 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/saved",
+      "screenPageViews": "11",
+      "activeUsers": "2",
+      "averageSessionDuration": "784.10638875",
+      "bounceRate": "0.25"
+    },
+    {
       "pagePath": "/tours",
       "screenPageViews": "10",
       "activeUsers": "2",
@@ -173,18 +186,18 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/saved",
-      "screenPageViews": "8",
-      "activeUsers": "1",
-      "averageSessionDuration": "1437.463264",
-      "bounceRate": "1"
-    },
-    {
       "pagePath": "/roommates",
       "screenPageViews": "6",
       "activeUsers": "1",
       "averageSessionDuration": "341.5733305",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/move-in",
+      "screenPageViews": "5",
+      "activeUsers": "1",
+      "averageSessionDuration": "11.846094333333333",
+      "bounceRate": "1"
     },
     {
       "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
@@ -239,8 +252,8 @@
       "pagePath": "/invites/accept",
       "screenPageViews": "2",
       "activeUsers": "2",
-      "averageSessionDuration": "19.4517835",
-      "bounceRate": "0.5"
+      "averageSessionDuration": "17.0158255",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/landlord/reviews",
@@ -269,30 +282,23 @@
       "activeUsers": "1",
       "averageSessionDuration": "287.46443",
       "bounceRate": "0.5"
-    },
-    {
-      "pagePath": "/property-manager",
-      "screenPageViews": "2",
-      "activeUsers": "1",
-      "averageSessionDuration": "6.7172115",
-      "bounceRate": "0"
     }
   ],
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "80",
+      "sessions": "91",
       "activeUsers": "13",
-      "screenPageViews": "536",
-      "avgDuration": "1043.3722065625002",
-      "bounceRate": "0.3125"
+      "screenPageViews": "605",
+      "avgDuration": "1080.7470228241757",
+      "bounceRate": "0.27472527472527475"
     },
     {
       "channel": "Unassigned",
-      "sessions": "5",
+      "sessions": "4",
       "activeUsers": "2",
-      "screenPageViews": "5",
-      "avgDuration": "59.9108466",
+      "screenPageViews": "4",
+      "avgDuration": "76.400383",
       "bounceRate": "1"
     }
   ],
@@ -300,9 +306,9 @@
   "devices": [
     {
       "device": "desktop",
-      "sessions": "81",
+      "sessions": "91",
       "activeUsers": "13",
-      "bounceRate": "0.32098765432098764"
+      "bounceRate": "0.27472527472527475"
     }
   ],
   "countries": [
@@ -313,29 +319,29 @@
     },
     {
       "country": "Australia",
-      "sessions": "10",
+      "sessions": "20",
       "activeUsers": "3"
     }
   ],
   "events": [
     {
       "event": "page_view",
-      "eventCount": "541",
+      "eventCount": "609",
       "totalUsers": "13"
     },
     {
       "event": "scroll",
-      "eventCount": "250",
+      "eventCount": "286",
       "totalUsers": "13"
     },
     {
       "event": "user_engagement",
-      "eventCount": "182",
-      "totalUsers": "10"
+      "eventCount": "192",
+      "totalUsers": "11"
     },
     {
       "event": "session_start",
-      "eventCount": "80",
+      "eventCount": "91",
       "totalUsers": "13"
     },
     {
@@ -349,14 +355,14 @@
       "totalUsers": "5"
     },
     {
+      "event": "form_start",
+      "eventCount": "20",
+      "totalUsers": "8"
+    },
+    {
       "event": "first_visit",
       "eventCount": "13",
       "totalUsers": "13"
-    },
-    {
-      "event": "form_start",
-      "eventCount": "13",
-      "totalUsers": "7"
     }
   ],
   "weekly_trend_90d": [
@@ -381,42 +387,42 @@
     {
       "week": "202616",
       "activeUsers": "3",
-      "sessions": "10",
-      "screenPageViews": "63"
+      "sessions": "20",
+      "screenPageViews": "131"
     }
   ],
   "all_pages_with_titles": [
     {
       "pagePath": "/",
       "pageTitle": "Wade Me Home: Rental search & renter tools",
-      "screenPageViews": "193",
+      "screenPageViews": "204",
       "activeUsers": "9",
-      "avgDuration": "535.50960408823539",
-      "bounceRate": "0.23529411764705882"
+      "avgDuration": "447.04872139024394",
+      "bounceRate": "0.21951219512195122"
     },
     {
       "pagePath": "/search",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "83",
-      "activeUsers": "3",
-      "avgDuration": "682.42325748000007",
-      "bounceRate": "0.24"
+      "screenPageViews": "96",
+      "activeUsers": "4",
+      "avgDuration": "715.04898571428566",
+      "bounceRate": "0.2857142857142857"
     },
     {
       "pagePath": "/login",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "41",
+      "screenPageViews": "58",
       "activeUsers": "9",
-      "avgDuration": "291.7390728333333",
-      "bounceRate": "0.1111111111111111"
+      "avgDuration": "363.33444086956519",
+      "bounceRate": "0.13043478260869565"
     },
     {
       "pagePath": "/app",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "37",
-      "activeUsers": "4",
-      "avgDuration": "221.70023072222224",
-      "bounceRate": "0.1111111111111111"
+      "screenPageViews": "56",
+      "activeUsers": "5",
+      "avgDuration": "516.4516075",
+      "bounceRate": "0.29166666666666669"
     },
     {
       "pagePath": "/admin/inventory",
@@ -467,6 +473,14 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/saved",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "11",
+      "activeUsers": "2",
+      "avgDuration": "784.10638875",
+      "bounceRate": "0.25"
+    },
+    {
       "pagePath": "/tours",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "10",
@@ -475,20 +489,20 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/saved",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "8",
-      "activeUsers": "1",
-      "avgDuration": "1437.463264",
-      "bounceRate": "1"
-    },
-    {
       "pagePath": "/roommates",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "6",
       "activeUsers": "1",
       "avgDuration": "341.5733305",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/move-in",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "5",
+      "activeUsers": "1",
+      "avgDuration": "11.846094333333333",
+      "bounceRate": "1"
     },
     {
       "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
@@ -551,8 +565,8 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "2",
-      "avgDuration": "19.4517835",
-      "bounceRate": "0.5"
+      "avgDuration": "17.0158255",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/landlord/reviews",
@@ -646,9 +660,9 @@
       "pagePath": "/jersey-city/journal-square",
       "pageTitle": "Journal Square Apartments: Jersey City 07306 Rent Guide (2026) | Wade Me Home",
       "screenPageViews": "1",
-      "activeUsers": "0",
+      "activeUsers": "1",
       "avgDuration": "0",
-      "bounceRate": "1"
+      "bounceRate": "0"
     },
     {
       "pagePath": "/jersey-city/newport",
@@ -656,7 +670,7 @@
       "screenPageViews": "1",
       "activeUsers": "1",
       "avgDuration": "39.315507",
-      "bounceRate": "1"
+      "bounceRate": "0"
     },
     {
       "pagePath": "/nyc/astoria",
@@ -742,12 +756,12 @@
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "80",
+      "sessions": "91",
       "activeUsers": "13"
     },
     {
       "source": "(not set)",
-      "sessions": "5",
+      "sessions": "4",
       "activeUsers": "2"
     }
   ]
