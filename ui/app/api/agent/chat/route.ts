@@ -18,11 +18,17 @@ const API_TARGET =
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function errorResponse(status: number, message: string): Response {
-  // useChat reads `await response.text()` on non-2xx and uses it as the
-  // thrown Error.message — keep this a short, human string so the toast and
-  // inline error bubble render something diagnostic instead of going blank.
-  return new Response(message, {
+// useChat reads `await response.text()` on non-2xx and uses it as the thrown
+// Error.message, which the chat UI renders in a toast + inline bubble. Keep
+// these strings user-facing — technical details (upstream status, stack, raw
+// body) go to console.error server-side only, never to the browser.
+const USER_UNREACHABLE =
+  "The assistant is temporarily unavailable. Please try again in a moment.";
+const USER_UPSTREAM_ERROR =
+  "The assistant ran into a problem. Please try again.";
+
+function errorResponse(status: number, userMessage: string): Response {
+  return new Response(userMessage, {
     status,
     headers: { "content-type": "text/plain; charset=utf-8" },
   });
@@ -50,24 +56,21 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     console.error("agent/chat proxy: upstream fetch failed", detail);
-    return errorResponse(502, `Upstream unreachable: ${detail}`);
+    return errorResponse(502, USER_UNREACHABLE);
   }
 
   if (!upstream.ok) {
-    // Buffer the error body (non-2xx means it's not an SSE stream) so useChat
-    // sees a non-empty Error.message — otherwise the toast / inline bubble
-    // collapse to "Couldn't reach the assistant" with no further detail.
+    // Log the upstream body server-side for debugging, but never forward it
+    // to the browser — it can contain stack traces, library errors, or other
+    // dev-facing noise that non-technical users shouldn't see.
     const bodyText = await upstream.text().catch(() => "");
-    const snippet = bodyText.trim().slice(0, 300) || upstream.statusText || "no body";
+    const snippet = bodyText.trim().slice(0, 500) || upstream.statusText || "no body";
     console.error(
       "agent/chat proxy: upstream returned %s — %s",
       upstream.status,
       snippet,
     );
-    return errorResponse(
-      upstream.status,
-      `Upstream ${upstream.status}: ${snippet}`,
-    );
+    return errorResponse(upstream.status, USER_UPSTREAM_ERROR);
   }
 
   const headers = new Headers();

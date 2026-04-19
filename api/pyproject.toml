@@ -15,7 +15,10 @@ dependencies = [
   "griffe>=1.14.0,<2",
   "jsonschema>=4.25.1",
   "langchain>=0.3.27,<1.0",
-  "langfuse>=3.3.5",
+  # Pin to 3.x: v4 renamed `start_as_current_span` to `start_as_current_observation`
+  # and rewrote the dataset/score APIs used in evals/report.py. Upgrade requires
+  # a coordinated code migration, not a silent bump.
+  "langfuse>=3.3.5,<4",
   "llama-index>=0.14.18,<0.15.0",
   "llama-index-core>=0.14.18",
   "llama-index-llms-openai>=0.6.0",
