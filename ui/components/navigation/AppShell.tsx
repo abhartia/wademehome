@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isOnboarding) {
     return (
       <TooltipProvider>
-        <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden">
+        <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden pt-[env(safe-area-inset-top)]">
           <header className="flex h-12 shrink-0 items-center border-b px-4">
             <span className="text-sm font-medium text-muted-foreground">
               {pageTitle}
@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <TooltipProvider>
-      <SidebarProvider className="min-h-0">
+      <SidebarProvider className="h-[100dvh] min-h-[100dvh] pt-[env(safe-area-inset-top)]">
         <AppSidebar />
         <SidebarInset>
           <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
