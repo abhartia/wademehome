@@ -190,6 +190,41 @@
       "position": 57
     },
     {
+      "query": "apartments in williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
+    },
+    {
+      "query": "apartments in williamsburg new york",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
+    },
+    {
+      "query": "apartments in williamsburg ny",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 65
+    },
+    {
+      "query": "apartments williamsburg ny",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 61
+    },
+    {
+      "query": "apartments williamsburg nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 58
+    },
+    {
       "query": "arbor on duke",
       "clicks": 0,
       "impressions": 1,
@@ -288,6 +323,13 @@
       "position": 33
     },
     {
+      "query": "long island city housing",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
+    },
+    {
       "query": "lyra sarasota apartments",
       "clicks": 0,
       "impressions": 1,
@@ -307,48 +349,6 @@
       "impressions": 2,
       "ctr": 0,
       "position": 78
-    },
-    {
-      "query": "new york rent stabilization code",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 64
-    },
-    {
-      "query": "nyc rent increase laws",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 50
-    },
-    {
-      "query": "nyc rent stabilization policy",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 54
-    },
-    {
-      "query": "nyc rent stabilized lease renewal",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 47
-    },
-    {
-      "query": "nys rent stabilization code",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 60
-    },
-    {
-      "query": "park at rialto apartments san antonio",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 59
     }
   ],
   "top_pages_30d": [
@@ -369,9 +369,9 @@
     {
       "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
       "clicks": 0,
-      "impressions": 19,
+      "impressions": 20,
       "ctr": 0,
-      "position": 55.8
+      "position": 53.4
     },
     {
       "page": "https://wademehome.com/login",
@@ -409,11 +409,18 @@
       "position": 10
     },
     {
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
+    },
+    {
       "page": "https://wademehome.com/nyc/williamsburg",
       "clicks": 0,
-      "impressions": 5,
+      "impressions": 19,
       "ctr": 0,
-      "position": 59.2
+      "position": 61.1
     },
     {
       "page": "https://wademehome.com/profile",
@@ -439,9 +446,9 @@
     {
       "page": "https://wademehome.com/properties/240-north-34th-street--240-north-34th-street-milwaukee-wi-53208--43.0335---87.9563",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 8
+      "position": 8.5
     },
     {
       "page": "https://wademehome.com/properties/2803-riverside--2803-riverside-pkwy-grand-prairie-tx-75050--32.7981---97.0596",
@@ -523,9 +530,9 @@
     {
       "page": "https://wademehome.com/properties/arbor-haus-apartments-ann-arbor-mi--2572-carpenter-rd-ann-arbor-mi-48108--42.2501---83.6827",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 4,
       "ctr": 0,
-      "position": 18
+      "position": 14.2
     },
     {
       "page": "https://wademehome.com/properties/arbors-on-duke--5250-duke-street-alexandria-va-22304--38.8122---77.1238",
@@ -596,6 +603,13 @@
       "impressions": 2,
       "ctr": 0,
       "position": 45
+    },
+    {
+      "page": "https://wademehome.com/properties/cedar-street-commons-senior-living-community--156-east-cedar-street-livingston-nj-07039--40.7829---74.3046",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 3
     },
     {
       "page": "https://wademehome.com/properties/central-park-east--15207-ne-16th-pl-bellevue-wa-98007--47.6243---122.1348",
@@ -682,25 +696,11 @@
       "position": 7.7
     },
     {
-      "page": "https://wademehome.com/properties/long-beach-towers--600-e-ocean-blvd-long-beach-ca-90802--33.7658---118.1849",
+      "page": "https://wademehome.com/properties/listing--54-noll-street-515-brooklyn-ny-11206--40.7007---73.9336",
       "clicks": 0,
-      "impressions": 3,
+      "impressions": 7,
       "ctr": 0,
-      "position": 35
-    },
-    {
-      "page": "https://wademehome.com/properties/lore-south-mountain--13021-s-48th-st-phoenix-az-85044--33.3278---111.9798",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 56
-    },
-    {
-      "page": "https://wademehome.com/properties/lyra--2260-ringling-blvd-sarasota-fl-34237--27.3343---82.5247",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 56
+      "position": 2.4
     }
   ],
   "query_page_30d": [
@@ -921,6 +921,46 @@
       "position": 57
     },
     {
+      "query": "apartments in williamsburg",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
+    },
+    {
+      "query": "apartments in williamsburg new york",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
+    },
+    {
+      "query": "apartments in williamsburg ny",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 65
+    },
+    {
+      "query": "apartments williamsburg ny",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 61
+    },
+    {
+      "query": "apartments williamsburg nyc",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 58
+    },
+    {
       "query": "arbor on duke",
       "page": "https://wademehome.com/properties/arbors-on-duke--5250-duke-street-alexandria-va-22304--38.8122---77.1238",
       "clicks": 0,
@@ -1031,6 +1071,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 33
+    },
+    {
+      "query": "long island city housing",
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
     },
     {
       "query": "lyra sarasota apartments",
@@ -1225,6 +1273,14 @@
       "position": 9
     },
     {
+      "query": "williamsburg apartment",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 64.5
+    },
+    {
       "query": "williamsburg apartment complex",
       "page": "https://wademehome.com/nyc/williamsburg",
       "clicks": 0,
@@ -1233,12 +1289,36 @@
       "position": 84
     },
     {
+      "query": "williamsburg apartments new york",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 61
+    },
+    {
       "query": "williamsburg brooklyn rent prices",
       "page": "https://wademehome.com/nyc/williamsburg",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
       "position": 54
+    },
+    {
+      "query": "williamsburg ny apartment",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 58
+    },
+    {
+      "query": "williamsburg ny apartments",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 58
     },
     {
       "query": "williamsburg rent prices",
@@ -1431,15 +1511,22 @@
       "impressions": 17,
       "ctr": 0,
       "position": 11.7
+    },
+    {
+      "date": "2026-04-18",
+      "clicks": 0,
+      "impressions": 28,
+      "ctr": 0,
+      "position": 35.8
     }
   ],
   "devices_30d": [
     {
       "device": "DESKTOP",
       "clicks": 1,
-      "impressions": 167,
-      "ctr": 0.6,
-      "position": 28.2
+      "impressions": 195,
+      "ctr": 0.51,
+      "position": 29.3
     },
     {
       "device": "MOBILE",
@@ -1453,9 +1540,9 @@
     {
       "country": "usa",
       "clicks": 1,
-      "impressions": 159,
-      "ctr": 0.63,
-      "position": 30.5
+      "impressions": 187,
+      "ctr": 0.53,
+      "position": 31.3
     },
     {
       "country": "arg",

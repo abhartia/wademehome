@@ -6,6 +6,333 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-20 -- Session 14 (Williamsburg + Greenpoint + East Village Refresh + 2 Spokes + Live-Listings Feature)
+
+### Context
+- Fourteenth growth agent run. **Williamsburg is today's dominant signal**:
+  went from 5 → 19 impressions in 24h across **13 distinct commercial-intent
+  queries** at pos 47–84. This is the densest single-page query cluster
+  on the site.
+- **LIC appeared in GSC at pos 75** on "long island city housing" — shipped
+  Apr 17, indexed Apr 20 (3-day reindex matches pattern).
+- Apr 18 GSC: **28 impressions** — highest since Apr 13 (25 imp). Trend
+  compounding.
+- Astoria holding at pos 20.9 with 4 queries (3 rent-specific).
+- Williamsburg page was shortest neighborhood page (847 lines vs. 1243 for
+  Park Slope), built Apr 14 BEFORE shadcn Tables existed — quality gap vs.
+  newer pages.
+- Preview dev server still stale (pre-existing webpack/devtools cache errors,
+  unchanged from Session 12). Build verification via `npm run build` exit 0
+  is authoritative.
+
+### Completed
+- [x] Pulled fresh GA4 and GSC data
+- [x] **Overhauled /nyc/williamsburg page** to match newer-page quality bar:
+  - Refreshed meta title to lead with "Apartments for Rent in Williamsburg,
+    Brooklyn (2026)" — directly matches top captured query pattern
+  - Expanded keywords from 12 → 24, covering every captured variant
+  - Added shadcn Table imports and 3 tables:
+    - 4-row rent-price Table (Studio → 3BR, with income-needed column)
+    - 4-row sub-neighborhood rent Table (North-Waterfront / North-Bedford /
+      South / East with specific $ per unit size)
+    - 7-row vs-neighbors Table (Williamsburg, Bushwick, Greenpoint, East
+      Village, LIC, Park Slope, DUMBO)
+  - Added 3-bedroom rent section; expanded sub-neighborhood paragraphs with
+    specific rent numbers
+  - Added hunting tip #6 (rent stabilization), #7 (move-in budget), #8 (AI
+    search) — 8 tips total, up from 6
+  - Added LIC comparison section
+  - Added visible callout to new rent-prices spoke
+  - FAQ: rewrote Q1, added 2 new Qs (no-fee apartments, best time to rent);
+    `dateModified` → 2026-04-20
+- [x] **Created /nyc/williamsburg/rent-prices spoke page** (~700 lines):
+  - First neighborhood SPOKE page on the site — new content pattern
+  - Target keywords: "williamsburg rent prices" (captured pos 47),
+    "williamsburg brooklyn rent prices" (pos 54), studio/1BR/2BR/3BR rent,
+    north/south/east williamsburg rent prices, price per square foot, net
+    effective rent
+  - 5 Tables: rent by unit size, rent by sub-neighborhood, 6-year rent trend
+    (2020–2026 YoY), price per square foot by building type, net-effective-
+    rent concession math
+  - Unique content: 6-year historical trend, $/sq ft benchmarks, concession
+    math — no competitor covers this
+  - Structured data: Article + FAQPage (5 Qs) + BreadcrumbList
+- [x] Added /nyc/williamsburg/rent-prices to ui/app/sitemap.ts (priority 0.75)
+- [x] Cross-linked TO the spoke FROM 3 pages:
+  - /nyc/williamsburg (visible callout + Related Guides list)
+  - /nyc-rent-by-neighborhood (Related guides list)
+  - /best-time-to-rent-nyc (Related Guides)
+- [x] Build verified: `npm run build` → exit 0. /nyc/williamsburg now
+  1.43 kB (was 1.02 kB pre-overhaul); /nyc/williamsburg/rent-prices =
+  1.43 kB, 198 kB First Load
+- [x] Wrote report analytics/reports/2026-04-20.md
+- [x] **SECOND BATCH (post-user-directive to ship everything identified same-day)**:
+  - [x] **Created /nyc/greenpoint page** (~900 lines): Brooklyn neighborhood
+    guide targeting +108.7% YoY Trends signal. Meta title leads with
+    "Apartments for Rent in Greenpoint, Brooklyn (2026)". 24 keywords
+    (Greenpoint Landing, Eagle and West, One Blue Slip, Greenpoint vs.
+    Williamsburg). JSON-LD: Article + FAQPage (6 Qs) + BreadcrumbList.
+    Sections: Quick Facts, Rising Demand callout (+108.7% YoY), Polish
+    heritage + McCarren Park, Rent by Unit Size Table (4 rows), Rent by
+    Sub-Area Table (Waterfront / Franklin / Manhattan Ave / McGuinness),
+    Transit (G, L-via-walk, NYC Ferry), 5 best-blocks sub-areas, 8 hunting
+    tips, vs-neighbors comparison (5 rows), FAQ, 10 Related Guides.
+  - [x] **Refreshed /nyc/east-village page** to 2026 quality bar (793 →
+    ~1100 lines). Meta title "Apartments for Rent in East Village,
+    Manhattan (2026)". Keywords 10 → 24. JSON-LD Article dateModified →
+    2026-04-20; FAQPage expanded to 7 Qs (added Alphabet City comparison).
+    Added shadcn Tables: Rent by Unit Size (4 rows), Rent by Sub-Area
+    (Alphabet City / Tompkins Square / St. Marks / 14th St Edge),
+    vs-neighbors (5 rows). Added Rising Demand callout (+168.6% YoY),
+    dedicated Rent Stabilization section, 8 hunting tips (was 6),
+    peak-month context, callout to new rent-prices spoke.
+  - [x] **Created /nyc/east-village/rent-prices spoke** (~700 lines) —
+    second neighborhood spoke on the site (after Williamsburg). Meta title
+    "East Village Rent Prices (2026): Studio, 1BR, 2BR & 3BR Breakdown".
+    5 Tables: Rent by Unit Size with Typical Sq Ft column, Rent by Sub-Area
+    with Walk-to-Subway column, 6-Year Trend 2020–2026 with YoY + Context
+    columns, Price/Sq Ft by Building Type (4 rows), Net-Effective-Rent
+    concession math (4 scenarios). FAQ (6 Qs) + Article + BreadcrumbList.
+  - [x] Added `/nyc/greenpoint` (priority 0.8) and
+    `/nyc/east-village/rent-prices` (priority 0.75) to `ui/app/sitemap.ts`.
+  - [x] Cross-linked: `/nyc-rent-by-neighborhood` → both new pages;
+    `/nyc/williamsburg` → `/nyc/greenpoint` (updated "vs. Greenpoint"
+    section to highlight +108% YoY spillover); `/best-time-to-rent-nyc` →
+    both new pages.
+  - [x] Build verified: `npm run build` → exit 0. All three new/refreshed
+    pages compiled at 1.44 kB / 198 kB First Load — matching existing
+    neighborhood-page sizing.
+- [x] **Made product-feature building a permanent daily routine step**
+  (user directive): updated `~/.claude/scheduled-tasks/wademehome-growth-agent/SKILL.md`
+  "Take bold action" to require two ships per session — (1) all content/SEO
+  work identified today, (2) one product-feature bet that converts SEO
+  traffic into product interaction. Example feature types documented:
+  filtered-listings mounts on neighborhood pages, programmatic landing
+  pages like `/nyc/{hood}/apartments-under-{price}`, CTR/UX on pages that
+  rank but don't convert, sitemap/indexing infra, new filter endpoints.
+- [x] **SHIPPED TODAY'S PRODUCT FEATURE: `<NeighborhoodLiveListings>`**
+  (converts SEO rankers into product users):
+  - New client component at
+    `ui/components/neighborhoods/NeighborhoodLiveListings.tsx` — uses
+    TanStack Query via existing `useNearbyListings({mode:"radius"})` hook
+    to fetch real listings from `/listings/nearby` endpoint by lat/lng +
+    radius. Shadcn Card/Badge/Button/Skeleton components. No mock data,
+    no heuristic fallback — real empty state with CTA to `/search`.
+  - 6-card grid (2-col mobile, 3-col desktop) with image/name/address/
+    bedrooms/rent/amenities. Each card links to `/properties/[key]` using
+    the existing `buildPropertyKey` slug. Uses `groupPropertiesByBuilding`
+    to dedupe same-building multi-unit results.
+  - Mounted on `/nyc/greenpoint` (40.7295, -73.9555, r=1.0 mi),
+    `/nyc/east-village` (40.7265, -73.9815, r=0.8 mi), and
+    `/nyc/williamsburg` (40.7136, -73.9610, r=1.0 mi) — the 3 neighborhood
+    pages shipped today. Placed below the "Why [hood] Right Now" callout
+    so SEO readers see real inventory before the deeper editorial content.
+  - Build impact: each of the 3 pages grew from 1.43 kB / 198 kB First
+    Load JS → 171 B / 217 kB — the +19 kB is TanStack Query + client
+    component runtime, expected and acceptable.
+  - Build verified: `npm run build` → exit 0. Preview dev server
+    has a known stale-compile issue (HMR not recompiling after file
+    changes — same issue as Sessions 12–13), so production build is
+    authoritative. RSC flight data confirms the client component is
+    bundled into all 3 page routes.
+- [x] **Saved feedback memory: no deferral** — standing rule that identified
+  work ships same day, not deferred to next session.
+- [x] **Added Google Trends to the permanent routine** (user challenge mid-session):
+  - Created `analytics/pull_trends.py` using `pytrends` (with a urllib3-2.x shim
+    for the `method_whitelist` → `allowed_methods` rename). Pulls 5y weekly
+    interest-over-time for 35 NYC rental keywords across 7 semantic batches
+    (neighborhoods N-BK, Queens, Manhattan, rent prices, commercial intent,
+    regulatory/seasonal, Jersey City), plus related-query rising/top for 10
+    seed queries in both NY and US geos. Outputs `analytics/trends_data.json`
+    with `trend_summaries` (YoY, peak-week, current-vs-peak-%).
+  - Updated `~/.claude/scheduled-tasks/wademehome-growth-agent/SKILL.md` to
+    make `pull_trends.py` step 5 of Startup (permanent, every session) and
+    expanded the Analyze section with guidance on combining the inside
+    (GSC/GA4) and outside (Trends) views.
+  - Retroactively evaluated today's Williamsburg bet with Trends: +24.1% YoY,
+    3-month lead on July peak — direction and timing are correct.
+  - **Trends-driven pivot to priority queue (see report for full table)**:
+    - East Village +168.6% YoY ← refresh + spoke candidate
+    - Greenpoint +108.7% YoY, NO PAGE ← ship next session
+    - Harlem +16.2%, Chelsea +8.9% — both no page
+    - UWS -20.3% YoY — just built a page; demand is cyclical, don't panic
+    - "nyc broker fee" -71% but "nyc broker fee law 2025" is rising (750)
+      — regulatory-reference queries durable, not news-cycle queries
+
+### Not Yet Done (queue for future sessions)
+- [ ] Monitor /nyc/williamsburg content overhaul — did positions improve
+  from 47–84 range toward 30–50 range? Check after 2026-04-25
+- [ ] Monitor /nyc/williamsburg/rent-prices indexing (check after 2026-04-25).
+  Primary target: capture "williamsburg rent prices" (currently pos 47) with
+  the dedicated spoke
+- [ ] Monitor /nyc/park-slope indexing (check after 2026-04-24)
+- [ ] Monitor /nyc/upper-west-side indexing (check after 2026-04-24)
+- [ ] Monitor /nyc/bushwick indexing (check after 2026-04-23)
+- [ ] Monitor /blog/nyc-apartment-scams (E-E-A-T fix Apr 18, check 2026-04-23)
+- [ ] **CRITICAL**: Astoria at pos 20.9 — could hit page 1 any day. Watch.
+- [ ] **If Williamsburg rent-prices spoke works** (indexes + captures pos<30
+  within 10 days), ship /nyc/astoria/rent-prices next — Astoria has 3 rent
+  queries at pos 43–49 waiting for a targeted page
+- [ ] Monitor /nyc/greenpoint indexing (SHIPPED TODAY, check after 2026-04-25).
+  Trends +108.7% YoY; July peak; 3-month rank lead time.
+- [ ] Monitor /nyc/east-village refresh + /nyc/east-village/rent-prices
+  spoke indexing (SHIPPED TODAY, check after 2026-04-25). EV already
+  ranks pos 10.0, refresh targets +168.6% YoY demand surge.
+- [ ] Harlem new page — +16.2% YoY, no page, secondary March peak already
+  past so less urgent than Greenpoint
+- [ ] Chelsea new page — +8.9% YoY, high absolute volume (recent=58), no page
+- [ ] FARE Act / broker-fee content refresh — "nyc broker fee" is -71% YoY
+  but "nyc broker fee law 2025" is a rising related query at value 750.
+  Refresh /blog/nyc-fare-act-broker-fee-ban with a "2026 update" angle.
+- [ ] Investigate pre-existing dev server issues (webpack cache + devtools
+  segment-explorer-node errors) — out of SEO scope
+- [ ] Investigate missing onboarding funnel events in GA4
+- [ ] Check GA consent management — may block event tracking
+- [ ] Build social/Reddit distribution strategy for content
+
+### SEO Changes Pending Reindex (don't judge before date shown)
+- /nyc/greenpoint — NEW page 2026-04-20 (Trends +108.7% YoY), check after 2026-04-25
+- /nyc/east-village — content refresh to 2026 quality bar 2026-04-20, check 2026-04-25
+- /nyc/east-village/rent-prices — NEW spoke 2026-04-20 (Trends +168.6% YoY), check 2026-04-25
+- Cross-links to Greenpoint + East Village rent-prices from 3 pages each — 2026-04-20, check 2026-04-25
+- /nyc/williamsburg/rent-prices — new spoke 2026-04-20, check after 2026-04-25
+- /nyc/williamsburg — meta + content overhaul 2026-04-20, check 2026-04-25
+- Cross-links to Williamsburg rent-prices from 3 pages — 2026-04-20, check 2026-04-25
+- /nyc/park-slope — new page 2026-04-19 PM, check after 2026-04-24
+- /nyc/upper-west-side — new page 2026-04-19 AM, check after 2026-04-24
+- /nyc/bushwick — new page 2026-04-18, check after 2026-04-23
+- E-E-A-T fix on /blog/nyc-apartment-scams — 2026-04-18, check after 2026-04-23
+- /nyc/long-island-city — INDEXED 2026-04-20 at pos 75 ✓ (shipped Apr 17)
+- /best-time-to-rent-nyc — 2026-04-16, check after 2026-04-21
+- /cost-of-moving-to-nyc — 2026-04-16 AM, check after 2026-04-21
+- /nyc/astoria — INDEXED at pos 20.9, 4 queries ✓
+- /nyc/williamsburg — INDEXED at pos 61.1 with **13-query cluster** ✓
+- /nyc/east-village — INDEXED at pos 10.0 ✓
+- /nyc-rent-by-neighborhood — INDEXED at pos 10.7 ✓
+- /blog/nyc-rent-stabilization-guide — INDEXED at pos 53.4 (20 imp) ✓
+- /blog/nyc-fare-act-broker-fee-ban — INDEXED at pos 95 ✓
+
+### Key Numbers (2026-04-20)
+- GA4 30d: 13 users, 97 sessions, 623 pageviews, ~23% bounce
+- GSC 30d: 1 click, 214 page-impressions (up from 186), 50+ queries
+- GSC daily Apr 18: 28 impressions at pos 35.8 (highest since Apr 13)
+- Williamsburg: 5 → 19 imp in 24h (**3.8x surge**), **13-query cluster**,
+  pos 61.1 (overhauled today — today's pos is the BEFORE measurement)
+- LIC: NEWLY INDEXED at pos 75 (3 days after ship — on pattern)
+- Astoria: pos 20.9, 12 imp (holding)
+- Traffic: 100% direct, 0% organic (still)
+- Total blog posts: 27
+- Total guide pages: 7
+- Total neighborhood pages: **8** (EV refreshed + Williamsburg + Astoria +
+  LIC + Bushwick + UWS + Park Slope + **Greenpoint new**)
+- Total neighborhood SPOKE pages: **2** (Williamsburg Rent Prices +
+  **East Village Rent Prices new**)
+
+---
+
+## 2026-04-19 -- Session 13 (Park Slope Guide + Astoria Rent Queries Emerging)
+
+### Context
+- Thirteenth growth agent run, second session of the day.
+- GSC data essentially unchanged from AM (Google hasn't posted Apr 18 yet),
+  BUT query-level view shows new commercial-intent queries surfacing:
+  - "astoria average rent" pos 43.5, "average rent in astoria" pos 43,
+    "how much is rent in astoria" pos 49 — 3 new Astoria rent-intent queries
+  - "lease renewal rent stabilized nyc" pos 44, "annual rent increase nyc"
+    pos 45 — new rent-stabilization queries
+  - "apartments for rent williamsburg" pos 57 — Williamsburg commercial
+- Astoria holding at pos 20.9 with 12 impressions.
+- Apr 17 daily data = 17 imp at pos 11.7 (best sustained position).
+- All Session 12 content (UWS, Bushwick, etc.) still within reindex windows.
+- Preview dev server unresponsive again (same as Session 12) — build
+  verification via `npm run build` exit 0 is authoritative.
+
+### Completed
+- [x] Pulled fresh GA4 and GSC data
+- [x] Created /nyc/park-slope neighborhood guide (~750 lines)
+  - Target keywords: "Park Slope apartments", "Park Slope Brooklyn rent",
+    "Park Slope rent prices 2026", "brownstone apartments Park Slope",
+    "family apartments Park Slope", "Park Slope 1 bedroom rent",
+    "North Slope vs South Slope", "apartments near Prospect Park",
+    "apartments 11215 11217 11238"
+  - 4-row rent table (Studio → 3BR) with income requirements (shadcn Table)
+  - 7-row vs. neighbors comparison table (Park Slope, Williamsburg, Bushwick,
+    UWS, East Village, LIC, Astoria)
+  - Detailed transit: 2/3 express at Grand Army Plaza, F/G at 7th Ave &
+    15th St-Prospect Park, R on Fourth Ave, buses, Prospect Park bike loop
+  - 4 sub-neighborhoods: North Slope, Central Slope (PS 321 catchment),
+    South Slope, Fourth Avenue Corridor (new construction)
+  - Dedicated brownstones deep-dive: what you get, trade-offs, small-landlord
+    dynamics, rent stabilization
+  - Dedicated District 15 schools section — unique content angle (PS 321
+    flagship, middle school choice system, private/charter)
+  - 8-point renter tips; Is Park Slope right for you? pros/cons
+  - 6-question FAQ + FAQPage JSON-LD; Article + BreadcrumbList
+  - 7th neighborhood page, 4th Brooklyn page (Williamsburg + Bushwick + Park Slope)
+- [x] Added /nyc/park-slope to sitemap
+- [x] Cross-linked FROM 5 pages (bidirectional internal links):
+  - /nyc/williamsburg — Related Guides list
+  - /nyc/bushwick — Related neighborhood guides card grid
+  - /nyc-rent-by-neighborhood — Brooklyn body text + Related guides list
+  - /best-time-to-rent-nyc — Related Guides (family-relocation/winter angle)
+  - /nyc/upper-west-side — Related Guides (family-anchor pair)
+- [x] Build verified: `npm run build` → exit 0, /nyc/park-slope = 1.42 kB,
+  198 kB First Load
+- [x] Wrote analytics report (analytics/reports/2026-04-19-b.md)
+
+### Not Yet Done (queue for future sessions)
+- [ ] Monitor /nyc/park-slope indexing (check after 2026-04-24)
+- [ ] **CRITICAL**: Watch Astoria — at pos 20.9, improving ~4 pos/day; could
+  hit page 1 by 2026-04-23 (first content page on page 1 = milestone)
+- [ ] **Astoria rent-specific query optimization**: 3 new rent queries ranking
+  pos 43–49 but core Astoria ranks 20.9 — either add rent H2 high in page or
+  ship /nyc/astoria/rent-prices spoke. Decide based on Bushwick/UWS indexing.
+- [ ] **Williamsburg diagnostic**: at pos 59.2 vs. Astoria's 20.9 despite
+  similar page age — pull query-page data, consider meta refresh
+- [ ] Monitor /nyc/upper-west-side indexing (check after 2026-04-24)
+- [ ] Monitor /nyc/bushwick indexing (check after 2026-04-23)
+- [ ] Monitor /blog/nyc-apartment-scams (E-E-A-T fix Apr 18, check after 2026-04-23)
+- [ ] Monitor /nyc/long-island-city indexing (check after 2026-04-22)
+- [ ] Monitor /best-time-to-rent-nyc indexing (check after 2026-04-21)
+- [ ] Monitor /cost-of-moving-to-nyc indexing (check after 2026-04-21)
+- [ ] Next neighborhood candidates: Harlem (value+growth), Greenpoint
+  (G/L adjacent, hip, natural complement to Williamsburg), Chelsea
+  (high-volume commercial Manhattan)
+- [ ] Investigate pre-existing React duplicate-key errors (building_profile,
+  movein_checklist) in concierge — out of SEO scope but dev-server symptom
+- [ ] Investigate missing onboarding funnel events in GA4
+- [ ] Check GA consent management — may block event tracking
+- [ ] Build social/Reddit distribution strategy for content
+
+### SEO Changes Pending Reindex (don't judge before date shown)
+- /nyc/park-slope — new page 2026-04-19 PM, check after 2026-04-24
+- Cross-links to Park Slope from 5 pages — 2026-04-19 PM, check after 2026-04-24
+- /nyc/upper-west-side — new page 2026-04-19 AM, check after 2026-04-24
+- /nyc/bushwick — new page 2026-04-18, check after 2026-04-23
+- E-E-A-T fix on /blog/nyc-apartment-scams — 2026-04-18, check after 2026-04-23
+- /nyc/long-island-city — new page 2026-04-17, check after 2026-04-22
+- /best-time-to-rent-nyc — 2026-04-16, check after 2026-04-21
+- /cost-of-moving-to-nyc — 2026-04-16 AM, check after 2026-04-21
+- /nyc/astoria — INDEXED at pos 20.9 SURGING (12 imp, 3 new rent queries) ✓
+- /nyc/williamsburg — INDEXED at pos 59.2 (5 imp) ✓
+- /nyc/east-village — INDEXED at pos 10.0 ✓
+- /nyc-rent-by-neighborhood — INDEXED at pos 10.7 ✓
+- /blog/nyc-rent-stabilization-guide — INDEXED at pos 55.8 (19 imp) ✓
+- /blog/nyc-fare-act-broker-fee-ban — INDEXED at pos 95 ✓
+
+### Key Numbers (2026-04-19 PM)
+- GA4 30d: 13 users, 95 sessions, ~620 pageviews, 27.5% bounce
+- GSC 30d: 1 click, ~186 page-impressions, 50 queries
+- GSC daily Apr 17: 17 imp at pos 11.7 (best sustained position)
+- Astoria: pos 20.9, 12 imp, now ranking for 3 rent-specific queries
+- Traffic: 100% direct, 0% organic (still)
+- Total blog posts: 27
+- Total guide pages: 7
+- Total neighborhood pages: 7 (EV + Williamsburg + Astoria + LIC + Bushwick +
+  UWS + Park Slope)
+
+---
+
 ## 2026-04-19 -- Session 12 (Upper West Side Guide + Astoria Surge)
 
 ### Context

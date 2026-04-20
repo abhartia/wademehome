@@ -253,10 +253,18 @@ export default function NYCRentByNeighborhoodPage() {
                 </Link>
                 , DUMBO, Brooklyn Heights,
                 and Cobble Hill are priced at or above many Manhattan
-                neighborhoods, with one-bedrooms ranging from $3,200 to $4,500.
-                Park Slope and Carroll Gardens sit in a similar range. These
-                neighborhoods offer walkable streets, excellent restaurants, and
-                short commutes to Lower Manhattan.
+                neighborhoods, with one-bedrooms ranging from $3,200 to $4,500.{" "}
+                <Link
+                  href="/nyc/park-slope"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Park Slope
+                </Link>{" "}
+                and Carroll Gardens sit in a similar range, with brownstone
+                streetscapes, Prospect Park access, and strong District 15
+                schools driving family demand. These neighborhoods offer
+                walkable streets, excellent restaurants, and short commutes
+                to Lower Manhattan.
               </p>
               <p>
                 The sweet spot for many renters is the band of neighborhoods
@@ -651,10 +659,34 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/east-village/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    East Village Rent Prices: Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/williamsburg"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Williamsburg: Rent Prices, Transit &amp; Tips
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/williamsburg/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Williamsburg Rent Prices: Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/greenpoint"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Greenpoint: Rent Prices, G Train &amp; Neighborhood Guide
                   </Link>
                 </li>
                 <li>
@@ -687,6 +719,14 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Upper West Side: Rent Prices, Pre-War Buildings &amp; Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/park-slope"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Park Slope: Brownstones, Schools &amp; Prospect Park
                   </Link>
                 </li>
                 <li>

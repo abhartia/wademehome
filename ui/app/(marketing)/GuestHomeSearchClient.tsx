@@ -25,8 +25,14 @@ import {
   type BrowseMapViewport,
 } from "@/lib/map/approximateBrowseBounds";
 import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
+import {
+  useTransitStations,
+  TRANSIT_SYSTEM_COLORS,
+  TRANSIT_SYSTEM_LABELS,
+  type TransitSystem,
+} from "@/lib/listings/useTransitStations";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Loader2, Search, X } from "lucide-react";
+import { ChevronDown, Loader2, Search, TrainFront, X } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { NearbyListingsResponse } from "@/lib/listings/useNearbyListings";
 import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
@@ -257,6 +263,49 @@ function GuestHomeSearchInner({
     useAiSlice && (phase === "streaming" || phase === "done" || phase === "error");
 
   const [mapAiPanelOpen, setMapAiPanelOpen] = useState(true);
+  const [showTransit, setShowTransit] = useState(false);
+  // Per-system filter so the user can hide the 2.5k+ bus dots when they
+  // just want rail/subway/PATH. Buses and LIRR default OFF because they
+  // either overwhelm the map (bus) or don't matter for most NYC/JC
+  // renters at first glance (LIRR is suburban).
+  const DEFAULT_ON_SYSTEMS: TransitSystem[] = [
+    "path",
+    "nyc_subway",
+    "hblr",
+    "nj_transit_rail",
+    "ferry",
+  ];
+  const ALL_SYSTEMS: TransitSystem[] = [
+    "path",
+    "nyc_subway",
+    "hblr",
+    "nj_transit_rail",
+    "nj_transit_bus",
+    "ferry",
+    "lirr",
+  ];
+  const [enabledSystems, setEnabledSystems] = useState<Set<TransitSystem>>(
+    () => new Set(DEFAULT_ON_SYSTEMS),
+  );
+  const enabledSystemsArr = useMemo(
+    () => ALL_SYSTEMS.filter((s) => enabledSystems.has(s)),
+    // ALL_SYSTEMS is stable by identity across renders in this scope
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [enabledSystems],
+  );
+  const transitQuery = useTransitStations({
+    enabled: showTransit && enabledSystemsArr.length > 0,
+    systems: enabledSystemsArr,
+  });
+  const transitStations = showTransit ? transitQuery.data?.stations : undefined;
+  const toggleSystem = useCallback((sys: TransitSystem) => {
+    setEnabledSystems((prev) => {
+      const next = new Set(prev);
+      if (next.has(sys)) next.delete(sys);
+      else next.add(sys);
+      return next;
+    });
+  }, []);
 
   const handleSelectProperty = useCallback((property: PropertyDataItem) => {
     setSelectedProperty(property);
@@ -475,7 +524,7 @@ function GuestHomeSearchInner({
               )}
             </div>
           </div>
-          <div className="h-full min-h-[200px]">
+          <div className="relative h-full min-h-[200px]">
             <PropertyListingsMap
               properties={nearbyListings}
               fallbackCenter={browseMapCenter}
@@ -489,7 +538,61 @@ function GuestHomeSearchInner({
               highlightedProperty={hoveredProperty}
               focusedProperty={mapFocusProperty}
               focusRequestVersion={mapFocusVersion}
+              transitStations={transitStations}
+              showTransit={showTransit}
             />
+            <div className="pointer-events-none absolute right-2 top-2 z-10 flex flex-col items-end gap-1.5">
+              <Button
+                type="button"
+                size="sm"
+                variant={showTransit ? "default" : "secondary"}
+                className="pointer-events-auto h-8 gap-1.5 px-2.5 text-xs shadow-md"
+                aria-pressed={showTransit}
+                onClick={() => setShowTransit((v) => !v)}
+                title="Toggle PATH / subway / light rail / NJT rail / NJT bus / ferry stations"
+              >
+                <TrainFront className="h-3.5 w-3.5" aria-hidden />
+                {showTransit ? "Transit on" : "Show transit"}
+              </Button>
+              {showTransit ? (
+                <div className="pointer-events-auto flex max-w-[260px] flex-wrap justify-end gap-1 rounded-md border border-border/60 bg-background/90 p-1.5 shadow-sm backdrop-blur">
+                  {ALL_SYSTEMS.map((sys) => {
+                    const on = enabledSystems.has(sys);
+                    return (
+                      <button
+                        key={sys}
+                        type="button"
+                        onClick={() => toggleSystem(sys)}
+                        aria-pressed={on}
+                        className={cn(
+                          "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors",
+                          on
+                            ? "border-transparent bg-foreground text-background"
+                            : "border-border/80 bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        <span
+                          aria-hidden
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ backgroundColor: TRANSIT_SYSTEM_COLORS[sys] }}
+                        />
+                        {TRANSIT_SYSTEM_LABELS[sys]}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+              {showTransit && transitQuery.isLoading ? (
+                <span className="pointer-events-auto rounded-md border border-border/60 bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm backdrop-blur">
+                  Loading transit…
+                </span>
+              ) : null}
+              {showTransit && transitQuery.data ? (
+                <span className="pointer-events-auto rounded-md border border-border/60 bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm backdrop-blur">
+                  {transitQuery.data.total} stations
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
         <div className="min-h-0 overflow-y-auto rounded-lg border border-border/80 bg-background p-3 shadow-sm">

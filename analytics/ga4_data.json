@@ -1,10 +1,10 @@
 {
   "traffic_summary_30d": {
     "activeUsers": "13",
-    "sessions": "91",
-    "screenPageViews": "609",
-    "averageSessionDuration": "1084.1052814175823",
-    "bounceRate": "0.27472527472527475",
+    "sessions": "97",
+    "screenPageViews": "623",
+    "averageSessionDuration": "969.25176424742267",
+    "bounceRate": "0.22680412371134021",
     "newUsers": "13"
   },
   "traffic_summary_prev_30d": {
@@ -104,7 +104,13 @@
       "date": "20260418",
       "activeUsers": "2",
       "sessions": "6",
-      "screenPageViews": "52"
+      "screenPageViews": "54"
+    },
+    {
+      "date": "20260419",
+      "activeUsers": "2",
+      "sessions": "6",
+      "screenPageViews": "12"
     }
   ],
   "top_pages": [
@@ -112,29 +118,29 @@
       "pagePath": "/",
       "screenPageViews": "226",
       "activeUsers": "9",
-      "averageSessionDuration": "448.54883451219513",
-      "bounceRate": "0.21951219512195122"
+      "averageSessionDuration": "450.36186265853661",
+      "bounceRate": "0.0975609756097561"
     },
     {
       "pagePath": "/search",
-      "screenPageViews": "97",
+      "screenPageViews": "98",
       "activeUsers": "4",
-      "averageSessionDuration": "751.64299353571437",
-      "bounceRate": "0.2857142857142857"
+      "averageSessionDuration": "766.19678860714282",
+      "bounceRate": "0.21428571428571427"
     },
     {
       "pagePath": "/login",
-      "screenPageViews": "58",
+      "screenPageViews": "67",
       "activeUsers": "9",
-      "averageSessionDuration": "363.33444086956519",
-      "bounceRate": "0.13043478260869565"
+      "averageSessionDuration": "334.6514660370371",
+      "bounceRate": "0.037037037037037035"
     },
     {
       "pagePath": "/app",
-      "screenPageViews": "56",
+      "screenPageViews": "60",
       "activeUsers": "5",
-      "averageSessionDuration": "516.4516075",
-      "bounceRate": "0.29166666666666669"
+      "averageSessionDuration": "264.3264015",
+      "bounceRate": "0.11538461538461539"
     },
     {
       "pagePath": "/admin/inventory",
@@ -175,8 +181,8 @@
       "pagePath": "/saved",
       "screenPageViews": "11",
       "activeUsers": "2",
-      "averageSessionDuration": "784.10638875",
-      "bounceRate": "0.25"
+      "averageSessionDuration": "718.65908",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/tours",
@@ -196,8 +202,8 @@
       "pagePath": "/move-in",
       "screenPageViews": "5",
       "activeUsers": "1",
-      "averageSessionDuration": "11.846094333333333",
-      "bounceRate": "1"
+      "averageSessionDuration": "7.5941076666666669",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
@@ -287,18 +293,18 @@
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "91",
+      "sessions": "96",
       "activeUsers": "13",
-      "screenPageViews": "605",
-      "avgDuration": "1080.7470228241757",
-      "bounceRate": "0.27472527472527475"
+      "screenPageViews": "622",
+      "avgDuration": "979.34813679166666",
+      "bounceRate": "0.21875"
     },
     {
       "channel": "Unassigned",
-      "sessions": "4",
-      "activeUsers": "2",
-      "screenPageViews": "4",
-      "avgDuration": "76.400383",
+      "sessions": "1",
+      "activeUsers": "1",
+      "screenPageViews": "1",
+      "avgDuration": "0",
       "bounceRate": "1"
     }
   ],
@@ -306,27 +312,27 @@
   "devices": [
     {
       "device": "desktop",
-      "sessions": "91",
+      "sessions": "97",
       "activeUsers": "13",
-      "bounceRate": "0.27472527472527475"
+      "bounceRate": "0.22680412371134021"
     }
   ],
   "countries": [
     {
       "country": "United States",
-      "sessions": "71",
+      "sessions": "75",
       "activeUsers": "11"
     },
     {
       "country": "Australia",
-      "sessions": "20",
+      "sessions": "22",
       "activeUsers": "3"
     }
   ],
   "events": [
     {
       "event": "page_view",
-      "eventCount": "609",
+      "eventCount": "623",
       "totalUsers": "13"
     },
     {
@@ -336,12 +342,12 @@
     },
     {
       "event": "user_engagement",
-      "eventCount": "192",
+      "eventCount": "193",
       "totalUsers": "11"
     },
     {
       "event": "session_start",
-      "eventCount": "91",
+      "eventCount": "96",
       "totalUsers": "13"
     },
     {
@@ -387,8 +393,8 @@
     {
       "week": "202616",
       "activeUsers": "3",
-      "sessions": "20",
-      "screenPageViews": "131"
+      "sessions": "26",
+      "screenPageViews": "145"
     }
   ],
   "all_pages_with_titles": [
@@ -397,32 +403,32 @@
       "pageTitle": "Wade Me Home: Rental search & renter tools",
       "screenPageViews": "204",
       "activeUsers": "9",
-      "avgDuration": "447.04872139024394",
-      "bounceRate": "0.21951219512195122"
+      "avgDuration": "448.86174953658531",
+      "bounceRate": "0.0975609756097561"
     },
     {
       "pagePath": "/search",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "96",
+      "screenPageViews": "97",
       "activeUsers": "4",
-      "avgDuration": "715.04898571428566",
-      "bounceRate": "0.2857142857142857"
+      "avgDuration": "729.60278078571434",
+      "bounceRate": "0.21428571428571427"
     },
     {
       "pagePath": "/login",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "58",
+      "screenPageViews": "67",
       "activeUsers": "9",
-      "avgDuration": "363.33444086956519",
-      "bounceRate": "0.13043478260869565"
+      "avgDuration": "334.6514660370371",
+      "bounceRate": "0.037037037037037035"
     },
     {
       "pagePath": "/app",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "56",
+      "screenPageViews": "60",
       "activeUsers": "5",
-      "avgDuration": "516.4516075",
-      "bounceRate": "0.29166666666666669"
+      "avgDuration": "264.3264015",
+      "bounceRate": "0.11538461538461539"
     },
     {
       "pagePath": "/admin/inventory",
@@ -477,8 +483,8 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "11",
       "activeUsers": "2",
-      "avgDuration": "784.10638875",
-      "bounceRate": "0.25"
+      "avgDuration": "718.65908",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/tours",
@@ -501,8 +507,8 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "5",
       "activeUsers": "1",
-      "avgDuration": "11.846094333333333",
-      "bounceRate": "1"
+      "avgDuration": "7.5941076666666669",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
@@ -756,13 +762,13 @@
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "91",
+      "sessions": "96",
       "activeUsers": "13"
     },
     {
       "source": "(not set)",
-      "sessions": "4",
-      "activeUsers": "2"
+      "sessions": "1",
+      "activeUsers": "1"
     }
   ]
 }

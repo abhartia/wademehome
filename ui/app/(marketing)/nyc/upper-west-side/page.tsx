@@ -1106,6 +1106,14 @@ export default function UpperWestSideGuidePage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/park-slope"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Park Slope Apartments: Brownstones, Schools &amp; Prospect Park
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc-rent-by-neighborhood"
                     className="text-primary underline underline-offset-2"
                   >

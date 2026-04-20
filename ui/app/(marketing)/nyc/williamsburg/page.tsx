@@ -10,7 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -18,27 +27,40 @@ const baseUrl =
 
 export const metadata: Metadata = {
   title:
-    "Williamsburg Apartments: Rent Prices, Transit & Tips (2026) | Wade Me Home",
+    "Apartments for Rent in Williamsburg, Brooklyn (2026): Rent Prices, Transit & Tips | Wade Me Home",
   description:
-    "Complete guide to renting in Williamsburg, Brooklyn. Average rent prices by unit size, L train and subway access, best streets for renters, lease tips, and how to find deals in NYC's most popular Brooklyn neighborhood.",
+    "Complete guide to renting in Williamsburg, Brooklyn NY. Average rent by unit size, North vs. South vs. East Williamsburg prices, L/G/J/M/Z subway access, best streets, and tactics for finding Williamsburg apartments — updated April 2026.",
   keywords: [
-    "Williamsburg apartments",
-    "Williamsburg Brooklyn rent",
-    "Williamsburg apartment hunting",
-    "moving to Williamsburg NYC",
-    "Williamsburg rent prices 2026",
-    "Williamsburg Brooklyn rentals",
-    "apartments near Bedford Avenue",
+    "apartments for rent williamsburg",
+    "apartments in williamsburg",
+    "apartments in williamsburg ny",
+    "apartments in williamsburg nyc",
+    "apartments in williamsburg new york",
+    "apartments williamsburg ny",
+    "apartments williamsburg nyc",
+    "williamsburg apartments",
+    "williamsburg ny apartments",
+    "williamsburg apartment",
+    "williamsburg rent prices",
+    "williamsburg brooklyn rent prices",
+    "williamsburg brooklyn rent",
+    "williamsburg rent",
+    "North Williamsburg apartments",
+    "South Williamsburg apartments",
+    "East Williamsburg apartments",
     "Williamsburg studios for rent",
     "Williamsburg 1 bedroom rent",
-    "affordable Williamsburg apartments",
-    "South Williamsburg apartments",
-    "North Williamsburg apartments",
+    "Williamsburg 2 bedroom rent",
+    "apartments near Bedford Avenue",
+    "no fee apartments Williamsburg",
+    "moving to Williamsburg NYC",
+    "apartments 11211 11249 11206",
   ],
   openGraph: {
-    title: "Williamsburg Apartments: Rent Prices, Transit & Tips (2026)",
+    title:
+      "Apartments for Rent in Williamsburg, Brooklyn (2026): Rent Prices, Transit & Tips",
     description:
-      "Average rent prices, subway access, best streets, and tips for finding an apartment in Williamsburg, Brooklyn.",
+      "Williamsburg apartment rent prices by unit size and sub-neighborhood, subway access, and tactics for finding an apartment in Brooklyn's most popular rental market.",
     url: `${baseUrl}/nyc/williamsburg`,
     type: "article",
   },
@@ -50,11 +72,11 @@ const jsonLd = [
     "@context": "https://schema.org",
     "@type": "Article",
     headline:
-      "Williamsburg Apartments: Rent Prices, Transit & Tips for 2026",
+      "Apartments for Rent in Williamsburg, Brooklyn (2026): Rent Prices, Transit & Tips",
     description:
-      "A comprehensive guide to renting an apartment in Williamsburg, Brooklyn — covering average rent prices, L train and subway access, neighborhood character, and practical tips for apartment hunters.",
+      "A comprehensive guide to renting an apartment in Williamsburg, Brooklyn — covering average rent by unit size, North/South/East Williamsburg price differences, L/G/J/M/Z subway access, best streets, and practical tips for apartment hunters.",
     datePublished: "2026-04-14",
-    dateModified: "2026-04-14",
+    dateModified: "2026-04-20",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -76,15 +98,23 @@ const jsonLd = [
         name: "How much is rent in Williamsburg, Brooklyn?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "As of early 2026, the median asking rent for a one-bedroom apartment in Williamsburg is approximately $3,000 to $3,800 per month. Studios typically range from $2,400 to $3,000, while two-bedrooms cost $3,800 to $5,000. North Williamsburg near the waterfront tends to be the most expensive, while South Williamsburg and areas east of the BQE are more affordable.",
+          text: "As of early 2026, the median asking rent for a one-bedroom apartment in Williamsburg, Brooklyn is approximately $3,000 to $3,800 per month. Studios typically range from $2,400 to $3,000, two-bedrooms cost $3,800 to $5,000, and three-bedrooms run $5,200 to $7,500+. North Williamsburg near the waterfront is the most expensive sub-neighborhood; South Williamsburg and East Williamsburg (east of the BQE) are $300–$800/month more affordable for comparable units.",
         },
       },
       {
         "@type": "Question",
-        name: "What subway lines serve Williamsburg?",
+        name: "What subway lines serve Williamsburg apartments?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "The L train is Williamsburg's primary subway line, with stations at Bedford Avenue, Lorimer Street, and Graham Avenue. The Bedford Avenue station is one of the busiest in Brooklyn and connects to Manhattan's 14th Street corridor in about 5 minutes. The G train stops at Metropolitan Avenue-Lorimer Street, connecting to Greenpoint, Fort Greene, and Downtown Brooklyn without going through Manhattan. The J, M, and Z trains serve the southern edge of Williamsburg at Marcy Avenue and Hewes Street.",
+          text: "The L train is Williamsburg's primary subway line, with stations at Bedford Avenue, Lorimer Street, and Graham Avenue. Bedford Avenue is one of the busiest stations in Brooklyn and reaches Manhattan's 14th Street corridor in about 5 minutes. The G train stops at Metropolitan Avenue-Lorimer Street, connecting to Greenpoint, Fort Greene, and Downtown Brooklyn without going through Manhattan. The J, M, and Z trains serve the southern edge at Marcy Avenue and Hewes Street, crossing the Williamsburg Bridge into Lower Manhattan. NYC Ferry also stops at North and South Williamsburg.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Are there no-fee apartments in Williamsburg?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes — as of 2025, NYC's FARE Act shifted broker fees from tenants to landlords in most cases, which means the majority of listed apartments in Williamsburg are now effectively no-fee to the renter. Waterfront luxury buildings (Kent Avenue, Wythe Avenue corridor) historically listed as no-fee even before the FARE Act and are still the easiest path to avoiding move-in broker fees. Expect upfront costs of first month rent plus security deposit (usually one month), totaling $6,000 to $8,000 for a median Williamsburg 1-bedroom.",
         },
       },
       {
@@ -92,23 +122,23 @@ const jsonLd = [
         name: "Is Williamsburg a good neighborhood for young professionals?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Williamsburg is one of the most popular Brooklyn neighborhoods for professionals in their mid-20s to mid-30s. It offers a high concentration of restaurants, bars, coffee shops, boutiques, and cultural venues. The waterfront parks along the East River provide green space with Manhattan skyline views. The main trade-off is cost — Williamsburg is now one of the most expensive neighborhoods in Brooklyn, rivaling parts of Manhattan. If you want a similar vibe at lower prices, consider Bushwick or Bed-Stuy.",
+          text: "Williamsburg is one of the most popular Brooklyn neighborhoods for professionals in their mid-20s to mid-30s. It offers a high concentration of restaurants, bars, coffee shops, boutiques, and cultural venues, waterfront parks along the East River with Manhattan skyline views, and direct L-train access to Union Square in 5 minutes. The main trade-off is cost — Williamsburg now rivals parts of Manhattan on rent. If you want a similar vibe at lower prices, consider Bushwick or Bed-Stuy.",
         },
       },
       {
         "@type": "Question",
-        name: "What is the difference between North and South Williamsburg?",
+        name: "What is the difference between North Williamsburg and South Williamsburg?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "North Williamsburg (roughly north of Grand Street to the Greenpoint border) is the area most people picture — trendy restaurants, boutique shops along Bedford Avenue, waterfront parks, and new luxury developments. Rents here are the highest in the neighborhood. South Williamsburg (south of the Williamsburg Bridge) has a large Hasidic Jewish community, a more residential feel, and noticeably lower rents — often $300 to $600 less per month for comparable units. East Williamsburg, beyond the BQE, blends into Bushwick and offers the most affordable options.",
+          text: "North Williamsburg (roughly north of Grand Street to the Greenpoint border) is the area most people picture — trendy restaurants, boutique shops along Bedford Avenue, waterfront parks, and new luxury developments. One-bedroom rents here run $3,300 to $4,500. South Williamsburg (south of the Williamsburg Bridge) has a large Hasidic Jewish community, a more residential feel, and noticeably lower rents — often $2,700 to $3,300 for a one-bedroom, $300 to $800 less per month than comparable North Williamsburg units. East Williamsburg (east of the BQE) blends into Bushwick and offers the most affordable options at $2,500 to $3,100 for a one-bedroom.",
         },
       },
       {
         "@type": "Question",
-        name: "When is the best time to find apartments in Williamsburg?",
+        name: "When is the best time to find Williamsburg apartments for rent?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "The best time to find deals in Williamsburg is during winter, from November through February. Landlords are more likely to offer concessions like one or two months free rent during this period. Avoid the peak rental season from May through September, when competition from college graduates and relocating professionals drives prices up and units move within days. Listings in popular Williamsburg buildings can attract dozens of applications, so have your documents ready before you start searching.",
+          text: "The best time to find deals in Williamsburg is during winter, from November through February. Landlords are more likely to offer concessions like one or two months free rent during this period, effectively reducing net-effective rent by 8–16% over a 12-month lease. Peak rental season is May through September, when competition from college graduates and relocating professionals drives prices up and units move within days. Listings in popular Williamsburg buildings can attract dozens of applications, so have your documents ready before you start searching.",
         },
       },
     ],
@@ -151,28 +181,31 @@ export default function WilliamsburgGuidePage() {
               <Badge variant="secondary">Brooklyn</Badge>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Williamsburg Apartments: Rent Prices, Transit &amp; Tips for 2026
+              Apartments for Rent in Williamsburg, Brooklyn: Rent Prices,
+              Transit &amp; Tips (2026)
             </h1>
             <p className="text-sm text-muted-foreground">
               Williamsburg is the most searched Brooklyn neighborhood on every
-              major listing site, consistently drawing renters with its mix of
-              waterfront parks, an acclaimed restaurant scene, and direct L-train
-              access to Manhattan. This guide covers average rents, subway
-              options, the best blocks to search, and practical tactics for
-              landing an apartment here.
+              major NYC listing site. This guide covers Williamsburg apartment
+              rent prices by unit size, the difference between North, South,
+              and East Williamsburg on price and vibe, L/G/J/M/Z subway access
+              and commute times, the best streets to search, and practical
+              tactics for landing an apartment here — including how the FARE
+              Act changed Williamsburg broker fees in 2025.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated April 2026 &middot; Prices reflect median asking rents for
-              market-rate apartments
+              Last updated April 2026 &middot; Prices reflect median asking
+              rents for market-rate apartments in Williamsburg ZIP codes 11211,
+              11249, and 11206.
             </p>
           </header>
 
           {/* ── Quick Facts ───────────────────────────── */}
           <Card>
             <CardHeader>
-              <CardTitle>Williamsburg at a Glance</CardTitle>
+              <CardTitle>Williamsburg Apartments at a Glance</CardTitle>
               <CardDescription>
-                Key numbers for apartment hunters
+                Key rent and transit numbers for apartment hunters
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -199,7 +232,9 @@ export default function WilliamsburgGuidePage() {
                   <p className="text-xs font-medium uppercase text-muted-foreground">
                     Income Needed (1BR)
                   </p>
-                  <p className="text-lg font-semibold">~$120,000 &ndash; $152,000</p>
+                  <p className="text-lg font-semibold">
+                    ~$120k &ndash; $152k
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs font-medium uppercase text-muted-foreground">
@@ -217,10 +252,313 @@ export default function WilliamsburgGuidePage() {
             </CardContent>
           </Card>
 
+          {/* ── Rent Prices Table ─────────────────────── */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Williamsburg Rent Prices by Apartment Size (2026)</CardTitle>
+              <CardDescription>
+                Median asking rents across Williamsburg, Brooklyn
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Unit Type</TableHead>
+                    <TableHead className="text-right">Rent Range</TableHead>
+                    <TableHead className="text-right">Income Needed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">Studio</TableCell>
+                    <TableCell className="text-right">$2,400 – $3,000</TableCell>
+                    <TableCell className="text-right">$96k – $120k</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">1-Bedroom</TableCell>
+                    <TableCell className="text-right">$3,000 – $3,800</TableCell>
+                    <TableCell className="text-right">$120k – $152k</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">2-Bedroom</TableCell>
+                    <TableCell className="text-right">$3,800 – $5,000</TableCell>
+                    <TableCell className="text-right">$152k – $200k</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">3-Bedroom</TableCell>
+                    <TableCell className="text-right">$5,200 – $7,500+</TableCell>
+                    <TableCell className="text-right">$208k – $300k+</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="text-xs">
+                Income requirements based on NYC&apos;s standard 40x monthly
+                rent rule. For 2BR+ apartments, landlords often accept combined
+                household income from two applicants or a guarantor at 80x rent.
+              </p>
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">Studios</h3>
+                <p>
+                  Williamsburg studios typically range from $2,400 to $3,000
+                  per month. The most affordable options are in older walkups
+                  on side streets east of Bedford Avenue and in South
+                  Williamsburg below Grand Street. Studios in newer waterfront
+                  buildings along Kent Avenue and Wythe Avenue can reach $3,200
+                  or higher, but often include full amenity packages (gym,
+                  rooftop, in-unit laundry, doorman). Expect 350 to 500 square
+                  feet depending on building age — new-construction studios
+                  skew toward 400–500 sq ft while converted-loft efficiencies
+                  can be as small as 325 sq ft.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  One-Bedroom Apartments for Rent in Williamsburg
+                </h3>
+                <p>
+                  The median Williamsburg one-bedroom sits around $3,000 to
+                  $3,800. Under NYC&apos;s 40x income rule, you need to earn
+                  roughly $120,000 to $152,000 annually to qualify without a
+                  guarantor. The best value is in South Williamsburg and on
+                  blocks east of the BQE, where one-bedrooms can dip below
+                  $2,800 for walkup units. Waterfront and newly constructed
+                  buildings on the north side command $3,800 to $4,500 for a
+                  one-bedroom with modern finishes and amenity packages.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Two-Bedroom &amp; Share Apartments
+                </h3>
+                <p>
+                  Williamsburg two-bedrooms range from $3,800 to $5,000, making
+                  the per-person cost for roommates roughly $1,900 to $2,500 —
+                  competitive with studio rents for solo renters. Roommate
+                  setups are extremely common in Williamsburg, especially in
+                  the larger converted-loft apartments that are unique to the
+                  neighborhood (many former industrial buildings east of
+                  Bedford have 1,000+ sq ft two-bedrooms). If you are open to
+                  sharing, our{" "}
+                  <Link
+                    href="/roommates"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    roommate matching tool
+                  </Link>{" "}
+                  can help find compatible housemates.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Three-Bedrooms &amp; Family-Size Units
+                </h3>
+                <p>
+                  Three-bedroom rentals in Williamsburg run $5,200 to $7,500+
+                  and are relatively scarce — most family-size units in the
+                  neighborhood are owner-occupied brownstone duplexes or in
+                  newer waterfront towers at the top of the price range. If
+                  you&apos;re hunting with roommates, a $5,500 three-bedroom
+                  split three ways ($1,833/person) is often the cheapest way
+                  to live in the waterfront corridor. Otherwise, consider
+                  comparable{" "}
+                  <Link
+                    href="/nyc/bushwick"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Bushwick
+                  </Link>{" "}
+                  or{" "}
+                  <Link
+                    href="/nyc/park-slope"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Park Slope
+                  </Link>{" "}
+                  family apartments for more square footage per dollar.
+                </p>
+              </div>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-foreground">
+                Want a deeper rent-price breakdown? See our dedicated{" "}
+                <Link
+                  href="/nyc/williamsburg/rent-prices"
+                  className="font-semibold text-primary underline underline-offset-2"
+                >
+                  Williamsburg rent prices guide
+                </Link>{" "}
+                with historical trends, price-per-square-foot benchmarks, and
+                net-effective-rent math for waterfront buildings.
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Sub-Neighborhood Rent Comparison ───────── */}
+          <Card>
+            <CardHeader>
+              <CardTitle>North vs. South vs. East Williamsburg: Rent Comparison</CardTitle>
+              <CardDescription>
+                Where to search for the right price-vibe balance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sub-Neighborhood</TableHead>
+                    <TableHead className="text-right">Studio</TableHead>
+                    <TableHead className="text-right">1-Bedroom</TableHead>
+                    <TableHead className="text-right">2-Bedroom</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      North Williamsburg (Waterfront)
+                    </TableCell>
+                    <TableCell className="text-right">$3,000–$3,500</TableCell>
+                    <TableCell className="text-right">$3,800–$4,500</TableCell>
+                    <TableCell className="text-right">$4,800–$6,000</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      North Williamsburg (Bedford)
+                    </TableCell>
+                    <TableCell className="text-right">$2,700–$3,100</TableCell>
+                    <TableCell className="text-right">$3,300–$4,000</TableCell>
+                    <TableCell className="text-right">$4,200–$5,200</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      South Williamsburg
+                    </TableCell>
+                    <TableCell className="text-right">$2,400–$2,800</TableCell>
+                    <TableCell className="text-right">$2,700–$3,300</TableCell>
+                    <TableCell className="text-right">$3,600–$4,400</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      East Williamsburg (BQE+)
+                    </TableCell>
+                    <TableCell className="text-right">$2,200–$2,600</TableCell>
+                    <TableCell className="text-right">$2,500–$3,100</TableCell>
+                    <TableCell className="text-right">$3,200–$4,000</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="text-xs">
+                North Williamsburg waterfront = Kent Ave / Wythe Ave / North
+                1st–14th Streets. North Williamsburg Bedford = Bedford Ave &
+                Driggs interior blocks. South Williamsburg = south of Grand
+                Street to the Williamsburg Bridge. East Williamsburg = east of
+                the Brooklyn-Queens Expressway, bordering Bushwick.
+              </p>
+              <p>
+                The gap between North Williamsburg waterfront and East
+                Williamsburg is roughly $1,200/month on a 1-bedroom — about
+                29% — for only a 10–15 minute commute difference. Renters on
+                a budget who still want the Williamsburg ZIP should focus
+                their search east of Bedford Avenue or south of Grand Street.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── vs. Neighbors Table ───────────────────── */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Williamsburg vs. Similar NYC Neighborhoods</CardTitle>
+              <CardDescription>
+                Rent and commute comparison for 1-bedroom apartments
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Neighborhood</TableHead>
+                    <TableHead className="text-right">1BR Rent</TableHead>
+                    <TableHead>Midtown Commute</TableHead>
+                    <TableHead className="hidden sm:table-cell">Character</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">Williamsburg</TableCell>
+                    <TableCell className="text-right">$3,000–$3,800</TableCell>
+                    <TableCell>15–30 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Trendy, L train, Brooklyn vibe
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Bushwick</TableCell>
+                    <TableCell className="text-right">$2,300–$3,000</TableCell>
+                    <TableCell>25–40 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Arts, value, L/M, raw energy
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Greenpoint</TableCell>
+                    <TableCell className="text-right">$2,900–$3,700</TableCell>
+                    <TableCell>20–35 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Quieter, Polish heritage, G train
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">East Village</TableCell>
+                    <TableCell className="text-right">$3,500–$4,200</TableCell>
+                    <TableCell>10–20 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Manhattan, nightlife, smaller units
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Long Island City</TableCell>
+                    <TableCell className="text-right">$3,200–$4,100</TableCell>
+                    <TableCell>10–20 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Luxury towers, concessions, 7/E/M
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Park Slope</TableCell>
+                    <TableCell className="text-right">$2,800–$3,900</TableCell>
+                    <TableCell>25–35 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Brownstones, family, Prospect Park
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">DUMBO</TableCell>
+                    <TableCell className="text-right">$3,800–$4,800</TableCell>
+                    <TableCell>10–20 min</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
+                      Waterfront, corporate, A/C/F
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* ── Live Listings ─────────────────────────── */}
+          <NeighborhoodLiveListings
+            neighborhoodName="Williamsburg"
+            latitude={40.7136}
+            longitude={-73.9610}
+            radiusMiles={1.0}
+            limit={6}
+            searchQuery="Williamsburg Brooklyn apartments"
+          />
+
           {/* ── Neighborhood Character ────────────────── */}
           <Card>
             <CardHeader>
-              <CardTitle>What Williamsburg Is Like</CardTitle>
+              <CardTitle>What Living in Williamsburg Is Like</CardTitle>
               <CardDescription>
                 Culture, food, waterfront, and daily life
               </CardDescription>
@@ -231,100 +569,47 @@ export default function WilliamsburgGuidePage() {
                 northern Brooklyn, roughly bounded by the Brooklyn-Queens
                 Expressway to the east, Greenpoint to the north, and the
                 Williamsburg Bridge to the south. Over the past 15 years it
-                has transformed from an industrial and artist enclave into
-                one of Brooklyn&apos;s most expensive and desirable rental
-                markets, with new luxury towers along the waterfront mixed
-                with converted loft buildings and pre-war walkups on the
-                interior streets.
+                has transformed from an industrial and artist enclave into one
+                of Brooklyn&apos;s most expensive and desirable rental markets,
+                with new luxury towers along the waterfront mixed with
+                converted loft buildings and pre-war walkups on the interior
+                streets.
               </p>
               <p>
                 Bedford Avenue is the neighborhood&apos;s commercial spine,
-                lined with independent coffee shops, vintage stores, restaurants,
-                and bars. The waterfront along Kent Avenue and the East River
-                State Park (now Marsha P. Johnson State Park) offers green space,
-                a weekend food market, and some of the best Manhattan skyline
-                views in the city. Domino Park, built on the site of the former
-                Domino Sugar Refinery, is a popular spot for picnics and
-                sunsets.
+                lined with independent coffee shops, vintage stores,
+                restaurants, and bars. The waterfront along Kent Avenue and
+                the East River State Park (now Marsha P. Johnson State Park)
+                offers green space, a weekend food market (Smorgasburg), and
+                some of the best Manhattan skyline views in the city. Domino
+                Park, built on the site of the former Domino Sugar Refinery,
+                is a popular spot for picnics and sunsets.
               </p>
               <p>
                 The dining scene spans everything from Michelin-recognized
                 tasting menus and inventive ramen spots to late-night pizza
-                slices and classic Polish diners that predate the neighborhood&apos;s
-                transformation. Nightlife ranges from dive bars and live music
-                venues on the side streets to rooftop cocktail bars in the new
-                waterfront developments.
+                slices and classic Polish diners that predate the
+                neighborhood&apos;s transformation. Nightlife ranges from dive
+                bars and live music venues on the side streets to rooftop
+                cocktail bars in the new waterfront developments. The
+                Williamsburg Music Hall and Music Hall of Williamsburg host
+                mid-size tours, and smaller venues like Union Pool remain
+                institutions.
               </p>
               <p>
-                The main trade-offs are price and crowding. Williamsburg is now
-                priced comparably to many Manhattan neighborhoods, and Bedford
-                Avenue can feel overwhelmingly busy on weekends. If you want
-                similar Brooklyn energy at lower rents, Bushwick and Bed-Stuy
-                are the go-to alternatives, both reachable in 10 to 15 minutes
-                by train.
+                The main trade-offs are price and crowding. Williamsburg is
+                now priced comparably to many Manhattan neighborhoods, and
+                Bedford Avenue can feel overwhelmingly busy on weekends. If
+                you want similar Brooklyn energy at lower rents,{" "}
+                <Link
+                  href="/nyc/bushwick"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Bushwick
+                </Link>{" "}
+                and Bed-Stuy are the go-to alternatives, both reachable in 10
+                to 15 minutes by train.
               </p>
-            </CardContent>
-          </Card>
-
-          {/* ── Rent Breakdown ────────────────────────── */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Rent Prices by Apartment Size</CardTitle>
-              <CardDescription>
-                What to expect across different unit types
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <div>
-                <h3 className="mb-1 font-semibold text-foreground">Studios</h3>
-                <p>
-                  Williamsburg studios typically range from $2,400 to $3,000 per
-                  month. The most affordable options are in older walkups on
-                  side streets east of Bedford Avenue and in South Williamsburg
-                  below Grand Street. Studios in the newer waterfront buildings
-                  along Kent Avenue and Wythe Avenue can reach $3,200 or higher,
-                  but often include amenities like a gym, rooftop deck, and
-                  in-unit laundry. Expect about 350 to 500 square feet depending
-                  on building age.
-                </p>
-              </div>
-              <Separator />
-              <div>
-                <h3 className="mb-1 font-semibold text-foreground">
-                  One-Bedrooms
-                </h3>
-                <p>
-                  The median one-bedroom sits around $3,000 to $3,800. Under
-                  NYC&apos;s 40x income rule, you need to earn roughly $120,000 to
-                  $152,000 annually to qualify without a guarantor. The best
-                  value is in South Williamsburg and on blocks east of the BQE,
-                  where one-bedrooms can dip below $2,800 for walkup units.
-                  Waterfront and newly constructed buildings on the north side
-                  command $3,800 to $4,500 for a one-bedroom with modern
-                  finishes.
-                </p>
-              </div>
-              <Separator />
-              <div>
-                <h3 className="mb-1 font-semibold text-foreground">
-                  Two-Bedrooms &amp; Shares
-                </h3>
-                <p>
-                  Two-bedrooms range from $3,800 to $5,000, making the per-person
-                  cost for roommates roughly $1,900 to $2,500 — competitive
-                  with studio rents for solo renters. Roommate situations are
-                  very common in Williamsburg, especially in the larger converted
-                  loft apartments that are unique to the neighborhood. If you are
-                  open to sharing, our{" "}
-                  <Link
-                    href="/roommates"
-                    className="text-primary underline underline-offset-2"
-                  >
-                    roommate matching tool
-                  </Link>{" "}
-                  can help you find compatible housemates.
-                </p>
-              </div>
             </CardContent>
           </Card>
 
@@ -333,7 +618,7 @@ export default function WilliamsburgGuidePage() {
             <CardHeader>
               <CardTitle>Getting Around: Subway &amp; Transit</CardTitle>
               <CardDescription>
-                Commute times from Williamsburg
+                Commute times from Williamsburg apartments
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -341,34 +626,38 @@ export default function WilliamsburgGuidePage() {
                 The L train is the lifeline of Williamsburg. It connects the
                 neighborhood directly to Manhattan&apos;s 14th Street corridor
                 — Union Square, Chelsea, and the Meatpacking District — in
-                about 5 to 10 minutes. However, Williamsburg has more subway
-                options than many people realize.
+                about 5 to 10 minutes. But Williamsburg has more subway
+                options than many people realize, which is why the
+                neighborhood still functions well even when the L is running
+                with delays.
               </p>
               <div className="space-y-2">
                 <div>
                   <span className="font-semibold text-foreground">L train</span>{" "}
-                  — Bedford Avenue, Lorimer Street, and Graham Avenue stations.
-                  Your fastest route to Union Square (5 minutes), Chelsea (8
-                  minutes), and the East Village (3 minutes). Runs frequently
-                  but can get extremely crowded during rush hours.
+                  — Bedford Avenue, Lorimer Street, and Graham Avenue
+                  stations. Your fastest route to Union Square (5 minutes),
+                  Chelsea (8 minutes), and the East Village (3 minutes). Runs
+                  frequently but can get extremely crowded during rush hours.
                 </div>
                 <div>
                   <span className="font-semibold text-foreground">G train</span>{" "}
                   — Metropolitan Avenue-Lorimer Street station. Connects to
-                  Greenpoint (3 minutes), Fort Greene and Downtown Brooklyn (15
-                  minutes), and Prospect Park (20 minutes). The G is the only
-                  NYC subway line that stays entirely within Brooklyn and Queens
-                  — useful for Brooklyn-to-Brooklyn commutes.
+                  Greenpoint (3 minutes), Fort Greene and Downtown Brooklyn
+                  (15 minutes), and Prospect Park (20 minutes). The G is the
+                  only NYC subway line that stays entirely within Brooklyn
+                  and Queens — useful for Brooklyn-to-Brooklyn commutes and
+                  for Williamsburg residents working in Long Island City.
                 </div>
                 <div>
                   <span className="font-semibold text-foreground">
                     J, M, Z trains
                   </span>{" "}
-                  — Marcy Avenue station on the southern edge. These trains
-                  cross the Williamsburg Bridge to the Lower East Side and
-                  continue to Midtown via the Nassau Street line. A good
-                  alternative to the L for commuters heading to the Financial
-                  District or Chinatown.
+                  — Marcy Avenue and Hewes Street stations on the southern
+                  edge. These trains cross the Williamsburg Bridge to the
+                  Lower East Side and continue to Midtown via the Nassau
+                  Street line. A good alternative to the L for commuters
+                  heading to the Financial District, Chinatown, or the
+                  Essex/Delancey corridor.
                 </div>
                 <div>
                   <span className="font-semibold text-foreground">
@@ -382,9 +671,17 @@ export default function WilliamsburgGuidePage() {
               </div>
               <p>
                 Citi Bike is extremely popular in Williamsburg, with stations
-                on nearly every block. The Williamsburg Bridge bike path is a
-                15-minute ride to the Lower East Side, making cycling a
-                practical commute option for many residents.
+                on nearly every block. The Williamsburg Bridge bike path is
+                about a 15-minute ride to the Lower East Side, making cycling
+                a practical commute option for many residents. See our{" "}
+                <Link
+                  href="/best-time-to-rent-nyc"
+                  className="text-primary underline underline-offset-2"
+                >
+                  best time to rent NYC guide
+                </Link>{" "}
+                for how L-train service changes (like the 2019–2020 tunnel
+                work) historically affected Williamsburg rents.
               </p>
             </CardContent>
           </Card>
@@ -394,7 +691,7 @@ export default function WilliamsburgGuidePage() {
             <CardHeader>
               <CardTitle>Best Blocks &amp; Micro-Neighborhoods</CardTitle>
               <CardDescription>
-                Where to focus your apartment search
+                Where to focus your Williamsburg apartment search
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
@@ -404,13 +701,14 @@ export default function WilliamsburgGuidePage() {
                 </h3>
                 <p>
                   The area between the Greenpoint border and Grand Street,
-                  especially the blocks along Bedford Avenue, Berry Street, and
-                  the waterfront. This is the most expensive and most
+                  especially the blocks along Bedford Avenue, Berry Street,
+                  and the waterfront. This is the most expensive and most
                   sought-after section, home to the majority of new luxury
-                  developments. Rents are at or above the neighborhood median.
-                  You get the best restaurant access, waterfront parks, and
-                  proximity to the Bedford Avenue L station. The trade-off is
-                  high foot traffic and weekend crowds.
+                  developments. One-bedroom rents run $3,300 to $4,500 depending
+                  on whether you&apos;re in a walkup or a full-amenity
+                  building. You get the best restaurant access, waterfront
+                  parks, and proximity to the Bedford Avenue L station. The
+                  trade-off is high foot traffic and weekend crowds.
                 </p>
               </div>
               <Separator />
@@ -422,12 +720,13 @@ export default function WilliamsburgGuidePage() {
                   South of Grand Street toward the Williamsburg Bridge. This
                   area has a distinct character from the north side — a large
                   Hasidic Jewish community, more residential blocks, and
-                  noticeably lower rents. One-bedrooms here are often $300 to
-                  $600 less per month than comparable units north of Grand.
-                  The Marcy Avenue J/M/Z station provides subway access, and
-                  the South Williamsburg ferry stop connects to lower Manhattan.
-                  Ideal for renters who want Williamsburg&apos;s location without
-                  North Williamsburg prices.
+                  noticeably lower rents. One-bedrooms here run $2,700 to
+                  $3,300 — $300 to $600 less per month than comparable units
+                  north of Grand. The Marcy Avenue J/M/Z station provides
+                  subway access, and the South Williamsburg ferry stop
+                  connects to lower Manhattan. Ideal for renters who want
+                  Williamsburg&apos;s ZIP code without North Williamsburg
+                  prices.
                 </p>
               </div>
               <Separator />
@@ -437,14 +736,22 @@ export default function WilliamsburgGuidePage() {
                 </h3>
                 <p>
                   East of the Brooklyn-Queens Expressway, Williamsburg blends
-                  into Bushwick. This area features converted industrial lofts,
-                  artist studios, and some of the most affordable rents in the
-                  Williamsburg ZIP code. Studios can start below $2,200 and
-                  one-bedrooms below $2,600. The Montrose Avenue and Graham
-                  Avenue L stations serve this area. The trade-off is a less
-                  polished streetscape and fewer dining options compared to the
-                  waterfront, but the gap is closing as new restaurants and
-                  shops continue to open.
+                  into Bushwick. This area features converted industrial
+                  lofts, artist studios, and some of the most affordable rents
+                  in the Williamsburg ZIP code (11206). Studios can start
+                  below $2,400 and one-bedrooms below $2,800. The Montrose
+                  Avenue and Graham Avenue L stations serve this area. The
+                  trade-off is a less polished streetscape and fewer dining
+                  options compared to the waterfront, but the gap is closing
+                  as new restaurants and shops continue to open. For the full
+                  value-hunter playbook, see our{" "}
+                  <Link
+                    href="/nyc/bushwick"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Bushwick neighborhood guide
+                  </Link>{" "}
+                  — East Williamsburg is essentially the transition zone.
                 </p>
               </div>
               <Separator />
@@ -454,14 +761,17 @@ export default function WilliamsburgGuidePage() {
                 </h3>
                 <p>
                   The waterfront strip has the newest building stock in
-                  Williamsburg, including several large-scale developments with
-                  full amenity packages (doorman, gym, rooftop, coworking space).
-                  Rents are the highest here — expect $3,500 or more for a
-                  studio — but you get modern finishes, building-managed
-                  maintenance, and direct access to waterfront parks. This
-                  corridor is popular with professionals relocating from
-                  Manhattan who want apartment amenities comparable to what they
-                  had in doorman buildings.
+                  Williamsburg, including several large-scale developments
+                  with full amenity packages (doorman, gym, rooftop,
+                  coworking space). Rents are the highest here — expect
+                  $3,500 or more for a studio and $4,200+ for a one-bedroom
+                  — but you get modern finishes, building-managed maintenance,
+                  and direct access to waterfront parks. This corridor is
+                  popular with professionals relocating from Manhattan who
+                  want apartment amenities comparable to what they had in
+                  doorman buildings. Many of these buildings offer
+                  concessions (1–2 months free) during winter months, which
+                  can bring net-effective rent down 8–16%.
                 </p>
               </div>
             </CardContent>
@@ -470,7 +780,7 @@ export default function WilliamsburgGuidePage() {
           {/* ── Apartment Hunting Tips ─────────────────── */}
           <Card>
             <CardHeader>
-              <CardTitle>Apartment Hunting Tips for Williamsburg</CardTitle>
+              <CardTitle>Tips for Finding Apartments for Rent in Williamsburg</CardTitle>
               <CardDescription>
                 Practical advice from NYC renters
               </CardDescription>
@@ -482,10 +792,10 @@ export default function WilliamsburgGuidePage() {
                     1. Have your documents ready before you start looking.
                   </span>{" "}
                   Williamsburg apartments move fast, especially in the prime
-                  North Williamsburg area. Prepare your application package in
-                  advance: two recent pay stubs, tax returns, bank statements,
-                  a photo ID, and a reference letter from a previous landlord.
-                  Our{" "}
+                  North Williamsburg area. Prepare your application package
+                  in advance: two recent pay stubs, tax returns, bank
+                  statements, a photo ID, and a reference letter from a
+                  previous landlord. Our{" "}
                   <Link
                     href="/blog/rental-application-screening-basics"
                     className="text-primary underline underline-offset-2"
@@ -499,20 +809,21 @@ export default function WilliamsburgGuidePage() {
                     2. Look south and east for the best value.
                   </span>{" "}
                   North Williamsburg gets most of the attention, but South
-                  Williamsburg and East Williamsburg offer significantly lower
-                  rents. A one-bedroom in South Williamsburg can be $400 to
-                  $600 cheaper per month than a comparable unit on Bedford
-                  Avenue, and you still have subway and ferry access.
+                  Williamsburg and East Williamsburg offer significantly
+                  lower rents. A one-bedroom in South Williamsburg can be
+                  $400 to $600 cheaper per month than a comparable unit on
+                  Bedford Avenue, and you still have subway and ferry
+                  access.
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">
                     3. Search during winter for concessions.
                   </span>{" "}
-                  November through February is when Williamsburg landlords are
-                  most likely to offer one or two months free rent, especially
-                  in the newer waterfront buildings with higher vacancy rates.
-                  These concessions effectively lower your monthly cost by 8%
-                  to 16% over the lease term. Check our{" "}
+                  November through February is when Williamsburg landlords
+                  are most likely to offer one or two months free rent,
+                  especially in the newer waterfront buildings with higher
+                  vacancy rates. These concessions effectively lower your
+                  monthly cost by 8% to 16% over the lease term. Check our{" "}
                   <Link
                     href="/blog/negotiating-rent-and-lease-terms"
                     className="text-primary underline underline-offset-2"
@@ -525,11 +836,11 @@ export default function WilliamsburgGuidePage() {
                   <span className="font-semibold text-foreground">
                     4. Watch out for scams on no-fee listings.
                   </span>{" "}
-                  Williamsburg&apos;s popularity makes it a target for rental
-                  scams, especially on Craigslist and Facebook Marketplace.
-                  Never send money before seeing an apartment in person, and
-                  verify that the person showing the unit is authorized by the
-                  building management. Read our{" "}
+                  Williamsburg&apos;s popularity makes it a target for
+                  rental scams, especially on Craigslist and Facebook
+                  Marketplace. Never send money before seeing an apartment
+                  in person, and verify that the person showing the unit is
+                  authorized by the building management. Read our{" "}
                   <Link
                     href="/blog/nyc-apartment-scams"
                     className="text-primary underline underline-offset-2"
@@ -542,9 +853,10 @@ export default function WilliamsburgGuidePage() {
                   <span className="font-semibold text-foreground">
                     5. Know your rights under the FARE Act.
                   </span>{" "}
-                  As of 2025, NYC&apos;s FARE Act shifted broker fees from tenants
-                  to landlords in most cases. This can save you $3,000 to
-                  $5,000 on a Williamsburg apartment. Learn more in our{" "}
+                  As of 2025, NYC&apos;s FARE Act shifted broker fees from
+                  tenants to landlords in most cases. This can save you
+                  $3,000 to $5,000 on a Williamsburg apartment. Learn more
+                  in our{" "}
                   <Link
                     href="/blog/nyc-fare-act-broker-fee-ban"
                     className="text-primary underline underline-offset-2"
@@ -555,14 +867,47 @@ export default function WilliamsburgGuidePage() {
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">
-                    6. Use AI-powered search to find unlisted inventory.
+                    6. Check if the building is rent-stabilized.
                   </span>{" "}
-                  Many Williamsburg buildings, especially mid-size walkups and
-                  newer developments, list directly through their property
-                  management portals rather than major listing sites. Wade Me
-                  Home aggregates these listings and lets you search by natural
-                  language — just describe what you want and our AI finds
-                  matching apartments.
+                  Some older pre-war Williamsburg walkups still contain
+                  rent-stabilized units, which limit annual rent increases
+                  and provide lease-renewal protections. These are rare in
+                  the newer waterfront stock but worth checking. Our{" "}
+                  <Link
+                    href="/blog/nyc-rent-stabilization-guide"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    rent stabilization guide
+                  </Link>{" "}
+                  explains how to identify them before signing.
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">
+                    7. Budget for move-in costs beyond rent.
+                  </span>{" "}
+                  First month&apos;s rent plus security deposit (one month)
+                  means you need $6,000 to $8,000 upfront for a median
+                  Williamsburg 1-bedroom. Add moving costs ($500 to $1,500),
+                  renter&apos;s insurance, utility setup, and furniture.
+                  See our{" "}
+                  <Link
+                    href="/cost-of-moving-to-nyc"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    cost of moving to NYC guide
+                  </Link>{" "}
+                  for a detailed budget.
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">
+                    8. Use AI-powered search to find unlisted inventory.
+                  </span>{" "}
+                  Many Williamsburg buildings, especially mid-size walkups
+                  and newer developments, list directly through their
+                  property management portals rather than major listing
+                  sites. Wade Me Home aggregates these listings and lets
+                  you search by natural language — just describe what you
+                  want and our AI finds matching apartments.
                 </p>
               </div>
             </CardContent>
@@ -571,7 +916,7 @@ export default function WilliamsburgGuidePage() {
           {/* ── Compared to Other Neighborhoods ──────── */}
           <Card>
             <CardHeader>
-              <CardTitle>Williamsburg vs. Similar Neighborhoods</CardTitle>
+              <CardTitle>Williamsburg Apartments vs. Similar NYC Neighborhoods</CardTitle>
               <CardDescription>
                 How Williamsburg compares on price, transit, and vibe
               </CardDescription>
@@ -590,26 +935,42 @@ export default function WilliamsburgGuidePage() {
                     East Village
                   </Link>{" "}
                   in Manhattan has a similar cultural density and nightlife
-                  scene. One-bedrooms there run $3,500 to $4,000 — slightly
-                  higher than Williamsburg — and apartments tend to be smaller.
-                  The L train connects the two neighborhoods in about 5 minutes.
-                  Choose the East Village if being in Manhattan matters to you;
-                  choose Williamsburg for more space and waterfront access.
+                  scene. One-bedrooms there run $3,500 to $4,200 — slightly
+                  higher than Williamsburg — and apartments tend to be
+                  smaller. The L train connects the two neighborhoods in
+                  about 5 minutes. Choose the East Village if being in
+                  Manhattan matters to you; choose Williamsburg for more
+                  space and waterfront access.
                 </p>
               </div>
               <Separator />
               <div>
                 <h3 className="mb-1 font-semibold text-foreground">
-                  vs. Greenpoint
+                  vs.{" "}
+                  <Link
+                    href="/nyc/greenpoint"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Greenpoint
+                  </Link>
                 </h3>
                 <p>
-                  Greenpoint sits just north of Williamsburg and shares the G
-                  train. Rents are similar for newer buildings but slightly
-                  lower for walkups. Greenpoint is quieter and more
-                  residential, with a distinct Polish heritage and a growing
-                  restaurant scene along Franklin Street. If you want a
-                  neighborhood that feels less hectic than Williamsburg but
-                  still walkable, Greenpoint is worth considering.
+                  Greenpoint sits just north of Williamsburg and shares the
+                  G train. Rents are 5 to 15% lower than Williamsburg
+                  for equivalent inventory, and Google search demand for
+                  Greenpoint is up over 100% year-over-year — the
+                  spillover market of choice for Williamsburg tenants.
+                  Greenpoint is quieter and more residential, with a
+                  distinct Polish heritage along Manhattan Avenue and a
+                  growing restaurant scene along Franklin Street. Full
+                  breakdown in our{" "}
+                  <Link
+                    href="/nyc/greenpoint"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Greenpoint apartment guide
+                  </Link>
+                  .
                 </p>
               </div>
               <Separator />
@@ -618,7 +979,7 @@ export default function WilliamsburgGuidePage() {
                   vs. Bushwick
                 </h3>
                 <p>
-                  <Link href="/nyc/bushwick" className="text-primary hover:underline">
+                  <Link href="/nyc/bushwick" className="text-primary underline underline-offset-2">
                     Bushwick
                   </Link>{" "}
                   is the budget alternative to Williamsburg, with
@@ -633,16 +994,38 @@ export default function WilliamsburgGuidePage() {
               <Separator />
               <div>
                 <h3 className="mb-1 font-semibold text-foreground">
+                  vs. Long Island City
+                </h3>
+                <p>
+                  <Link
+                    href="/nyc/long-island-city"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Long Island City (LIC)
+                  </Link>{" "}
+                  is the Queens answer to waterfront Williamsburg. LIC
+                  one-bedrooms run $3,200 to $4,100 — roughly comparable —
+                  but LIC offers deeper concessions (often 2 months free)
+                  and newer, more corporate luxury buildings. The 7, E, M,
+                  and G trains serve LIC. Williamsburg has more walkable
+                  street-level retail and restaurant density; LIC has more
+                  amenity-rich new construction.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
                   vs. DUMBO
                 </h3>
                 <p>
-                  DUMBO (Down Under the Manhattan Bridge Overpass) is a compact,
-                  waterfront neighborhood with stunning bridge views and some
-                  of Brooklyn&apos;s highest rents — one-bedrooms regularly
-                  exceed $4,000. It appeals to a similar demographic as
-                  waterfront Williamsburg but feels more corporate and less
-                  neighborhood-like. Williamsburg offers more variety in
-                  building types, price ranges, and nightlife.
+                  DUMBO (Down Under the Manhattan Bridge Overpass) is a
+                  compact, waterfront neighborhood with stunning bridge
+                  views and some of Brooklyn&apos;s highest rents —
+                  one-bedrooms regularly exceed $4,000. It appeals to a
+                  similar demographic as waterfront Williamsburg but feels
+                  more corporate and less neighborhood-like. Williamsburg
+                  offers more variety in building types, price ranges, and
+                  nightlife.
                 </p>
               </div>
             </CardContent>
@@ -659,24 +1042,54 @@ export default function WilliamsburgGuidePage() {
                   How much is rent in Williamsburg, Brooklyn?
                 </h3>
                 <p>
-                  The median asking rent for a one-bedroom is approximately
-                  $3,000 to $3,800 per month as of early 2026. Studios start
-                  around $2,400 to $3,000, and two-bedrooms range from $3,800
-                  to $5,000. North Williamsburg near the waterfront is the
-                  most expensive; South Williamsburg and areas east of the BQE
-                  are more affordable.
+                  The median asking rent for a one-bedroom in Williamsburg
+                  is approximately $3,000 to $3,800 per month as of early
+                  2026. Studios start around $2,400 to $3,000, two-bedrooms
+                  range from $3,800 to $5,000, and three-bedrooms run $5,200
+                  to $7,500+. North Williamsburg near the waterfront is the
+                  most expensive; South Williamsburg and East Williamsburg
+                  (east of the BQE) are more affordable. See our full{" "}
+                  <Link
+                    href="/nyc/williamsburg/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Williamsburg rent prices breakdown
+                  </Link>{" "}
+                  for historical trends and price-per-square-foot data.
                 </p>
               </div>
               <Separator />
               <div>
                 <h3 className="mb-1 font-semibold text-foreground">
-                  What subway lines serve Williamsburg?
+                  What subway lines serve Williamsburg apartments?
                 </h3>
                 <p>
-                  The L train (Bedford Avenue, Lorimer Street, Graham Avenue),
-                  G train (Metropolitan Avenue-Lorimer Street), and J/M/Z
-                  trains (Marcy Avenue). The NYC Ferry also connects
-                  Williamsburg to DUMBO, Wall Street, and Midtown East.
+                  The L train (Bedford Avenue, Lorimer Street, Graham
+                  Avenue), G train (Metropolitan Avenue-Lorimer Street), and
+                  J/M/Z trains (Marcy Avenue, Hewes Street). The NYC Ferry
+                  also connects Williamsburg to DUMBO, Wall Street, and
+                  Midtown East.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Are there no-fee apartments in Williamsburg?
+                </h3>
+                <p>
+                  Yes. As of 2025, NYC&apos;s FARE Act shifted broker fees
+                  from tenants to landlords in most cases, which means the
+                  majority of listed apartments in Williamsburg are now
+                  effectively no-fee to the renter. Waterfront luxury
+                  buildings on Kent Avenue and Wythe Avenue historically
+                  listed as no-fee even before the FARE Act. See our{" "}
+                  <Link
+                    href="/blog/nyc-fare-act-broker-fee-ban"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    FARE Act explainer
+                  </Link>{" "}
+                  for what the rule actually covers.
                 </p>
               </div>
               <Separator />
@@ -687,11 +1100,12 @@ export default function WilliamsburgGuidePage() {
                 <p>
                   Williamsburg is generally considered safe and has seen
                   significant decreases in crime over the past decade as the
-                  neighborhood has developed. The most trafficked areas along
-                  Bedford Avenue, the waterfront, and near subway stations
-                  are well-lit and busy at most hours. Standard NYC precautions
-                  apply — be aware of your surroundings on quieter industrial
-                  blocks, especially late at night east of the BQE.
+                  neighborhood has developed. The most trafficked areas
+                  along Bedford Avenue, the waterfront, and near subway
+                  stations are well-lit and busy at most hours. Standard
+                  NYC precautions apply — be aware of your surroundings on
+                  quieter industrial blocks, especially late at night east
+                  of the BQE.
                 </p>
               </div>
               <Separator />
@@ -702,10 +1116,10 @@ export default function WilliamsburgGuidePage() {
                 <p>
                   Some older pre-war buildings in Williamsburg contain
                   rent-stabilized units, but they are less common than in
-                  Manhattan neighborhoods like the East Village. The majority
-                  of Williamsburg&apos;s newer construction is market-rate. If
-                  finding a rent-stabilized unit is a priority, focus on
-                  older walkup buildings and check our{" "}
+                  Manhattan neighborhoods like the East Village. The
+                  majority of Williamsburg&apos;s newer construction is
+                  market-rate. If finding a rent-stabilized unit is a
+                  priority, focus on older walkup buildings and check our{" "}
                   <Link
                     href="/blog/nyc-rent-stabilization-guide"
                     className="text-primary underline underline-offset-2"
@@ -721,13 +1135,13 @@ export default function WilliamsburgGuidePage() {
                   What is the difference between North and South Williamsburg?
                 </h3>
                 <p>
-                  North Williamsburg (north of Grand Street) has the trendy
-                  restaurants, boutiques, waterfront parks, and luxury
-                  developments that define the neighborhood&apos;s reputation.
-                  Rents are highest here. South Williamsburg (south of the
-                  Williamsburg Bridge) is more residential, with a large
-                  Hasidic community and notably lower rents — often $300 to
-                  $600 less per month for comparable units.
+                  North Williamsburg (north of Grand Street) has the
+                  trendy restaurants, boutiques, waterfront parks, and
+                  luxury developments that define the neighborhood&apos;s
+                  reputation. Rents are highest here. South Williamsburg
+                  (south of the Williamsburg Bridge) is more residential,
+                  with a large Hasidic community and notably lower rents —
+                  often $300 to $800 less per month for comparable units.
                 </p>
               </div>
             </CardContent>
@@ -737,12 +1151,12 @@ export default function WilliamsburgGuidePage() {
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
               <h2 className="text-xl font-bold">
-                Find Your Williamsburg Apartment
+                Find Apartments for Rent in Williamsburg
               </h2>
               <p className="max-w-md text-sm text-muted-foreground">
                 Tell our AI what you&apos;re looking for and it will search
-                hundreds of Williamsburg listings in seconds. No browsing, no
-                filters — just describe your ideal apartment.
+                hundreds of Williamsburg listings in seconds. No browsing,
+                no filters — just describe your ideal apartment.
               </p>
               <Button asChild size="lg">
                 <Link href="/">Start Searching</Link>
@@ -759,10 +1173,26 @@ export default function WilliamsburgGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/nyc/williamsburg/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Williamsburg Rent Prices (2026): Full Breakdown &amp; Trends
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/bushwick"
                     className="text-primary underline underline-offset-2"
                   >
                     Bushwick Apartments: Rent Prices, Transit &amp; Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/park-slope"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Park Slope Apartments: Brownstones, Schools &amp; Prospect Park
                   </Link>
                 </li>
                 <li>
@@ -791,10 +1221,26 @@ export default function WilliamsburgGuidePage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/upper-west-side"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Upper West Side Apartments: Pre-War, Parks &amp; Families
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc-rent-by-neighborhood"
                     className="text-primary underline underline-offset-2"
                   >
                     NYC Rent by Neighborhood: Prices, Commutes &amp; Tips
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/best-time-to-rent-nyc"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Best Time to Rent an Apartment in NYC
                   </Link>
                 </li>
                 <li>

@@ -804,6 +804,11 @@ export default function BushwickPage() {
                   desc: "Adjacent neighborhood, 20–25% higher rents, more polish",
                 },
                 {
+                  href: "/nyc/park-slope",
+                  title: "Park Slope",
+                  desc: "Brooklyn's family anchor — brownstones, schools, Prospect Park",
+                },
+                {
                   href: "/nyc/east-village",
                   title: "East Village",
                   desc: "Manhattan option, shorter commute, premium pricing",

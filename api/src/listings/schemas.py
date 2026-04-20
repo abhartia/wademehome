@@ -98,3 +98,19 @@ class NearestTransitResponse(BaseModel):
     stations: list[NearestTransitStation] = Field(
         description="Nearest stations across requested systems, sorted by walk time ascending.",
     )
+
+
+class TransitStationPoint(BaseModel):
+    system: str = Field(description="path | hblr | nyc_subway | lirr | nj_transit_rail | ferry")
+    station_name: str
+    lines: list[str] = Field(default_factory=list)
+    latitude: float
+    longitude: float
+    borough: str | None = None
+
+
+class TransitStationsResponse(BaseModel):
+    stations: list[TransitStationPoint] = Field(
+        description="Transit stations in the requested bbox (or all, if unfiltered).",
+    )
+    total: int

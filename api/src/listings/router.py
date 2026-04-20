@@ -31,6 +31,8 @@ from listings.schemas import (
     PoiHit,
     PoiNearbyResponse,
     SitemapKeysResponse,
+    TransitStationPoint,
+    TransitStationsResponse,
 )
 from workflow.events import PropertyDataItem
 from workflow.utils import engine, listing_table_name, listing_table_schema
@@ -1181,3 +1183,69 @@ def nearest_transit(
         longitude=longitude,
         stations=scored[:limit],
     )
+
+
+@router.get("/transit-stations", response_model=TransitStationsResponse)
+def list_transit_stations(
+    systems: str | None = Query(
+        default=None,
+        description=(
+            "Comma-separated systems to include (e.g. 'path,hblr,ferry,nyc_subway'). "
+            "Omit for all systems."
+        ),
+    ),
+    west: float | None = Query(default=None, ge=-180, le=180),
+    south: float | None = Query(default=None, ge=-90, le=90),
+    east: float | None = Query(default=None, ge=-180, le=180),
+    north: float | None = Query(default=None, ge=-90, le=90),
+    limit: int = Query(default=1000, ge=1, le=2000),
+) -> TransitStationsResponse:
+    """Return transit stations for map overlays. All four bbox params must
+    be provided together or all omitted. With no bbox, returns every
+    seeded station (currently ~490 across PATH/HBLR/ferry/NYC subway)."""
+    bbox_params = [west, south, east, north]
+    has_bbox_any = any(p is not None for p in bbox_params)
+    has_bbox_all = all(p is not None for p in bbox_params)
+    if has_bbox_any and not has_bbox_all:
+        raise HTTPException(
+            status_code=422,
+            detail="Provide all four of west/south/east/north, or none.",
+        )
+
+    allowed_systems: list[str] | None = None
+    if systems:
+        allowed_systems = [s.strip() for s in systems.split(",") if s.strip()]
+        if not allowed_systems:
+            allowed_systems = None
+
+    sql = "SELECT system::text, station_name, lines, latitude, longitude, borough FROM transit_stations"
+    conditions: list[str] = []
+    params: dict[str, Any] = {}
+    if allowed_systems:
+        conditions.append("system::text = ANY(:systems)")
+        params["systems"] = allowed_systems
+    if has_bbox_all:
+        conditions.append(
+            "longitude BETWEEN :west AND :east AND latitude BETWEEN :south AND :north"
+        )
+        params.update({"west": west, "east": east, "south": south, "north": north})
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+    sql += " ORDER BY system, station_name LIMIT :limit"
+    params["limit"] = limit
+
+    with engine.connect() as conn:
+        rows = conn.execute(text(sql), params).mappings().all()
+
+    stations = [
+        TransitStationPoint(
+            system=r["system"],
+            station_name=r["station_name"],
+            lines=list(r["lines"] or []),
+            latitude=float(r["latitude"]),
+            longitude=float(r["longitude"]),
+            borough=r["borough"],
+        )
+        for r in rows
+    ]
+    return TransitStationsResponse(stations=stations, total=len(stations))

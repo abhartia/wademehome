@@ -78,7 +78,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/nyc/east-village/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
       url: `${baseUrl}/nyc/williamsburg`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/nyc/williamsburg/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/nyc/greenpoint`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
@@ -103,6 +121,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/nyc/upper-west-side`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/nyc/park-slope`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,

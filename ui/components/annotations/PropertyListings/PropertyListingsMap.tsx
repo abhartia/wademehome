@@ -11,6 +11,11 @@ import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import { cacheProperty } from "@/lib/properties/propertyStorage";
 import type { PropertyDataItem } from "../UIEventsTypes";
 import type { BrowseMapViewport } from "@/lib/map/approximateBrowseBounds";
+import {
+  TRANSIT_SYSTEM_COLORS,
+  TRANSIT_SYSTEM_LABELS,
+  type TransitStationPoint,
+} from "@/lib/listings/useTransitStations";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -109,6 +114,10 @@ interface PropertyListingsMapProps {
    * When false, only the map popup opens; use listing links inside the popup for details.
    */
   openPropertySheetOnMarkerClick?: boolean;
+  /** Transit stations to render as small colored dots on the map. */
+  transitStations?: TransitStationPoint[];
+  /** When true, render the transit overlay. Defaults to false. */
+  showTransit?: boolean;
 }
 
 type MapboxModule = typeof mapboxgl;
@@ -125,6 +134,8 @@ export function PropertyListingsMap({
   focusedProperty = null,
   focusRequestVersion = 0,
   openPropertySheetOnMarkerClick = true,
+  transitStations,
+  showTransit = false,
 }: PropertyListingsMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -670,6 +681,94 @@ export function PropertyListingsMap({
     // groupedProperties is read from this render; markerLayoutKey bumps only when pin rows change.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- groupedProperties intentionally omitted (identity churn)
   }, [mapReady, markerLayoutKey]);
+
+  // ── Transit station overlay (PATH / HBLR / NYC subway / ferry) ──────
+  const transitMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  useEffect(() => {
+    if (!mapReady) return;
+    const mapInstance = mapRef.current;
+    const mapboxglRef = mapboxRef.current;
+    if (!mapInstance || !mapboxglRef) return;
+
+    transitMarkersRef.current.forEach((m) => m.remove());
+    transitMarkersRef.current = [];
+
+    if (!showTransit || !transitStations || transitStations.length === 0) {
+      return;
+    }
+
+    for (const station of transitStations) {
+      if (!Number.isFinite(station.latitude) || !Number.isFinite(station.longitude)) {
+        continue;
+      }
+      const color = TRANSIT_SYSTEM_COLORS[station.system] ?? "#334155";
+      const systemLabel = TRANSIT_SYSTEM_LABELS[station.system] ?? station.system;
+
+      const el = document.createElement("div");
+      el.setAttribute("role", "img");
+      el.setAttribute(
+        "aria-label",
+        `${station.station_name} (${systemLabel})`,
+      );
+      const isBus = station.system === "nj_transit_bus";
+      const size = isBus ? 6 : 10;
+      const borderWidth = isBus ? 1 : 1.5;
+      el.style.cssText = [
+        `width:${size}px`,
+        `height:${size}px`,
+        "border-radius:50%",
+        `background:${color}`,
+        `border:${borderWidth}px solid #ffffff`,
+        "box-shadow:0 0 0 1px rgba(15,23,42,0.25)",
+        "cursor:pointer",
+        "transition:transform 120ms ease",
+        isBus ? "opacity:0.8" : "opacity:1",
+      ].join(";");
+      el.onmouseenter = () => {
+        el.style.transform = "scale(1.6)";
+      };
+      el.onmouseleave = () => {
+        el.style.transform = "scale(1)";
+      };
+
+      const lineBadges = station.lines
+        .slice(0, 8)
+        .map(
+          (ln) =>
+            `<span style="display:inline-block;padding:1px 5px;border-radius:10px;background:${color};color:#fff;font-size:10px;font-weight:600;margin-right:3px;">${escapeHtml(
+              ln,
+            )}</span>`,
+        )
+        .join("");
+      const popupHtml = `
+        <div style="font-family:ui-sans-serif,system-ui;min-width:180px;">
+          <div style="font-size:12px;font-weight:700;color:#0f172a;">${escapeHtml(
+            station.station_name,
+          )}</div>
+          <div style="font-size:10px;color:#64748b;margin-top:2px;">${escapeHtml(
+            systemLabel,
+          )}${station.borough ? ` · ${escapeHtml(station.borough)}` : ""}</div>
+          ${lineBadges ? `<div style="margin-top:6px;">${lineBadges}</div>` : ""}
+        </div>
+      `;
+      const popup = new mapboxglRef.Popup({
+        offset: 10,
+        maxWidth: "240px",
+        closeButton: false,
+      }).setHTML(popupHtml);
+
+      const marker = new mapboxglRef.Marker({ element: el, anchor: "center" })
+        .setLngLat([station.longitude, station.latitude])
+        .setPopup(popup)
+        .addTo(mapInstance);
+      transitMarkersRef.current.push(marker);
+    }
+    return () => {
+      // Component-level cleanup happens in the main init effect; this return
+      // runs before the next effect pass and is already handled by the top
+      // of this effect. Left empty intentionally.
+    };
+  }, [mapReady, showTransit, transitStations]);
 
   if (!MAPBOX_TOKEN) {
     return (

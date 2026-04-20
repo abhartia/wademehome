@@ -23,6 +23,12 @@ import {
   type BrowseMapViewport,
 } from "@/lib/map/approximateBrowseBounds";
 import { isSamePropertyListing } from "@/lib/properties/propertyIdentity";
+import {
+  useTransitStations,
+  TRANSIT_SYSTEM_COLORS,
+  TRANSIT_SYSTEM_LABELS,
+  type TransitSystem,
+} from "@/lib/listings/useTransitStations";
 import { GuestHomeListingChatRuntime } from "@/app/(marketing)/GuestHomeListingChatRuntime";
 import type {
   ListingSearchPhase,
@@ -32,7 +38,7 @@ import type {
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 import type { UserProfile } from "@/lib/types/userProfile";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Loader2, Search } from "lucide-react";
+import { ChevronDown, Loader2, Search, TrainFront } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
 
@@ -241,6 +247,48 @@ function AppSearchInner({
     useAiSlice && (phase === "streaming" || phase === "done" || phase === "error");
   const [mapAiPanelOpen, setMapAiPanelOpen] = useState(true);
 
+  // Transit overlay controls. Buses and LIRR default off because buses
+  // are 2.5k+ markers in Hudson alone and LIRR isn't a fit for most
+  // NYC/JC renters at first look.
+  const TRANSIT_ALL_SYSTEMS: TransitSystem[] = [
+    "path",
+    "nyc_subway",
+    "hblr",
+    "nj_transit_rail",
+    "nj_transit_bus",
+    "ferry",
+    "lirr",
+  ];
+  const [showTransit, setShowTransit] = useState(false);
+  const [enabledTransitSystems, setEnabledTransitSystems] = useState<Set<TransitSystem>>(
+    () =>
+      new Set<TransitSystem>([
+        "path",
+        "nyc_subway",
+        "hblr",
+        "nj_transit_rail",
+        "ferry",
+      ]),
+  );
+  const enabledTransitArr = useMemo(
+    () => TRANSIT_ALL_SYSTEMS.filter((s) => enabledTransitSystems.has(s)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [enabledTransitSystems],
+  );
+  const transitQuery = useTransitStations({
+    enabled: showTransit && enabledTransitArr.length > 0,
+    systems: enabledTransitArr,
+  });
+  const transitStations = showTransit ? transitQuery.data?.stations : undefined;
+  const toggleTransitSystem = useCallback((sys: TransitSystem) => {
+    setEnabledTransitSystems((prev) => {
+      const next = new Set(prev);
+      if (next.has(sys)) next.delete(sys);
+      else next.add(sys);
+      return next;
+    });
+  }, []);
+
   const lastAiListingsRef = useRef<PropertyDataItem[]>([]);
   useEffect(() => {
     if (properties.length > 0) {
@@ -441,7 +489,7 @@ function AppSearchInner({
               )}
             </div>
           </div>
-          <div className="h-full min-h-[240px]">
+          <div className="relative h-full min-h-[240px]">
             <PropertyListingsMap
               properties={visibleListings}
               fallbackCenter={browseMapCenter}
@@ -457,7 +505,61 @@ function AppSearchInner({
               highlightedProperty={hoveredProperty}
               focusedProperty={mapFocusProperty}
               focusRequestVersion={mapFocusVersion}
+              transitStations={transitStations}
+              showTransit={showTransit}
             />
+            <div className="pointer-events-none absolute right-2 top-2 z-10 flex flex-col items-end gap-1.5">
+              <Button
+                type="button"
+                size="sm"
+                variant={showTransit ? "default" : "secondary"}
+                className="pointer-events-auto h-8 gap-1.5 px-2.5 text-xs shadow-md"
+                aria-pressed={showTransit}
+                onClick={() => setShowTransit((v) => !v)}
+                title="Toggle PATH / subway / light rail / NJT rail / NJT bus / ferry stations"
+              >
+                <TrainFront className="h-3.5 w-3.5" aria-hidden />
+                {showTransit ? "Transit on" : "Show transit"}
+              </Button>
+              {showTransit ? (
+                <div className="pointer-events-auto flex max-w-[260px] flex-wrap justify-end gap-1 rounded-md border border-border/60 bg-background/90 p-1.5 shadow-sm backdrop-blur">
+                  {TRANSIT_ALL_SYSTEMS.map((sys) => {
+                    const on = enabledTransitSystems.has(sys);
+                    return (
+                      <button
+                        key={sys}
+                        type="button"
+                        onClick={() => toggleTransitSystem(sys)}
+                        aria-pressed={on}
+                        className={cn(
+                          "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors",
+                          on
+                            ? "border-transparent bg-foreground text-background"
+                            : "border-border/80 bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        <span
+                          aria-hidden
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ backgroundColor: TRANSIT_SYSTEM_COLORS[sys] }}
+                        />
+                        {TRANSIT_SYSTEM_LABELS[sys]}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+              {showTransit && transitQuery.isLoading ? (
+                <span className="pointer-events-auto rounded-md border border-border/60 bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm backdrop-blur">
+                  Loading transit…
+                </span>
+              ) : null}
+              {showTransit && transitQuery.data ? (
+                <span className="pointer-events-auto rounded-md border border-border/60 bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm backdrop-blur">
+                  {transitQuery.data.total} stations
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
         <div className="flex min-h-0 flex-col rounded-lg border border-border/80 bg-background p-2 shadow-sm sm:p-3">

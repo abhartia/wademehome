@@ -1031,6 +1031,37 @@ export default function BestTimeToRentNycPage() {
               </p>
               <p>
                 <Link
+                  href="/nyc/williamsburg/rent-prices"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Williamsburg rent prices (2026)
+                </Link>{" "}
+                &mdash; sub-neighborhood rent tables, 6-year trend, and
+                net-effective-rent math for waterfront buildings.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/east-village/rent-prices"
+                  className="text-primary underline underline-offset-2"
+                >
+                  East Village rent prices (2026)
+                </Link>{" "}
+                &mdash; Manhattan&apos;s fastest-growing rental market by
+                search demand, with sub-area tables and concession math.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/greenpoint"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Greenpoint apartments (2026)
+                </Link>{" "}
+                &mdash; the Williamsburg-adjacent neighborhood with
+                demand up 108% year-over-year; waterfront luxury vs.
+                Polish-heritage walkups.
+              </p>
+              <p>
+                <Link
                   href="/blog/nyc-fare-act-broker-fee-ban"
                   className="text-primary underline underline-offset-2"
                 >
@@ -1047,6 +1078,17 @@ export default function BestTimeToRentNycPage() {
                 </Link>{" "}
                 &mdash; Manhattan&apos;s best pre-war stock; negotiating leverage
                 peaks in January&ndash;February.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/park-slope"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Park Slope apartments
+                </Link>{" "}
+                &mdash; Brooklyn&apos;s premier family neighborhood; winter
+                brownstone inventory opens up before the May family-relocation
+                sprint.
               </p>
               <p>
                 <Link
