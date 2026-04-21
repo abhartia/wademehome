@@ -211,7 +211,6 @@ export function HomeAgentChat() {
     messages,
     input,
     handleInputChange,
-    handleSubmit,
     isLoading,
     setMessages,
     stop,

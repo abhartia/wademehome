@@ -82,7 +82,10 @@ export function LogTourModal() {
   );
   const upsertNoteMut = useMutation(upsertTourNoteRouteToursTourIdNotePutMutation());
 
-  const myGroups = groupsQuery.data?.groups ?? [];
+  const myGroups = useMemo(
+    () => groupsQuery.data?.groups ?? [],
+    [groupsQuery.data?.groups],
+  );
   // Default the selector to the sidebar's active group; user can override before submitting.
   const [selectedGroupValue, setSelectedGroupValue] = useState<string>(
     () => activeGroupId ?? PERSONAL_GROUP_VALUE,

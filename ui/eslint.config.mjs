@@ -11,6 +11,11 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Global ignores — MUST be a config object with ONLY the `ignores` key.
+  // ESLint flat config treats `ignores` as a global ignore only when the
+  // object contains no other keys; mixing it with `rules`/`files`/etc.
+  // silently downgrades it to a per-block ignore and lets the matched
+  // paths get linted. Keep this block standalone.
   {
     ignores: [
       "node_modules/**",
@@ -21,6 +26,23 @@ const eslintConfig = [
       // Hey API / openapi-ts output — uses `any` by design
       "lib/api/generated/**",
     ],
+  },
+  // Project-wide rule overrides.
+  {
+    rules: {
+      // Honor the `_`-prefix convention for intentionally-unused args and
+      // destructured values (e.g. placeholder params on exported function
+      // signatures that must stay stable for callers).
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
   },
 ];
 

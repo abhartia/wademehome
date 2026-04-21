@@ -6,8 +6,24 @@ const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
 
 async function fetchPropertyKeys(): Promise<string[]> {
+  // The listings API is reachable at build time only when both a fully
+  // qualified base URL is configured AND the backend is online. Relative
+  // bases like "/_api" work for in-browser requests but not during
+  // `next build`, where there is no Next.js app server to proxy through.
+  // Skip in those cases so CI doesn't hang waiting for a host that doesn't
+  // exist — property URLs are added to the sitemap when the runtime pulls
+  // fresh data on subsequent rebuilds.
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_CHAT_API_URL ??
+    "";
+  if (!apiBase || apiBase.startsWith("/")) return [];
+
   try {
-    const data = await listingsFetch<{ keys: string[] }>("/listings/sitemap-keys");
+    const data = await listingsFetch<{ keys: string[] }>(
+      "/listings/sitemap-keys",
+      { signal: AbortSignal.timeout(15_000) },
+    );
     return data.keys ?? [];
   } catch {
     return [];
