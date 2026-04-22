@@ -731,6 +731,22 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/greenpoint/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Greenpoint Rent Prices: Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/bushwick/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Bushwick Rent Prices: Lofts, 1BR, 2BR &amp; L-Train Arbitrage
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/upper-west-side"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

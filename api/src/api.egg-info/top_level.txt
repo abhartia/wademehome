@@ -1,5 +1,6 @@
 admin
 agent
+applicants
 auth
 buildings
 core

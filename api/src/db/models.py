@@ -2240,6 +2240,20 @@ class Groups(Base):
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+    min_beds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_beds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_rent_usd: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_rent_usd: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    preferred_cities: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(120)), nullable=True
+    )
+    preferred_neighborhoods: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(120)), nullable=True
+    )
+    dealbreakers: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(120)), nullable=True
+    )
+    preferences_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

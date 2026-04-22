@@ -25,6 +25,8 @@ interface NeighborhoodLiveListingsProps {
   radiusMiles?: number;
   limit?: number;
   searchQuery?: string;
+  maxRent?: number;
+  minRent?: number;
 }
 
 function ListingThumb({ src, alt }: { src: string | undefined; alt: string }) {
@@ -115,6 +117,8 @@ export function NeighborhoodLiveListings({
   radiusMiles = 1.2,
   limit = 6,
   searchQuery,
+  maxRent,
+  minRent,
 }: NeighborhoodLiveListingsProps) {
   const nearbyQuery = useNearbyListings({
     mode: "radius",
@@ -122,11 +126,13 @@ export function NeighborhoodLiveListings({
     longitude,
     radiusMiles,
     limit: Math.max(limit * 3, 18),
+    maxRent,
+    minRent,
   });
 
-  const searchHref = searchQuery
-    ? `/search?q=${encodeURIComponent(searchQuery)}`
-    : `/search?q=${encodeURIComponent(`${neighborhoodName} apartments`)}`;
+  const baseSearch = searchQuery ?? `${neighborhoodName} apartments`;
+  const priceSuffix = maxRent ? ` under $${maxRent.toLocaleString()}` : "";
+  const searchHref = `/search?q=${encodeURIComponent(baseSearch + priceSuffix)}`;
 
   const groups = nearbyQuery.data?.properties
     ? groupPropertiesByBuilding(nearbyQuery.data.properties)

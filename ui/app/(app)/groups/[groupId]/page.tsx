@@ -41,6 +41,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
 import { useGroupApplicants } from "@/lib/applicants/api";
+import { GroupPreferencesCard } from "@/components/groups/GroupPreferencesCard";
 import {
   useCreateInvite,
   useDeleteGroup,
@@ -378,6 +379,8 @@ export default function GroupDetailPage(props: PageProps) {
           )}
         </CardContent>
       </Card>
+
+      <GroupPreferencesCard groupId={groupId} />
 
       <Card className="mb-6">
         <CardHeader>

@@ -418,16 +418,17 @@ export default function GreenpointGuidePage() {
                 guideline.
               </p>
               <p>
-                For a deeper breakdown including price-per-square-foot and
-                historical trend data, see our{" "}
+                For a deeper breakdown including price-per-square-foot,
+                sub-area tables (Waterfront vs. Franklin St vs. Manhattan
+                Ave vs. McGuinness), 6-year historical trend, and a direct
+                comparison vs. Williamsburg, see our{" "}
                 <Link
-                  href="/nyc/williamsburg/rent-prices"
+                  href="/nyc/greenpoint/rent-prices"
                   className="text-primary underline underline-offset-2"
                 >
-                  Williamsburg rent prices spoke
+                  Greenpoint rent prices spoke
                 </Link>
-                {" "}— the adjacent neighborhood tracks Greenpoint closely and
-                the methodology is identical.
+                .
               </p>
             </CardContent>
           </Card>
@@ -1004,6 +1005,14 @@ export default function GreenpointGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/greenpoint/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Greenpoint Rent Prices: Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/williamsburg"

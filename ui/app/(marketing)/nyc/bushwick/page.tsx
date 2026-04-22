@@ -810,6 +810,11 @@ export default function BushwickPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               {[
                 {
+                  href: "/nyc/bushwick/rent-prices",
+                  title: "Bushwick Rent Prices (2026)",
+                  desc: "Studio/1BR/2BR/3BR breakdown, loft market sizing, L-train arbitrage math",
+                },
+                {
                   href: "/nyc/williamsburg",
                   title: "Williamsburg",
                   desc: "Adjacent neighborhood, 20–25% higher rents, more polish",

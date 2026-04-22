@@ -1,4 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 import Link from "next/link";
 
@@ -85,7 +93,156 @@ export default function NycRentStabilizationGuide() {
           <p>
             The Rent Guidelines Board meets every spring to vote on new guidelines.
             Historically, increases have ranged from 0% (a rent freeze, which happened
-            in 2015 and 2016) to over 5% in years with high inflation.
+            in 2015 and 2016) to over 5% in years with high inflation. See the full
+            historical table below.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card id="nyc-annual-rent-increase-history">
+        <CardHeader>
+          <CardTitle>
+            NYC Annual Rent Increase History (2015&ndash;2026): Full RGB Rate Table
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            The table below shows the NYC annual rent increase percentages voted
+            by the Rent Guidelines Board for every lease cycle from 2015 through
+            the current 2025&ndash;2026 cycle. These are the legal maximum
+            increases a landlord can apply at your lease renewal on a
+            rent-stabilized apartment. Each cycle starts October 1 and runs
+            through September 30 of the following year.
+          </p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>RGB Lease Cycle</TableHead>
+                <TableHead className="text-right">1-Year Renewal</TableHead>
+                <TableHead className="text-right">2-Year Renewal</TableHead>
+                <TableHead>Notes</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2015 &ndash; Sep 2016
+                </TableCell>
+                <TableCell className="text-right">0%</TableCell>
+                <TableCell className="text-right">2%</TableCell>
+                <TableCell>Rent freeze (1yr)</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2016 &ndash; Sep 2017
+                </TableCell>
+                <TableCell className="text-right">0%</TableCell>
+                <TableCell className="text-right">2%</TableCell>
+                <TableCell>Second straight 1yr freeze</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2017 &ndash; Sep 2018
+                </TableCell>
+                <TableCell className="text-right">1.25%</TableCell>
+                <TableCell className="text-right">2%</TableCell>
+                <TableCell>End of rent-freeze era</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2018 &ndash; Sep 2019
+                </TableCell>
+                <TableCell className="text-right">1.5%</TableCell>
+                <TableCell className="text-right">2.5%</TableCell>
+                <TableCell>Pre-HSTPA baseline</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2019 &ndash; Sep 2020
+                </TableCell>
+                <TableCell className="text-right">1.5%</TableCell>
+                <TableCell className="text-right">2.5%</TableCell>
+                <TableCell>HSTPA takes effect mid-cycle</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2020 &ndash; Sep 2021
+                </TableCell>
+                <TableCell className="text-right">0%</TableCell>
+                <TableCell className="text-right">
+                  0% yr 1 / 1% yr 2
+                </TableCell>
+                <TableCell>COVID rent freeze</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2021 &ndash; Sep 2022
+                </TableCell>
+                <TableCell className="text-right">0% / 1.5%*</TableCell>
+                <TableCell className="text-right">2.5%</TableCell>
+                <TableCell>*0% first 6 mo, then 1.5%</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2022 &ndash; Sep 2023
+                </TableCell>
+                <TableCell className="text-right">3.25%</TableCell>
+                <TableCell className="text-right">5%</TableCell>
+                <TableCell>Largest increase in a decade</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2023 &ndash; Sep 2024
+                </TableCell>
+                <TableCell className="text-right">3%</TableCell>
+                <TableCell className="text-right">2.75% / 3.2%*</TableCell>
+                <TableCell>*Split: 2.75% yr 1, 3.2% yr 2</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2024 &ndash; Sep 2025
+                </TableCell>
+                <TableCell className="text-right">2.75%</TableCell>
+                <TableCell className="text-right">5.25%</TableCell>
+                <TableCell>Inflation-anchored</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Oct 2025 &ndash; Sep 2026 (current)
+                </TableCell>
+                <TableCell className="text-right">3%</TableCell>
+                <TableCell className="text-right">4.5%</TableCell>
+                <TableCell>Current cycle</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <p>
+            Historical averages: the 1-year lease renewal increase has averaged
+            roughly 1.6% per year across the last decade (dragged down by the
+            2015&ndash;2016 freeze and the 2020 COVID freeze). The 2-year
+            renewal has averaged roughly 2.8% per year. In high-inflation years
+            (2022&ndash;2025), both tracks have trended above the 10-year mean.
+          </p>
+          <p>
+            How to use the table: find the cycle your lease <em>renewal</em>
+            falls into (not when you originally signed), and multiply your
+            current legal regulated rent by (1 + the percentage). For the
+            current 2025&ndash;2026 cycle, a $2,000 stabilized rent becomes
+            $2,060 on a 1-year renewal and $2,090 on a 2-year renewal.
+          </p>
+          <p>
+            The next Rent Guidelines Board vote is typically held in
+            mid-to-late June. The 2026&ndash;2027 cycle rates will be announced
+            at that time and will govern lease renewals starting October 1,
+            2026.
+          </p>
+          <p className="text-xs italic">
+            Rates above are the plain 1-year and 2-year renewal increases
+            voted by the Rent Guidelines Board. They do not include Individual
+            Apartment Improvement (IAI) surcharges, Major Capital Improvement
+            (MCI) increases, or any fuel cost adjustments that may apply to
+            specific buildings. Always verify your specific rent using your
+            DHCR rent history.
           </p>
         </CardContent>
       </Card>

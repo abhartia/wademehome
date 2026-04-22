@@ -56,21 +56,32 @@ function boundsFinite(b: MapBoundsLngLat): boolean {
   );
 }
 
+type PriceBounds = {
+  minRent?: number | null;
+  maxRent?: number | null;
+};
+
 type UseNearbyListingsOptions =
-  | {
+  | ({
       mode: "bbox";
       bounds: MapBoundsLngLat;
       limit?: number;
       enabled?: boolean;
-    }
-  | {
+    } & PriceBounds)
+  | ({
       mode: "radius";
       latitude: number;
       longitude: number;
       radiusMiles?: number;
       limit?: number;
       enabled?: boolean;
-    };
+    } & PriceBounds);
+
+function normalizePrice(v: number | null | undefined): number | undefined {
+  if (v === null || v === undefined) return undefined;
+  if (!Number.isFinite(v) || v < 0) return undefined;
+  return Math.round(v);
+}
 
 export function useNearbyListings(options: UseNearbyListingsOptions) {
   const limit = options.limit ?? DEFAULT_NEARBY_LIMIT;
@@ -78,6 +89,12 @@ export function useNearbyListings(options: UseNearbyListingsOptions) {
   const normalizedBounds = options.mode === "bbox" ? stableBounds(options.bounds) : null;
   const normalizedLat = options.mode === "radius" ? stableCoord(options.latitude) : null;
   const normalizedLng = options.mode === "radius" ? stableCoord(options.longitude) : null;
+  const minRent = normalizePrice(options.minRent);
+  const maxRent = normalizePrice(options.maxRent);
+
+  const priceQuery: { min_rent?: number; max_rent?: number } = {};
+  if (minRent !== undefined) priceQuery.min_rent = minRent;
+  if (maxRent !== undefined) priceQuery.max_rent = maxRent;
 
   const queryKeyPayload =
     options.mode === "bbox"
@@ -87,6 +104,7 @@ export function useNearbyListings(options: UseNearbyListingsOptions) {
             south: normalizedBounds!.south,
             east: normalizedBounds!.east,
             north: normalizedBounds!.north,
+            ...priceQuery,
             limit,
           },
         }
@@ -95,6 +113,7 @@ export function useNearbyListings(options: UseNearbyListingsOptions) {
             latitude: normalizedLat!,
             longitude: normalizedLng!,
             radius_miles: options.radiusMiles ?? DEFAULT_NEARBY_RADIUS_MILES,
+            ...priceQuery,
             limit,
           },
         };

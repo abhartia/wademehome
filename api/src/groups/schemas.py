@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 
 class GroupCreateRequest(BaseModel):
@@ -15,12 +15,51 @@ class GroupRenameRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
 
 
+class GroupPreferences(BaseModel):
+    min_beds: int | None = Field(default=None, ge=0, le=20)
+    max_beds: int | None = Field(default=None, ge=0, le=20)
+    min_rent_usd: int | None = Field(default=None, ge=0, le=1_000_000)
+    max_rent_usd: int | None = Field(default=None, ge=0, le=1_000_000)
+    preferred_cities: list[str] = Field(default_factory=list)
+    preferred_neighborhoods: list[str] = Field(default_factory=list)
+    dealbreakers: list[str] = Field(default_factory=list)
+    notes: str | None = None
+
+
+class GroupPreferencesUpdate(BaseModel):
+    min_beds: int | None = Field(default=None, ge=0, le=20)
+    max_beds: int | None = Field(default=None, ge=0, le=20)
+    min_rent_usd: int | None = Field(default=None, ge=0, le=1_000_000)
+    max_rent_usd: int | None = Field(default=None, ge=0, le=1_000_000)
+    preferred_cities: list[str] | None = None
+    preferred_neighborhoods: list[str] | None = None
+    dealbreakers: list[str] | None = None
+    notes: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_ranges(self) -> "GroupPreferencesUpdate":
+        if (
+            self.min_beds is not None
+            and self.max_beds is not None
+            and self.min_beds > self.max_beds
+        ):
+            raise ValueError("min_beds cannot exceed max_beds")
+        if (
+            self.min_rent_usd is not None
+            and self.max_rent_usd is not None
+            and self.min_rent_usd > self.max_rent_usd
+        ):
+            raise ValueError("min_rent_usd cannot exceed max_rent_usd")
+        return self
+
+
 class GroupResponse(BaseModel):
     id: uuid.UUID
     name: str
     role: str
     member_count: int
     created_at: datetime
+    preferences: GroupPreferences
 
 
 class GroupListResponse(BaseModel):

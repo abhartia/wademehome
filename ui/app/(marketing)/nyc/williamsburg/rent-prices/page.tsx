@@ -743,10 +743,34 @@ export default function WilliamsburgRentPricesPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/greenpoint/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Greenpoint Rent Prices: G-Train Discount vs. Williamsburg
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/bushwick/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Bushwick Rent Prices: Lofts &amp; L-Train Arbitrage
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/bushwick"
                     className="text-primary underline underline-offset-2"
                   >
                     Bushwick Apartments: Rent &amp; Neighborhood Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/long-island-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    LIC Rent Prices: Waterfront Towers &amp; Net-Effective Rent
                   </Link>
                 </li>
                 <li>

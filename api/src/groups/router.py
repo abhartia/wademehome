@@ -30,12 +30,56 @@ from groups.schemas import (
     GroupMemberResponse,
     GroupMemberRoleUpdateRequest,
     GroupMembersListResponse,
+    GroupPreferences,
+    GroupPreferencesUpdate,
     GroupRenameRequest,
     GroupResponse,
     InviteAcceptRequest,
     InviteAcceptResponse,
     InvitePreviewResponse,
 )
+
+
+def _clean_str_list(values: list[str] | None) -> list[str] | None:
+    if values is None:
+        return None
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for v in values:
+        s = (v or "").strip()
+        if not s:
+            continue
+        if s in seen:
+            continue
+        seen.add(s)
+        cleaned.append(s[:120])
+    return cleaned or None
+
+
+def _group_preferences(group: Groups) -> GroupPreferences:
+    return GroupPreferences(
+        min_beds=group.min_beds,
+        max_beds=group.max_beds,
+        min_rent_usd=group.min_rent_usd,
+        max_rent_usd=group.max_rent_usd,
+        preferred_cities=list(group.preferred_cities or []),
+        preferred_neighborhoods=list(group.preferred_neighborhoods or []),
+        dealbreakers=list(group.dealbreakers or []),
+        notes=group.preferences_notes,
+    )
+
+
+def _build_group_response(
+    group: Groups, *, role: str, member_count: int
+) -> GroupResponse:
+    return GroupResponse(
+        id=group.id,
+        name=group.name,
+        role=role,
+        member_count=member_count,
+        created_at=group.created_at,
+        preferences=_group_preferences(group),
+    )
 
 router = APIRouter(tags=["groups"])
 
@@ -52,13 +96,7 @@ def create_group(
     db.add(GroupMembers(group_id=group.id, user_id=user.id, role="owner"))
     db.commit()
     db.refresh(group)
-    return GroupResponse(
-        id=group.id,
-        name=group.name,
-        role="owner",
-        member_count=1,
-        created_at=group.created_at,
-    )
+    return _build_group_response(group, role="owner", member_count=1)
 
 
 @router.get("/groups", response_model=GroupListResponse)
@@ -67,12 +105,7 @@ def list_groups(
     db: Session = Depends(get_db),
 ):
     rows = db.execute(
-        select(
-            Groups.id,
-            Groups.name,
-            Groups.created_at,
-            GroupMembers.role,
-        )
+        select(Groups, GroupMembers.role)
         .join(GroupMembers, GroupMembers.group_id == Groups.id)
         .where(GroupMembers.user_id == user.id)
         .order_by(Groups.created_at.desc())
@@ -81,24 +114,23 @@ def list_groups(
     if not rows:
         return GroupListResponse(groups=[])
 
+    group_ids = [r[0].id for r in rows]
     counts = dict(
         db.execute(
             select(GroupMembers.group_id, func.count(GroupMembers.id))
-            .where(GroupMembers.group_id.in_([r.id for r in rows]))
+            .where(GroupMembers.group_id.in_(group_ids))
             .group_by(GroupMembers.group_id)
         ).all()
     )
 
     return GroupListResponse(
         groups=[
-            GroupResponse(
-                id=r.id,
-                name=r.name,
-                role=r.role,
-                member_count=int(counts.get(r.id, 0) or 0),
-                created_at=r.created_at,
+            _build_group_response(
+                group,
+                role=role,
+                member_count=int(counts.get(group.id, 0) or 0),
             )
-            for r in rows
+            for (group, role) in rows
         ]
     )
 
@@ -121,12 +153,69 @@ def rename_group(
             select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)
         ).scalar_one()
     )
-    return GroupResponse(
-        id=group.id,
-        name=group.name,
-        role=membership.role,
-        member_count=member_count,
-        created_at=group.created_at,
+    return _build_group_response(
+        group, role=membership.role, member_count=member_count
+    )
+
+
+@router.get("/groups/{group_id}", response_model=GroupResponse)
+def get_group(
+    group_id: uuid.UUID,
+    membership: GroupMembers = Depends(require_group_member()),
+    db: Session = Depends(get_db),
+):
+    group = db.get(Groups, group_id)
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+    member_count = int(
+        db.execute(
+            select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)
+        ).scalar_one()
+    )
+    return _build_group_response(
+        group, role=membership.role, member_count=member_count
+    )
+
+
+@router.patch(
+    "/groups/{group_id}/preferences", response_model=GroupResponse
+)
+def update_group_preferences(
+    group_id: uuid.UUID,
+    payload: GroupPreferencesUpdate,
+    membership: GroupMembers = Depends(require_group_member()),
+    db: Session = Depends(get_db),
+):
+    group = db.get(Groups, group_id)
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+    data = payload.model_dump(exclude_unset=True)
+    if "min_beds" in data:
+        group.min_beds = data["min_beds"]
+    if "max_beds" in data:
+        group.max_beds = data["max_beds"]
+    if "min_rent_usd" in data:
+        group.min_rent_usd = data["min_rent_usd"]
+    if "max_rent_usd" in data:
+        group.max_rent_usd = data["max_rent_usd"]
+    if "preferred_cities" in data:
+        group.preferred_cities = _clean_str_list(data["preferred_cities"])
+    if "preferred_neighborhoods" in data:
+        group.preferred_neighborhoods = _clean_str_list(data["preferred_neighborhoods"])
+    if "dealbreakers" in data:
+        group.dealbreakers = _clean_str_list(data["dealbreakers"])
+    if "notes" in data:
+        note = (data["notes"] or "").strip()
+        group.preferences_notes = note or None
+    db.commit()
+    db.refresh(group)
+    member_count = int(
+        db.execute(
+            select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)
+        ).scalar_one()
+    )
+    return _build_group_response(
+        group, role=membership.role, member_count=member_count
     )
 
 

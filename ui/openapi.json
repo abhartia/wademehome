@@ -418,6 +418,46 @@
             }
           },
           {
+            "name": "min_rent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 1000000,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum monthly rent (USD). Rows with no rent data are kept.",
+              "title": "Min Rent"
+            },
+            "description": "Minimum monthly rent (USD). Rows with no rent data are kept."
+          },
+          {
+            "name": "max_rent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 1000000,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Maximum monthly rent (USD). Rows with no rent data are kept.",
+              "title": "Max Rent"
+            },
+            "description": "Maximum monthly rent (USD). Rows with no rent data are kept."
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -649,6 +689,182 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MarketSnapshotResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listings/price-histogram": {
+      "get": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Get Price Histogram",
+        "description": "Rent distribution for the listings inside a map bounding box or a\ncity/state, shaped so the PriceRangeFilter UI can draw a histogram and\nanchor the dual-handle slider to real data. Buckets are dynamic: the\nscale runs between the 1st and 99th percentile of observed rent so a\nsingle outlier can't flatten the chart.",
+        "operationId": "get_price_histogram_listings_price_histogram_get",
+        "parameters": [
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "West"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "South"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "East"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "North"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "min_beds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 20,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Beds"
+            }
+          },
+          {
+            "name": "max_beds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 20,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Beds"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceHistogramResponse"
                 }
               }
             }
@@ -1603,6 +1819,47 @@
           }
         }
       },
+      "get": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Get Group",
+        "operationId": "get_group_groups__group_id__get",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "groups"
@@ -1624,6 +1881,59 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/{group_id}/preferences": {
+      "patch": {
+        "tags": [
+          "groups"
+        ],
+        "summary": "Update Group Preferences",
+        "operationId": "update_group_preferences_groups__group_id__preferences_patch",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Group Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupPreferencesUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupResponse"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -12231,6 +12541,207 @@
         ],
         "title": "GroupNotesListResponse"
       },
+      "GroupPreferences": {
+        "properties": {
+          "min_beds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Beds"
+          },
+          "max_beds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Beds"
+          },
+          "min_rent_usd": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rent Usd"
+          },
+          "max_rent_usd": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Rent Usd"
+          },
+          "preferred_cities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Cities"
+          },
+          "preferred_neighborhoods": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Neighborhoods"
+          },
+          "dealbreakers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dealbreakers"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "GroupPreferences"
+      },
+      "GroupPreferencesUpdate": {
+        "properties": {
+          "min_beds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Beds"
+          },
+          "max_beds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Beds"
+          },
+          "min_rent_usd": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rent Usd"
+          },
+          "max_rent_usd": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Rent Usd"
+          },
+          "preferred_cities": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Cities"
+          },
+          "preferred_neighborhoods": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Neighborhoods"
+          },
+          "dealbreakers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dealbreakers"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "GroupPreferencesUpdate"
+      },
       "GroupRenameRequest": {
         "properties": {
           "name": {
@@ -12269,6 +12780,9 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/GroupPreferences"
           }
         },
         "type": "object",
@@ -12277,7 +12791,8 @@
           "name",
           "role",
           "member_count",
-          "created_at"
+          "created_at",
+          "preferences"
         ],
         "title": "GroupResponse"
       },
@@ -17422,6 +17937,151 @@
         },
         "type": "object",
         "title": "PrefillFields"
+      },
+      "PriceHistogramBucket": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Index",
+            "description": "Bucket index. 1..bucket_count lie within the [p01, p99] range; 0 is the below-range overflow and bucket_count+1 the above-range overflow."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          },
+          "min_rent": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Min Rent",
+            "description": "Lower edge of this bucket's rent range (USD/month)."
+          },
+          "max_rent": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Max Rent",
+            "description": "Upper edge of this bucket's rent range (USD/month)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "count",
+          "min_rent",
+          "max_rent"
+        ],
+        "title": "PriceHistogramBucket"
+      },
+      "PriceHistogramResponse": {
+        "properties": {
+          "sample_size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sample Size",
+            "description": "Listings with a usable rent in scope."
+          },
+          "bucket_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Bucket Count",
+            "description": "Number of interior buckets spanning [range_min, range_max]."
+          },
+          "range_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Min",
+            "description": "Lower edge of the histogram scale (p01, rounded). Null when no data."
+          },
+          "range_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Max",
+            "description": "Upper edge of the histogram scale (p99, rounded). Null when no data."
+          },
+          "min_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rent",
+            "description": "Minimum rent observed in scope (USD/month)."
+          },
+          "max_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Rent",
+            "description": "Maximum rent observed in scope (USD/month)."
+          },
+          "p25_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P25 Rent"
+          },
+          "median_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Rent"
+          },
+          "p75_rent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P75 Rent"
+          },
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/PriceHistogramBucket"
+            },
+            "type": "array",
+            "title": "Buckets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sample_size",
+          "bucket_count"
+        ],
+        "title": "PriceHistogramResponse"
       },
       "ProfileOut": {
         "properties": {

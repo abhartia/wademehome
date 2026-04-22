@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 import { blogArticles } from "@/lib/blog/articles";
 import { listingsFetch } from "@/lib/listings/listingsApi";
+import {
+  NYC_NEIGHBORHOODS,
+  UNDER_PRICE_TIERS,
+} from "@/lib/neighborhoods/nycNeighborhoods";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
@@ -118,6 +122,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/nyc/greenpoint/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
       url: `${baseUrl}/nyc/astoria`,
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -146,6 +156,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/nyc/bushwick/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
     },
     {
       url: `${baseUrl}/nyc/upper-west-side`,
@@ -210,6 +226,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  const apartmentsUnderEntries: MetadataRoute.Sitemap =
+    NYC_NEIGHBORHOODS.flatMap((hood) =>
+      UNDER_PRICE_TIERS.map((tier) => ({
+        url: `${baseUrl}/nyc/${hood.slug}/apartments-under-${tier}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      }))
+    );
+
   const propertyKeys = await fetchPropertyKeys();
   const propertyEntries: MetadataRoute.Sitemap = propertyKeys.map((key) => ({
     url: `${baseUrl}/properties/${encodeURIComponent(key)}`,
@@ -217,5 +243,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...blogEntries, ...propertyEntries];
+  return [
+    ...staticPages,
+    ...blogEntries,
+    ...apartmentsUnderEntries,
+    ...propertyEntries,
+  ];
 }

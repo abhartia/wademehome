@@ -55,6 +55,50 @@ class SitemapKeysResponse(BaseModel):
     keys: list[str] = Field(default_factory=list, description="Property keys for sitemap URLs.")
 
 
+class PriceHistogramBucket(BaseModel):
+    index: int = Field(
+        ge=0,
+        description=(
+            "Bucket index. 1..bucket_count lie within the [p01, p99] range; "
+            "0 is the below-range overflow and bucket_count+1 the above-range overflow."
+        ),
+    )
+    count: int = Field(ge=0)
+    min_rent: float = Field(
+        ge=0,
+        description="Lower edge of this bucket's rent range (USD/month).",
+    )
+    max_rent: float = Field(
+        ge=0,
+        description="Upper edge of this bucket's rent range (USD/month).",
+    )
+
+
+class PriceHistogramResponse(BaseModel):
+    sample_size: int = Field(ge=0, description="Listings with a usable rent in scope.")
+    bucket_count: int = Field(
+        ge=0, description="Number of interior buckets spanning [range_min, range_max]."
+    )
+    range_min: float | None = Field(
+        default=None,
+        description="Lower edge of the histogram scale (p01, rounded). Null when no data.",
+    )
+    range_max: float | None = Field(
+        default=None,
+        description="Upper edge of the histogram scale (p99, rounded). Null when no data.",
+    )
+    min_rent: float | None = Field(
+        default=None, description="Minimum rent observed in scope (USD/month)."
+    )
+    max_rent: float | None = Field(
+        default=None, description="Maximum rent observed in scope (USD/month)."
+    )
+    p25_rent: float | None = None
+    median_rent: float | None = None
+    p75_rent: float | None = None
+    buckets: list[PriceHistogramBucket] = Field(default_factory=list)
+
+
 class NearbyListingsResponse(BaseModel):
     properties: list[PropertyDataItem]
     total_in_radius: int = Field(

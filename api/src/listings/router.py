@@ -18,6 +18,8 @@ from listings.mapbox_client import driving_durations_minutes, forward_geocode, s
 from listings.listing_amenities_concessions import merge_concession_snippets_from_listing_amenities
 from listings.listings_table_cache import cached_execute_all, cached_execute_first
 from listings.market_snapshot import build_market_snapshot_sql, extract_zip_from_address, normalize_us_zip_query
+from listings.market_snapshot import _rent_sql_expr
+from listings.price_histogram import BUCKET_COUNT, build_price_histogram_sql
 from listings.nearby_mapper import row_to_property_data_item
 from listings.property_key import item_matches_property_key, parse_property_key, property_key_from_item
 from listings.schemas import (
@@ -30,6 +32,8 @@ from listings.schemas import (
     NearestTransitStation,
     PoiHit,
     PoiNearbyResponse,
+    PriceHistogramBucket,
+    PriceHistogramResponse,
     SitemapKeysResponse,
     TransitStationPoint,
     TransitStationsResponse,
@@ -50,6 +54,29 @@ def _visibility_where(cols: set[str], alias: str | None = None) -> str:
         return "TRUE"
     p = f"{alias}." if alias else ""
     return f"({p}visibility = 'public' OR {p}visibility IS NULL)"
+
+
+def _rent_filter_clause(
+    cols: set[str], *, min_rent: float | None, max_rent: float | None
+) -> tuple[str, dict[str, Any]]:
+    """Extra SQL and params for narrowing to a rent range. Rows without a
+    usable rent value are excluded whenever a filter is active (same scope
+    as the price histogram), so the map and the histogram agree on what's
+    filterable."""
+    if min_rent is None and max_rent is None:
+        return "", {}
+    rent = _rent_sql_expr(cols)
+    if rent is None:
+        return "", {}
+    parts: list[str] = [f"({rent}) IS NOT NULL"]
+    params: dict[str, Any] = {}
+    if min_rent is not None:
+        parts.append(f"({rent}) >= :r_min")
+        params["r_min"] = float(min_rent)
+    if max_rent is not None:
+        parts.append(f"({rent}) <= :r_max")
+        params["r_max"] = float(max_rent)
+    return " AND " + " AND ".join(parts), params
 
 
 def _haversine_mi_sql(*, table_alias: str | None = None) -> str:
@@ -266,6 +293,8 @@ def _run_nearby_radius_query(
     radius_miles: float,
     limit: int,
     include_total: bool,
+    min_rent: float | None = None,
+    max_rent: float | None = None,
 ) -> tuple[list[Any], int, bool]:
     """Radius-mode SQL; returns raw rows, total_in_scope (or 0), used_global_fallback."""
     params: dict[str, Any] = {
@@ -276,6 +305,8 @@ def _run_nearby_radius_query(
         "radius": radius_miles,
         "radius_m": float(radius_miles) * 1609.344,
     }
+    rent_clause, rent_params = _rent_filter_clause(cols, min_rent=min_rent, max_rent=max_rent)
+    params.update(rent_params)
     vis = _visibility_where(cols, "t_inner")
     if "geog" in cols:
         total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
@@ -295,7 +326,7 @@ def _run_nearby_radius_query(
                 ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
                 :radius_m
               )
-              AND {vis}
+              AND {vis}{rent_clause}
             ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
             LIMIT :prefetch_limit
             """
@@ -312,7 +343,7 @@ def _run_nearby_radius_query(
             WHERE t_inner.latitude IS NOT NULL
               AND t_inner.longitude IS NOT NULL
               AND ({hav_inner}) <= :radius
-              AND {vis}
+              AND {vis}{rent_clause}
             ORDER BY ({hav_inner}) ASC
             LIMIT :prefetch_limit
             """
@@ -338,7 +369,7 @@ def _run_nearby_radius_query(
         FROM {qtable} AS t_inner
         WHERE t_inner.latitude IS NOT NULL
           AND t_inner.longitude IS NOT NULL
-          AND {vis}
+          AND {vis}{rent_clause}
         ORDER BY ({hav_inner}) ASC
         LIMIT :prefetch_limit
         """
@@ -457,6 +488,14 @@ def get_nearby_listings(
     south: float | None = Query(default=None, ge=-90, le=90),
     east: float | None = Query(default=None, ge=-180, le=180),
     north: float | None = Query(default=None, ge=-90, le=90),
+    min_rent: float | None = Query(
+        default=None, ge=0, le=1_000_000,
+        description="Minimum monthly rent (USD). Rows with no rent data are kept.",
+    ),
+    max_rent: float | None = Query(
+        default=None, ge=0, le=1_000_000,
+        description="Maximum monthly rent (USD). Rows with no rent data are kept.",
+    ),
     limit: int = Query(50, ge=1, le=100),
 ) -> NearbyListingsResponse:
     """
@@ -519,6 +558,9 @@ def get_nearby_listings(
 
             cols = _table_columns_lower(conn, schema_for_info, tname)
             select_cols = _nearby_projection(cols)
+            rent_clause, rent_params = _rent_filter_clause(
+                cols, min_rent=min_rent, max_rent=max_rent
+            )
             params: dict[str, Any] = {
                 "lat": q_lat,
                 "lng": q_lng,
@@ -527,6 +569,7 @@ def get_nearby_listings(
                 # dense markets where many unit rows belong to the same property.
                 "prefetch_limit": min(max(limit * 20, limit), 2500),
             }
+            params.update(rent_params)
 
             if bbox_mode:
                 assert west is not None and south is not None and east is not None and north is not None
@@ -543,7 +586,7 @@ def get_nearby_listings(
                   AND t_inner.longitude IS NOT NULL
                   AND t_inner.latitude BETWEEN :south AND :north
                   AND t_inner.longitude BETWEEN :west AND :east
-                  AND {_vis_inner}
+                  AND {_vis_inner}{rent_clause}
                 """
                 # Circle that fully covers the requested bbox for indexed prefiltering.
                 params["bbox_radius_m"] = (
@@ -570,7 +613,7 @@ def get_nearby_listings(
                           )
                           AND t_inner.latitude BETWEEN :south AND :north
                           AND t_inner.longitude BETWEEN :west AND :east
-                          AND {_vis_inner}
+                          AND {_vis_inner}{rent_clause}
                         ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
                         LIMIT :prefetch_limit
                         """
@@ -607,7 +650,7 @@ def get_nearby_listings(
                         FROM {qtable} AS t_inner
                         WHERE t_inner.latitude IS NOT NULL
                           AND t_inner.longitude IS NOT NULL
-                          AND {_vis_inner}
+                          AND {_vis_inner}{rent_clause}
                         ORDER BY ({hav_inner}) ASC
                         LIMIT :prefetch_limit
                         """
@@ -627,6 +670,8 @@ def get_nearby_listings(
                     radius_miles=radius_miles,
                     limit=limit,
                     include_total=include_total,
+                    min_rent=min_rent,
+                    max_rent=max_rent,
                 )
 
         # Keep one listing per building while preserving nearest-first ordering.
@@ -1004,6 +1049,153 @@ def get_market_snapshot(
     if result.sample_size == 0 and not zip_t and not (city_t and state_t):
         raise HTTPException(status_code=400, detail="No data for this location")
     return result
+
+
+def _round_nice(value: float, *, down: bool) -> float:
+    """Round to a human-friendly edge for a price axis. Granularity tracks
+    magnitude so the histogram x-axis reads as whole-hundred-dollar ticks
+    at typical NYC-area rents, whole-thousands for luxury markets, etc."""
+    if value <= 0:
+        return 0.0
+    if value < 1000:
+        step = 50.0
+    elif value < 5000:
+        step = 100.0
+    elif value < 20000:
+        step = 500.0
+    else:
+        step = 1000.0
+    if down:
+        return math.floor(value / step) * step
+    return math.ceil(value / step) * step
+
+
+@router.get("/price-histogram", response_model=PriceHistogramResponse)
+def get_price_histogram(
+    west: float | None = Query(default=None, ge=-180, le=180),
+    south: float | None = Query(default=None, ge=-90, le=90),
+    east: float | None = Query(default=None, ge=-180, le=180),
+    north: float | None = Query(default=None, ge=-90, le=90),
+    city: str | None = Query(default=None, max_length=120),
+    state: str | None = Query(default=None, max_length=32),
+    min_beds: int | None = Query(default=None, ge=0, le=20),
+    max_beds: int | None = Query(default=None, ge=0, le=20),
+) -> PriceHistogramResponse:
+    """Rent distribution for the listings inside a map bounding box or a
+    city/state, shaped so the PriceRangeFilter UI can draw a histogram and
+    anchor the dual-handle slider to real data. Buckets are dynamic: the
+    scale runs between the 1st and 99th percentile of observed rent so a
+    single outlier can't flatten the chart."""
+    bbox_mode = all(v is not None for v in (west, south, east, north))
+    if bbox_mode:
+        assert west is not None and south is not None and east is not None and north is not None
+        _validate_bbox(west, south, east, north)
+
+    qtable = _qualified_table()
+    db_url = (Config.get("DATABASE_URL") or "").strip()
+    if not db_url or not qtable:
+        return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
+    if engine.dialect.name != "postgresql":
+        logger.warning(
+            "listings/price-histogram: unsupported dialect %s", engine.dialect.name
+        )
+        return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
+
+    schema_kw = (listing_table_schema or "").strip() or None
+    schema_for_info = schema_kw if schema_kw else "public"
+    tname = (listing_table_name or "").strip()
+
+    try:
+        with engine.connect() as conn:
+            insp = inspect(conn)
+            if not insp.has_table(tname, schema=schema_kw):
+                return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
+            cols = _table_columns_lower(conn, schema_for_info, tname)
+            built = build_price_histogram_sql(
+                qtable,
+                cols,
+                west=west,
+                south=south,
+                east=east,
+                north=north,
+                city=city,
+                state=state,
+                min_beds=min_beds,
+                max_beds=max_beds,
+            )
+            if built is None:
+                return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
+            sql, params = built
+            row = cached_execute_first(conn, text(sql), params)
+    except Exception:
+        logger.exception("listings/price-histogram: query failed")
+        return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
+
+    if not row:
+        return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
+
+    sample_size = int(row.get("sample_size") or 0)
+    p01 = row.get("p01")
+    p99 = row.get("p99")
+    min_observed = row.get("min_rent")
+    max_observed = row.get("max_rent")
+
+    if sample_size == 0 or p01 is None or p99 is None or float(p99) <= float(p01):
+        return PriceHistogramResponse(
+            sample_size=sample_size,
+            bucket_count=BUCKET_COUNT,
+            min_rent=float(min_observed) if min_observed is not None else None,
+            max_rent=float(max_observed) if max_observed is not None else None,
+        )
+
+    range_min = _round_nice(float(p01), down=True)
+    range_max = _round_nice(float(p99), down=False)
+    if range_max <= range_min:
+        range_max = range_min + 100.0
+    bucket_width = (range_max - range_min) / BUCKET_COUNT
+
+    raw_buckets = row.get("buckets") or []
+    counts_by_index: dict[int, int] = {}
+    for b in raw_buckets:
+        try:
+            idx = int(b.get("bucket"))
+            cnt = int(b.get("count") or 0)
+        except (TypeError, ValueError):
+            continue
+        counts_by_index[idx] = counts_by_index.get(idx, 0) + cnt
+
+    buckets_out: list[PriceHistogramBucket] = []
+    # 0 = below range_min, 1..BUCKET_COUNT = in range, BUCKET_COUNT+1 = above range_max.
+    for i in range(0, BUCKET_COUNT + 2):
+        count = counts_by_index.get(i, 0)
+        if i == 0:
+            lo = float(min_observed) if min_observed is not None else range_min
+            hi = range_min
+        elif i == BUCKET_COUNT + 1:
+            lo = range_max
+            hi = float(max_observed) if max_observed is not None else range_max
+        else:
+            lo = range_min + bucket_width * (i - 1)
+            hi = range_min + bucket_width * i
+        if count == 0 and i != 0 and i != BUCKET_COUNT + 1:
+            # Emit the bar anyway (with 0 count) so the UI can draw a continuous axis.
+            pass
+        buckets_out.append(
+            PriceHistogramBucket(index=i, count=count, min_rent=lo, max_rent=hi)
+        )
+
+    return PriceHistogramResponse(
+        sample_size=sample_size,
+        bucket_count=BUCKET_COUNT,
+        range_min=range_min,
+        range_max=range_max,
+        min_rent=float(min_observed) if min_observed is not None else None,
+        max_rent=float(max_observed) if max_observed is not None else None,
+        p25_rent=float(row.get("p25")) if row.get("p25") is not None else None,
+        median_rent=float(row.get("p50")) if row.get("p50") is not None else None,
+        p75_rent=float(row.get("p75")) if row.get("p75") is not None else None,
+        buckets=buckets_out,
+    )
 
 
 @router.post("/commute-matrix", response_model=CommuteMatrixResponse)

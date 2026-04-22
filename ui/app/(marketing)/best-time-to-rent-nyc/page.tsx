@@ -1071,14 +1071,24 @@ export default function BestTimeToRentNycPage() {
               </p>
               <p>
                 <Link
-                  href="/nyc/greenpoint"
+                  href="/nyc/greenpoint/rent-prices"
                   className="text-primary underline underline-offset-2"
                 >
-                  Greenpoint apartments (2026)
+                  Greenpoint rent prices (2026)
                 </Link>{" "}
-                &mdash; the Williamsburg-adjacent neighborhood with
-                demand up 108% year-over-year; waterfront luxury vs.
-                Polish-heritage walkups.
+                &mdash; the G-train-only neighborhood where rent runs
+                ~$300-400/mo below Williamsburg for the same square
+                footage; sub-area tables and 6-year trend.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/bushwick/rent-prices"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Bushwick rent prices (2026)
+                </Link>{" "}
+                &mdash; L-train arbitrage math ($700/mo vs. Williamsburg)
+                plus the converted loft market sized by square footage.
               </p>
               <p>
                 <Link

@@ -215,7 +215,7 @@ def cached_execute_first(conn: Connection, sql: Any, params: Any) -> dict[str, A
     cache = get_listings_table_query_cache()
     if cache is not None:
         hit = cache.get(key)
-        if hit is not None:
+        if hit is not _CACHE_MISS:
             return None if hit is None else _deserialize_cached_value(dict(hit))
     stmt = _to_executable(sql)
     row = conn.execute(stmt, params).mappings().first()

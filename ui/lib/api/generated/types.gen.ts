@@ -1706,6 +1706,82 @@ export type GroupNotesListResponse = {
 };
 
 /**
+ * GroupPreferences
+ */
+export type GroupPreferences = {
+    /**
+     * Min Beds
+     */
+    min_beds?: number | null;
+    /**
+     * Max Beds
+     */
+    max_beds?: number | null;
+    /**
+     * Min Rent Usd
+     */
+    min_rent_usd?: number | null;
+    /**
+     * Max Rent Usd
+     */
+    max_rent_usd?: number | null;
+    /**
+     * Preferred Cities
+     */
+    preferred_cities?: Array<string>;
+    /**
+     * Preferred Neighborhoods
+     */
+    preferred_neighborhoods?: Array<string>;
+    /**
+     * Dealbreakers
+     */
+    dealbreakers?: Array<string>;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * GroupPreferencesUpdate
+ */
+export type GroupPreferencesUpdate = {
+    /**
+     * Min Beds
+     */
+    min_beds?: number | null;
+    /**
+     * Max Beds
+     */
+    max_beds?: number | null;
+    /**
+     * Min Rent Usd
+     */
+    min_rent_usd?: number | null;
+    /**
+     * Max Rent Usd
+     */
+    max_rent_usd?: number | null;
+    /**
+     * Preferred Cities
+     */
+    preferred_cities?: Array<string> | null;
+    /**
+     * Preferred Neighborhoods
+     */
+    preferred_neighborhoods?: Array<string> | null;
+    /**
+     * Dealbreakers
+     */
+    dealbreakers?: Array<string> | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
  * GroupRenameRequest
  */
 export type GroupRenameRequest = {
@@ -1739,6 +1815,7 @@ export type GroupResponse = {
      * Created At
      */
     created_at: string;
+    preferences: GroupPreferences;
 };
 
 /**
@@ -4731,6 +4808,83 @@ export type PrefillFields = {
 };
 
 /**
+ * PriceHistogramBucket
+ */
+export type PriceHistogramBucket = {
+    /**
+     * Index
+     * Bucket index. 1..bucket_count lie within the [p01, p99] range; 0 is the below-range overflow and bucket_count+1 the above-range overflow.
+     */
+    index: number;
+    /**
+     * Count
+     */
+    count: number;
+    /**
+     * Min Rent
+     * Lower edge of this bucket's rent range (USD/month).
+     */
+    min_rent: number;
+    /**
+     * Max Rent
+     * Upper edge of this bucket's rent range (USD/month).
+     */
+    max_rent: number;
+};
+
+/**
+ * PriceHistogramResponse
+ */
+export type PriceHistogramResponse = {
+    /**
+     * Sample Size
+     * Listings with a usable rent in scope.
+     */
+    sample_size: number;
+    /**
+     * Bucket Count
+     * Number of interior buckets spanning [range_min, range_max].
+     */
+    bucket_count: number;
+    /**
+     * Range Min
+     * Lower edge of the histogram scale (p01, rounded). Null when no data.
+     */
+    range_min?: number | null;
+    /**
+     * Range Max
+     * Upper edge of the histogram scale (p99, rounded). Null when no data.
+     */
+    range_max?: number | null;
+    /**
+     * Min Rent
+     * Minimum rent observed in scope (USD/month).
+     */
+    min_rent?: number | null;
+    /**
+     * Max Rent
+     * Maximum rent observed in scope (USD/month).
+     */
+    max_rent?: number | null;
+    /**
+     * P25 Rent
+     */
+    p25_rent?: number | null;
+    /**
+     * Median Rent
+     */
+    median_rent?: number | null;
+    /**
+     * P75 Rent
+     */
+    p75_rent?: number | null;
+    /**
+     * Buckets
+     */
+    buckets?: Array<PriceHistogramBucket>;
+};
+
+/**
  * ProfileOut
  */
 export type ProfileOut = {
@@ -7394,6 +7548,16 @@ export type GetNearbyListingsListingsNearbyGetData = {
          */
         north?: number | null;
         /**
+         * Min Rent
+         * Minimum monthly rent (USD). Rows with no rent data are kept.
+         */
+        min_rent?: number | null;
+        /**
+         * Max Rent
+         * Maximum monthly rent (USD). Rows with no rent data are kept.
+         */
+        max_rent?: number | null;
+        /**
          * Limit
          */
         limit?: number;
@@ -7533,6 +7697,64 @@ export type GetMarketSnapshotListingsMarketSnapshotGetResponses = {
 };
 
 export type GetMarketSnapshotListingsMarketSnapshotGetResponse = GetMarketSnapshotListingsMarketSnapshotGetResponses[keyof GetMarketSnapshotListingsMarketSnapshotGetResponses];
+
+export type GetPriceHistogramListingsPriceHistogramGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * West
+         */
+        west?: number | null;
+        /**
+         * South
+         */
+        south?: number | null;
+        /**
+         * East
+         */
+        east?: number | null;
+        /**
+         * North
+         */
+        north?: number | null;
+        /**
+         * City
+         */
+        city?: string | null;
+        /**
+         * State
+         */
+        state?: string | null;
+        /**
+         * Min Beds
+         */
+        min_beds?: number | null;
+        /**
+         * Max Beds
+         */
+        max_beds?: number | null;
+    };
+    url: '/listings/price-histogram';
+};
+
+export type GetPriceHistogramListingsPriceHistogramGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetPriceHistogramListingsPriceHistogramGetError = GetPriceHistogramListingsPriceHistogramGetErrors[keyof GetPriceHistogramListingsPriceHistogramGetErrors];
+
+export type GetPriceHistogramListingsPriceHistogramGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PriceHistogramResponse;
+};
+
+export type GetPriceHistogramListingsPriceHistogramGetResponse = GetPriceHistogramListingsPriceHistogramGetResponses[keyof GetPriceHistogramListingsPriceHistogramGetResponses];
 
 export type CommuteMatrixListingsCommuteMatrixPostData = {
     body: CommuteMatrixBody;
@@ -8082,6 +8304,36 @@ export type DeleteGroupGroupsGroupIdDeleteResponses = {
 
 export type DeleteGroupGroupsGroupIdDeleteResponse = DeleteGroupGroupsGroupIdDeleteResponses[keyof DeleteGroupGroupsGroupIdDeleteResponses];
 
+export type GetGroupGroupsGroupIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}';
+};
+
+export type GetGroupGroupsGroupIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetGroupGroupsGroupIdGetError = GetGroupGroupsGroupIdGetErrors[keyof GetGroupGroupsGroupIdGetErrors];
+
+export type GetGroupGroupsGroupIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupResponse;
+};
+
+export type GetGroupGroupsGroupIdGetResponse = GetGroupGroupsGroupIdGetResponses[keyof GetGroupGroupsGroupIdGetResponses];
+
 export type RenameGroupGroupsGroupIdPatchData = {
     body: GroupRenameRequest;
     path: {
@@ -8111,6 +8363,36 @@ export type RenameGroupGroupsGroupIdPatchResponses = {
 };
 
 export type RenameGroupGroupsGroupIdPatchResponse = RenameGroupGroupsGroupIdPatchResponses[keyof RenameGroupGroupsGroupIdPatchResponses];
+
+export type UpdateGroupPreferencesGroupsGroupIdPreferencesPatchData = {
+    body: GroupPreferencesUpdate;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/preferences';
+};
+
+export type UpdateGroupPreferencesGroupsGroupIdPreferencesPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateGroupPreferencesGroupsGroupIdPreferencesPatchError = UpdateGroupPreferencesGroupsGroupIdPreferencesPatchErrors[keyof UpdateGroupPreferencesGroupsGroupIdPreferencesPatchErrors];
+
+export type UpdateGroupPreferencesGroupsGroupIdPreferencesPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupResponse;
+};
+
+export type UpdateGroupPreferencesGroupsGroupIdPreferencesPatchResponse = UpdateGroupPreferencesGroupsGroupIdPreferencesPatchResponses[keyof UpdateGroupPreferencesGroupsGroupIdPreferencesPatchResponses];
 
 export type LeaveGroupGroupsGroupIdLeavePostData = {
     body?: never;

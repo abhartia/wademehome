@@ -6,6 +6,121 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-22 -- Session 16 (Rent-stabilization refresh + Greenpoint/Bushwick spokes + Programmatic under-price pages)
+
+### Context
+- Sixteenth growth agent run. GSC's standout was **not** a
+  neighborhood this time: `/blog/nyc-rent-stabilization-guide`
+  pulled **28 impressions** at avg pos 41.3, including pos 45 for
+  "annual rent increase nyc". That's the closest any page is to
+  page 1 on a commercial query. Prioritized depth on this page
+  over yet another neighborhood spoke.
+- Trends pull worked cleanly today (vs. S15's 429s). Confirmed
+  astoria +29% YoY, LIC +7%; forest hills and ridgewood down;
+  FARE/broker-fee queries evergreen not spike. Supports continued
+  investment in Brooklyn/Queens transit-adjacent spokes.
+- Carried over the S15 queue (Greenpoint + Bushwick rent-prices
+  spokes) and shipped both. Also shipped the long-queued
+  "programmatic landing pages backed by live listing queries"
+  product bet as `/nyc/[hood]/apartments-under-[price]` — 40 pages.
+
+### Key Numbers (GSC 30d)
+- **Rent-stabilization blog: 28 imprs, avg pos 41.3** — top content
+  page by impressions. Query "annual rent increase nyc" at pos 45.
+- Williamsburg cluster: 33 imprs, 16 queries, pos 62.8 avg.
+- LIC cluster: 13 imprs, 6 queries, pos 78.2 avg (S15 spoke
+  shipped, awaiting reindex).
+- Astoria cluster: 9 imprs, pos 20.9 avg — **closest to page 1 on
+  neighborhood queries**.
+- Total 30d: 50 queries, 54 impressions, 0 clicks (still
+  pre-click; the rent-stabilization refresh is the most likely
+  first-click catalyst).
+
+### Completed
+
+**Blog refresh (1):**
+- `/blog/nyc-rent-stabilization-guide` — new
+  `#nyc-annual-rent-increase-history` anchor with full 2015–2026
+  RGB rate table (11 lease cycles, incl. 0% freezes 2015/16/20 and
+  current 3%/4.5% for 10/1/2025–9/30/2026). Title rewritten to
+  surface "Renewal Rates" + "2015–2026 RGB History". Keywords
+  15 → 26. `reviewedAt: 2026-04-22`.
+
+**New spoke pages (2):**
+- `/nyc/greenpoint/rent-prices` — full template, Studio $2,400 /
+  1BR $3,100 / 2BR $4,300 / 3BR $5,800. Sub-areas:
+  Waterfront/Franklin/Manhattan Ave/Nassau-Norman/McGuinness.
+  G-train discount vs. Williamsburg comparison.
+- `/nyc/bushwick/rent-prices` — full template, Studio $2,100 /
+  1BR $2,700 / 2BR $3,400 / 3BR $4,500. Sub-areas:
+  Morgan-Jefferson L / Central / Ridgewood border / Broadway JMZ.
+  **Unique loft market table** ($/sqft sized) + L-train arbitrage
+  math ($700/mo saved = $117/hr implicit).
+
+**Programmatic product feature (1 — big one):**
+- `/nyc/[hood]/apartments-under-[price]` dynamic route generating
+  **40 static pages** (8 hoods × 5 tiers: $2000, $2500, $3000,
+  $3500, $4000). Each page renders real filtered inventory via
+  `<NeighborhoodLiveListings maxRent={price}>` (TanStack Query),
+  plus per-page metadata, 10 keywords, Article+Breadcrumb JSON-LD,
+  tier-aware commentary, cross-links.
+- Registry: `ui/lib/neighborhoods/nycNeighborhoods.ts` (single
+  source of truth for hoods × tiers — reused by sitemap + dynamic
+  route).
+- Extended `NeighborhoodLiveListings` with `maxRent`/`minRent`
+  props; `searchHref` now carries price constraint into search.
+
+**Cross-linking (5 edits):**
+- `/nyc-rent-by-neighborhood` — Greenpoint + Bushwick rent-prices
+  added after LIC rent-prices.
+- `/best-time-to-rent-nyc` — Greenpoint generic link swapped for
+  Greenpoint rent-prices; Bushwick rent-prices paragraph added.
+- `/nyc/greenpoint` — rent-prices callout repointed from
+  Williamsburg to Greenpoint own spoke; rent-prices entry added
+  to Related Guides.
+- `/nyc/bushwick` — rent-prices card prepended to Related
+  neighborhood guides grid.
+- `/nyc/williamsburg/rent-prices` — Greenpoint + Bushwick +
+  LIC rent-prices added to Related Guides.
+
+**Sitemap:**
+- Greenpoint + Bushwick rent-prices at priority 0.75.
+- **40 new** `apartments-under-{price}` URLs at priority 0.7
+  weekly (computed via flatMap over the registry — auto-updates as
+  we add hoods/tiers).
+
+### Not Yet Done / Queue
+- Park Slope rent-prices spoke (family AOV; North/Center/South
+  Slope/Gowanus edge; school-district angle).
+- Jersey City Newport + Journal Square rent-prices spokes.
+- UWS rent-prices spoke (Manhattan's highest-AOV hub without one).
+- Flatbush / Prospect-Lefferts Gardens rent-prices spoke.
+- Borough-level `apartments-under-{price}` pages (Brooklyn /
+  Queens / Manhattan rollups) — **only after** hood×tier combos
+  show traction.
+- `AggregateOffer` JSON-LD on under-price pages (once we've
+  confirmed ≥5 listings per tier reliably).
+- Live-listings widget on Greenpoint hub (skipped in S14 due to
+  thin coord coverage — re-check).
+- Evaluate whether rent-stabilization page warrants a dedicated
+  `/nyc-rent-guidelines-board` spoke post-reindex.
+
+### SEO Changes Pending Reindex
+- `/blog/nyc-rent-stabilization-guide` — deep refresh w/ RGB
+  history table, 26 keywords, `reviewedAt: 2026-04-22`.
+- `/nyc/greenpoint/rent-prices` — new URL.
+- `/nyc/bushwick/rent-prices` — new URL.
+- `/nyc/[hood]/apartments-under-[price]` — **40 new URLs**.
+- Sitemap reflects all of the above.
+
+### Build / Verify
+- `cd ui && npm run build` — **passed**. Build output confirms 40
+  under-price pages as `●` (SSG) and all 6 rent-prices spokes
+  (EV, Williamsburg, LIC, Astoria, Greenpoint, Bushwick) as `○`
+  (static).
+
+---
+
 ## 2026-04-21 -- Session 15 (LIC + Astoria rent-prices spokes + Live-Listings rollout to 4 more pages)
 
 ### Context

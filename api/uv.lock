@@ -186,7 +186,7 @@ requires-dist = [
     { name = "griffe", specifier = ">=1.14.0,<2" },
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "langchain", specifier = ">=0.3.27,<1.0" },
-    { name = "langfuse", specifier = ">=3.3.5,<4" },
+    { name = "langfuse", specifier = ">=4.3.1,<5" },
     { name = "llama-index", specifier = ">=0.14.18,<0.15.0" },
     { name = "llama-index-core", specifier = ">=0.14.18" },
     { name = "llama-index-llms-azure-openai", specifier = ">=0.4.0" },
@@ -1119,7 +1119,7 @@ wheels = [
 
 [[package]]
 name = "langfuse"
-version = "3.4.0"
+version = "4.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -1129,12 +1129,11 @@ dependencies = [
     { name = "opentelemetry-sdk" },
     { name = "packaging" },
     { name = "pydantic" },
-    { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/56/58212b039999046ff365156e449d4bb788549b387c168dd13d6ce9546208/langfuse-3.4.0.tar.gz", hash = "sha256:34fa80ea52bb13f48530de4d3540efb0011a72cdb1589de598b047e07eb5d387", size = 181913, upload-time = "2025-09-17T09:47:05.193Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/ea/e4a583d39cbbb13bf070a8e8816697874df2e611f2faff5661f6f65c7ac3/langfuse-4.5.0.tar.gz", hash = "sha256:ecb2c3e19098065f64933f8f2b4d8b3a426938ca1c8e9bf7611d6df569adaa3f", size = 279309, upload-time = "2026-04-21T11:30:40.048Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/ad/2d74a2fae60e387f3c0117d1778a38f95e73d77501c037661367ac2e9760/langfuse-3.4.0-py3-none-any.whl", hash = "sha256:860624f84875cfe98bc228db55c6e09ca9ad6db4275b1b2ccae2ece9751f97a5", size = 336789, upload-time = "2025-09-17T09:47:03.585Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/72/0bb02ab2144d9da38a4c91146661f6147323acdd1d17ce45c3a6f9932410/langfuse-4.5.0-py3-none-any.whl", hash = "sha256:99434f9553fa8711bfc6a2e61dac011af0c771f52d61809d7774b85f3b91c9a7", size = 479214, upload-time = "2026-04-21T11:30:38.573Z" },
 ]
 
 [[package]]

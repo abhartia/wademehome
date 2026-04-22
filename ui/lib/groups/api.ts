@@ -6,15 +6,18 @@ import {
   createGroupGroupsPost,
   createInviteGroupsGroupIdInvitesPost,
   deleteGroupGroupsGroupIdDelete,
+  getGroupGroupsGroupIdGet,
   leaveGroupGroupsGroupIdLeavePost,
   listInvitesGroupsGroupIdInvitesGet,
   listMembersGroupsGroupIdMembersGet,
   removeMemberGroupsGroupIdMembersUserIdDelete,
   renameGroupGroupsGroupIdPatch,
   revokeInviteGroupsGroupIdInvitesInviteIdDelete,
+  updateGroupPreferencesGroupsGroupIdPreferencesPatch,
   updateMemberRoleGroupsGroupIdMembersUserIdRolePatch,
 } from "@/lib/api/generated/sdk.gen";
 import {
+  getGroupGroupsGroupIdGetQueryKey,
   listGroupsGroupsGetOptions,
   listGroupsGroupsGetQueryKey,
   listInvitesGroupsGroupIdInvitesGetQueryKey,
@@ -23,6 +26,8 @@ import {
 } from "@/lib/api/generated/@tanstack/react-query.gen";
 import type {
   GroupInviteResponse,
+  GroupPreferences,
+  GroupPreferencesUpdate,
   GroupResponse,
   InviteAcceptResponse,
   InvitePreviewResponse,
@@ -46,6 +51,47 @@ export function useCreateGroup() {
       return data!;
     },
     onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: listGroupsGroupsGetQueryKey({}) });
+    },
+  });
+}
+
+export function useGroup(groupId: string | null, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: getGroupGroupsGroupIdGetQueryKey({
+      path: { group_id: groupId ?? "" },
+    }),
+    queryFn: async () => {
+      const { data } = await getGroupGroupsGroupIdGet({
+        path: { group_id: groupId! },
+        throwOnError: true,
+      });
+      return data!;
+    },
+    enabled: Boolean(groupId) && (options?.enabled ?? true),
+  });
+}
+
+export function useUpdateGroupPreferences(groupId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      body: GroupPreferencesUpdate,
+    ): Promise<GroupResponse> => {
+      const { data } =
+        await updateGroupPreferencesGroupsGroupIdPreferencesPatch({
+          path: { group_id: groupId },
+          body,
+          throwOnError: true,
+        });
+      return data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({
+        queryKey: getGroupGroupsGroupIdGetQueryKey({
+          path: { group_id: groupId },
+        }),
+      });
       await qc.invalidateQueries({ queryKey: listGroupsGroupsGetQueryKey({}) });
     },
   });
@@ -239,4 +285,10 @@ export function useAcceptInvite() {
   });
 }
 
-export type { GroupResponse, GroupInviteResponse, InvitePreviewResponse };
+export type {
+  GroupResponse,
+  GroupInviteResponse,
+  InvitePreviewResponse,
+  GroupPreferences,
+  GroupPreferencesUpdate,
+};

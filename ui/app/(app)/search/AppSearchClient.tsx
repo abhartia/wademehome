@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2, Search, TrainFront } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
+import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
 
 const MIN_QUERY_CHARS = 2;
 const DEFAULT_STREAM_SEARCH_HEADLINE = "Property search";
@@ -56,9 +57,14 @@ const EMPTY_PROPERTY_LIST: PropertyDataItem[] = [];
 function composeListingMessage(
   query: string,
   location: { latitude: number; longitude: number },
+  priceFilter: { min: number | null; max: number | null } | null,
 ): string {
   const q = query.trim();
-  return `${q}\n\n[System context: User's approximate browser location is latitude ${location.latitude}, longitude ${location.longitude}. Prefer listings near this area when relevant.]`;
+  const priceSegment =
+    priceFilter && (priceFilter.min !== null || priceFilter.max !== null)
+      ? ` User's monthly rent budget: ${priceFilter.min !== null ? `min $${priceFilter.min}` : "no min"}, ${priceFilter.max !== null ? `max $${priceFilter.max}` : "no max"}.`
+      : "";
+  return `${q}\n\n[System context: User's approximate browser location is latitude ${location.latitude}, longitude ${location.longitude}. Prefer listings near this area when relevant.${priceSegment}]`;
 }
 
 function composeInitialProfileQuery(profile: UserProfile): string | null {
@@ -158,8 +164,12 @@ type AppSearchInnerProps = {
   query: string;
   setQuery: (value: string) => void;
   browseMapCenter: { latitude: number; longitude: number };
+  browseBounds: { west: number; south: number; east: number; north: number };
   onBrowseMapCenterChange: (c: BrowseMapViewport) => void;
   nearbyQuery: UseQueryResult<NearbyListingsResponse, Error>;
+  priceMin: number | null;
+  priceMax: number | null;
+  onPriceChange: (next: { min: number | null; max: number | null }) => void;
   selectedProperty: PropertyDataItem | null;
   setSelectedProperty: (p: PropertyDataItem | null) => void;
   isPropertyDetailOpen: boolean;
@@ -182,8 +192,12 @@ function AppSearchInner({
   query,
   setQuery,
   browseMapCenter,
+  browseBounds,
   onBrowseMapCenterChange,
   nearbyQuery,
+  priceMin,
+  priceMax,
+  onPriceChange,
   selectedProperty,
   setSelectedProperty,
   isPropertyDetailOpen,
@@ -353,6 +367,21 @@ function AppSearchInner({
                 >
                   <Search className="h-4 w-4" />
                 </Button>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <PriceRangeFilter
+                  valueMin={priceMin}
+                  valueMax={priceMax}
+                  onApply={onPriceChange}
+                  scope={{
+                    mode: "bbox",
+                    west: browseBounds.west,
+                    south: browseBounds.south,
+                    east: browseBounds.east,
+                    north: browseBounds.north,
+                  }}
+                  triggerClassName="bg-background/95 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/80"
+                />
               </div>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
                 Pan/zoom loads listings for the visible map area. Enter at least {MIN_QUERY_CHARS}{" "}
@@ -679,6 +708,8 @@ export function AppSearchClient() {
       11,
     ),
   );
+  const [priceMin, setPriceMin] = useState<number | null>(null);
+  const [priceMax, setPriceMax] = useState<number | null>(null);
   browseMapCenterRef.current = browseMapCenter;
   const [hoveredProperty, setHoveredProperty] = useState<PropertyDataItem | null>(null);
   const [mapFocusProperty, setMapFocusProperty] = useState<PropertyDataItem | null>(null);
@@ -716,6 +747,8 @@ export function AppSearchClient() {
     bounds: browseBounds,
     limit: DEFAULT_NEARBY_LIMIT,
     enabled: !listingSessionActive && hasBrowseViewport,
+    minRent: priceMin,
+    maxRent: priceMax,
   });
 
   useEffect(() => {
@@ -821,14 +854,26 @@ export function AppSearchClient() {
     [updateProfile],
   );
 
+  const onPriceChange = useCallback(
+    (next: { min: number | null; max: number | null }) => {
+      setPriceMin(next.min);
+      setPriceMax(next.max);
+    },
+    [],
+  );
+
   const innerProps: Omit<AppSearchInnerProps, "listingChat"> = {
     listingSessionActive,
     listingPhase,
     query,
     setQuery,
     browseMapCenter,
+    browseBounds,
     onBrowseMapCenterChange,
     nearbyQuery,
+    priceMin,
+    priceMax,
+    onPriceChange,
     selectedProperty,
     setSelectedProperty,
     isPropertyDetailOpen,
@@ -854,7 +899,12 @@ export function AppSearchClient() {
         chatId="app-search-listings"
         fireAcknowledgedVersionRef={listingFireAckRef}
         fireVersion={listingSessionActive ? listingFireVersion : 0}
-        getMessage={() => composeListingMessage(query.trim(), locationRef.current)}
+        getMessage={() =>
+          composeListingMessage(query.trim(), locationRef.current, {
+            min: priceMin,
+            max: priceMax,
+          })
+        }
         onPhaseChange={setListingPhase}
       >
         {(chat) => (
