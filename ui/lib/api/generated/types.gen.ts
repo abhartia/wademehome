@@ -69,6 +69,162 @@ export type AmenityFrequency = {
 };
 
 /**
+ * ApplicantCreateRequest
+ */
+export type ApplicantCreateRequest = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Phone
+     */
+    phone?: string | null;
+    /**
+     * Status
+     */
+    status?: 'new' | 'contacted' | 'toured' | 'accepted' | 'rejected' | 'withdrawn';
+    /**
+     * Role Context
+     */
+    role_context?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Budget Usd
+     */
+    budget_usd?: number | null;
+    /**
+     * Move In Date
+     */
+    move_in_date?: string | null;
+};
+
+/**
+ * ApplicantResponse
+ */
+export type ApplicantResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Group Id
+     */
+    group_id: string;
+    /**
+     * Name
+     */
+    name: string | null;
+    /**
+     * Email
+     */
+    email: string | null;
+    /**
+     * Phone
+     */
+    phone: string | null;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Role Context
+     */
+    role_context: string | null;
+    /**
+     * Notes
+     */
+    notes: string | null;
+    /**
+     * Budget Usd
+     */
+    budget_usd: number | null;
+    /**
+     * Move In Date
+     */
+    move_in_date: string | null;
+    /**
+     * Source
+     */
+    source: string;
+    /**
+     * Has Pending Self Reg
+     */
+    has_pending_self_reg: boolean;
+    /**
+     * Self Reg Url
+     */
+    self_reg_url: string | null;
+    /**
+     * Self Reg Expires At
+     */
+    self_reg_expires_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * ApplicantUpdateRequest
+ */
+export type ApplicantUpdateRequest = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Phone
+     */
+    phone?: string | null;
+    /**
+     * Status
+     */
+    status?: ('new' | 'contacted' | 'toured' | 'accepted' | 'rejected' | 'withdrawn') | null;
+    /**
+     * Role Context
+     */
+    role_context?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Budget Usd
+     */
+    budget_usd?: number | null;
+    /**
+     * Move In Date
+     */
+    move_in_date?: string | null;
+};
+
+/**
+ * ApplicantsListResponse
+ */
+export type ApplicantsListResponse = {
+    /**
+     * Applicants
+     */
+    applicants: Array<ApplicantResponse>;
+};
+
+/**
  * AuthResponse
  */
 export type AuthResponse = {
@@ -95,6 +251,16 @@ export type BedroomSupply = {
      * Vacancy Pct
      */
     vacancy_pct: number;
+};
+
+/**
+ * Body_agent_upload_agent_upload_post
+ */
+export type BodyAgentUploadAgentUploadPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
 };
 
 /**
@@ -4878,6 +5044,72 @@ export type PropertyNoteUpsertRequest = {
 };
 
 /**
+ * PublicApplicantPreviewResponse
+ */
+export type PublicApplicantPreviewResponse = {
+    /**
+     * Group Name
+     */
+    group_name: string;
+    /**
+     * Role Context
+     */
+    role_context: string | null;
+    /**
+     * Expired
+     */
+    expired: boolean;
+    /**
+     * Already Submitted
+     */
+    already_submitted: boolean;
+};
+
+/**
+ * PublicApplicantSubmitRequest
+ */
+export type PublicApplicantSubmitRequest = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Phone
+     */
+    phone?: string | null;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Budget Usd
+     */
+    budget_usd?: number | null;
+    /**
+     * Move In Date
+     */
+    move_in_date?: string | null;
+};
+
+/**
+ * PublicApplicantSubmitResponse
+ */
+export type PublicApplicantSubmitResponse = {
+    /**
+     * Group Name
+     */
+    group_name: string;
+    /**
+     * Submitted
+     */
+    submitted?: boolean;
+};
+
+/**
  * QualityMetrics
  */
 export type QualityMetrics = {
@@ -5756,6 +5988,38 @@ export type ScrapeTargetsResponse = {
 };
 
 /**
+ * SelfRegLinkCreateRequest
+ */
+export type SelfRegLinkCreateRequest = {
+    /**
+     * Role Context
+     */
+    role_context?: string | null;
+};
+
+/**
+ * SelfRegLinkResponse
+ */
+export type SelfRegLinkResponse = {
+    /**
+     * Applicant Id
+     */
+    applicant_id: string;
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Expires At
+     */
+    expires_at: string;
+};
+
+/**
  * ServerFileResponse
  */
 export type ServerFileResponse = {
@@ -6316,6 +6580,52 @@ export type ToursStatePayload = {
      * Tours
      */
     tours?: Array<TourPayloadInput>;
+};
+
+/**
+ * TransitStationPoint
+ */
+export type TransitStationPoint = {
+    /**
+     * System
+     * path | hblr | nyc_subway | lirr | nj_transit_rail | ferry
+     */
+    system: string;
+    /**
+     * Station Name
+     */
+    station_name: string;
+    /**
+     * Lines
+     */
+    lines?: Array<string>;
+    /**
+     * Latitude
+     */
+    latitude: number;
+    /**
+     * Longitude
+     */
+    longitude: number;
+    /**
+     * Borough
+     */
+    borough?: string | null;
+};
+
+/**
+ * TransitStationsResponse
+ */
+export type TransitStationsResponse = {
+    /**
+     * Stations
+     * Transit stations in the requested bbox (or all, if unfiltered).
+     */
+    stations: Array<TransitStationPoint>;
+    /**
+     * Total
+     */
+    total: number;
 };
 
 /**
@@ -7330,6 +7640,57 @@ export type NearestTransitListingsNearestTransitGetResponses = {
 
 export type NearestTransitListingsNearestTransitGetResponse = NearestTransitListingsNearestTransitGetResponses[keyof NearestTransitListingsNearestTransitGetResponses];
 
+export type ListTransitStationsListingsTransitStationsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Systems
+         * Comma-separated systems to include (e.g. 'path,hblr,ferry,nyc_subway'). Omit for all systems.
+         */
+        systems?: string | null;
+        /**
+         * West
+         */
+        west?: number | null;
+        /**
+         * South
+         */
+        south?: number | null;
+        /**
+         * East
+         */
+        east?: number | null;
+        /**
+         * North
+         */
+        north?: number | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/listings/transit-stations';
+};
+
+export type ListTransitStationsListingsTransitStationsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListTransitStationsListingsTransitStationsGetError = ListTransitStationsListingsTransitStationsGetErrors[keyof ListTransitStationsListingsTransitStationsGetErrors];
+
+export type ListTransitStationsListingsTransitStationsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: TransitStationsResponse;
+};
+
+export type ListTransitStationsListingsTransitStationsGetResponse = ListTransitStationsListingsTransitStationsGetResponses[keyof ListTransitStationsListingsTransitStationsGetResponses];
+
 export type ListFavoritesPropertiesFavoritesGetData = {
     body?: never;
     path?: never;
@@ -8027,6 +8388,224 @@ export type AcceptInviteInvitesAcceptPostResponses = {
 };
 
 export type AcceptInviteInvitesAcceptPostResponse = AcceptInviteInvitesAcceptPostResponses[keyof AcceptInviteInvitesAcceptPostResponses];
+
+export type ListApplicantsGroupsGroupIdApplicantsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/applicants';
+};
+
+export type ListApplicantsGroupsGroupIdApplicantsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListApplicantsGroupsGroupIdApplicantsGetError = ListApplicantsGroupsGroupIdApplicantsGetErrors[keyof ListApplicantsGroupsGroupIdApplicantsGetErrors];
+
+export type ListApplicantsGroupsGroupIdApplicantsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ApplicantsListResponse;
+};
+
+export type ListApplicantsGroupsGroupIdApplicantsGetResponse = ListApplicantsGroupsGroupIdApplicantsGetResponses[keyof ListApplicantsGroupsGroupIdApplicantsGetResponses];
+
+export type CreateApplicantGroupsGroupIdApplicantsPostData = {
+    body: ApplicantCreateRequest;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/applicants';
+};
+
+export type CreateApplicantGroupsGroupIdApplicantsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateApplicantGroupsGroupIdApplicantsPostError = CreateApplicantGroupsGroupIdApplicantsPostErrors[keyof CreateApplicantGroupsGroupIdApplicantsPostErrors];
+
+export type CreateApplicantGroupsGroupIdApplicantsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ApplicantResponse;
+};
+
+export type CreateApplicantGroupsGroupIdApplicantsPostResponse = CreateApplicantGroupsGroupIdApplicantsPostResponses[keyof CreateApplicantGroupsGroupIdApplicantsPostResponses];
+
+export type DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+        /**
+         * Applicant Id
+         */
+        applicant_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/applicants/{applicant_id}';
+};
+
+export type DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteError = DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteErrors[keyof DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteErrors];
+
+export type DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteResponse = DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteResponses[keyof DeleteApplicantGroupsGroupIdApplicantsApplicantIdDeleteResponses];
+
+export type UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchData = {
+    body: ApplicantUpdateRequest;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+        /**
+         * Applicant Id
+         */
+        applicant_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/applicants/{applicant_id}';
+};
+
+export type UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchError = UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchErrors[keyof UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchErrors];
+
+export type UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: ApplicantResponse;
+};
+
+export type UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchResponse = UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchResponses[keyof UpdateApplicantGroupsGroupIdApplicantsApplicantIdPatchResponses];
+
+export type CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostData = {
+    body: SelfRegLinkCreateRequest;
+    path: {
+        /**
+         * Group Id
+         */
+        group_id: string;
+    };
+    query?: never;
+    url: '/groups/{group_id}/applicants/self-registration-link';
+};
+
+export type CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostError = CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostErrors[keyof CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostErrors];
+
+export type CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: SelfRegLinkResponse;
+};
+
+export type CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostResponse = CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostResponses[keyof CreateSelfRegistrationLinkGroupsGroupIdApplicantsSelfRegistrationLinkPostResponses];
+
+export type PreviewPublicApplicantPublicApplicantsTokenGetData = {
+    body?: never;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/public/applicants/{token}';
+};
+
+export type PreviewPublicApplicantPublicApplicantsTokenGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PreviewPublicApplicantPublicApplicantsTokenGetError = PreviewPublicApplicantPublicApplicantsTokenGetErrors[keyof PreviewPublicApplicantPublicApplicantsTokenGetErrors];
+
+export type PreviewPublicApplicantPublicApplicantsTokenGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PublicApplicantPreviewResponse;
+};
+
+export type PreviewPublicApplicantPublicApplicantsTokenGetResponse = PreviewPublicApplicantPublicApplicantsTokenGetResponses[keyof PreviewPublicApplicantPublicApplicantsTokenGetResponses];
+
+export type SubmitPublicApplicantPublicApplicantsTokenPostData = {
+    body: PublicApplicantSubmitRequest;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/public/applicants/{token}';
+};
+
+export type SubmitPublicApplicantPublicApplicantsTokenPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SubmitPublicApplicantPublicApplicantsTokenPostError = SubmitPublicApplicantPublicApplicantsTokenPostErrors[keyof SubmitPublicApplicantPublicApplicantsTokenPostErrors];
+
+export type SubmitPublicApplicantPublicApplicantsTokenPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: PublicApplicantSubmitResponse;
+};
+
+export type SubmitPublicApplicantPublicApplicantsTokenPostResponse = SubmitPublicApplicantPublicApplicantsTokenPostResponses[keyof SubmitPublicApplicantPublicApplicantsTokenPostResponses];
 
 export type DeleteLeaseDocumentPortalLeaseDeleteData = {
     body?: never;
@@ -12147,6 +12726,52 @@ export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostRespons
 };
 
 export type SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponse = SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponses[keyof SendWeeklyReportsInternalPropertyManagerReportsSendWeeklyPostResponses];
+
+export type AgentChatAgentChatPostData = {
+    body: ChatRequest;
+    path?: never;
+    query?: never;
+    url: '/agent/chat';
+};
+
+export type AgentChatAgentChatPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AgentChatAgentChatPostError = AgentChatAgentChatPostErrors[keyof AgentChatAgentChatPostErrors];
+
+export type AgentChatAgentChatPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type AgentUploadAgentUploadPostData = {
+    body: BodyAgentUploadAgentUploadPost;
+    path?: never;
+    query?: never;
+    url: '/agent/upload';
+};
+
+export type AgentUploadAgentUploadPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AgentUploadAgentUploadPostError = AgentUploadAgentUploadPostErrors[keyof AgentUploadAgentUploadPostErrors];
+
+export type AgentUploadAgentUploadPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type ListingChatListingsChatPostData = {
     body: ChatRequest;

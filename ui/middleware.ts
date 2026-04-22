@@ -31,7 +31,9 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get("wmh_session")?.value;
   const isPublic =
     PUBLIC_PATHS.has(pathname) || pathname.startsWith("/blog/");
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isProtected = PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 
   if (!session && isProtected) {
     return NextResponse.redirect(new URL("/login", request.url));

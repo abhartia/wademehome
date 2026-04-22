@@ -13,6 +13,7 @@ import {
   ShieldOff,
   Trash2,
   UserMinus,
+  UserPlus,
   UserSearch,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
+import { useGroupApplicants } from "@/lib/applicants/api";
 import {
   useCreateInvite,
   useDeleteGroup,
@@ -72,6 +74,7 @@ export default function GroupDetailPage(props: PageProps) {
 
   const membersQuery = useGroupMembers(groupId);
   const invitesQuery = useGroupInvites(groupId);
+  const applicantsQuery = useGroupApplicants(groupId);
   const renameGroup = useRenameGroup(groupId);
   const deleteGroup = useDeleteGroup();
   const leaveGroup = useLeaveGroup();
@@ -193,20 +196,24 @@ export default function GroupDetailPage(props: PageProps) {
 
   if (myGroupsQuery.isLoading) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <Skeleton className="h-8 w-60" />
+      <div className="h-full w-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-4 py-8">
+          <Skeleton className="h-8 w-60" />
+        </div>
       </div>
     );
   }
 
   if (!group) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <Link href="/groups" className="text-sm text-muted-foreground">
-          <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
-          Groups
-        </Link>
-        <p className="mt-6">Group not found or you&apos;re not a member.</p>
+      <div className="h-full w-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-4 py-8">
+          <Link href="/groups" className="text-sm text-muted-foreground">
+            <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
+            Groups
+          </Link>
+          <p className="mt-6">Group not found or you&apos;re not a member.</p>
+        </div>
       </div>
     );
   }
@@ -217,8 +224,9 @@ export default function GroupDetailPage(props: PageProps) {
   );
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      <Link href="/groups" className="text-sm text-muted-foreground hover:underline">
+    <div className="h-full w-full overflow-y-auto">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8">
+        <Link href="/groups" className="text-sm text-muted-foreground hover:underline">
         <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
         Groups
       </Link>
@@ -373,6 +381,36 @@ export default function GroupDetailPage(props: PageProps) {
 
       <Card className="mb-6">
         <CardHeader>
+          <CardTitle className="text-base">Applicants</CardTitle>
+          <CardDescription>
+            Track people interested in joining this group — for example, a 3rd
+            housemate or someone taking over a room.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-between gap-4">
+          <div className="text-sm text-muted-foreground">
+            {applicantsQuery.isLoading
+              ? "Loading…"
+              : `${(applicantsQuery.data?.applicants ?? []).filter((a) => a.name || a.email).length} applicant${
+                  (applicantsQuery.data?.applicants ?? []).filter(
+                    (a) => a.name || a.email,
+                  ).length === 1
+                    ? ""
+                    : "s"
+                }`}
+          </div>
+          <Button
+            onClick={() => router.push(`/groups/${group.id}/applicants`)}
+            className="gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Manage applicants
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
           <CardTitle className="text-base">Find a roommate</CardTitle>
           <CardDescription>
             Browse compatible matches scored against everyone in this group.
@@ -467,6 +505,7 @@ export default function GroupDetailPage(props: PageProps) {
             Delete group
           </Button>
         )}
+      </div>
       </div>
     </div>
   );

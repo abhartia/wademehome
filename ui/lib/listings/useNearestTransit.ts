@@ -5,7 +5,14 @@ import { isApiConfigured } from "@/lib/api/isApiConfigured";
 import { listingsFetch } from "@/lib/listings/listingsApi";
 
 export type NearestTransitStation = {
-  system: "path" | "hblr" | "nyc_subway" | "lirr" | "nj_transit_rail" | "ferry";
+  system:
+    | "path"
+    | "hblr"
+    | "nyc_subway"
+    | "lirr"
+    | "nj_transit_rail"
+    | "nj_transit_bus"
+    | "ferry";
   station_name: string;
   lines: string[];
   latitude: number;
@@ -67,12 +74,13 @@ export function useNearestTransit(
   });
 }
 
-const SYSTEM_LABELS: Record<NearestTransitStation["system"], string> = {
+export const SYSTEM_LABELS: Record<NearestTransitStation["system"], string> = {
   path: "PATH",
   hblr: "Light Rail",
   nyc_subway: "Subway",
   lirr: "LIRR",
   nj_transit_rail: "NJ Transit",
+  nj_transit_bus: "NJT Bus",
   ferry: "Ferry",
 };
 

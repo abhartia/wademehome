@@ -33,6 +33,7 @@ from auth.router import router as auth_router
 from listings.router import router as listings_router
 from properties.router import router as properties_router
 from groups.router import router as groups_router
+from applicants.router import router as applicants_router
 from portal.router import router as portal_router
 from tours.router import router as tours_router
 from user_listings.router import router as user_listings_router
@@ -79,6 +80,7 @@ app.include_router(auth_router)
 app.include_router(listings_router)
 app.include_router(properties_router)
 app.include_router(groups_router)
+app.include_router(applicants_router)
 app.include_router(portal_router)
 app.include_router(tours_router)
 app.include_router(user_listings_router)

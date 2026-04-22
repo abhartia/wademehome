@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -26,27 +27,40 @@ const baseUrl =
 
 export const metadata: Metadata = {
   title:
-    "Long Island City Apartments: LIC Rent Prices, Transit & Guide (2026) | Wade Me Home",
+    "Apartments for Rent in Long Island City, Queens (2026): LIC Rent Prices & Guide | Wade Me Home",
   description:
-    "Complete guide to renting in Long Island City (LIC), Queens. Rent prices for luxury high-rises and walkups, 7/E/M/G subway access, Court Square vs Hunters Point vs Hallets Point, and tips for landing an LIC apartment.",
+    "Apartments for rent in Long Island City (LIC), Queens. 2026 rent prices for studios through 2-bedrooms, luxury high-rises vs walkups, 7/E/M/G subway access, Court Square vs Hunters Point vs Hallets Point, no-fee apartments, and FARE Act coverage.",
   keywords: [
+    "apartments in long island city",
+    "apartment in long island city",
+    "long island city apartments",
+    "long island city new york apartments",
     "LIC apartments",
-    "Long Island City apartments",
+    "LIC apartments nyc",
+    "apartments in LIC",
+    "new york LIC",
+    "long island city housing",
+    "LIC housing",
     "LIC rent prices",
+    "long island city rent prices",
     "Long Island City rent",
+    "LIC rent 2026",
+    "long island city rent 2026",
     "LIC luxury apartments",
     "Court Square apartments",
     "Hunters Point apartments",
-    "LIC rent 2026",
-    "Long Island City 1 bedroom rent",
+    "Hallets Point apartments",
+    "LIC studio rent",
+    "LIC 1 bedroom rent",
+    "LIC 2 bedroom rent",
     "LIC no fee apartments",
-    "moving to Long Island City",
     "LIC waterfront apartments",
+    "moving to Long Island City",
   ],
   openGraph: {
-    title: "Long Island City Apartments: LIC Rent Prices, Transit & Guide (2026)",
+    title: "Apartments for Rent in Long Island City, Queens (2026): LIC Rent Prices & Guide",
     description:
-      "Rent prices, subway access, and apartment hunting tips for Long Island City — NYC's fastest-growing rental neighborhood.",
+      "Rent prices, subway access, no-fee apartments, and apartment hunting tips for Long Island City — NYC's fastest-growing rental neighborhood.",
     url: `${baseUrl}/nyc/long-island-city`,
     type: "article",
   },
@@ -58,11 +72,11 @@ const jsonLd = [
     "@context": "https://schema.org",
     "@type": "Article",
     headline:
-      "Long Island City Apartments: LIC Rent Prices, Transit & Neighborhood Guide for 2026",
+      "Apartments for Rent in Long Island City, Queens (2026): LIC Rent Prices, Transit & Neighborhood Guide",
     description:
-      "A comprehensive guide to renting in Long Island City (LIC), Queens — covering luxury high-rises vs older walkups, 7/E/M/G subway access, Court Square vs Hunters Point vs Hallets Point, and practical apartment hunting advice.",
+      "A comprehensive guide to renting apartments in Long Island City (LIC), Queens — covering luxury high-rises vs older walkups, 7/E/M/G subway access, Court Square vs Hunters Point vs Hallets Point, no-fee apartments, and practical apartment hunting advice.",
     datePublished: "2026-04-17",
-    dateModified: "2026-04-17",
+    dateModified: "2026-04-21",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -238,6 +252,34 @@ export default function LongIslandCityGuidePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Rent Prices Spoke Callout ─────────────── */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle>Want deeper LIC rent price data?</CardTitle>
+              <CardDescription>
+                Studio / 1BR / 2BR / 3BR, sub-neighborhood splits, 6-year
+                trend, $/sq ft, and net-effective rent math
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline">
+                <Link href="/nyc/long-island-city/rent-prices">
+                  LIC Rent Prices (2026): Full Breakdown →
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* ── Live Listings ─────────────────────────── */}
+          <NeighborhoodLiveListings
+            neighborhoodName="Long Island City"
+            latitude={40.7447}
+            longitude={-73.9485}
+            radiusMiles={1.0}
+            limit={6}
+            searchQuery="Long Island City apartments"
+          />
 
           {/* ── Neighborhood Character ────────────────── */}
           <Card>
@@ -1034,6 +1076,14 @@ export default function LongIslandCityGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/long-island-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    LIC Rent Prices (2026): Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/astoria"

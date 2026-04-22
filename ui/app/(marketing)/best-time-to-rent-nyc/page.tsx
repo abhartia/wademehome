@@ -1051,6 +1051,26 @@ export default function BestTimeToRentNycPage() {
               </p>
               <p>
                 <Link
+                  href="/nyc/long-island-city/rent-prices"
+                  className="text-primary underline underline-offset-2"
+                >
+                  LIC rent prices (2026)
+                </Link>{" "}
+                &mdash; Hunters Point waterfront vs. Court Square vs. Queens
+                Plaza, with net-effective rent math on new luxury towers.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/astoria/rent-prices"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Astoria rent prices (2026)
+                </Link>{" "}
+                &mdash; Queens&apos; best-value transit neighborhood, with
+                sub-area tables and comparisons to Williamsburg and LIC.
+              </p>
+              <p>
+                <Link
                   href="/nyc/greenpoint"
                   className="text-primary underline underline-offset-2"
                 >

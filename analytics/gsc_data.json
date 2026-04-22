@@ -176,6 +176,13 @@
       "position": 45
     },
     {
+      "query": "apartment in long island city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 85
+    },
+    {
       "query": "apartment movers nyc",
       "clicks": 0,
       "impressions": 3,
@@ -183,11 +190,25 @@
       "position": 79.3
     },
     {
+      "query": "apartment williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 54
+    },
+    {
       "query": "apartments for rent williamsburg",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
       "position": 57
+    },
+    {
+      "query": "apartments in long island city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
     },
     {
       "query": "apartments in williamsburg",
@@ -260,6 +281,41 @@
       "position": 43
     },
     {
+      "query": "average rent in williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
+    },
+    {
+      "query": "best time to look for an apartment in nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 70
+    },
+    {
+      "query": "best time to rent an apartment in nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 79
+    },
+    {
+      "query": "best time to rent nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 61
+    },
+    {
+      "query": "best times to rent in nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 85
+    },
+    {
       "query": "broadstone on trinity",
       "clicks": 0,
       "impressions": 1,
@@ -293,62 +349,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 71
-    },
-    {
-      "query": "gyms near me",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 1
-    },
-    {
-      "query": "how much is rent in astoria",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 49
-    },
-    {
-      "query": "lease renewal rent stabilized nyc",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 44
-    },
-    {
-      "query": "lodge at mccarran ranch",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 33
-    },
-    {
-      "query": "long island city housing",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 75
-    },
-    {
-      "query": "lyra sarasota apartments",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 56
-    },
-    {
-      "query": "maa sierra vista",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 32
-    },
-    {
-      "query": "manhattan apartment movers",
-      "clicks": 0,
-      "impressions": 2,
-      "ctr": 0,
-      "position": 78
     }
   ],
   "top_pages_30d": [
@@ -360,6 +360,13 @@
       "position": 4.5
     },
     {
+      "page": "https://wademehome.com/best-time-to-rent-nyc",
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 73.8
+    },
+    {
       "page": "https://wademehome.com/blog/nyc-fare-act-broker-fee-ban",
       "clicks": 0,
       "impressions": 1,
@@ -369,9 +376,9 @@
     {
       "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
       "clicks": 0,
-      "impressions": 20,
+      "impressions": 25,
       "ctr": 0,
-      "position": 53.4
+      "position": 45.0
     },
     {
       "page": "https://wademehome.com/login",
@@ -404,23 +411,23 @@
     {
       "page": "https://wademehome.com/nyc/east-village",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 10
+      "position": 11
     },
     {
       "page": "https://wademehome.com/nyc/long-island-city",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 6,
       "ctr": 0,
-      "position": 75
+      "position": 76.7
     },
     {
       "page": "https://wademehome.com/nyc/williamsburg",
       "clicks": 0,
-      "impressions": 19,
+      "impressions": 22,
       "ctr": 0,
-      "position": 61.1
+      "position": 60.7
     },
     {
       "page": "https://wademehome.com/profile",
@@ -467,9 +474,16 @@
     {
       "page": "https://wademehome.com/properties/3010-jane-street-jane-302--3010-jane-street-jane-302-pittsburgh-pa-15203--40.4230---79.9647",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 5
+      "position": 6
+    },
+    {
+      "page": "https://wademehome.com/properties/3109-3111-telegraph-ave--3109-3111-telegraph-ave-berkeley-ca-94705--37.8534---122.2599",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11.5
     },
     {
       "page": "https://wademehome.com/properties/3232-n-20th-st-unit-101--3232-n-20th-st-phoenix-az-85016--33.4864---112.0396",
@@ -687,20 +701,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 6
-    },
-    {
-      "page": "https://wademehome.com/properties/listing--319-18th-street-ph-brooklyn-ny-11215--40.6616---73.9889",
-      "clicks": 0,
-      "impressions": 3,
-      "ctr": 0,
-      "position": 7.7
-    },
-    {
-      "page": "https://wademehome.com/properties/listing--54-noll-street-515-brooklyn-ny-11206--40.7007---73.9336",
-      "clicks": 0,
-      "impressions": 7,
-      "ctr": 0,
-      "position": 2.4
     }
   ],
   "query_page_30d": [
@@ -905,6 +905,14 @@
       "position": 45
     },
     {
+      "query": "apartment in long island city",
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 85
+    },
+    {
       "query": "apartment movers nyc",
       "page": "https://wademehome.com/nyc-apartment-movers",
       "clicks": 0,
@@ -913,12 +921,28 @@
       "position": 79.3
     },
     {
+      "query": "apartment williamsburg",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 54
+    },
+    {
       "query": "apartments for rent williamsburg",
       "page": "https://wademehome.com/nyc/williamsburg",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
       "position": 57
+    },
+    {
+      "query": "apartments in long island city",
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 75
     },
     {
       "query": "apartments in williamsburg",
@@ -1001,6 +1025,46 @@
       "position": 43
     },
     {
+      "query": "average rent in williamsburg",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 57
+    },
+    {
+      "query": "best time to look for an apartment in nyc",
+      "page": "https://wademehome.com/best-time-to-rent-nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 70
+    },
+    {
+      "query": "best time to rent an apartment in nyc",
+      "page": "https://wademehome.com/best-time-to-rent-nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 79
+    },
+    {
+      "query": "best time to rent nyc",
+      "page": "https://wademehome.com/best-time-to-rent-nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 61
+    },
+    {
+      "query": "best times to rent in nyc",
+      "page": "https://wademehome.com/best-time-to-rent-nyc",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 85
+    },
+    {
       "query": "broadstone on trinity",
       "page": "https://wademehome.com/properties/broadstone-on-trinity--1701-rogers-road-fort-worth-tx-76107--32.7250---97.3644",
       "clicks": 0,
@@ -1065,6 +1129,14 @@
       "position": 44
     },
     {
+      "query": "lic apartments nyc",
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 69
+    },
+    {
       "query": "lodge at mccarran ranch",
       "page": "https://wademehome.com/properties/the-lodge-at-mccarran-ranch-apartment-homes--800-redfield-parkway-reno-nv-89509--39.4773---119.7987",
       "clicks": 0,
@@ -1079,6 +1151,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 75
+    },
+    {
+      "query": "long island city new york apartments",
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 76
     },
     {
       "query": "lyra sarasota apartments",
@@ -1103,6 +1183,14 @@
       "impressions": 2,
       "ctr": 0,
       "position": 78
+    },
+    {
+      "query": "new york lic",
+      "page": "https://wademehome.com/nyc/long-island-city",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 80
     },
     {
       "query": "new york rent stabilization code",
@@ -1255,6 +1343,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 58
+    },
+    {
+      "query": "the williamsburg apartment",
+      "page": "https://wademehome.com/nyc/williamsburg",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 63
     },
     {
       "query": "wade me",
@@ -1518,31 +1614,38 @@
       "impressions": 28,
       "ctr": 0,
       "position": 35.8
+    },
+    {
+      "date": "2026-04-19",
+      "clicks": 0,
+      "impressions": 25,
+      "ctr": 0,
+      "position": 39.9
     }
   ],
   "devices_30d": [
     {
       "device": "DESKTOP",
       "clicks": 1,
-      "impressions": 195,
-      "ctr": 0.51,
-      "position": 29.3
+      "impressions": 215,
+      "ctr": 0.47,
+      "position": 30.5
     },
     {
       "device": "MOBILE",
       "clicks": 0,
-      "impressions": 19,
+      "impressions": 24,
       "ctr": 0,
-      "position": 22.1
+      "position": 23.1
     }
   ],
   "countries_30d": [
     {
       "country": "usa",
       "clicks": 1,
-      "impressions": 187,
-      "ctr": 0.53,
-      "position": 31.3
+      "impressions": 209,
+      "ctr": 0.48,
+      "position": 32.6
     },
     {
       "country": "arg",
@@ -1568,9 +1671,9 @@
     {
       "country": "can",
       "clicks": 0,
-      "impressions": 3,
+      "impressions": 5,
       "ctr": 0,
-      "position": 7
+      "position": 8.4
     },
     {
       "country": "ecu",
@@ -1650,6 +1753,13 @@
       "position": 7
     },
     {
+      "country": "rus",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18
+    },
+    {
       "country": "sau",
       "clicks": 0,
       "impressions": 1,
@@ -1669,13 +1779,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 2
-    },
-    {
-      "country": "ury",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 5
     }
   ]
 }

@@ -707,10 +707,26 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/astoria/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Astoria Rent Prices: Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/long-island-city"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Long Island City (LIC): Luxury Towers &amp; Waterfront Rent
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/long-island-city/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    LIC Rent Prices: Studio, 1BR, 2BR &amp; 3BR Breakdown
                   </Link>
                 </li>
                 <li>

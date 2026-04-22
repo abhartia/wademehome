@@ -45,7 +45,8 @@ export default function GroupsPage() {
   const groups = groupsQuery.data?.groups ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8">
+    <div className="h-full w-full overflow-y-auto">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Groups</h1>
@@ -133,6 +134,7 @@ export default function GroupsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

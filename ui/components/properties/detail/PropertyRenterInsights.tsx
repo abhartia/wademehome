@@ -15,7 +15,7 @@ import { useCommuteMatrix } from "@/lib/listings/useCommuteMatrix";
 import { useMarketSnapshot } from "@/lib/listings/useMarketSnapshot";
 import { useOpenMeteoPropertyInsights } from "@/lib/listings/useOpenMeteoPropertyInsights";
 import { usePoiNearby } from "@/lib/listings/usePoiNearby";
-import { useNearestTransit } from "@/lib/listings/useNearestTransit";
+import { useNearestTransit, SYSTEM_LABELS as TRANSIT_LABELS } from "@/lib/listings/useNearestTransit";
 import { isApiConfigured } from "@/lib/api/isApiConfigured";
 import { geocodeAddressListingsGeocodePostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -358,14 +358,7 @@ export function PropertyRenterInsights({
           ) : (
             <ul className="space-y-1">
               {transit.data.stations.map((s) => {
-                const label =
-                  s.system === "path"
-                    ? "PATH"
-                    : s.system === "hblr"
-                      ? "Light Rail"
-                      : s.system === "ferry"
-                        ? "Ferry"
-                        : s.system;
+                const label = TRANSIT_LABELS[s.system] ?? s.system;
                 return (
                   <li
                     key={`${s.system}-${s.station_name}`}

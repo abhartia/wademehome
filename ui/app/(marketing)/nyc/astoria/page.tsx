@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -220,6 +221,36 @@ export default function AstoriaGuidePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Rent Prices Spoke Callout ─────────────── */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle>Want deeper Astoria rent price data?</CardTitle>
+              <CardDescription>
+                Average rent in Astoria by unit size and sub-neighborhood
+                (Ditmars, Waterfront, Astoria Heights, east of Steinway),
+                6-year trend, $/sq ft, and Astoria vs. LIC/Williamsburg
+                comparison
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline">
+                <Link href="/nyc/astoria/rent-prices">
+                  Astoria Rent Prices (2026): Full Breakdown →
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* ── Live Listings ─────────────────────────── */}
+          <NeighborhoodLiveListings
+            neighborhoodName="Astoria"
+            latitude={40.7720}
+            longitude={-73.9195}
+            radiusMiles={1.0}
+            limit={6}
+            searchQuery="Astoria Queens apartments"
+          />
 
           {/* ── Neighborhood Character ────────────────── */}
           <Card>
@@ -887,6 +918,22 @@ export default function AstoriaGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/astoria/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Astoria Rent Prices (2026): Studio, 1BR, 2BR &amp; 3BR Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/long-island-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    LIC Rent Prices (2026): Full Breakdown
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/long-island-city"

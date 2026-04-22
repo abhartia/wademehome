@@ -6,6 +6,99 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-21 -- Session 15 (LIC + Astoria rent-prices spokes + Live-Listings rollout to 4 more pages)
+
+### Context
+- Fifteenth growth agent run. **LIC is today's clearest breakout**:
+  went from 1 → 6 distinct commercial-intent queries in 30 days, all at
+  pos 69-85. Astoria has 3 rent-specific queries (avg pos 45) that map
+  directly to the rent-prices spoke template (validated by S13 East
+  Village + S14 Williamsburg).
+- Trends pull hit Google 429 rate-limits on all 7 interest-over-time
+  batches. Did not fabricate numbers — worked from GSC impression
+  movement (first-party) plus S14 Trends baseline.
+
+### Key Numbers (GSC 30d)
+- Williamsburg: 16 queries, pos 47-84 (S14 refresh shipped, awaiting
+  reindex).
+- **LIC: 6 queries, pos 69-85** (new breakout — was 1 query last
+  session). Queries: "apartment in long island city" (85), "apartments
+  in long island city" (75), "lic apartments nyc" (69), "long island
+  city housing" (75), "long island city new york apartments" (76),
+  "new york lic" (80).
+- **Astoria: 4 queries, 3 rent-specific at pos 43-49**: "astoria
+  average rent" (43.5), "average rent in astoria" (43), "how much is
+  rent in astoria" (49), "subway station apartments in astoria" (19).
+- Total 30d: 50 queries, 54 impressions, 0 clicks — still pre-click.
+
+### Completed
+
+**New spoke pages (2):**
+- `/nyc/long-island-city/rent-prices` — full rent template: unit-size
+  table w/ sq ft, sub-neighborhood table (Hunters Point / Court
+  Square / Queens Plaza / Hallets Point / Walkup), 6-year trend,
+  $/sq ft by building type, net-effective rent math. Article +
+  FAQPage (6 Qs) + BreadcrumbList JSON-LD. 21 keywords targeting all
+  6 captured GSC queries. Studio $2,900 / 1BR $3,500 / 2BR $5,200 /
+  3BR $7,200 median.
+- `/nyc/astoria/rent-prices` — same template. Studio $1,950 / 1BR
+  $2,500 / 2BR $3,200 / 3BR $4,200 median. Sub-neighborhoods: Ditmars
+  / Waterfront / Central / Astoria Heights / East of Steinway. Extra
+  comparison table: Astoria vs. LIC / Williamsburg / Sunnyside /
+  Woodside / Jackson Heights / Bushwick.
+
+**Page refresh:**
+- `/nyc/long-island-city` — keywords 12 → 25 to match all 6 captured
+  query variants, meta title rewritten, dateModified 2026-04-21,
+  rent-prices callout + live-listings widget inserted before
+  Neighborhood Character card.
+
+**Product feature extension (S14 live-listings rollout continues):**
+- Mounted `<NeighborhoodLiveListings>` on: `/nyc/astoria` (40.7720,
+  -73.9195, r=1.0mi), `/nyc/upper-west-side` (40.7870, -73.9754,
+  r=0.8mi), `/nyc/park-slope` (40.6710, -73.9799, r=0.9mi),
+  `/nyc/bushwick` (40.6942, -73.9212, r=1.0mi).
+- Coverage now **7/10 NYC hub pages**: Williamsburg, East Village,
+  LIC, Astoria, UWS, Park Slope, Bushwick.
+
+**Cross-linking:**
+- `/nyc-rent-by-neighborhood` — added LIC rent-prices + Astoria
+  rent-prices entries.
+- `/best-time-to-rent-nyc` — added LIC + Astoria rent-prices
+  paragraph blocks next to existing Williamsburg/EV links.
+
+**Sitemap:** added both new rent-prices routes at priority 0.75,
+monthly.
+
+### Not Yet Done / Queue
+- Greenpoint rent-prices spoke (same template, G-train discount
+  angle from S14 Trends data).
+- Bushwick rent-prices spoke (best-value play).
+- Park Slope rent-prices spoke (family-renter intent, higher AOV).
+- Jersey City Newport / Journal Square rent-prices spokes.
+- Live-listings on Greenpoint (once dataset has coord matches) and
+  Jersey City trio.
+- Next product bet: neighborhood-level alert email capture
+  (opt-in banner + TanStack mutation hook).
+
+### SEO Changes Pending Reindex
+- `/nyc/long-island-city/rent-prices` (new)
+- `/nyc/astoria/rent-prices` (new)
+- `/nyc/long-island-city` (metadata refresh + live-listings)
+- `/nyc/astoria` (live-listings + spoke cross-link)
+- `/nyc/upper-west-side` (live-listings)
+- `/nyc/park-slope` (live-listings)
+- `/nyc/bushwick` (live-listings)
+- `/nyc-rent-by-neighborhood` (2 new cross-links)
+- `/best-time-to-rent-nyc` (2 new cross-links)
+- Sitemap: +2 entries
+
+### Build
+`cd ui && npm run build` exit 0. Both new rent-prices routes ship as
+static pages (○). All edited pages compile cleanly.
+
+---
+
 ## 2026-04-20 -- Session 14 (Williamsburg + Greenpoint + East Village Refresh + 2 Spokes + Live-Listings Feature)
 
 ### Context

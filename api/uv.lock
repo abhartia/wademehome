@@ -186,7 +186,7 @@ requires-dist = [
     { name = "griffe", specifier = ">=1.14.0,<2" },
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "langchain", specifier = ">=0.3.27,<1.0" },
-    { name = "langfuse", specifier = ">=3.3.5" },
+    { name = "langfuse", specifier = ">=3.3.5,<4" },
     { name = "llama-index", specifier = ">=0.14.18,<0.15.0" },
     { name = "llama-index-core", specifier = ">=0.14.18" },
     { name = "llama-index-llms-azure-openai", specifier = ">=0.4.0" },

@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -240,6 +241,16 @@ export default function ParkSlopeGuidePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Live Listings ─────────────────────────── */}
+          <NeighborhoodLiveListings
+            neighborhoodName="Park Slope"
+            latitude={40.6710}
+            longitude={-73.9799}
+            radiusMiles={0.9}
+            limit={6}
+            searchQuery="Park Slope Brooklyn apartments"
+          />
 
           {/* ── Neighborhood Character ────────────────── */}
           <Card>

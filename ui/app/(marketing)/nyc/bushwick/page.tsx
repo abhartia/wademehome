@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -209,6 +210,16 @@ export default function BushwickPage() {
               </Card>
             ))}
           </div>
+
+          {/* Live Listings */}
+          <NeighborhoodLiveListings
+            neighborhoodName="Bushwick"
+            latitude={40.6942}
+            longitude={-73.9212}
+            radiusMiles={1.0}
+            limit={6}
+            searchQuery="Bushwick Brooklyn apartments"
+          />
 
           {/* Overview */}
           <Card>

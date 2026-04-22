@@ -114,6 +114,19 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
         first = False
         had_tool_activity = False
         current_agent: str | None = None
+        # Running synthetic steps we've emitted that still need a terminal
+        # annotation. Without closing these, AgentStepStrip.isRunning stays
+        # true and the Loader2 spins forever after the reply has rendered.
+        pending_running: list[tuple[str, str]] = []
+
+        def _finish_pending_running() -> list[dict[str, Any]]:
+            payloads = [
+                _agent_step_payload(agent, label, "done")
+                for agent, label in pending_running
+            ]
+            pending_running.clear()
+            return payloads
+
         # Emit an immediate progress hint so the UI surfaces real status while
         # the orchestrator LLM is still routing. Without this, the user stares
         # at the placeholder until the first AgentInput event lands (1–3s for
@@ -128,6 +141,7 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
         yield _sse_annotation([
             _agent_step_payload("orchestrator", "Routing your request", "running")
         ])
+        pending_running.append(("orchestrator", "Routing your request"))
         try:
             async for event in handler.stream_events():
                 if isinstance(event, (ToolCall, ToolCallResult)):
@@ -142,13 +156,20 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
                 # and duplicate the UI strip.
                 if isinstance(event, (AgentInput, AgentSetup)):
                     name = event.current_agent_name
-                    if name != current_agent and name in _TOOLLESS_AGENTS:
-                        current_agent = name
-                        yield _sse_annotation([
-                            _agent_step_payload(name, f"{name} thinking", "running")
-                        ])
-                    else:
-                        current_agent = name
+                    if name != current_agent:
+                        # Transition away from the previous agent — close out
+                        # any synthetic running steps we opened for it so the
+                        # spinner doesn't get stranded.
+                        closing = _finish_pending_running()
+                        if closing:
+                            yield _sse_annotation(closing)
+                        if name in _TOOLLESS_AGENTS:
+                            label = f"{name} thinking"
+                            yield _sse_annotation([
+                                _agent_step_payload(name, label, "running")
+                            ])
+                            pending_running.append((name, label))
+                    current_agent = name
                     continue
 
                 if isinstance(event, AgentStream):
@@ -201,6 +222,9 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
             raise
         except Exception:
             logger.exception("agent/chat SSE: error in stream")
+            closing = _finish_pending_running()
+            if closing:
+                yield _sse_annotation(closing)
             yield _sse_annotation([{
                 "type": "agent_error",
                 "data": {"message": "Something went wrong while thinking."},
@@ -220,6 +244,9 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
                     "agent/chat SSE: stream closed with no output "
                     "(likely orchestrator budget exhausted or no handoff)"
                 )
+                closing = _finish_pending_running()
+                if closing:
+                    yield _sse_annotation(closing)
                 yield _sse_annotation([{
                     "type": "agent_error",
                     "data": {
@@ -229,6 +256,15 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
                         )
                     },
                 }])
+            else:
+                # Normal close: mark any still-open synthetic running steps
+                # as done so AgentStepStrip stops spinning. The cascade logic
+                # on the client only closes steps when a LATER step for the
+                # same agent reaches a terminal state, which never happens
+                # for the orchestrator's initial "Routing your request".
+                closing = _finish_pending_running()
+                if closing:
+                    yield _sse_annotation(closing)
 
     return gen
 

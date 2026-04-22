@@ -704,31 +704,41 @@ export function PropertyListingsMap({
       const color = TRANSIT_SYSTEM_COLORS[station.system] ?? "#334155";
       const systemLabel = TRANSIT_SYSTEM_LABELS[station.system] ?? station.system;
 
+      const isBus = station.system === "nj_transit_bus";
+      const size = isBus ? 6 : 10;
+      const borderWidth = isBus ? 1 : 1.5;
+
+      // Mapbox sets `transform` on the marker element to position it, so we
+      // must NOT change `transform` on that same node — doing so would clobber
+      // the positioning and the marker would snap to (0,0). Use an inner dot
+      // that handles the hover scale instead.
       const el = document.createElement("div");
       el.setAttribute("role", "img");
       el.setAttribute(
         "aria-label",
         `${station.station_name} (${systemLabel})`,
       );
-      const isBus = station.system === "nj_transit_bus";
-      const size = isBus ? 6 : 10;
-      const borderWidth = isBus ? 1 : 1.5;
-      el.style.cssText = [
+      el.style.cssText = `width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;cursor:pointer;`;
+
+      const dot = document.createElement("div");
+      dot.style.cssText = [
         `width:${size}px`,
         `height:${size}px`,
         "border-radius:50%",
         `background:${color}`,
         `border:${borderWidth}px solid #ffffff`,
         "box-shadow:0 0 0 1px rgba(15,23,42,0.25)",
-        "cursor:pointer",
         "transition:transform 120ms ease",
         isBus ? "opacity:0.8" : "opacity:1",
+        "transform-origin:center",
       ].join(";");
+      el.appendChild(dot);
+
       el.onmouseenter = () => {
-        el.style.transform = "scale(1.6)";
+        dot.style.transform = "scale(1.6)";
       };
       el.onmouseleave = () => {
-        el.style.transform = "scale(1)";
+        dot.style.transform = "scale(1)";
       };
 
       const lineBadges = station.lines

@@ -19,11 +19,11 @@ export function SharedLandingHeader({ activeTab, onTabChange }: SharedLandingHea
       <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
         <div className="flex shrink-0 items-center gap-2">
           <BrandLogo className="h-7 w-7 shrink-0 text-primary" />
-          <span className="max-w-[9rem] truncate font-semibold text-foreground sm:max-w-none">
+          <span className="hidden font-semibold text-foreground sm:inline">
             Wade Me Home
           </span>
         </div>
-        <span className="h-6 w-px shrink-0 bg-border/90" aria-hidden />
+        <span className="hidden h-6 w-px shrink-0 bg-border/90 sm:block" aria-hidden />
         <div className="flex min-w-0 items-center gap-1.5">
           <button
             className={cn(
@@ -50,7 +50,7 @@ export function SharedLandingHeader({ activeTab, onTabChange }: SharedLandingHea
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <PublicSiteMenu />
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="hidden sm:inline-flex">
             <Link href="/login">Log in</Link>
           </Button>
           <Button asChild>

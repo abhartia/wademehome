@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -242,6 +243,16 @@ export default function UpperWestSideGuidePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Live Listings ─────────────────────────── */}
+          <NeighborhoodLiveListings
+            neighborhoodName="Upper West Side"
+            latitude={40.7870}
+            longitude={-73.9754}
+            radiusMiles={0.8}
+            limit={6}
+            searchQuery="Upper West Side apartments"
+          />
 
           {/* ── Neighborhood Character ────────────────── */}
           <Card>
