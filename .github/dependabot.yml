@@ -9,6 +9,13 @@ updates:
     groups:
       python-minor:
         update-types: ["minor", "patch"]
+    ignore:
+      # langchain 1.x is a ground-up rewrite; keep <1 cap until we migrate.
+      - dependency-name: "langchain"
+        update-types: ["version-update:semver-major"]
+      # griffe 2.x breaks the Object model used by mkdocstrings-python.
+      - dependency-name: "griffe"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "npm"
     directory: "/ui"
@@ -30,8 +37,16 @@ updates:
     directory: "/api"
     schedule:
       interval: "weekly"
+    ignore:
+      # Stay on LTS-stable Python. Evaluate new majors manually.
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "docker"
     directory: "/ui"
     schedule:
       interval: "weekly"
+    ignore:
+      # Only upgrade Node across LTS lines; skip odd non-LTS majors.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
