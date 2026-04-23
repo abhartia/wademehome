@@ -29,7 +29,7 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend || steps.manual.outputs.frontend }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -63,7 +63,7 @@ jobs:
         working-directory: api
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -87,7 +87,7 @@ jobs:
         working-directory: ui
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -117,7 +117,7 @@ jobs:
       IMAGE_TAG: ${{ steps.tag.outputs.IMAGE_TAG }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Azure login
         uses: azure/login@v3
@@ -144,7 +144,7 @@ jobs:
       IMAGE_TAG: ${{ steps.tag.outputs.IMAGE_TAG }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Azure login
         uses: azure/login@v3
