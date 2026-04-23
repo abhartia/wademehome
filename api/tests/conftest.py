@@ -1,8 +1,58 @@
+"""Shared pytest fixtures.
+
+Goals:
+- Keep unit tests fast and hermetic — no real DB, no LLM, no network.
+- Still make it easy to exercise the FastAPI app end-to-end via ``TestClient``.
+"""
+
+from __future__ import annotations
+
 import os
 import sys
 
+import pytest
 
 SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
+
+# Hermetic defaults so importing src/ doesn't try to talk to services.
+os.environ.setdefault("LOG_FORMAT", "pretty")
+os.environ.setdefault("LOG_LEVEL", "WARNING")
+os.environ.setdefault("LANGFUSE_PUBLIC_KEY", "")
+os.environ.setdefault("LANGFUSE_SECRET_KEY", "")
+os.environ.setdefault("OPENAI_API_KEY", "test-key")
+os.environ.setdefault("API_TOKENS", "")
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"
+
+
+@pytest.fixture
+def app_module():
+    """Import the FastAPI app lazily; heavy deps load on first import."""
+    import importlib
+
+    return importlib.import_module("main")
+
+
+@pytest.fixture
+def client(app_module):
+    """A TestClient with the full ASGI stack (request context, security headers, auth)."""
+    from fastapi.testclient import TestClient
+
+    return TestClient(app_module.app)
+
+
+@pytest.fixture
+def fastapi_client(app_module):
+    """A TestClient bound to the inner FastAPI instance (bypasses outer ASGI wrappers).
+
+    Useful for unit-testing individual routers without dealing with auth headers.
+    """
+    from fastapi.testclient import TestClient
+
+    return TestClient(app_module.fastapi_app)

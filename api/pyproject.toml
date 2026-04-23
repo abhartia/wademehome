@@ -33,6 +33,30 @@ dependencies = [
   "pyodbc>=5.3.0",
   "azure-storage-blob>=12.28.0",
   "apscheduler>=3.10,<4",
+  "structlog>=24.4.0",
+  "slowapi>=0.1.9",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.6.0",
+  "black>=24.0.0",
+  "mypy>=1.10.0",
+  "bandit>=1.7.0",
+  "pip-audit>=2.7.0",
+  "pytest-cov>=5.0.0",
+  "httpx>=0.27.0",
+  "respx>=0.21.0",
+  "freezegun>=1.5.0",
+  "types-requests",
+]
+observability = [
+  "sentry-sdk[fastapi]>=2.0.0",
+  "opentelemetry-api>=1.25.0",
+  "opentelemetry-sdk>=1.25.0",
+  "opentelemetry-instrumentation-fastapi>=0.46b0",
+  "opentelemetry-instrumentation-sqlalchemy>=0.46b0",
+  "opentelemetry-exporter-otlp-proto-http>=1.25.0",
 ]
 
 [tool.pytest.ini_options]
@@ -44,6 +68,84 @@ markers = [
   "integration: integration tests that may hit real services (DB/LLM)",
   "live: live test subset gated behind env vars (no mocks)",
 ]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = ["alembic", "scripts"]
+
+[tool.ruff.lint]
+select = [
+  "E",      # pycodestyle errors
+  "F",      # pyflakes
+  "I",      # isort
+  "B",      # flake8-bugbear
+  "UP",     # pyupgrade
+  "SIM",    # flake8-simplify
+  "C4",     # flake8-comprehensions
+  "RUF",    # ruff-specific
+]
+ignore = [
+  "E501",   # line length: handled by black
+  "B008",   # do not perform function call in argument defaults (FastAPI uses Depends())
+  "UP007",  # Union vs. Optional syntax: keep both tolerable
+  "SIM108", # ternary preference: sometimes if/else reads better
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011", "E402"]
+
+[tool.black]
+line-length = 120
+target-version = ["py311", "py312"]
+extend-exclude = "alembic|scripts"
+
+[tool.mypy]
+python_version = "3.11"
+# Start lenient — tighten per module over time (see [[tool.mypy.overrides]]).
+ignore_missing_imports = true
+follow_imports = "silent"
+disallow_untyped_defs = false
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true
+strict_equality = true
+exclude = [
+  "alembic/",
+  "scripts/",
+  "tests/",
+]
+
+[[tool.mypy.overrides]]
+module = ["core.request_context", "core.observability", "core.rate_limit", "core.security_headers", "core.errors", "core.pagination"]
+disallow_untyped_defs = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "alembic", "scripts"]
+# B101: assert usage — tests use it; B601/602 handled case-by-case.
+skips = ["B101"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+  "alembic/*",
+  "scripts/*",
+  "tests/*",
+  "src/workflow/legacy_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+show_missing = true
+skip_covered = false
 
 [tool.setuptools.packages.find]
 where = ["src"]

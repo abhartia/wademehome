@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 import json
+import os
 import time
 import traceback
 
@@ -24,6 +25,13 @@ from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 
 from core.asgi_auth import ASGIAuthMiddleware
 from core.cors_middleware import CORSMiddleware
+from core.request_context import RequestContextMiddleware
+from core.security_headers import SecurityHeadersMiddleware
+from core.body_size import MaxBodySizeMiddleware
+from core.rate_limit import limiter, rate_limit_exceeded_handler
+from core.errors import install_error_handlers
+from core.observability import init_all as init_observability
+from slowapi.errors import RateLimitExceeded
 from workflow.events import ResponseStreamEvent
 
 from core.logger import get_logger
@@ -52,8 +60,13 @@ from property_manager.router import internal_router as pm_internal_router
 from property_manager.router import router as pm_router
 from property_manager.scheduler import start_scheduler, shutdown_scheduler
 from agent.router import router as agent_router
+from flags.router import router as flags_router
 
 logger = get_logger(__name__)
+
+# Wire Sentry + OpenTelemetry (no-op unless env vars set — see core/observability.py).
+init_observability()
+
 langfuse = Langfuse()
 
 # Verify connection (optional – app runs even if Langfuse is misconfigured)
@@ -76,6 +89,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Multi-Agent API", description="API with listing and markets agents", lifespan=lifespan)
+
+# Rate limiter: module-level singleton; routers use @limiter.limit(...).
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+# Uniform error envelope — HTTPException / validation / unhandled exceptions.
+install_error_handlers(app)
+
 app.include_router(auth_router)
 app.include_router(listings_router)
 app.include_router(properties_router)
@@ -98,6 +119,24 @@ app.include_router(admin_router)
 app.include_router(pm_router)
 app.include_router(pm_internal_router)
 app.include_router(agent_router)
+app.include_router(flags_router)
+
+# /v1 mirror — identical surface, versioned path. Legacy unprefixed routes stay
+# mounted behind LEGACY_API_ROUTES (default on) for one release while clients migrate.
+_ALL_ROUTERS = (
+    auth_router, listings_router, properties_router, groups_router, applicants_router,
+    portal_router, tours_router, user_listings_router, guarantors_router,
+    guarantors_public_router, movein_router, movein_photo_router, roommates_router,
+    landlord_router, buildings_router, reviews_router, landlord_entities_router,
+    reviews_admin_router, admin_router, pm_router, pm_internal_router, agent_router,
+    flags_router,
+)
+from fastapi import APIRouter as _APIRouter  # noqa: E402
+
+_v1 = _APIRouter(prefix="/v1")
+for _r in _ALL_ROUTERS:
+    _v1.include_router(_r)
+app.include_router(_v1)
 
 
 _TIMED_PATH_PREFIXES: tuple[str, ...] = (
@@ -119,20 +158,20 @@ async def log_timed_routes(request: Request, call_next):
     except Exception:
         elapsed_ms = int((time.perf_counter() - t0) * 1000)
         logger.exception(
-            "api timing: %s %s failed after %sms",
-            request.method,
-            path,
-            elapsed_ms,
+            "route_timing_failed",
+            method=request.method,
+            path=path,
+            duration_ms=elapsed_ms,
         )
         raise
 
     elapsed_ms = int((time.perf_counter() - t0) * 1000)
     logger.info(
-        "api timing: %s %s -> %s in %sms",
-        request.method,
-        path,
-        response.status_code,
-        elapsed_ms,
+        "route_timing",
+        method=request.method,
+        path=path,
+        status=response.status_code,
+        duration_ms=elapsed_ms,
     )
     return response
 
@@ -205,6 +244,7 @@ def get_event_generator(
 
 # Listing endpoints
 @app.post("/listings/chat")
+@limiter.limit(os.getenv("RATE_LIMIT_LISTINGS_CHAT", "10/minute"))
 async def listing_chat(chat_request: ChatRequest, request: Request):
     try:
         llm = get_llm()
@@ -244,14 +284,27 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    import os as _os
+
+    return {
+        "status": "healthy",
+        "version": _os.getenv("APP_VERSION", "0.0.0"),
+        "git_sha": _os.getenv("GIT_SHA", "unknown"),
+        "env": _os.getenv("APP_ENV", "dev"),
+    }
 
 # Preserve FastAPI instance for OpenAPI export / tooling (ASGI stack has no .openapi()).
 fastapi_app = app
 
-# Wrap the app at the ASGI level - order matters: CORS first, then Auth
+# ASGI stack (outermost last). Each wrapper receives the request before the previous.
+# Order (outermost -> innermost):
+#   RequestContext -> SecurityHeaders -> CORS -> MaxBodySize -> Auth -> FastAPI.
+# RequestContext is outermost so request_id is available to every layer.
 app = ASGIAuthMiddleware(app)
+app = MaxBodySizeMiddleware(app)
 app = CORSMiddleware(app)
+app = SecurityHeadersMiddleware(app)
+app = RequestContextMiddleware(app)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

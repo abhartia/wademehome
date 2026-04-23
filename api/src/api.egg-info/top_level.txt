@@ -5,6 +5,7 @@ auth
 buildings
 core
 db
+flags
 groups
 guarantors
 ingest

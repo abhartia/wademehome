@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 from core.token import TokenValidator
 from core.logger import get_logger
 from core.env_utils import env_manager
+from core.request_context import set_user_id
 
 logger = get_logger(__name__)
 
@@ -80,6 +81,13 @@ class ASGIAuthMiddleware:
             return
 
         logger.info(f"✅ Auth success for: {method} {path}")
+
+        # Bind a stable identity for downstream logs/Sentry tagging. Token prefix
+        # is a safe proxy when the validator doesn't resolve to a user record.
+        try:
+            set_user_id(f"token:{token[:10]}")
+        except Exception:
+            pass
 
         # Token is valid, check for model selection in headers
         model_header = headers.get(b"x-model", b"").decode("utf-8")

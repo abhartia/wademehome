@@ -1,6 +1,54 @@
-# Listing AI
+# wademehome
 
-Full-stack app: **API** (FastAPI + LlamaIndex) and **UI** (Next.js).
+A full-stack rental-search platform with an agentic chat UI, multi-source ingest, and landlord/PM tooling. Built as a portfolio project to practice shipping production-grade systems end-to-end.
+
+> **Looking for a quick tour?** Jump to [Highlights for reviewers](#highlights-for-reviewers), [Architecture](ARCHITECTURE.md), or one of the [ADRs](docs/adr/).
+
+## Stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| API | FastAPI (Python 3.11+) | Async, typed, OpenAPI out of the box |
+| Agent runtime | LlamaIndex multi-agent workflow | Specialist routing vs. monolithic chatbot |
+| DB | PostgreSQL + Alembic | PostGIS-ready for geo queries |
+| UI | Next.js 15 + React 19 + Tailwind v4 | App Router, server components |
+| Data client | TanStack Query + generated OpenAPI types | Typed end-to-end |
+| Maps | Mapbox GL + react-map-gl | |
+| Observability | structlog + optional Sentry + OpenTelemetry | JSON logs, request IDs, span export |
+| CI | GitHub Actions (lint, test, CodeQL, Dependabot) | |
+| Deploy | Azure App Service + ACR, blue/green via slot swap | Zero-downtime rollouts |
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  U[Browser - Next.js App Router] -->|HTTPS, cookies| N[Next.js SSR]
+  U -->|Fetch via React Query| A
+  N -->|Server fetch| A[FastAPI API]
+  A -->|asyncpg / SQLAlchemy| P[(PostgreSQL)]
+  A -->|LLM calls| L[OpenAI / Azure OpenAI]
+  A -->|Workflow events| W[LlamaIndex Agent Workflow]
+  A -->|Traces| O[OTel Collector / stdout]
+  A -->|Errors| S[Sentry - free tier, opt-in]
+  A -->|Prompt traces| LF[Langfuse - optional]
+
+  subgraph Ingest
+    X[Scrapers - RentCafe / Greystar / Entrata] -->|parquet| P
+  end
+```
+
+Request lifecycle: **RequestContext → SecurityHeaders → CORS → MaxBodySize → Auth → FastAPI routing → rate-limited handler**. Each layer is a small ASGI middleware under [api/src/core/](api/src/core/).
+
+## Highlights for reviewers
+
+If you have 5 minutes:
+
+- **CI**: [.github/workflows/ci.yml](.github/workflows/ci.yml) — ruff, black, mypy, pytest+coverage, bandit, pip-audit, CodeQL on every PR.
+- **Observability**: [api/src/core/logger.py](api/src/core/logger.py) (structlog JSON), [api/src/core/request_context.py](api/src/core/request_context.py) (request IDs), [api/src/core/observability.py](api/src/core/observability.py) (opt-in Sentry + OTel).
+- **Security middleware**: [api/src/core/security_headers.py](api/src/core/security_headers.py), [api/src/core/rate_limit.py](api/src/core/rate_limit.py) (slowapi), [api/src/core/body_size.py](api/src/core/body_size.py).
+- **API craft**: [api/src/core/errors.py](api/src/core/errors.py) (uniform error envelope), [api/src/core/pagination.py](api/src/core/pagination.py) (opaque cursor), [api/src/core/flags.py](api/src/core/flags.py) (self-hosted feature flags with stable rollout buckets), `/v1` prefix with legacy mirror.
+- **Tests**: [api/tests/](api/tests/) — 100+ tests including middleware unit tests and a full ASGI-stack smoke suite.
+- **Docs**: [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), [RUNBOOK.md](RUNBOOK.md), [CONTRIBUTING.md](CONTRIBUTING.md), and one-page [ADRs](docs/adr/).
 
 ## Quick start
 

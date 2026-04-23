@@ -356,13 +356,15 @@ export function PropertyRenterInsights({
               No PATH, light rail, or ferry stops within a 25-minute walk.
             </p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               {transit.data.stations.map((s) => {
                 const label = TRANSIT_LABELS[s.system] ?? s.system;
+                const isBus = s.system === "nj_transit_bus";
+                const routePrefix = isBus ? "Bus" : "Line";
                 return (
                   <li
                     key={`${s.system}-${s.station_name}`}
-                    className="flex flex-wrap items-baseline justify-between gap-2"
+                    className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-2"
                   >
                     <span className="font-medium">
                       {s.station_name}{" "}
@@ -371,6 +373,18 @@ export function PropertyRenterInsights({
                     <span className="text-muted-foreground">
                       {s.walk_minutes} min walk · {s.distance_miles.toFixed(2)} mi
                     </span>
+                    {s.lines.length > 0 ? (
+                      <span className="flex flex-wrap gap-1 sm:basis-full">
+                        {s.lines.map((ln) => (
+                          <span
+                            key={ln}
+                            className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground"
+                          >
+                            {routePrefix} {ln}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                   </li>
                 );
               })}

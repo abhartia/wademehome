@@ -8,6 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write \"app/**/*.{ts,tsx,js,jsx,json,css,md}\" \"components/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"app/**/*.{ts,tsx,js,jsx,json,css,md}\" \"components/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:e2e": "playwright test",
     "openapi:generate": "openapi-ts",
     "openapi:generate:local": "OPENAPI_INPUT=http://127.0.0.1:8000/openapi.json npm run openapi:generate",
     "openapi:spec": "cd ../api && uv run python scripts/export_openapi_to_ui.py",
@@ -38,14 +43,22 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@hey-api/openapi-ts": "0.80.0",
+    "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.3.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "jsdom": "^25.0.0",
+    "prettier": "^3.3.3",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.8",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.0"
   }
 }

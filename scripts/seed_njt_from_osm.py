@@ -4,9 +4,17 @@ County-area bus stops from OpenStreetMap via the Overpass API.
 Two systems are populated:
 - `nj_transit_rail` — all NJT rail stations statewide (~165)
 - `nj_transit_bus` — bus stops inside a Hudson-Bergen bbox relevant to
-  the JC commute. We cannot take *every* NJT bus stop statewide
-  (>18,000) without cluttering the map, so we bound to the densest
-  commuter corridor that actually matters for renters browsing JC.
+  the JC commute. We only keep stops that are actually served by an
+  NJ Transit `route=bus` relation (which carries the public route ref
+  like "80", "119"), so the `lines` field contains the route numbers
+  riders recognize, not OSM internal stop IDs.
+
+  Opposite-direction stops at the same intersection share a name in
+  OSM (e.g. two "JFK Blvd at Glenwood Ave" nodes); we collapse them
+  into a single row whose `lines` is the union of routes serving
+  either side. This lets us store a clean `station_name` without an
+  ugly "(stop NNN)" suffix while still satisfying the
+  (system, station_name) unique constraint.
 
 No external auth required. The Overpass instance is rate-limited
 (~10,000 queries/day across all users), which is plenty for a one-time
@@ -15,6 +23,7 @@ seed + occasional refresh.
 from __future__ import annotations
 
 import os
+import re
 import sys
 import time
 import uuid
@@ -47,6 +56,19 @@ BUS_QUERY = """
   node["highway"="bus_stop"](40.6400,-74.2700,40.8800,-74.0000);
 );
 out tags center;
+"""
+
+# Bus route relations within the same bbox. Each relation has a `ref`
+# tag carrying the public route number (e.g. "80", "119") and member
+# nodes (the bus stops it serves). Mapping member node → route refs
+# gives us the real route lists for each stop, which the OSM `ref`
+# tag on individual stop nodes does NOT (that's the stop ID).
+BUS_ROUTES_QUERY = """
+[out:json][timeout:90];
+(
+  rel["type"="route"]["route"="bus"]["network"~"NJ Transit",i](40.6400,-74.2700,40.8800,-74.0000);
+);
+out body;
 """
 
 UPSERT_SQL = """
@@ -130,11 +152,42 @@ def seed() -> int:
             prev["lines"] = sorted({*prev["lines"], *_parse_lines(tags)})
     print(f"  rail: {len(rail_by_name)} deduped stations")
 
-    # ── Bus ──────────────────────────────────────────────────────────
+    # ── Bus routes (gives us the public route refs per stop) ─────────
+    print("fetching NJ Transit bus route relations from OSM…")
+    route_elems = _run_overpass(BUS_ROUTES_QUERY, label="bus-routes")
+    node_routes: dict[str, set[str]] = {}
+    for rel in route_elems:
+        if rel.get("type") != "relation":
+            continue
+        rtags = rel.get("tags") or {}
+        ref = (rtags.get("ref") or "").strip()
+        if not ref:
+            # Some relations encode the route number only in `name`,
+            # like "NJTB - 119 - Bayonne to NY". Pull the first number.
+            m = re.search(r"\b(\d{1,4}[A-Z]?)\b", rtags.get("name") or "")
+            if m:
+                ref = m.group(1)
+        if not ref:
+            continue
+        for member in rel.get("members") or []:
+            if member.get("type") != "node":
+                continue
+            node_id = str(member.get("ref") or "")
+            if node_id:
+                node_routes.setdefault(node_id, set()).add(ref)
+    print(
+        f"  bus routes: {len(node_routes)} stop nodes covered by NJT route relations"
+    )
+
+    # ── Bus stops ────────────────────────────────────────────────────
     print("fetching Hudson-area bus stops from OSM…")
     bus_elems = _run_overpass(BUS_QUERY, label="bus")
-    bus_rows: list[dict] = []
-    seen_bus_keys: set[str] = set()
+    # First pass: collect all stops served by an NJT route, keyed by
+    # (system, station_name). Opposite-direction stops at the same
+    # intersection share a name in OSM — we collapse them so the row
+    # carries the union of routes serving either side.
+    by_name: dict[str, dict] = {}
+    skipped_no_routes = 0
     for el in bus_elems:
         tags = el.get("tags") or {}
         lat = el.get("lat")
@@ -142,30 +195,37 @@ def seed() -> int:
         if lat is None or lon is None:
             continue
         name = (tags.get("name") or "").strip()
-        ref = (tags.get("ref") or "").strip()
-        if not name and not ref:
-            continue
         if not name:
-            name = f"Bus stop {ref}"
-        osm_id = str(el.get("id") or "")
-        # Disambiguate: many stops share names. Use OSM id in the unique
-        # station_name so the (system, name) unique constraint holds.
-        station_name = f"{name} (stop {osm_id})"
-        key = station_name
-        if key in seen_bus_keys:
+            # No human-readable name -> not useful in the UI, skip.
             continue
-        seen_bus_keys.add(key)
-        bus_rows.append(
-            {
-                "name": station_name,
+        osm_id = str(el.get("id") or "")
+        routes = sorted(node_routes.get(osm_id, set()))
+        if not routes:
+            # Stop is in our bbox but not on any NJT route relation
+            # (could be NYC bus, school bus, decommissioned, etc.).
+            skipped_no_routes += 1
+            continue
+
+        existing = by_name.get(name)
+        if existing is None:
+            by_name[name] = {
+                "name": name,
                 "lat": float(lat),
                 "lng": float(lon),
-                "lines": _parse_lines(tags),
+                "lines": list(routes),
                 "city": tags.get("addr:city"),
                 "osm_id": osm_id,
             }
-        )
-    print(f"  bus: {len(bus_rows)} stops in Hudson-area bbox")
+        else:
+            existing["lines"] = sorted(set(existing["lines"]) | set(routes))
+            # Keep the first stop's coords/osm_id; both sides of an
+            # intersection are within ~30m — rendering one dot per
+            # intersection is the cleaner UX anyway.
+    bus_rows = list(by_name.values())
+    print(
+        f"  bus: {len(bus_rows)} unique stops with NJT routes "
+        f"(skipped {skipped_no_routes} stops with no NJT route)"
+    )
 
     # ── Upsert ───────────────────────────────────────────────────────
     with psycopg2.connect(url) as conn:
@@ -190,7 +250,14 @@ def seed() -> int:
                 )
                 rail_inserted += 1
 
-            # Bus
+            # Bus: wipe existing rows first so stale entries (the old
+            # "(stop NNN)" naming and OSM-stop-id `lines` data) don't
+            # linger. The unique constraint is (system, station_name)
+            # so rows with the old suffix would never collide with the
+            # cleanly-named replacements.
+            cur.execute(
+                "DELETE FROM transit_stations WHERE system::text = 'nj_transit_bus';"
+            )
             bus_inserted = 0
             for rec in bus_rows:
                 cur.execute(
