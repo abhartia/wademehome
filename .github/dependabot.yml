@@ -26,6 +26,16 @@ updates:
     groups:
       npm-minor:
         update-types: ["minor", "patch"]
+    ignore:
+      # Major framework/test-stack upgrades need dedicated migration PRs.
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
