@@ -24,7 +24,7 @@ def forward_geocode(address: str, token: str, *, timeout: float = 12.0) -> tuple
     try:
         with urllib.request.urlopen(
             url, timeout=timeout
-        ) as resp:  # nosec B310 — url built from constant https mapbox base
+        ) as resp:  # nosec B310  # url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
@@ -54,7 +54,7 @@ def forward_geocode_detailed(address: str, token: str, *, timeout: float = 12.0)
     try:
         with urllib.request.urlopen(
             url, timeout=timeout
-        ) as resp:  # nosec B310 — url built from constant https mapbox base
+        ) as resp:  # nosec B310  # url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
@@ -147,7 +147,7 @@ def forward_geocode_us_state(address: str, token: str, *, timeout: float = 12.0)
     try:
         with urllib.request.urlopen(
             url, timeout=timeout
-        ) as resp:  # nosec B310 — url built from constant https mapbox base
+        ) as resp:  # nosec B310  # url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
@@ -189,7 +189,7 @@ def driving_durations_minutes(
     try:
         with urllib.request.urlopen(
             url, timeout=timeout
-        ) as resp:  # nosec B310 — url built from constant https mapbox base
+        ) as resp:  # nosec B310  # url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError, ValueError):
         return [None] * len(dest_latlng)
@@ -258,7 +258,7 @@ def search_category_nearby(
     try:
         with urllib.request.urlopen(
             url, timeout=timeout
-        ) as resp:  # nosec B310 — url built from constant https mapbox base
+        ) as resp:  # nosec B310  # url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError, ValueError):
         return []

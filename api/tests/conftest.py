@@ -17,6 +17,15 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 
+# Must run BEFORE any `llama_index.server` import (tests pull it transitively
+# through src/workflow/utils.py -> listings.router). PyPI `llama-cloud` 1.x
+# dropped `ManagedIngestionStatus` / `PipelineFileCreateCustomMetadataValue`
+# that `llama_index.server` still expects; the shim re-exposes minimal stubs.
+from core.llama_cloud_compat import apply_llama_cloud_server_compat  # noqa: E402
+
+apply_llama_cloud_server_compat()
+
+
 # Hermetic defaults so importing src/ doesn't try to talk to services.
 os.environ.setdefault("LOG_FORMAT", "pretty")
 os.environ.setdefault("LOG_LEVEL", "WARNING")

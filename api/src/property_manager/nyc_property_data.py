@@ -127,7 +127,7 @@ def _socrata_get(url: str, params: dict[str, str]) -> list[dict[str, Any]]:
     req = urllib.request.Request(full_url, headers=_socrata_headers())
     with urllib.request.urlopen(
         req, timeout=_TIMEOUT
-    ) as resp:  # nosec B310 — url built from constant NYC Socrata https base
+    ) as resp:  # nosec B310  # url built from constant NYC Socrata https base
         data = json.loads(resp.read())
     return data if isinstance(data, list) else []
 

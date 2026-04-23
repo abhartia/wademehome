@@ -124,7 +124,7 @@ def _fetch_html(url: str) -> str | None:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=_FETCH_TIMEOUT) as resp:  # nosec B310 — scheme validated above
+        with urllib.request.urlopen(req, timeout=_FETCH_TIMEOUT) as resp:  # nosec B310  # scheme validated above
             raw = resp.read(_MAX_HTML_BYTES)
             charset = resp.headers.get_content_charset() or "utf-8"
     except (urllib.error.URLError, OSError, TimeoutError) as exc:
