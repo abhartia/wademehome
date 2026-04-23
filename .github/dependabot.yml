@@ -36,6 +36,12 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vitejs/plugin-react"
         update-types: ["version-update:semver-major"]
+      # @llamaindex/chat-ui ships breaking API changes as minors (0.x line).
+      # Upgrade in dedicated PRs after migrating call sites.
+      - dependency-name: "@llamaindex/chat-ui"
+      # @types/react 19.2 has a JSX-namespace regression; pin until resolved.
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-minor"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
