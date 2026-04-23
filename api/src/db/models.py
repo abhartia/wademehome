@@ -1,14 +1,13 @@
 import uuid
 from datetime import date, datetime, time
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import (
     JSON,
     Boolean,
     Date,
     DateTime,
-    Enum as SQLEnum,
     Float,
     ForeignKey,
     Index,
@@ -21,20 +20,23 @@ from sqlalchemy import (
     func,
     text,
 )
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     user = "user"
     admin = "admin"
     landlord = "landlord"
     property_manager = "property_manager"
 
 
-class JourneyStage(str, Enum):
+class JourneyStage(StrEnum):
     searching = "searching"
     touring = "touring"
     applying = "applying"
@@ -43,14 +45,14 @@ class JourneyStage(str, Enum):
     moved_in = "moved-in"
 
 
-class TourStatus(str, Enum):
+class TourStatus(StrEnum):
     saved = "saved"
     scheduled = "scheduled"
     completed = "completed"
     cancelled = "cancelled"
 
 
-class GuarantorRequestStatus(str, Enum):
+class GuarantorRequestStatus(StrEnum):
     draft = "draft"
     invited = "invited"
     opened = "opened"
@@ -64,13 +66,13 @@ class GuarantorRequestStatus(str, Enum):
     revoked = "revoked"
 
 
-class GuarantorVerificationStatus(str, Enum):
+class GuarantorVerificationStatus(StrEnum):
     pending = "pending"
     verified = "verified"
     failed = "failed"
 
 
-class VendorOrderStatus(str, Enum):
+class VendorOrderStatus(StrEnum):
     researching = "researching"
     requested = "requested"
     confirmed = "confirmed"
@@ -78,25 +80,25 @@ class VendorOrderStatus(str, Enum):
     cancelled = "cancelled"
 
 
-class RoommateConnectionStatus(str, Enum):
+class RoommateConnectionStatus(StrEnum):
     requested = "requested"
     connected = "connected"
     archived = "archived"
 
 
-class LandlordVerificationStatus(str, Enum):
+class LandlordVerificationStatus(StrEnum):
     pending = "pending"
     verified = "verified"
     rejected = "rejected"
 
 
-class LandlordPublishStatus(str, Enum):
+class LandlordPublishStatus(StrEnum):
     draft = "draft"
     published = "published"
     archived = "archived"
 
 
-class LandlordLeadStatus(str, Enum):
+class LandlordLeadStatus(StrEnum):
     new = "new"
     contacted = "contacted"
     toured = "toured"
@@ -105,14 +107,14 @@ class LandlordLeadStatus(str, Enum):
     closed = "closed"
 
 
-class LandlordTourBookingStatus(str, Enum):
+class LandlordTourBookingStatus(StrEnum):
     requested = "requested"
     confirmed = "confirmed"
     cancelled = "cancelled"
     completed = "completed"
 
 
-class LandlordApplicationStatus(str, Enum):
+class LandlordApplicationStatus(StrEnum):
     submitted = "submitted"
     under_review = "under_review"
     approved = "approved"
@@ -120,7 +122,7 @@ class LandlordApplicationStatus(str, Enum):
     withdrawn = "withdrawn"
 
 
-class LandlordLeaseOfferStatus(str, Enum):
+class LandlordLeaseOfferStatus(StrEnum):
     draft = "draft"
     sent = "sent"
     countered = "countered"
@@ -129,7 +131,7 @@ class LandlordLeaseOfferStatus(str, Enum):
     expired = "expired"
 
 
-class LandlordSignatureStatus(str, Enum):
+class LandlordSignatureStatus(StrEnum):
     pending = "pending"
     signed = "signed"
     declined = "declined"
@@ -137,27 +139,17 @@ class LandlordSignatureStatus(str, Enum):
 
 class Users(Base):
     __tablename__ = "users"
-    __table_args__ = (
-        Index("ix_users_email_verification_token_hash", "email_verification_token_hash"),
-    )
+    __table_args__ = (Index("ix_users_email_verification_token_hash", "email_verification_token_hash"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    role: Mapped[UserRole] = mapped_column(
-        SQLEnum(UserRole, name="user_role"), nullable=False, default=UserRole.user
-    )
+    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name="user_role"), nullable=False, default=UserRole.user)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     email_verification_token_hash: Mapped[str | None] = mapped_column(String(128))
-    email_verification_expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    email_verification_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -171,29 +163,17 @@ class Users(Base):
     guarantor_requests: Mapped[list["GuarantorRequests"]] = relationship(back_populates="user")
     movein_plans: Mapped[list["UserMoveinPlans"]] = relationship(back_populates="user")
     checklist_items: Mapped[list["UserChecklistItems"]] = relationship(back_populates="user")
-    roommate_profile: Mapped["RoommateProfiles"] = relationship(
-        back_populates="user", uselist=False
-    )
-    roommate_connections: Mapped[list["RoommateConnections"]] = relationship(
-        back_populates="user"
-    )
+    roommate_profile: Mapped["RoommateProfiles"] = relationship(back_populates="user", uselist=False)
+    roommate_connections: Mapped[list["RoommateConnections"]] = relationship(back_populates="user")
     sessions: Mapped[list["UserSessions"]] = relationship(back_populates="user")
     magic_link_tokens: Mapped[list["MagicLinkTokens"]] = relationship(back_populates="user")
-    property_favorites: Mapped[list["PropertyFavorites"]] = relationship(
-        back_populates="user"
-    )
+    property_favorites: Mapped[list["PropertyFavorites"]] = relationship(back_populates="user")
     property_notes: Mapped[list["PropertyNotes"]] = relationship(back_populates="user")
-    lease_document: Mapped["UserLeaseDocuments | None"] = relationship(
-        back_populates="user", uselist=False
-    )
-    landlord_profile: Mapped["LandlordProfiles | None"] = relationship(
-        back_populates="user", uselist=False
-    )
-    landlord_properties: Mapped[list["LandlordProperties"]] = relationship(
-        back_populates="owner"
-    )
-    property_manager_report_subscriptions: Mapped[list["PropertyManagerReportSubscriptions"]] = (
-        relationship(back_populates="user")
+    lease_document: Mapped["UserLeaseDocuments | None"] = relationship(back_populates="user", uselist=False)
+    landlord_profile: Mapped["LandlordProfiles | None"] = relationship(back_populates="user", uselist=False)
+    landlord_properties: Mapped[list["LandlordProperties"]] = relationship(back_populates="owner")
+    property_manager_report_subscriptions: Mapped[list["PropertyManagerReportSubscriptions"]] = relationship(
+        back_populates="user"
     )
 
 
@@ -207,9 +187,7 @@ class PropertyManagerReportSubscriptions(Base):
         Index("ix_pm_report_sub_active", "is_active"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -219,9 +197,7 @@ class PropertyManagerReportSubscriptions(Base):
     radius_miles: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False, default=Decimal("2"))
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     last_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -256,9 +232,7 @@ class PmBuildingSnapshots(Base):
     beds_available: Mapped[str | None] = mapped_column(String(100))
     fees_json: Mapped[dict | None] = mapped_column(JSONB)
     amenities_json: Mapped[list | None] = mapped_column(JSONB)
-    captured_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class PmMarketSnapshots(Base):
@@ -284,9 +258,7 @@ class PmMarketSnapshots(Base):
     center_latitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
     center_longitude: Mapped[Decimal] = mapped_column(Numeric(11, 7), nullable=False)
     radius_miles: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
-    captured_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class UserSessions(Base):
@@ -297,16 +269,12 @@ class UserSessions(Base):
         UniqueConstraint("token_hash", name="uq_user_sessions_token_hash"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     token_hash: Mapped[str] = mapped_column(String(128), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
@@ -321,19 +289,13 @@ class MagicLinkTokens(Base):
         UniqueConstraint("token_hash", name="uq_magic_link_tokens_token_hash"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    user_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     token_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user: Mapped["Users | None"] = relationship(back_populates="magic_link_tokens")
 
@@ -342,9 +304,7 @@ class UserProfiles(Base):
     __tablename__ = "user_profiles"
     __table_args__ = (UniqueConstraint("user_id", name="uq_user_profiles_user_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -354,35 +314,21 @@ class UserProfiles(Base):
     current_city: Mapped[str | None] = mapped_column(String(128))
     work_location: Mapped[str | None] = mapped_column(String(128))
     preferred_cities: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    neighbourhood_priorities: Mapped[list[str]] = mapped_column(
-        JSON, nullable=False, default=list
-    )
+    neighbourhood_priorities: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     dealbreakers: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     max_monthly_rent: Mapped[str | None] = mapped_column(String(64))
     credit_score_range: Mapped[str | None] = mapped_column(String(64))
     living_arrangement: Mapped[str | None] = mapped_column(String(32))
-    roommate_search_enabled: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
-    has_current_lease: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    roommate_search_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    has_current_lease: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     bedrooms_needed: Mapped[str | None] = mapped_column(String(32))
     has_pets: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     pet_details: Mapped[str | None] = mapped_column(Text)
-    journey_stage_override: Mapped[JourneyStage | None] = mapped_column(
-        SQLEnum(JourneyStage, name="journey_stage")
-    )
-    onboarding_completed: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    journey_stage_override: Mapped[JourneyStage | None] = mapped_column(SQLEnum(JourneyStage, name="journey_stage"))
+    onboarding_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     onboarding_step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    last_updated: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -402,9 +348,7 @@ class UserTours(Base):
         Index("ix_user_tours_group_id", "group_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -423,9 +367,7 @@ class UserTours(Base):
     )
     tour_date: Mapped[date | None] = mapped_column(Date)
     tour_time: Mapped[time | None] = mapped_column(Time(timezone=False))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -445,20 +387,16 @@ class UserTours(Base):
     )
 
 
-class TourMediaKind(str, Enum):
+class TourMediaKind(StrEnum):
     video = "video"
     image = "image"
 
 
 class TourMedia(Base):
     __tablename__ = "tour_media"
-    __table_args__ = (
-        Index("ix_tour_media_tour_id", "tour_id"),
-    )
+    __table_args__ = (Index("ix_tour_media_tour_id", "tour_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tour_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("user_tours.id", ondelete="CASCADE"),
@@ -470,15 +408,11 @@ class TourMedia(Base):
         nullable=False,
     )
     media_url: Mapped[str] = mapped_column(Text, nullable=False)
-    media_kind: Mapped[TourMediaKind] = mapped_column(
-        SQLEnum(TourMediaKind, name="tour_media_kind"), nullable=False
-    )
+    media_kind: Mapped[TourMediaKind] = mapped_column(SQLEnum(TourMediaKind, name="tour_media_kind"), nullable=False)
     content_type: Mapped[str | None] = mapped_column(String(128))
     file_size_bytes: Mapped[int | None] = mapped_column(Integer)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     tour: Mapped["UserTours"] = relationship(back_populates="media")
 
@@ -490,9 +424,7 @@ class PropertyFavorites(Base):
         Index("ix_property_favorites_group_id", "group_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -502,9 +434,7 @@ class PropertyFavorites(Base):
     property_key: Mapped[str] = mapped_column(String(255), nullable=False)
     property_name: Mapped[str] = mapped_column(String(255), nullable=False)
     property_address: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user: Mapped["Users"] = relationship(back_populates="property_favorites")
 
@@ -516,9 +446,7 @@ class PropertyNotes(Base):
         Index("ix_property_notes_group_id", "group_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -527,9 +455,7 @@ class PropertyNotes(Base):
     )
     property_key: Mapped[str] = mapped_column(String(255), nullable=False)
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -547,9 +473,7 @@ class TourNotes(Base):
         UniqueConstraint("tour_id", name="uq_tour_notes_tour_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tour_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user_tours.id", ondelete="CASCADE"), nullable=False
     )
@@ -558,15 +482,9 @@ class TourNotes(Base):
     cons: Mapped[str | None] = mapped_column(Text)
     general_notes: Mapped[str | None] = mapped_column(Text)
     would_apply: Mapped[bool | None] = mapped_column(Boolean)
-    photo_checklist_json: Mapped[list[str]] = mapped_column(
-        JSON, nullable=False, default=list
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    photo_checklist_json: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     tour: Mapped["UserTours"] = relationship(back_populates="notes")
 
@@ -575,9 +493,7 @@ class UserGuarantors(Base):
     __tablename__ = "user_guarantors"
     __table_args__ = (Index("ix_user_guarantors_user_id", "user_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -585,9 +501,7 @@ class UserGuarantors(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(64), nullable=False)
     relationship_type: Mapped[str] = mapped_column("relationship", String(64), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -612,9 +526,7 @@ class GuarantorRequests(Base):
         ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -642,9 +554,7 @@ class GuarantorRequests(Base):
     viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -663,9 +573,7 @@ class GuarantorRequests(Base):
     signatures: Mapped[list["GuarantorSignatures"]] = relationship(
         back_populates="request", cascade="all, delete-orphan"
     )
-    documents: Mapped[list["GuarantorDocuments"]] = relationship(
-        back_populates="request", cascade="all, delete-orphan"
-    )
+    documents: Mapped[list["GuarantorDocuments"]] = relationship(back_populates="request", cascade="all, delete-orphan")
 
 
 class GuarantorInviteTokens(Base):
@@ -676,9 +584,7 @@ class GuarantorInviteTokens(Base):
         UniqueConstraint("token_hash", name="uq_guarantor_invite_tokens_token_hash"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     request_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
@@ -688,9 +594,7 @@ class GuarantorInviteTokens(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     request: Mapped["GuarantorRequests"] = relationship(back_populates="invite_tokens")
 
@@ -702,9 +606,7 @@ class GuarantorSigningEvents(Base):
         Index("ix_guarantor_signing_events_created_at", "created_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     request_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
@@ -717,9 +619,7 @@ class GuarantorSigningEvents(Base):
     user_agent: Mapped[str | None] = mapped_column(String(512))
     payload_json: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     note: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     request: Mapped["GuarantorRequests"] = relationship(back_populates="signing_events")
 
@@ -731,9 +631,7 @@ class GuarantorSignatures(Base):
         Index("ix_guarantor_signatures_signed_at", "signed_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     request_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
@@ -744,9 +642,7 @@ class GuarantorSignatures(Base):
     signature_text: Mapped[str] = mapped_column(Text, nullable=False)
     consent_text_version: Mapped[str] = mapped_column(String(64), nullable=False)
     signed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     request: Mapped["GuarantorRequests"] = relationship(back_populates="signatures")
 
@@ -758,9 +654,7 @@ class GuarantorDocuments(Base):
         Index("ix_guarantor_documents_uploaded_at", "uploaded_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     request_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("guarantor_requests.id", ondelete="CASCADE"),
@@ -773,9 +667,7 @@ class GuarantorDocuments(Base):
     storage_key: Mapped[str] = mapped_column(String(512), nullable=False)
     metadata_json: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     request: Mapped["GuarantorRequests"] = relationship(back_populates="documents")
 
@@ -784,9 +676,7 @@ class UserMoveinPlans(Base):
     __tablename__ = "user_movein_plans"
     __table_args__ = (Index("ix_user_movein_plans_user_id", "user_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -794,9 +684,7 @@ class UserMoveinPlans(Base):
     target_state: Mapped[str | None] = mapped_column(String(2), nullable=True)
     move_date: Mapped[date | None] = mapped_column(Date)
     move_from_address: Mapped[str | None] = mapped_column(String(255))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -819,9 +707,7 @@ class UserVendorOrders(Base):
         Index("ix_user_vendor_orders_movein_plan_status", "movein_plan_id", "status"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     movein_plan_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("user_movein_plans.id", ondelete="CASCADE"),
@@ -841,9 +727,7 @@ class UserVendorOrders(Base):
     account_number: Mapped[str | None] = mapped_column(String(128))
     notes: Mapped[str | None] = mapped_column(Text)
     monthly_cost: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -861,9 +745,7 @@ class UserChecklistItems(Base):
         Index("ix_user_checklist_items_movein_plan_id", "movein_plan_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -874,9 +756,7 @@ class UserChecklistItems(Base):
     category: Mapped[str] = mapped_column(String(64), nullable=False)
     label: Mapped[str] = mapped_column(String(255), nullable=False)
     completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -892,9 +772,7 @@ class UserMoveinPhotoRooms(Base):
     __tablename__ = "user_movein_photo_rooms"
     __table_args__ = (Index("ix_user_movein_photo_rooms_movein_plan_id", "movein_plan_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     movein_plan_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("user_movein_plans.id", ondelete="CASCADE"),
@@ -903,23 +781,17 @@ class UserMoveinPhotoRooms(Base):
     room_type: Mapped[str] = mapped_column(String(64), nullable=False)
     room_label: Mapped[str] = mapped_column(String(128), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     plan: Mapped["UserMoveinPlans"] = relationship(back_populates="photo_rooms")
-    photos: Mapped[list["UserMoveinPhotos"]] = relationship(
-        back_populates="room", cascade="all, delete-orphan"
-    )
+    photos: Mapped[list["UserMoveinPhotos"]] = relationship(back_populates="room", cascade="all, delete-orphan")
 
 
 class UserMoveinPhotos(Base):
     __tablename__ = "user_movein_photos"
     __table_args__ = (Index("ix_user_movein_photos_room_id", "room_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     room_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("user_movein_photo_rooms.id", ondelete="CASCADE"),
@@ -932,9 +804,7 @@ class UserMoveinPhotos(Base):
     latitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
     longitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
     file_size_bytes: Mapped[int | None] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     room: Mapped["UserMoveinPhotoRooms"] = relationship(back_populates="photos")
 
@@ -943,9 +813,7 @@ class RoommateProfiles(Base):
     __tablename__ = "roommate_profiles"
     __table_args__ = (UniqueConstraint("user_id", name="uq_roommate_profiles_user_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -959,15 +827,11 @@ class RoommateProfiles(Base):
     smoking: Mapped[str | None] = mapped_column(String(64))
     languages_spoken: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     preferred_languages: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    must_have_preferred_languages: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    must_have_preferred_languages: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     interests: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     bio: Mapped[str | None] = mapped_column(Text)
     profile_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -982,9 +846,7 @@ class RoommateConnections(Base):
     __tablename__ = "roommate_connections"
     __table_args__ = (Index("ix_roommate_connections_user_id", "user_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -998,12 +860,8 @@ class RoommateConnections(Base):
         nullable=False,
         default=RoommateConnectionStatus.connected,
     )
-    connected_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    connected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user: Mapped["Users"] = relationship(back_populates="roommate_connections")
     messages: Mapped[list["RoommateMessages"]] = relationship(back_populates="connection")
@@ -1020,9 +878,7 @@ class RoommateMessages(Base):
         ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     connection_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("roommate_connections.id", ondelete="CASCADE"),
@@ -1031,9 +887,7 @@ class RoommateMessages(Base):
     sender_role: Mapped[str] = mapped_column(String(32), nullable=False)
     sender_ref_id: Mapped[str | None] = mapped_column(String(128))
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     connection: Mapped["RoommateConnections"] = relationship(back_populates="messages")
 
@@ -1045,9 +899,7 @@ class VendorCatalog(Base):
         UniqueConstraint("vendor_key", name="uq_vendor_catalog_vendor_key"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     vendor_key: Mapped[str] = mapped_column(String(128), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     category: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -1059,9 +911,7 @@ class VendorCatalog(Base):
     coverage_area: Mapped[str | None] = mapped_column(String(255))
     serves_nationwide: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     serves_states: Mapped[list[str] | None] = mapped_column(ARRAY(String(2)), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1069,9 +919,7 @@ class VendorCatalog(Base):
         onupdate=func.now(),
     )
 
-    plans: Mapped[list["VendorCatalogPlan"]] = relationship(
-        back_populates="vendor", cascade="all, delete-orphan"
-    )
+    plans: Mapped[list["VendorCatalogPlan"]] = relationship(back_populates="vendor", cascade="all, delete-orphan")
 
 
 class VendorCatalogPlan(Base):
@@ -1081,9 +929,7 @@ class VendorCatalogPlan(Base):
         UniqueConstraint("plan_key", name="uq_vendor_catalog_plans_plan_key"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     vendor_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("vendor_catalog.id", ondelete="CASCADE"),
@@ -1095,9 +941,7 @@ class VendorCatalogPlan(Base):
     price_unit: Mapped[str] = mapped_column(String(32), nullable=False)
     features: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     popular: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     vendor: Mapped["VendorCatalog"] = relationship(back_populates="plans")
 
@@ -1109,9 +953,7 @@ class UserLeaseDocuments(Base):
         UniqueConstraint("user_id", name="uq_user_lease_documents_user_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1119,9 +961,7 @@ class UserLeaseDocuments(Base):
     content_type: Mapped[str] = mapped_column(String(128), nullable=False)
     byte_size: Mapped[int] = mapped_column(Integer, nullable=False)
     extracted_text: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1139,9 +979,7 @@ class LandlordProfiles(Base):
         UniqueConstraint("user_id", name="uq_landlord_profiles_user_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1153,9 +991,7 @@ class LandlordProfiles(Base):
         nullable=False,
         default=LandlordVerificationStatus.pending,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1173,9 +1009,7 @@ class LandlordProperties(Base):
         Index("ix_landlord_properties_owner_status", "owner_user_id", "publish_status"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1193,9 +1027,7 @@ class LandlordProperties(Base):
         nullable=False,
         default=LandlordPublishStatus.draft,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1207,9 +1039,7 @@ class LandlordProperties(Base):
     media_items: Mapped[list["LandlordPropertyMedia"]] = relationship(
         back_populates="property", cascade="all, delete-orphan"
     )
-    units: Mapped[list["LandlordUnits"]] = relationship(
-        back_populates="property", cascade="all, delete-orphan"
-    )
+    units: Mapped[list["LandlordUnits"]] = relationship(back_populates="property", cascade="all, delete-orphan")
 
 
 class LandlordPropertyMedia(Base):
@@ -1219,9 +1049,7 @@ class LandlordPropertyMedia(Base):
         Index("ix_landlord_property_media_property_sort_order", "property_id", "sort_order"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     property_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("landlord_properties.id", ondelete="CASCADE"),
@@ -1231,9 +1059,7 @@ class LandlordPropertyMedia(Base):
     media_type: Mapped[str] = mapped_column(String(32), nullable=False, default="image")
     caption: Mapped[str | None] = mapped_column(String(255))
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     property: Mapped["LandlordProperties"] = relationship(back_populates="media_items")
 
@@ -1245,9 +1071,7 @@ class LandlordUnits(Base):
         Index("ix_landlord_units_property_available", "property_id", "is_available"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     property_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("landlord_properties.id", ondelete="CASCADE"),
@@ -1262,9 +1086,7 @@ class LandlordUnits(Base):
     lease_term_months: Mapped[int | None] = mapped_column(Integer)
     available_on: Mapped[date | None] = mapped_column(Date)
     is_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1286,9 +1108,7 @@ class LandlordLeads(Base):
         Index("ix_landlord_leads_owner_status_created", "owner_user_id", "status", "created_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1310,9 +1130,7 @@ class LandlordLeads(Base):
         nullable=False,
         default=LandlordLeadStatus.new,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1330,9 +1148,7 @@ class LandlordTourSlots(Base):
         Index("ix_landlord_tour_slots_unit_start_time", "unit_id", "start_time"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1345,14 +1161,10 @@ class LandlordTourSlots(Base):
     start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     unit: Mapped["LandlordUnits"] = relationship(back_populates="tour_slots")
-    bookings: Mapped[list["LandlordTourBookings"]] = relationship(
-        back_populates="slot", cascade="all, delete-orphan"
-    )
+    bookings: Mapped[list["LandlordTourBookings"]] = relationship(back_populates="slot", cascade="all, delete-orphan")
 
 
 class LandlordTourBookings(Base):
@@ -1362,9 +1174,7 @@ class LandlordTourBookings(Base):
         Index("ix_landlord_tour_bookings_slot_id", "slot_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1382,9 +1192,7 @@ class LandlordTourBookings(Base):
         default=LandlordTourBookingStatus.requested,
     )
     notes: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1402,9 +1210,7 @@ class LandlordApplications(Base):
         Index("ix_landlord_applications_owner_status_created", "owner_user_id", "status", "created_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1427,9 +1233,7 @@ class LandlordApplications(Base):
         nullable=False,
         default=LandlordApplicationStatus.submitted,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1446,13 +1250,9 @@ class LandlordApplications(Base):
 
 class LandlordApplicationDocuments(Base):
     __tablename__ = "landlord_application_documents"
-    __table_args__ = (
-        Index("ix_landlord_application_documents_application_id", "application_id"),
-    )
+    __table_args__ = (Index("ix_landlord_application_documents_application_id", "application_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     application_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("landlord_applications.id", ondelete="CASCADE"),
@@ -1461,9 +1261,7 @@ class LandlordApplicationDocuments(Base):
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_url: Mapped[str] = mapped_column(Text, nullable=False)
     file_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     application: Mapped["LandlordApplications"] = relationship(back_populates="documents")
 
@@ -1475,9 +1273,7 @@ class LandlordLeaseOffers(Base):
         Index("ix_landlord_lease_offers_owner_status_created", "owner_user_id", "status", "created_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -1501,9 +1297,7 @@ class LandlordLeaseOffers(Base):
         nullable=False,
         default=LandlordLeaseOfferStatus.draft,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1520,13 +1314,9 @@ class LandlordLeaseOffers(Base):
 
 class LandlordLeaseSignatures(Base):
     __tablename__ = "landlord_lease_signatures"
-    __table_args__ = (
-        Index("ix_landlord_lease_signatures_lease_offer_id", "lease_offer_id"),
-    )
+    __table_args__ = (Index("ix_landlord_lease_signatures_lease_offer_id", "lease_offer_id"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lease_offer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("landlord_lease_offers.id", ondelete="CASCADE"),
@@ -1541,9 +1331,7 @@ class LandlordLeaseSignatures(Base):
         default=LandlordSignatureStatus.pending,
     )
     signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     lease_offer: Mapped["LandlordLeaseOffers"] = relationship(back_populates="signatures")
 
@@ -1553,7 +1341,7 @@ class LandlordLeaseSignatures(Base):
 # ---------------------------------------------------------------------------
 
 
-class LandlordEntityKind(str, Enum):
+class LandlordEntityKind(StrEnum):
     individual = "individual"
     llc = "llc"
     corp = "corp"
@@ -1561,7 +1349,7 @@ class LandlordEntityKind(str, Enum):
     unknown = "unknown"
 
 
-class LandlordAliasType(str, Enum):
+class LandlordAliasType(StrEnum):
     llc_name = "llc_name"
     dba = "dba"
     principal_name = "principal_name"
@@ -1571,26 +1359,26 @@ class LandlordAliasType(str, Enum):
     address = "address"
 
 
-class LandlordAliasSource(str, Enum):
+class LandlordAliasSource(StrEnum):
     acris = "acris"
     crowdsourced = "crowdsourced"
     admin = "admin"
     claimed = "claimed"
 
 
-class OwnershipRole(str, Enum):
+class OwnershipRole(StrEnum):
     owner = "owner"
     manager = "manager"
 
 
-class OwnershipSource(str, Enum):
+class OwnershipSource(StrEnum):
     acris_deed = "acris_deed"
     crowdsourced = "crowdsourced"
     claimed = "claimed"
     admin = "admin"
 
 
-class ReviewStatus(str, Enum):
+class ReviewStatus(StrEnum):
     draft = "draft"
     pending_cooldown = "pending_cooldown"
     published = "published"
@@ -1599,13 +1387,13 @@ class ReviewStatus(str, Enum):
     removed = "removed"
 
 
-class ReviewLandlordRelation(str, Enum):
+class ReviewLandlordRelation(StrEnum):
     owner = "owner"
     manager = "manager"
     both = "both"
 
 
-class TransitSystem(str, Enum):
+class TransitSystem(StrEnum):
     path = "path"
     hblr = "hblr"
     nyc_subway = "nyc_subway"
@@ -1614,7 +1402,7 @@ class TransitSystem(str, Enum):
     ferry = "ferry"
 
 
-class ReviewDimension(str, Enum):
+class ReviewDimension(StrEnum):
     responsiveness = "responsiveness"
     maintenance = "maintenance"
     deposit_return = "deposit_return"
@@ -1643,20 +1431,20 @@ REVIEW_DIMENSION_SCOPE: dict[ReviewDimension, str] = {
 }
 
 
-class ReviewVerificationProofType(str, Enum):
+class ReviewVerificationProofType(StrEnum):
     lease = "lease"
     utility_bill = "utility_bill"
     rent_receipt = "rent_receipt"
     mail = "mail"
 
 
-class ReviewVerificationStatus(str, Enum):
+class ReviewVerificationStatus(StrEnum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
 
 
-class ReviewFlagType(str, Enum):
+class ReviewFlagType(StrEnum):
     defamation = "defamation"
     factual_error = "factual_error"
     spam = "spam"
@@ -1665,20 +1453,20 @@ class ReviewFlagType(str, Enum):
     other = "other"
 
 
-class ReviewFlagSubmitterRole(str, Enum):
+class ReviewFlagSubmitterRole(StrEnum):
     tenant = "tenant"
     landlord = "landlord"
     public = "public"
     system = "system"
 
 
-class ReviewFlagStatus(str, Enum):
+class ReviewFlagStatus(StrEnum):
     open = "open"
     accepted = "accepted"
     rejected = "rejected"
 
 
-class IngestSource(str, Enum):
+class IngestSource(StrEnum):
     hpd_violations = "hpd_violations"
     dob_complaints = "dob_complaints"
     acris_documents = "acris_documents"
@@ -1686,7 +1474,7 @@ class IngestSource(str, Enum):
     geosupport = "geosupport"
 
 
-class IngestStatus(str, Enum):
+class IngestStatus(StrEnum):
     running = "running"
     completed = "completed"
     failed = "failed"
@@ -1702,9 +1490,7 @@ class Buildings(Base):
         Index("ix_buildings_borough", "borough"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     bbl: Mapped[str | None] = mapped_column(String(10))
     bin: Mapped[str | None] = mapped_column(String(7))
     borough: Mapped[int | None] = mapped_column(Integer)
@@ -1720,9 +1506,7 @@ class Buildings(Base):
     building_group_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("buildings.id", ondelete="SET NULL")
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1744,9 +1528,7 @@ class TransitStations(Base):
         Index("ix_transit_stations_lat_lng", "latitude", "longitude"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     system: Mapped[TransitSystem] = mapped_column(
         SQLEnum(TransitSystem, name="transit_system", create_type=False), nullable=False
     )
@@ -1758,9 +1540,7 @@ class TransitStations(Base):
     state: Mapped[str | None] = mapped_column(String(8))
     borough: Mapped[str | None] = mapped_column(String(64))
     external_id: Mapped[str | None] = mapped_column(String(64))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1777,9 +1557,7 @@ class LandlordEntities(Base):
         Index("ix_landlord_entities_canonical_name", "canonical_name"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     kind: Mapped[LandlordEntityKind] = mapped_column(
         SQLEnum(LandlordEntityKind, name="landlord_entity_kind"),
         nullable=False,
@@ -1796,9 +1574,7 @@ class LandlordEntities(Base):
     )
     portfolio_size_cached: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     avg_rating_cached: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1806,12 +1582,8 @@ class LandlordEntities(Base):
         onupdate=func.now(),
     )
 
-    aliases: Mapped[list["LandlordEntityAliases"]] = relationship(
-        back_populates="entity", cascade="all, delete-orphan"
-    )
-    ownership_periods: Mapped[list["BuildingOwnershipPeriods"]] = relationship(
-        back_populates="landlord_entity"
-    )
+    aliases: Mapped[list["LandlordEntityAliases"]] = relationship(back_populates="entity", cascade="all, delete-orphan")
+    ownership_periods: Mapped[list["BuildingOwnershipPeriods"]] = relationship(back_populates="landlord_entity")
     reviews: Mapped[list["Reviews"]] = relationship(back_populates="landlord_entity")
 
 
@@ -1822,9 +1594,7 @@ class LandlordEntityAliases(Base):
         Index("ix_landlord_entity_aliases_entity_id", "entity_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     entity_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("landlord_entities.id", ondelete="CASCADE"),
@@ -1839,9 +1609,7 @@ class LandlordEntityAliases(Base):
     )
     confidence: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
     verified_by_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     entity: Mapped["LandlordEntities"] = relationship(back_populates="aliases")
 
@@ -1858,9 +1626,7 @@ class BuildingOwnershipPeriods(Base):
         Index("ix_building_ownership_periods_role", "role"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     building_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("buildings.id", ondelete="CASCADE"),
@@ -1878,20 +1644,14 @@ class BuildingOwnershipPeriods(Base):
     )
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date)
-    source: Mapped[OwnershipSource] = mapped_column(
-        SQLEnum(OwnershipSource, name="ownership_source"), nullable=False
-    )
+    source: Mapped[OwnershipSource] = mapped_column(SQLEnum(OwnershipSource, name="ownership_source"), nullable=False)
     acris_document_id: Mapped[str | None] = mapped_column(String(64))
     confidence: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
     notes: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     building: Mapped["Buildings"] = relationship(back_populates="ownership_periods")
-    landlord_entity: Mapped["LandlordEntities"] = relationship(
-        back_populates="ownership_periods"
-    )
+    landlord_entity: Mapped["LandlordEntities"] = relationship(back_populates="ownership_periods")
 
 
 class Reviews(Base):
@@ -1903,9 +1663,7 @@ class Reviews(Base):
         Index("ix_reviews_status", "status"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     author_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="RESTRICT"),
@@ -1942,9 +1700,7 @@ class Reviews(Base):
         default=ReviewStatus.pending_cooldown,
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -1954,9 +1710,7 @@ class Reviews(Base):
 
     building: Mapped["Buildings"] = relationship(back_populates="reviews")
     landlord_entity: Mapped["LandlordEntities"] = relationship(back_populates="reviews")
-    subratings: Mapped[list["ReviewSubratings"]] = relationship(
-        back_populates="review", cascade="all, delete-orphan"
-    )
+    subratings: Mapped[list["ReviewSubratings"]] = relationship(back_populates="review", cascade="all, delete-orphan")
     verification: Mapped["ReviewVerifications | None"] = relationship(
         back_populates="review", uselist=False, cascade="all, delete-orphan"
     )
@@ -1992,9 +1746,7 @@ class ReviewVerifications(Base):
         Index("ix_review_verifications_user_id", "user_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     review_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("reviews.id", ondelete="CASCADE"),
@@ -2022,13 +1774,9 @@ class ReviewVerifications(Base):
     )
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rejection_reason: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    review: Mapped["Reviews"] = relationship(
-        back_populates="verification", foreign_keys=[review_id]
-    )
+    review: Mapped["Reviews"] = relationship(back_populates="verification", foreign_keys=[review_id])
 
 
 class ReviewResponses(Base):
@@ -2038,9 +1786,7 @@ class ReviewResponses(Base):
         Index("ix_review_responses_author_user_id", "author_user_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     review_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("reviews.id", ondelete="CASCADE"),
@@ -2052,9 +1798,7 @@ class ReviewResponses(Base):
         nullable=False,
     )
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -2072,17 +1816,13 @@ class ReviewModeration(Base):
         Index("ix_review_moderation_status", "status"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     review_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("reviews.id", ondelete="CASCADE"),
         nullable=False,
     )
-    flag_type: Mapped[ReviewFlagType] = mapped_column(
-        SQLEnum(ReviewFlagType, name="review_flag_type"), nullable=False
-    )
+    flag_type: Mapped[ReviewFlagType] = mapped_column(SQLEnum(ReviewFlagType, name="review_flag_type"), nullable=False)
     submitted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
     )
@@ -2101,9 +1841,7 @@ class ReviewModeration(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
     )
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     review: Mapped["Reviews"] = relationship(back_populates="moderation_flags")
 
@@ -2131,9 +1869,7 @@ class HpdViolations(Base):
     apartment: Mapped[str | None] = mapped_column(String(32))
     description: Mapped[str | None] = mapped_column(Text)
     raw: Mapped[dict | None] = mapped_column(JSONB)
-    ingested_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class DobComplaints(Base):
@@ -2152,9 +1888,7 @@ class DobComplaints(Base):
     date_entered: Mapped[date | None] = mapped_column(Date)
     resolution: Mapped[str | None] = mapped_column(Text)
     raw: Mapped[dict | None] = mapped_column(JSONB)
-    ingested_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class AcrisDocuments(Base):
@@ -2169,13 +1903,9 @@ class AcrisDocuments(Base):
     recorded_datetime: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     bbl: Mapped[str | None] = mapped_column(String(10))
     raw: Mapped[dict | None] = mapped_column(JSONB)
-    ingested_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    parties: Mapped[list["AcrisParties"]] = relationship(
-        back_populates="document", cascade="all, delete-orphan"
-    )
+    parties: Mapped[list["AcrisParties"]] = relationship(back_populates="document", cascade="all, delete-orphan")
 
 
 class AcrisParties(Base):
@@ -2185,9 +1915,7 @@ class AcrisParties(Base):
         Index("ix_acris_parties_name", "name"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id: Mapped[str] = mapped_column(
         String(32),
         ForeignKey("acris_documents.document_id", ondelete="CASCADE"),
@@ -2204,19 +1932,11 @@ class AcrisParties(Base):
 
 class DataIngestRuns(Base):
     __tablename__ = "data_ingest_runs"
-    __table_args__ = (
-        Index("ix_data_ingest_runs_source_started", "source", "started_at"),
-    )
+    __table_args__ = (Index("ix_data_ingest_runs_source_started", "source", "started_at"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    source: Mapped[IngestSource] = mapped_column(
-        SQLEnum(IngestSource, name="ingest_source"), nullable=False
-    )
-    started_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source: Mapped[IngestSource] = mapped_column(SQLEnum(IngestSource, name="ingest_source"), nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rows_upserted: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[IngestStatus] = mapped_column(
@@ -2229,13 +1949,9 @@ class DataIngestRuns(Base):
 
 class Groups(Base):
     __tablename__ = "groups"
-    __table_args__ = (
-        Index("ix_groups_created_by", "created_by"),
-    )
+    __table_args__ = (Index("ix_groups_created_by", "created_by"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
@@ -2244,19 +1960,11 @@ class Groups(Base):
     max_beds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     min_rent_usd: Mapped[int | None] = mapped_column(Integer, nullable=True)
     max_rent_usd: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    preferred_cities: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String(120)), nullable=True
-    )
-    preferred_neighborhoods: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String(120)), nullable=True
-    )
-    dealbreakers: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String(120)), nullable=True
-    )
+    preferred_cities: Mapped[list[str] | None] = mapped_column(ARRAY(String(120)), nullable=True)
+    preferred_neighborhoods: Mapped[list[str] | None] = mapped_column(ARRAY(String(120)), nullable=True)
+    dealbreakers: Mapped[list[str] | None] = mapped_column(ARRAY(String(120)), nullable=True)
     preferences_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -2264,12 +1972,8 @@ class Groups(Base):
         onupdate=func.now(),
     )
 
-    members: Mapped[list["GroupMembers"]] = relationship(
-        back_populates="group", passive_deletes=True
-    )
-    invites: Mapped[list["GroupInvites"]] = relationship(
-        back_populates="group", passive_deletes=True
-    )
+    members: Mapped[list["GroupMembers"]] = relationship(back_populates="group", passive_deletes=True)
+    invites: Mapped[list["GroupInvites"]] = relationship(back_populates="group", passive_deletes=True)
 
 
 class GroupMembers(Base):
@@ -2280,9 +1984,7 @@ class GroupMembers(Base):
         Index("ix_group_members_group_id", "group_id"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
     )
@@ -2290,9 +1992,7 @@ class GroupMembers(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     role: Mapped[str] = mapped_column(String(32), nullable=False, default="member")
-    joined_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     group: Mapped["Groups"] = relationship(back_populates="members")
     user: Mapped["Users"] = relationship()
@@ -2305,9 +2005,7 @@ class GroupInvites(Base):
         Index("ix_group_invites_token", "token"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
     )
@@ -2317,17 +2015,13 @@ class GroupInvites(Base):
     token: Mapped[str] = mapped_column(String(96), nullable=False, unique=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     kind: Mapped[str] = mapped_column(String(16), nullable=False)  # "email" | "link"
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     accepted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     group: Mapped["Groups"] = relationship(back_populates="invites")
 
@@ -2345,9 +2039,7 @@ class PropertyReactions(Base):
         Index("ix_property_reactions_group_property", "group_id", "property_key"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
     )
@@ -2356,9 +2048,7 @@ class PropertyReactions(Base):
     )
     property_key: Mapped[str] = mapped_column(String(255), nullable=False)
     reaction: Mapped[str] = mapped_column(String(32), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class GroupApplicants(Base):
@@ -2373,35 +2063,25 @@ class GroupApplicants(Base):
         ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="new", server_default="new"
-    )
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="new", server_default="new")
     role_context: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     budget_usd: Mapped[int | None] = mapped_column(Integer, nullable=True)
     move_in_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    source: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="manual", server_default="manual"
-    )
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual", server_default="manual")
     self_reg_token: Mapped[str | None] = mapped_column(String(96), nullable=True)
-    self_reg_token_expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    self_reg_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

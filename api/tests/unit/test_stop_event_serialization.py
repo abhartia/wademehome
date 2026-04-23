@@ -22,4 +22,3 @@ def test_stop_event_result_to_sse_chunk_object_best_effort() -> None:
 
     obj: Any = Obj()
     assert stop_event_result_to_sse_chunk(obj) == '0:"obj-str"\n\n'
-

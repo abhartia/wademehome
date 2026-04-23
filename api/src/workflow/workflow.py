@@ -5,8 +5,8 @@ import time
 from threading import Lock
 
 from llama_index.core.base.llms.types import ChatMessage
-from llama_index.core.workflow import Workflow, Context, StopEvent, step
 from llama_index.core.llms import LLM
+from llama_index.core.workflow import Context, StopEvent, Workflow, step
 from llama_index.server.models.chat import ChatRequest
 from llama_index.server.models.ui import UIEvent
 
@@ -24,8 +24,8 @@ from workflow.events import (
     SearchFilterBreakdownItem,
     SearchHintData,
     SearchPlanData,
-    SearchSummaryData,
     SearchStatsData,
+    SearchSummaryData,
     UserInputEvent,
 )
 
@@ -192,9 +192,7 @@ class ListingFetcherWorkflow(Workflow):
         self.chat_request = chat_request
 
     @step
-    async def run_fast_search_step(
-        self, ctx: Context, ev: UserInputEvent
-    ) -> StopEvent:
+    async def run_fast_search_step(self, ctx: Context, ev: UserInputEvent) -> StopEvent:
         t0 = time.perf_counter()
         chat_history = ev.chat_history or []
         user_msg = (ev.user_msg or "").strip()
@@ -223,9 +221,7 @@ class ListingFetcherWorkflow(Workflow):
 
             sq = (plan.semantic_query or "").strip()
             if sq.casefold() != user_msg.strip().casefold():
-                query_embedding, embed_ms_extra = await embed_query_text(
-                    sq or user_msg
-                )
+                query_embedding, embed_ms_extra = await embed_query_text(sq or user_msg)
                 embed_ms = embed_ms_user_msg + embed_ms_extra
             else:
                 query_embedding, embed_ms = vec_user_msg, embed_ms_user_msg
@@ -300,9 +296,7 @@ class ListingFetcherWorkflow(Workflow):
                     dropped_count += 1
 
                 # Monotonic stream: once rejected, never re-emitted.
-                visible_items = [
-                    it for it in items if it.validation_status in {"validating", "confirmed"}
-                ]
+                visible_items = [it for it in items if it.validation_status in {"validating", "confirmed"}]
                 ctx.write_event_to_stream(
                     UIEvent(type="property_listings", data=PropertyDataList(properties=visible_items))
                 )
@@ -322,8 +316,8 @@ class ListingFetcherWorkflow(Workflow):
             # run_fast_search defers per-criterion counts (FTS path). Full-table SQL criteria
             # differ slightly from FTS + post-filters but show which constraints dominate.
             if not breakdown_items:
-                def_items, def_matched, def_breakdown_ms, def_budget_exhausted = (
-                    await asyncio.to_thread(compute_deferred_breakdown, plan)
+                def_items, def_matched, def_breakdown_ms, def_budget_exhausted = await asyncio.to_thread(
+                    compute_deferred_breakdown, plan
                 )
                 breakdown_items = list(def_items)
                 if matched_count is None:
@@ -339,8 +333,7 @@ class ListingFetcherWorkflow(Workflow):
                         type="search_filter_breakdown",
                         data=SearchFilterBreakdownData(
                             criteria=[
-                                SearchFilterBreakdownItem.model_validate(item.model_dump())
-                                for item in breakdown_items
+                                SearchFilterBreakdownItem.model_validate(item.model_dump()) for item in breakdown_items
                             ]
                         ),
                     )
@@ -366,9 +359,7 @@ class ListingFetcherWorkflow(Workflow):
                         semantic_candidates=search_result.stage_stats.get("semantic_candidates"),
                         amenity_scored_count=search_result.stage_stats.get("amenity_scored_count"),
                         db_budget_exhausted=bool(search_result.stage_stats.get("db_budget_exhausted", 0)),
-                        amenity_budget_exhausted=bool(
-                            search_result.stage_stats.get("amenity_budget_exhausted", 0)
-                        ),
+                        amenity_budget_exhausted=bool(search_result.stage_stats.get("amenity_budget_exhausted", 0)),
                         breakdown_deferred=breakdown_deferred,
                         breakdown_ready=breakdown_ready,
                         breakdown_budget_exhausted=breakdown_budget_exhausted,
@@ -406,9 +397,7 @@ class ListingFetcherWorkflow(Workflow):
                 return StopEvent(
                     result="No properties found for your search. Try broadening your location or constraints."
                 )
-            return StopEvent(
-                result=f"Found {returned_count} listings matching your search."
-            )
+            return StopEvent(result=f"Found {returned_count} listings matching your search.")
         except Exception as exc:
             logger.exception("fast search workflow failed")
             ctx.write_event_to_stream(
@@ -417,8 +406,4 @@ class ListingFetcherWorkflow(Workflow):
                     data=PropertyDataList(properties=[]),
                 )
             )
-            return StopEvent(
-                result=f"Search failed: {exc}"
-            )
-
-
+            return StopEvent(result=f"Search failed: {exc}")

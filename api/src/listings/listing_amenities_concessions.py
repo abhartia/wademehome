@@ -85,16 +85,14 @@ def merge_concession_snippets_from_listing_amenities(deduped_rows: list[dict[str
             placeholders = ",".join([f":lid{i}" for i in range(len(ids))])
             bind: dict[str, Any] = {f"lid{i}": ids[i] for i in range(len(ids))}
             bind["rx"] = _CONCESSION_AMENITY_RE
-            sql = text(
-                f"""
+            sql = text(f"""
                 SELECT listing_id,
                   string_agg(DISTINCT amenity_text_raw, '; ' ORDER BY amenity_text_raw) AS snippet
                 FROM {qtable}
                 WHERE listing_id IN ({placeholders})
                   AND amenity_text_norm ~ :rx
                 GROUP BY listing_id
-                """
-            )
+                """)
             rows_out = conn.execute(sql, bind).mappings().all()
     except Exception:
         logger.exception("listing_amenities concession merge failed")
@@ -113,5 +111,3 @@ def merge_concession_snippets_from_listing_amenities(deduped_rows: list[dict[str
         snippet = by_id.get(str(lid).strip())
         if snippet:
             row["concessions"] = snippet
-
-

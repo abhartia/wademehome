@@ -40,9 +40,7 @@ def test_build_text2sql_cache_key_stable() -> None:
 
 def test_build_text2sql_cache_key_differs_on_schema() -> None:
     m = [ChatMessage(role="user", content="same")]
-    assert build_text2sql_cache_key(m, schema_text="a") != build_text2sql_cache_key(
-        m, schema_text="b"
-    )
+    assert build_text2sql_cache_key(m, schema_text="a") != build_text2sql_cache_key(m, schema_text="b")
 
 
 def test_text2sql_llm_cache_ttl_expiry(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -98,9 +96,7 @@ def test_cache_hit_skips_second_llm_chat(
     Config._refresh_values()
 
     llm = MagicMock()
-    llm.chat.return_value = ChatResponse(
-        message=ChatMessage(role="assistant", content="SQLQuery: SELECT 1 AS one")
-    )
+    llm.chat.return_value = ChatResponse(message=ChatMessage(role="assistant", content="SQLQuery: SELECT 1 AS one"))
     schema = "table x (id int)"
     messages: list[ChatMessage] = [ChatMessage(role="user", content="show me listings")]
 

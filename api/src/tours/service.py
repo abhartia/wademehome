@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, time, timedelta, timezone
-from typing import Any
+from datetime import UTC, date, datetime, time, timedelta
 
 from azure.storage.blob import (
     BlobSasPermissions,
@@ -36,7 +35,7 @@ def _parse_date(raw: str | None) -> date | None:
     try:
         return date.fromisoformat(value[:10])
     except ValueError:
-        raise HTTPException(status_code=422, detail="Invalid scheduled_date format")
+        raise HTTPException(status_code=422, detail="Invalid scheduled_date format") from None
 
 
 def _parse_time(raw: str | None) -> time | None:
@@ -105,7 +104,7 @@ def _sas_url_for_media(media_url: str) -> str:
         blob_name=blob_name,
         account_key=account_key,
         permission=BlobSasPermissions(read=True),
-        expiry=datetime.now(timezone.utc) + _SAS_TTL,
+        expiry=datetime.now(UTC) + _SAS_TTL,
     )
     base = media_url.split("?", 1)[0]
     return f"{base}?{sas}"
@@ -123,9 +122,7 @@ def _media_payload(media: TourMedia) -> TourMediaPayload:
     )
 
 
-def _tour_payload(
-    row: UserTours, note: TourNotes | None, media: list[TourMedia] | None = None
-) -> TourPayload:
+def _tour_payload(row: UserTours, note: TourNotes | None, media: list[TourMedia] | None = None) -> TourPayload:
     scheduled_date = row.tour_date.isoformat() if row.tour_date else ""
     scheduled_time = row.tour_time.isoformat(timespec="minutes") if row.tour_time else ""
     media_rows = list(media or [])
@@ -150,13 +147,9 @@ def _tour_payload(
     )
 
 
-def _tour_query_for_user(
-    user_id: uuid.UUID, group_id: uuid.UUID | None = None
-) -> Select[tuple[UserTours]]:
+def _tour_query_for_user(user_id: uuid.UUID, group_id: uuid.UUID | None = None) -> Select[tuple[UserTours]]:
     if group_id is None:
-        return select(UserTours).where(
-            UserTours.user_id == user_id, UserTours.group_id.is_(None)
-        )
+        return select(UserTours).where(UserTours.user_id == user_id, UserTours.group_id.is_(None))
     # Group scope: any member sees any tour under the group (group membership
     # is verified upstream via resolve_scope). Matches the PropertyFavorites
     # behaviour in properties/router.py so a tour one roommate logs is visible
@@ -173,9 +166,7 @@ def _apply_filters(query: Select[tuple[UserTours]], params: TourSortParams) -> S
         query = query.where(UserTours.tour_date <= params.to_date)
     if params.q:
         term = f"%{params.q.strip()}%"
-        query = query.where(
-            or_(UserTours.property_name.ilike(term), UserTours.property_address.ilike(term))
-        )
+        query = query.where(or_(UserTours.property_name.ilike(term), UserTours.property_address.ilike(term)))
     return query
 
 
@@ -196,16 +187,10 @@ def _get_note_map(db: Session, tour_ids: list[uuid.UUID]) -> dict[uuid.UUID, Tou
     return {row.tour_id: row for row in rows}
 
 
-def _get_media_map(
-    db: Session, tour_ids: list[uuid.UUID]
-) -> dict[uuid.UUID, list[TourMedia]]:
+def _get_media_map(db: Session, tour_ids: list[uuid.UUID]) -> dict[uuid.UUID, list[TourMedia]]:
     if not tour_ids:
         return {}
-    rows = (
-        db.execute(select(TourMedia).where(TourMedia.tour_id.in_(tour_ids)))
-        .scalars()
-        .all()
-    )
+    rows = db.execute(select(TourMedia).where(TourMedia.tour_id.in_(tour_ids))).scalars().all()
     out: dict[uuid.UUID, list[TourMedia]] = {}
     for row in rows:
         out.setdefault(row.tour_id, []).append(row)
@@ -221,9 +206,7 @@ def list_tours(db: Session, user_id: uuid.UUID, params: TourSortParams) -> tuple
     tour_ids = [row.id for row in rows]
     notes = _get_note_map(db, tour_ids)
     media = _get_media_map(db, tour_ids)
-    payload = [
-        _tour_payload(row, notes.get(row.id), media.get(row.id, [])) for row in rows
-    ]
+    payload = [_tour_payload(row, notes.get(row.id), media.get(row.id, [])) for row in rows]
     return payload, total
 
 
@@ -252,9 +235,7 @@ def get_tour_or_404(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID) -> User
     raise HTTPException(status_code=404, detail="Tour not found")
 
 
-def get_owned_tour_or_404(
-    db: Session, user_id: uuid.UUID, tour_id: uuid.UUID
-) -> UserTours:
+def get_owned_tour_or_404(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID) -> UserTours:
     """Strict variant: only the tour owner. Used for mutations other than media."""
     row = db.execute(
         select(UserTours).where(UserTours.id == tour_id, UserTours.user_id == user_id)
@@ -323,7 +304,7 @@ def update_tour(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, payload: To
         row.property_price = payload.property.rent or None
         row.property_beds = payload.property.beds or None
         row.property_tags = list(payload.property.tags or [])
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     note = db.execute(select(TourNotes).where(TourNotes.tour_id == row.id)).scalar_one_or_none()
@@ -337,9 +318,7 @@ def delete_tour(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID) -> None:
     db.commit()
 
 
-def upsert_tour_note(
-    db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, payload: TourNotePayload
-) -> TourPayload:
+def upsert_tour_note(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, payload: TourNotePayload) -> TourPayload:
     row = get_owned_tour_or_404(db, user_id, tour_id)
     note = db.execute(select(TourNotes).where(TourNotes.tour_id == row.id)).scalar_one_or_none()
     if note is None:
@@ -351,7 +330,7 @@ def upsert_tour_note(
     note.general_notes = payload.general_notes or None
     note.would_apply = payload.would_apply
     note.photo_checklist_json = list(payload.photo_checklist or [])
-    note.updated_at = datetime.now(timezone.utc)
+    note.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     db.refresh(note)
@@ -385,9 +364,7 @@ def _media_kind_from_content_type(content_type: str | None) -> TourMediaKind:
 _MAX_TOUR_MEDIA_BYTES = 512 * 1024 * 1024  # 512 MB per-file cap; plenty for phone video
 
 
-def upload_tour_media(
-    db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, file: UploadFile
-) -> TourMediaPayload:
+def upload_tour_media(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, file: UploadFile) -> TourMediaPayload:
     """Upload a single video/image for a tour the user owns.
 
     Owner-only (not any group member) to keep the blame trail simple and avoid
@@ -404,8 +381,10 @@ def upload_tour_media(
         raise HTTPException(status_code=413, detail="File too large (max 512 MB)")
 
     original_name = file.filename or ("video.mp4" if kind == TourMediaKind.video else "image.jpg")
-    ext = original_name.rsplit(".", 1)[-1].lower() if "." in original_name else (
-        "mp4" if kind == TourMediaKind.video else "jpg"
+    ext = (
+        original_name.rsplit(".", 1)[-1].lower()
+        if "." in original_name
+        else ("mp4" if kind == TourMediaKind.video else "jpg")
     )
     media_id = uuid.uuid4()
     blob_name = f"tour-media/{tour.id}/{media_id}.{ext}"
@@ -422,16 +401,10 @@ def upload_tour_media(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(
-            status_code=502, detail=f"Failed to upload tour media: {exc!s}"
-        ) from exc
+        raise HTTPException(status_code=502, detail=f"Failed to upload tour media: {exc!s}") from exc
 
     existing = (
-        db.execute(
-            select(TourMedia).where(TourMedia.tour_id == tour.id).order_by(
-                TourMedia.sort_order.desc()
-            )
-        )
+        db.execute(select(TourMedia).where(TourMedia.tour_id == tour.id).order_by(TourMedia.sort_order.desc()))
         .scalars()
         .first()
     )
@@ -467,14 +440,10 @@ def _delete_tour_blob(media_url: str) -> None:
         pass
 
 
-def delete_tour_media(
-    db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, media_id: uuid.UUID
-) -> None:
+def delete_tour_media(db: Session, user_id: uuid.UUID, tour_id: uuid.UUID, media_id: uuid.UUID) -> None:
     get_owned_tour_or_404(db, user_id, tour_id)
     row = db.execute(
-        select(TourMedia).where(
-            TourMedia.id == media_id, TourMedia.tour_id == tour_id
-        )
+        select(TourMedia).where(TourMedia.id == media_id, TourMedia.tour_id == tour_id)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Media not found")

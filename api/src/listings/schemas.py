@@ -76,9 +76,7 @@ class PriceHistogramBucket(BaseModel):
 
 class PriceHistogramResponse(BaseModel):
     sample_size: int = Field(ge=0, description="Listings with a usable rent in scope.")
-    bucket_count: int = Field(
-        ge=0, description="Number of interior buckets spanning [range_min, range_max]."
-    )
+    bucket_count: int = Field(ge=0, description="Number of interior buckets spanning [range_min, range_max].")
     range_min: float | None = Field(
         default=None,
         description="Lower edge of the histogram scale (p01, rounded). Null when no data.",
@@ -87,12 +85,8 @@ class PriceHistogramResponse(BaseModel):
         default=None,
         description="Upper edge of the histogram scale (p99, rounded). Null when no data.",
     )
-    min_rent: float | None = Field(
-        default=None, description="Minimum rent observed in scope (USD/month)."
-    )
-    max_rent: float | None = Field(
-        default=None, description="Maximum rent observed in scope (USD/month)."
-    )
+    min_rent: float | None = Field(default=None, description="Minimum rent observed in scope (USD/month).")
+    max_rent: float | None = Field(default=None, description="Maximum rent observed in scope (USD/month).")
     p25_rent: float | None = None
     median_rent: float | None = None
     p75_rent: float | None = None

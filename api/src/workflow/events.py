@@ -1,14 +1,17 @@
-from enum import Enum
-from llama_index.core.workflow import (StartEvent, Event)
+from enum import StrEnum
+from typing import Any
+
 from llama_index.core.base.llms.types import ChatMessage
+from llama_index.core.workflow import Event, StartEvent
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Any
 
 
 class UserInputEvent(StartEvent):
     """Start event for the Text-to-SQL workflow."""
+
     user_msg: str
     chat_history: list[ChatMessage]
+
 
 class DBDataRequiredEvent(Event):
     """Event to indicate that database data is required for processing."""
@@ -23,10 +26,12 @@ class TextToSQLEvent(Event):
     query: str
     attempt_number: int = 0
 
-class ResponseFormatType(str, Enum):
+
+class ResponseFormatType(StrEnum):
     TEXT = "text"
     TABLE = "table"
     CHART = "chart"
+
 
 class WrongSQLStatementEvent(Event):
     """Event to indicate that the SQL statement is wrong."""
@@ -35,15 +40,19 @@ class WrongSQLStatementEvent(Event):
     exception: BaseException
     original_event: TextToSQLEvent
 
+
 # Add the data model for your table
 class SQLTableData(BaseModel):
     """Data model for SQL table results"""
-    columns: List[str]
-    rows: List[List[Any]]
+
+    columns: list[str]
+    rows: list[list[Any]]
     query: str
+
 
 class SQLUIEventData(BaseModel):
     """Data model for SQL UI event"""
+
     type: str = "sql_table"
     data: SQLTableData
 
@@ -51,12 +60,14 @@ class SQLUIEventData(BaseModel):
 class ResponseStreamEvent(Event):
     response_stream: Any
 
+
 class GeneratedResponseEvent(Event):
     """Event to indicate that a response has been generated."""
 
     response: Any
     query: str
-    query_results: list[tuple[str, str]] = []
+    query_results: list[tuple[str, str]] = Field(default_factory=list)
+
 
 class PropertyDataItem(BaseModel):
     name: str
@@ -87,9 +98,8 @@ class PropertyDataItem(BaseModel):
     )
     rent_range: str = Field(description="rent range from the units available with currency, e.g., $2000-$2500")
     bedroom_range: str = Field(description="bedroom range from the units available, e.g., 1-3 bedrooms")
-    images_urls: List[str] = Field(default=[], description="list of image URLs of the property")
-    main_amenities: List[str] = Field(
-        description="""
+    images_urls: list[str] = Field(default=[], description="list of image URLs of the property")
+    main_amenities: list[str] = Field(description="""
             List of the four main amenities of the property, which should include things related to:
             - pool
             - Gym / Fitness center
@@ -100,9 +110,8 @@ class PropertyDataItem(BaseModel):
 
             Maximum of four items.
             It's important to keep the items concise and avoid full sentences.
-        """
-    )
-    amenities: List[str] = Field(description="list of amenities available in the property")
+        """)
+    amenities: list[str] = Field(description="list of amenities available in the property")
     match_reason: str | None = Field(
         default=None,
         description=(
@@ -133,6 +142,7 @@ class PropertyDataItem(BaseModel):
         default=None,
         description="Earliest move-in / availability label when present in source data.",
     )
+
 
 class PropertyDataList(BaseModel):
     properties: list[PropertyDataItem]
@@ -179,7 +189,7 @@ class SearchStatsData(BaseModel):
 
 class SearchPlanData(BaseModel):
     summary_headline: str = Field(default="Property search")
-    summary_bullets: List[str] = Field(default_factory=list)
+    summary_bullets: list[str] = Field(default_factory=list)
 
 
 class SearchFilterBreakdownItem(BaseModel):
@@ -197,7 +207,7 @@ class SearchFilterBreakdownItem(BaseModel):
 
 
 class SearchFilterBreakdownData(BaseModel):
-    criteria: List[SearchFilterBreakdownItem] = Field(default_factory=list)
+    criteria: list[SearchFilterBreakdownItem] = Field(default_factory=list)
 
 
 class SearchHintData(BaseModel):
@@ -215,20 +225,18 @@ class SearchHintData(BaseModel):
 class SearchSummaryData(BaseModel):
     """Compact map/search UI summary (not a chat transcript)."""
 
-    headline: str = Field(
-        description="One short line summarizing the active property search for a map UI."
-    )
-    bullets: List[str] = Field(
+    headline: str = Field(description="One short line summarizing the active property search for a map UI.")
+    bullets: list[str] = Field(
         default_factory=list,
         description="Up to 5 short bullet points: area, budget, beds, must-haves, etc.",
     )
 
     @field_validator("bullets", mode="before")
     @classmethod
-    def cap_bullets(cls, v: object) -> List[str]:
+    def cap_bullets(cls, v: object) -> list[str]:
         if not isinstance(v, list):
             return []
-        out: List[str] = []
+        out: list[str] = []
         for item in v:
             if isinstance(item, str) and (t := item.strip()):
                 out.append(t)
@@ -240,15 +248,15 @@ class SearchSummaryData(BaseModel):
 class ProfileMemoryUpdateData(BaseModel):
     """Structured profile-memory patch extracted from search conversation."""
 
-    preferredCities: List[str] = Field(default_factory=list)
+    preferredCities: list[str] = Field(default_factory=list)
     maxMonthlyRent: str | None = None
     bedroomsNeeded: str | None = None
-    dealbreakers: List[str] = Field(default_factory=list)
-    neighbourhoodPriorities: List[str] = Field(default_factory=list)
+    dealbreakers: list[str] = Field(default_factory=list)
+    neighbourhoodPriorities: list[str] = Field(default_factory=list)
     moveTimeline: str | None = None
-    updated_fields: List[str] = Field(default_factory=list)
+    updated_fields: list[str] = Field(default_factory=list)
 
 
 class ProfileMemoryUpdateEventData(BaseModel):
     patch: dict[str, object] = Field(default_factory=dict)
-    updated_fields: List[str] = Field(default_factory=list)
+    updated_fields: list[str] = Field(default_factory=list)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -11,11 +11,11 @@ from db.models import (
     LandlordApplicationDocuments,
     LandlordApplications,
     LandlordApplicationStatus,
+    LandlordLeads,
+    LandlordLeadStatus,
     LandlordLeaseOffers,
     LandlordLeaseOfferStatus,
     LandlordLeaseSignatures,
-    LandlordLeadStatus,
-    LandlordLeads,
     LandlordProfiles,
     LandlordProperties,
     LandlordPropertyMedia,
@@ -68,9 +68,7 @@ def _parse_uuid(raw: str, label: str) -> uuid.UUID:
 
 
 def _ensure_landlord(db: Session, user: Users) -> LandlordProfiles:
-    profile = db.execute(
-        select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)
-    ).scalar_one_or_none()
+    profile = db.execute(select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)).scalar_one_or_none()
     if profile is None:
         profile = LandlordProfiles(user_id=user.id)
         db.add(profile)
@@ -87,9 +85,7 @@ def _promote_to_landlord(db: Session, user: Users) -> None:
 
 
 def get_landlord_profile(db: Session, user: Users) -> LandlordProfilePayload:
-    profile = db.execute(
-        select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)
-    ).scalar_one_or_none()
+    profile = db.execute(select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)).scalar_one_or_none()
     if profile is None:
         return LandlordProfilePayload(
             display_name="",
@@ -139,11 +135,15 @@ def _property_to_payload(row: LandlordProperties) -> LandlordPropertyPayload:
 
 def list_properties(db: Session, user: Users) -> list[LandlordPropertyPayload]:
     _ensure_landlord(db, user)
-    rows = db.execute(
-        select(LandlordProperties)
-        .where(LandlordProperties.owner_user_id == user.id)
-        .order_by(LandlordProperties.updated_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordProperties)
+            .where(LandlordProperties.owner_user_id == user.id)
+            .order_by(LandlordProperties.updated_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [_property_to_payload(row) for row in rows]
 
 
@@ -184,7 +184,7 @@ def update_property(
         setattr(row, key, value)
     if amenities is not None:
         row.amenities_json = amenities
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     return _property_to_payload(row)
@@ -199,7 +199,7 @@ def delete_property(db: Session, user: Users, property_id: str) -> None:
 def set_property_publish_state(db: Session, user: Users, property_id: str, publish: bool) -> LandlordPropertyPayload:
     row = _get_property_for_owner(db, user.id, _parse_uuid(property_id, "property_id"))
     row.publish_status = LandlordPublishStatus.published if publish else LandlordPublishStatus.draft
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     return _property_to_payload(row)
@@ -208,11 +208,15 @@ def set_property_publish_state(db: Session, user: Users, property_id: str, publi
 def list_media(db: Session, user: Users, property_id: str) -> list[LandlordMediaPayload]:
     pid = _parse_uuid(property_id, "property_id")
     _get_property_for_owner(db, user.id, pid)
-    rows = db.execute(
-        select(LandlordPropertyMedia)
-        .where(LandlordPropertyMedia.property_id == pid)
-        .order_by(LandlordPropertyMedia.sort_order.asc(), LandlordPropertyMedia.created_at.asc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordPropertyMedia)
+            .where(LandlordPropertyMedia.property_id == pid)
+            .order_by(LandlordPropertyMedia.sort_order.asc(), LandlordPropertyMedia.created_at.asc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordMediaPayload(
             id=str(row.id),
@@ -225,7 +229,9 @@ def list_media(db: Session, user: Users, property_id: str) -> list[LandlordMedia
     ]
 
 
-def create_media(db: Session, user: Users, property_id: str, payload: LandlordMediaCreate) -> list[LandlordMediaPayload]:
+def create_media(
+    db: Session, user: Users, property_id: str, payload: LandlordMediaCreate
+) -> list[LandlordMediaPayload]:
     pid = _parse_uuid(property_id, "property_id")
     _get_property_for_owner(db, user.id, pid)
     db.add(LandlordPropertyMedia(property_id=pid, **payload.model_dump()))
@@ -240,9 +246,7 @@ def update_media(
     _get_property_for_owner(db, user.id, pid)
     mid = _parse_uuid(media_id, "media_id")
     row = db.execute(
-        select(LandlordPropertyMedia).where(
-            LandlordPropertyMedia.id == mid, LandlordPropertyMedia.property_id == pid
-        )
+        select(LandlordPropertyMedia).where(LandlordPropertyMedia.id == mid, LandlordPropertyMedia.property_id == pid)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Media not found")
@@ -258,9 +262,7 @@ def delete_media(db: Session, user: Users, property_id: str, media_id: str) -> l
     _get_property_for_owner(db, user.id, pid)
     mid = _parse_uuid(media_id, "media_id")
     row = db.execute(
-        select(LandlordPropertyMedia).where(
-            LandlordPropertyMedia.id == mid, LandlordPropertyMedia.property_id == pid
-        )
+        select(LandlordPropertyMedia).where(LandlordPropertyMedia.id == mid, LandlordPropertyMedia.property_id == pid)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Media not found")
@@ -272,9 +274,13 @@ def delete_media(db: Session, user: Users, property_id: str, media_id: str) -> l
 def list_units(db: Session, user: Users, property_id: str) -> list[LandlordUnitPayload]:
     pid = _parse_uuid(property_id, "property_id")
     _get_property_for_owner(db, user.id, pid)
-    rows = db.execute(
-        select(LandlordUnits).where(LandlordUnits.property_id == pid).order_by(LandlordUnits.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordUnits).where(LandlordUnits.property_id == pid).order_by(LandlordUnits.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordUnitPayload(
             id=str(row.id),
@@ -313,7 +319,7 @@ def update_unit(
         raise HTTPException(status_code=404, detail="Unit not found")
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(row, key, value)
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     return list_units(db, user, property_id)
 
@@ -333,11 +339,15 @@ def delete_unit(db: Session, user: Users, property_id: str, unit_id: str) -> lis
 
 
 def list_leads(db: Session, user: Users) -> list[LandlordLeadPayload]:
-    rows = db.execute(
-        select(LandlordLeads)
-        .where(LandlordLeads.owner_user_id == user.id)
-        .order_by(LandlordLeads.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordLeads)
+            .where(LandlordLeads.owner_user_id == user.id)
+            .order_by(LandlordLeads.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordLeadPayload(
             id=str(row.id),
@@ -388,7 +398,7 @@ def update_lead(db: Session, user: Users, lead_id: str, payload: LandlordLeadUpd
         row.status = LandlordLeadStatus(payload.status)
     if payload.message is not None:
         row.message = payload.message or None
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     return LandlordLeadPayload(
@@ -406,11 +416,15 @@ def update_lead(db: Session, user: Users, lead_id: str, payload: LandlordLeadUpd
 
 
 def list_tour_slots(db: Session, user: Users) -> list[LandlordTourSlotPayload]:
-    rows = db.execute(
-        select(LandlordTourSlots)
-        .where(LandlordTourSlots.owner_user_id == user.id)
-        .order_by(LandlordTourSlots.start_time.asc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordTourSlots)
+            .where(LandlordTourSlots.owner_user_id == user.id)
+            .order_by(LandlordTourSlots.start_time.asc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordTourSlotPayload(
             id=str(row.id),
@@ -474,11 +488,15 @@ def delete_tour_slot(db: Session, user: Users, slot_id: str) -> list[LandlordTou
 
 
 def list_tour_bookings(db: Session, user: Users) -> list[LandlordTourBookingPayload]:
-    rows = db.execute(
-        select(LandlordTourBookings)
-        .where(LandlordTourBookings.owner_user_id == user.id)
-        .order_by(LandlordTourBookings.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordTourBookings)
+            .where(LandlordTourBookings.owner_user_id == user.id)
+            .order_by(LandlordTourBookings.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordTourBookingPayload(
             id=str(row.id),
@@ -494,9 +512,7 @@ def list_tour_bookings(db: Session, user: Users) -> list[LandlordTourBookingPayl
     ]
 
 
-def create_tour_booking(
-    db: Session, user: Users, payload: LandlordTourBookingCreate
-) -> LandlordTourBookingPayload:
+def create_tour_booking(db: Session, user: Users, payload: LandlordTourBookingCreate) -> LandlordTourBookingPayload:
     slot = db.execute(
         select(LandlordTourSlots).where(
             LandlordTourSlots.id == _parse_uuid(payload.slot_id, "slot_id"),
@@ -535,7 +551,7 @@ def update_tour_booking(
         row.status = LandlordTourBookingStatus(payload.status)
     if payload.notes is not None:
         row.notes = payload.notes or None
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     return LandlordTourBookingPayload(
@@ -551,11 +567,15 @@ def update_tour_booking(
 
 
 def list_applications(db: Session, user: Users) -> list[LandlordApplicationPayload]:
-    rows = db.execute(
-        select(LandlordApplications)
-        .where(LandlordApplications.owner_user_id == user.id)
-        .order_by(LandlordApplications.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordApplications)
+            .where(LandlordApplications.owner_user_id == user.id)
+            .order_by(LandlordApplications.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordApplicationPayload(
             id=str(row.id),
@@ -574,9 +594,7 @@ def list_applications(db: Session, user: Users) -> list[LandlordApplicationPaylo
     ]
 
 
-def create_application(
-    db: Session, user: Users, payload: LandlordApplicationCreate
-) -> LandlordApplicationPayload:
+def create_application(db: Session, user: Users, payload: LandlordApplicationCreate) -> LandlordApplicationPayload:
     row = LandlordApplications(
         owner_user_id=user.id,
         property_id=_parse_uuid(payload.property_id, "property_id"),
@@ -610,7 +628,7 @@ def update_application(
         row.status = LandlordApplicationStatus(payload.status)
     if payload.notes is not None:
         row.notes = payload.notes or None
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     return LandlordApplicationPayload(
@@ -637,11 +655,15 @@ def list_application_documents(db: Session, user: Users, application_id: str) ->
     ).scalar_one_or_none()
     if app_row is None:
         raise HTTPException(status_code=404, detail="Application not found")
-    rows = db.execute(
-        select(LandlordApplicationDocuments)
-        .where(LandlordApplicationDocuments.application_id == app_row.id)
-        .order_by(LandlordApplicationDocuments.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordApplicationDocuments)
+            .where(LandlordApplicationDocuments.application_id == app_row.id)
+            .order_by(LandlordApplicationDocuments.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return rows
 
 
@@ -662,11 +684,15 @@ def create_application_document(
 
 
 def list_lease_offers(db: Session, user: Users) -> list[LandlordLeaseOfferPayload]:
-    rows = db.execute(
-        select(LandlordLeaseOffers)
-        .where(LandlordLeaseOffers.owner_user_id == user.id)
-        .order_by(LandlordLeaseOffers.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(LandlordLeaseOffers)
+            .where(LandlordLeaseOffers.owner_user_id == user.id)
+            .order_by(LandlordLeaseOffers.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         LandlordLeaseOfferPayload(
             id=str(row.id),
@@ -691,9 +717,7 @@ def create_lease_offer(db: Session, user: Users, payload: LandlordLeaseOfferCrea
         owner_user_id=user.id,
         property_id=_parse_uuid(payload.property_id, "property_id"),
         unit_id=_parse_uuid(payload.unit_id, "unit_id") if payload.unit_id else None,
-        application_id=_parse_uuid(payload.application_id, "application_id")
-        if payload.application_id
-        else None,
+        application_id=_parse_uuid(payload.application_id, "application_id") if payload.application_id else None,
         tenant_name=payload.tenant_name,
         tenant_email=payload.tenant_email,
         monthly_rent=payload.monthly_rent,
@@ -724,7 +748,7 @@ def apply_lease_offer_action(db: Session, user: Users, lease_offer_id: str, acti
         "decline": LandlordLeaseOfferStatus.declined,
     }
     row.status = mapping[action]
-    row.updated_at = datetime.now(timezone.utc)
+    row.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     return LandlordLeaseOfferPayload(
@@ -752,9 +776,11 @@ def list_lease_signatures(db: Session, user: Users, lease_offer_id: str) -> list
     ).scalar_one_or_none()
     if offer is None:
         raise HTTPException(status_code=404, detail="Lease offer not found")
-    rows = db.execute(
-        select(LandlordLeaseSignatures).where(LandlordLeaseSignatures.lease_offer_id == offer.id)
-    ).scalars().all()
+    rows = (
+        db.execute(select(LandlordLeaseSignatures).where(LandlordLeaseSignatures.lease_offer_id == offer.id))
+        .scalars()
+        .all()
+    )
     return [
         LandlordLeaseSignaturePayload(
             id=str(row.id),
@@ -793,9 +819,7 @@ def create_lease_signature(
     return list_lease_signatures(db, user, lease_offer_id)
 
 
-def update_lease_signature(
-    db: Session, user: Users, signature_id: str, status: str
-) -> LandlordLeaseSignaturePayload:
+def update_lease_signature(db: Session, user: Users, signature_id: str, status: str) -> LandlordLeaseSignaturePayload:
     row = db.execute(
         select(LandlordLeaseSignatures)
         .join(LandlordLeaseOffers, LandlordLeaseOffers.id == LandlordLeaseSignatures.lease_offer_id)
@@ -807,7 +831,7 @@ def update_lease_signature(
     if row is None:
         raise HTTPException(status_code=404, detail="Signature not found")
     row.status = LandlordSignatureStatus(status)
-    row.signed_at = datetime.now(timezone.utc) if row.status == LandlordSignatureStatus.signed else None
+    row.signed_at = datetime.now(UTC) if row.status == LandlordSignatureStatus.signed else None
     db.commit()
     db.refresh(row)
     return LandlordLeaseSignaturePayload(

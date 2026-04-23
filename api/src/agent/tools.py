@@ -13,13 +13,15 @@ tool's fn_schema as a ForwardRef, breaking pydantic JSON-schema generation.
 
 import asyncio
 import uuid
-from typing import Any, Optional
+from datetime import UTC
+from typing import Any
 
+from llama_index.core.base.llms.types import ChatMessage
 from llama_index.core.llms import LLM
 from llama_index.core.tools import FunctionTool
 from llama_index.core.workflow import Context
 from llama_index.server.models.ui import UIEvent
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from agent.events import (
@@ -71,15 +73,23 @@ from db.models import (
 from groups.service import create_email_invite as groups_create_email_invite
 from guarantors.schemas import (
     GuarantorRequestCreate,
-    LeasePayload as GuarantorLeasePayload,
     SavedGuarantorCreate,
+)
+from guarantors.schemas import (
+    LeasePayload as GuarantorLeasePayload,
 )
 from guarantors.service import (
     create_invite as guarantor_create_invite,
+)
+from guarantors.service import (
     create_request as guarantor_create_request,
+)
+from guarantors.service import (
     create_saved_guarantor,
-    list_requests as guarantor_list_requests,
     list_saved_guarantors,
+)
+from guarantors.service import (
+    list_requests as guarantor_list_requests,
 )
 from landlord_entities.service import (
     get_entity_detail,
@@ -90,25 +100,22 @@ from listings.ai_search import (
     extract_query_plan,
     run_fast_search,
 )
-from llama_index.core.base.llms.types import ChatMessage
 from movein.lease_premises_extract import extract_premises_address_from_lease_text
 from movein.schemas import (
     ChecklistItemCreate,
     ChecklistItemPatch,
     MoveInPlanPatch,
-    VendorOrderCreate,
 )
 from movein.service import (
     create_checklist_item,
-    create_order,
     list_checklist,
     list_orders,
     patch_checklist_item,
     patch_plan,
     read_plan,
 )
-from portal.service import get_profile, patch_profile
 from portal.schemas import ProfilePatch
+from portal.service import get_profile, patch_profile
 from roommates.schemas import (
     MyRoommateProfilePatch,
     RoommateConnectionCreate,
@@ -117,14 +124,25 @@ from roommates.schemas import (
 )
 from roommates.service import (
     create_connection as roommates_create_connection,
+)
+from roommates.service import (
     create_group_from_connection,
+)
+from roommates.service import (
     create_message as roommates_create_message,
+)
+from roommates.service import (
     list_connections as roommates_list_connections,
+)
+from roommates.service import (
     list_matches as roommates_list_matches,
+)
+from roommates.service import (
     patch_my_profile as roommates_patch_my_profile,
+)
+from roommates.service import (
     read_my_profile as roommates_read_my_profile,
 )
-from sqlalchemy import func
 from tours.schemas import (
     TourCreate,
     TourPropertyPayload,
@@ -137,7 +155,6 @@ from tours.service import (
     list_tours,
     update_tour,
 )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -181,15 +198,14 @@ def _emit(ctx: Context, event_type: str, data: Any) -> None:
     ctx.write_event_to_stream(UIEvent(type=event_type, data=data))
 
 
-def _step(ctx: Context, agent: str, label: str, state: str = "running",
-          detail: str | None = None) -> None:
-    _emit(ctx, "agent_step",
-          AgentStepData(agent=agent, label=label, state=state, detail=detail))
+def _step(ctx: Context, agent: str, label: str, state: str = "running", detail: str | None = None) -> None:
+    _emit(ctx, "agent_step", AgentStepData(agent=agent, label=label, state=state, detail=detail))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Search tools
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def _get_chat_history(ctx: Context):
     """Pull AgentWorkflow's running chat history out of context memory."""
@@ -218,9 +234,7 @@ def make_search_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         _step(ctx, "search", f"Planning search for “{query[:60]}”", "running")
 
         history = await _get_chat_history(ctx)
-        plan_task = asyncio.create_task(
-            extract_query_plan(llm, user_msg=query, chat_history=history)
-        )
+        plan_task = asyncio.create_task(extract_query_plan(llm, user_msg=query, chat_history=history))
         embed_task = asyncio.create_task(embed_query_text(query))
         plan = await plan_task
         embedding, _ = await embed_task
@@ -241,8 +255,7 @@ def make_search_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
                     "running",
                 )
 
-        _step(ctx, "search", f"Searching for {plan.summary_headline.lower()}",
-              "running")
+        _step(ctx, "search", f"Searching for {plan.summary_headline.lower()}", "running")
 
         result = run_fast_search(plan, query_embedding=embedding, limit=24)
         items = list(result.properties.properties)
@@ -256,18 +269,19 @@ def make_search_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         # Stash for save_property / schedule_tour's index_in_last_search
         # shortcut. Write to BOTH the workflow Context (intra-turn handoffs)
         # and the per-user process cache (cross-turn follow-ups).
-        cache_entries = [
-            {"property_key": key, "name": p.name, "address": p.address}
-            for key, p in keyed
-        ]
+        cache_entries = [{"property_key": key, "name": p.name, "address": p.address} for key, p in keyed]
         await ctx.store.set("last_search_results", cache_entries)
         _LAST_SEARCH_CACHE[user.id] = cache_entries
 
-        _emit(ctx, "property_results", PropertyResultsData(
-            title=plan.summary_headline or "Listings",
-            query=query,
-            properties=items,
-        ))
+        _emit(
+            ctx,
+            "property_results",
+            PropertyResultsData(
+                title=plan.summary_headline or "Listings",
+                query=query,
+                properties=items,
+            ),
+        )
         _step(ctx, "search", f"Found {len(items)} listings", "done")
 
         if not items:
@@ -279,8 +293,7 @@ def make_search_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         ]
         return (
             f"Found {len(items)} listings for '{plan.summary_headline}'. "
-            f"Top results (use either the index or the [key] to save / tour):\n"
-            + "\n".join(lines)
+            f"Top results (use either the index or the [key] to save / tour):\n" + "\n".join(lines)
         )
 
     return [
@@ -300,6 +313,7 @@ def make_search_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
 # Tours tools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _serialize_tour(t: Any) -> TourCardItem:
     prop = t.property
     return TourCardItem(
@@ -316,9 +330,7 @@ def _serialize_tour(t: Any) -> TourCardItem:
 
 
 def make_tours_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
-    async def list_my_tours(
-        ctx: Context, status: str | None = None
-    ) -> str:
+    async def list_my_tours(ctx: Context, status: str | None = None) -> str:
         """List the current user's tours.
 
         Args:
@@ -331,15 +343,18 @@ def make_tours_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         alias = {"upcoming": "scheduled", "past": "completed"}
         normalized_status = alias.get(status, status) if status else None
         _step(ctx, "tours", "Loading your tours", "running")
-        params = TourSortParams(status=normalized_status, limit=50, offset=0,
-                                sort="created_at_desc")
+        params = TourSortParams(status=normalized_status, limit=50, offset=0, sort="created_at_desc")
         tours, total = list_tours(db, user.id, params)
         items = [_serialize_tour(t) for t in tours]
-        _emit(ctx, "tours_results", TourResultsData(
-            title=("All tours" if not status else f"{status.title()} tours"),
-            tours=items,
-            empty_message=("No tours yet." if total == 0 else None),
-        ))
+        _emit(
+            ctx,
+            "tours_results",
+            TourResultsData(
+                title=("All tours" if not status else f"{status.title()} tours"),
+                tours=items,
+                empty_message=("No tours yet." if total == 0 else None),
+            ),
+        )
         _step(ctx, "tours", f"{total} tour(s) loaded", "done")
         if total == 0:
             return "The user has no tours yet."
@@ -364,10 +379,7 @@ def make_tours_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         if unknown.
         """
         if index_in_last_search is not None and not (property_name and property_address):
-            cached = (
-                await ctx.store.get("last_search_results", default=None)
-                or _LAST_SEARCH_CACHE.get(user.id, [])
-            )
+            cached = await ctx.store.get("last_search_results", default=None) or _LAST_SEARCH_CACHE.get(user.id, [])
             idx = index_in_last_search - 1
             if idx < 0 or idx >= len(cached):
                 return (
@@ -395,15 +407,16 @@ def make_tours_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
             scheduled_time=scheduled_time,
         )
         tour = create_tour(db, user.id, payload)
-        _emit(ctx, "tours_results", TourResultsData(
-            title="Tour scheduled",
-            tours=[_serialize_tour(tour)],
-        ))
-        _step(ctx, "tours", "Tour saved", "done")
-        return (
-            f"Created tour {tour.id} for {property_name} "
-            f"(status={tour.status})."
+        _emit(
+            ctx,
+            "tours_results",
+            TourResultsData(
+                title="Tour scheduled",
+                tours=[_serialize_tour(tour)],
+            ),
         )
+        _step(ctx, "tours", "Tour saved", "done")
+        return f"Created tour {tour.id} for {property_name} " f"(status={tour.status})."
 
     async def update_tour_status(
         ctx: Context,
@@ -422,17 +435,23 @@ def make_tours_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         """
         _step(ctx, "tours", "Updating tour", "running")
         tour = update_tour(
-            db, user.id, uuid.UUID(tour_id),
+            db,
+            user.id,
+            uuid.UUID(tour_id),
             TourUpdate(
                 status=status,
                 scheduled_date=scheduled_date,
                 scheduled_time=scheduled_time,
             ),
         )
-        _emit(ctx, "tours_results", TourResultsData(
-            title="Tour updated",
-            tours=[_serialize_tour(tour)],
-        ))
+        _emit(
+            ctx,
+            "tours_results",
+            TourResultsData(
+                title="Tour updated",
+                tours=[_serialize_tour(tour)],
+            ),
+        )
         _step(ctx, "tours", "Tour updated", "done")
         return f"Tour updated to status={tour.status}."
 
@@ -476,6 +495,7 @@ def make_tours_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
 # ─────────────────────────────────────────────────────────────────────────────
 # Saved (favorites) tools
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def make_saved_tools(
     user: Users,
@@ -528,9 +548,7 @@ def make_saved_tools(
         # shared so we don't filter user_id (every member should see them).
         if resolved_group_id is None:
             query = query.where(PropertyFavorites.user_id == user.id)
-        rows = db.execute(
-            query.order_by(PropertyFavorites.created_at.desc())
-        ).scalars().all()
+        rows = db.execute(query.order_by(PropertyFavorites.created_at.desc())).scalars().all()
 
         items = [
             FavoriteCardItem(
@@ -541,10 +559,14 @@ def make_saved_tools(
             )
             for row in rows
         ]
-        _emit(ctx, "favorites_results", FavoritesResultsData(
-            favorites=items,
-            empty_message=("Nothing saved yet." if not items else None),
-        ))
+        _emit(
+            ctx,
+            "favorites_results",
+            FavoritesResultsData(
+                favorites=items,
+                empty_message=("Nothing saved yet." if not items else None),
+            ),
+        )
         _step(ctx, "saved", f"{len(items)} saved ({scope_label})", "done")
         if not items:
             return f"User has no saved properties yet ({scope_label})."
@@ -568,10 +590,7 @@ def make_saved_tools(
         request time — no group_id argument is exposed on this tool.
         """
         if index_in_last_search is not None and not property_key:
-            cached = (
-                await ctx.store.get("last_search_results", default=None)
-                or _LAST_SEARCH_CACHE.get(user.id, [])
-            )
+            cached = await ctx.store.get("last_search_results", default=None) or _LAST_SEARCH_CACHE.get(user.id, [])
             idx = index_in_last_search - 1
             if idx < 0 or idx >= len(cached):
                 return (
@@ -603,24 +622,21 @@ def make_saved_tools(
         ).scalar_one_or_none()
         if existing:
             _step(ctx, "saved", "Already saved", "done")
-            return (
-                f"{property_name or property_key} was already saved "
-                f"({scope_label})."
+            return f"{property_name or property_key} was already saved " f"({scope_label})."
+        db.add(
+            PropertyFavorites(
+                user_id=user.id,
+                group_id=resolved_group_id,
+                property_key=property_key,
+                property_name=property_name or "Untitled",
+                property_address=property_address or "",
             )
-        db.add(PropertyFavorites(
-            user_id=user.id,
-            group_id=resolved_group_id,
-            property_key=property_key,
-            property_name=property_name or "Untitled",
-            property_address=property_address or "",
-        ))
+        )
         db.commit()
         _step(ctx, "saved", f"Saved ({scope_label})", "done")
         return f"Saved {property_name or property_key} ({scope_label})."
 
-    async def remove_saved_property(
-        ctx: Context, property_key: str
-    ) -> str:
+    async def remove_saved_property(ctx: Context, property_key: str) -> str:
         """Remove a property from the user's saved list (same scope as save)."""
         _step(ctx, "saved", "Removing from saved", "running")
         query = select(PropertyFavorites).where(
@@ -664,6 +680,7 @@ def make_saved_tools(
 # Profile tools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _profile_to_summary(p: Any) -> ProfileSummaryData:
     return ProfileSummaryData(
         cities=p.preferred_cities or [],
@@ -684,12 +701,16 @@ def make_profile_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]
         prof = get_profile(db, user.id)
         if prof is None:
             _step(ctx, "profile", "No profile yet", "done")
-            _emit(ctx, "navigation_action", NavigationActionData(
-                title="Complete your profile",
-                description="A few quick questions help tailor every search.",
-                href="/onboarding",
-                cta="Get started",
-            ))
+            _emit(
+                ctx,
+                "navigation_action",
+                NavigationActionData(
+                    title="Complete your profile",
+                    description="A few quick questions help tailor every search.",
+                    href="/onboarding",
+                    cta="Get started",
+                ),
+            )
             return "User has no profile yet."
         _emit(ctx, "profile_summary", _profile_to_summary(prof))
         _step(ctx, "profile", "Profile loaded", "done")
@@ -721,7 +742,8 @@ def make_profile_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]
         # use `exclude_unset` to skip un-touched columns; passing None
         # explicitly would clobber NOT-NULL fields like has_pets.
         provided = {
-            k: v for k, v in {
+            k: v
+            for k, v in {
                 "preferred_cities": preferred_cities,
                 "max_monthly_rent": max_monthly_rent,
                 "bedrooms_needed": bedrooms_needed,
@@ -730,7 +752,8 @@ def make_profile_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]
                 "neighbourhood_priorities": neighbourhood_priorities,
                 "has_pets": has_pets,
                 "roommate_search_enabled": roommate_search_enabled,
-            }.items() if v is not None
+            }.items()
+            if v is not None
         }
         patch = ProfilePatch(**provided)
         prof = patch_profile(db, user.id, patch)
@@ -746,16 +769,14 @@ def make_profile_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]
             async_fn=view_my_profile,
             name="view_my_profile",
             description=(
-                "Show the user's saved renter profile (cities, budget, beds, "
-                "timeline, dealbreakers, etc.)."
+                "Show the user's saved renter profile (cities, budget, beds, " "timeline, dealbreakers, etc.)."
             ),
         ),
         FunctionTool.from_defaults(
             async_fn=update_my_profile,
             name="update_my_profile",
             description=(
-                "Update fields on the user's renter profile. Only set fields "
-                "the user explicitly mentioned."
+                "Update fields on the user's renter profile. Only set fields " "the user explicitly mentioned."
             ),
         ),
     ]
@@ -764,6 +785,7 @@ def make_profile_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]
 # ─────────────────────────────────────────────────────────────────────────────
 # Navigation tool — for things best done in a dedicated UI
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def make_navigation_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
     # Navigator is the FALLBACK agent. It must never deep-link to a domain
@@ -774,9 +796,7 @@ def make_navigation_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTo
     #
     # The allow-list below is intentionally tiny: onboarding, writing a
     # landlord review, and capturing move-in photos (needs camera UI).
-    async def open_app_section(
-        ctx: Context, section: str, reason: str = ""
-    ) -> str:
+    async def open_app_section(ctx: Context, section: str, reason: str = "") -> str:
         """Deep-link the user to a dedicated UI that chat can't render.
 
         Args:
@@ -797,12 +817,16 @@ def make_navigation_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTo
                 "dedicated specialist. Hand off to orchestrator and let it route."
             )
         title, href = routes[section]
-        _emit(ctx, "navigation_action", NavigationActionData(
-            title=title,
-            description=reason or None,
-            href=href,
-            cta="Open",
-        ))
+        _emit(
+            ctx,
+            "navigation_action",
+            NavigationActionData(
+                title=title,
+                description=reason or None,
+                href=href,
+                cta="Open",
+            ),
+        )
         return f"Offered navigation card for {title} ({href})."
 
     return [
@@ -897,14 +921,21 @@ def make_roommates_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         """
         _step(ctx, "roommates", "Saving roommate profile", "running")
         provided = {
-            k: v for k, v in {
-                "name": name, "age": age, "occupation": occupation,
+            k: v
+            for k, v in {
+                "name": name,
+                "age": age,
+                "occupation": occupation,
                 "sleep_schedule": sleep_schedule,
                 "cleanliness_level": cleanliness_level,
-                "noise_level": noise_level, "guest_policy": guest_policy,
-                "smoking": smoking, "bio": bio,
-                "interests": interests, "languages_spoken": languages_spoken,
-            }.items() if v is not None
+                "noise_level": noise_level,
+                "guest_policy": guest_policy,
+                "smoking": smoking,
+                "bio": bio,
+                "interests": interests,
+                "languages_spoken": languages_spoken,
+            }.items()
+            if v is not None
         }
         patch = MyRoommateProfilePatch(**provided)
         roommates_patch_my_profile(db, user.id, patch)
@@ -921,10 +952,14 @@ def make_roommates_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         matches = roommates_list_matches(db, user.id, group_id=None)
         items = [_match_to_item(m) for m in matches[:limit]]
         _LAST_MATCHES_CACHE[user.id] = list(matches[:limit])
-        _emit(ctx, "roommate_matches", RoommateMatchesData(
-            matches=items,
-            empty_message=("No matches yet — complete your roommate profile first." if not items else None),
-        ))
+        _emit(
+            ctx,
+            "roommate_matches",
+            RoommateMatchesData(
+                matches=items,
+                empty_message=("No matches yet — complete your roommate profile first." if not items else None),
+            ),
+        )
         _step(ctx, "roommates", f"{len(items)} match(es)", "done")
         if not items:
             return "No roommate matches available — user may need to complete their roommate profile."
@@ -941,19 +976,25 @@ def make_roommates_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         items = []
         for c in conns:
             last = c.messages[-1] if c.messages else None
-            items.append(RoommateConnectionItem(
-                id=c.id,
-                roommate_name=c.roommate.name or "Unknown",
-                roommate_initials=c.roommate.avatar_initials or "",
-                last_message=(last.content if last else None),
-                last_message_time=(last.time if last else None),
-                connected_at=c.connected_at or None,
-                message_count=len(c.messages or []),
-            ))
-        _emit(ctx, "roommate_connections", RoommateConnectionsData(
-            connections=items,
-            empty_message=("No connections yet." if not items else None),
-        ))
+            items.append(
+                RoommateConnectionItem(
+                    id=c.id,
+                    roommate_name=c.roommate.name or "Unknown",
+                    roommate_initials=c.roommate.avatar_initials or "",
+                    last_message=(last.content if last else None),
+                    last_message_time=(last.time if last else None),
+                    connected_at=c.connected_at or None,
+                    message_count=len(c.messages or []),
+                )
+            )
+        _emit(
+            ctx,
+            "roommate_connections",
+            RoommateConnectionsData(
+                connections=items,
+                empty_message=("No connections yet." if not items else None),
+            ),
+        )
         _step(ctx, "roommates", f"{len(items)} connection(s)", "done")
         if not items:
             return "User has no roommate connections yet."
@@ -986,81 +1027,96 @@ def make_roommates_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
             )
         _step(ctx, "roommates", f"Connecting with {target.name}", "running")
         conn = roommates_create_connection(
-            db, user.id, RoommateConnectionCreate(roommate=target),
+            db,
+            user.id,
+            RoommateConnectionCreate(roommate=target),
         )
         if opening_message:
-            from datetime import datetime, timezone
+            from datetime import datetime
+
             roommates_create_message(
-                db, user.id, conn.id,
+                db,
+                user.id,
+                conn.id,
                 RoommateMessagePayload(
                     role="user",
                     content=opening_message,
-                    time=datetime.now(timezone.utc).isoformat(),
+                    time=datetime.now(UTC).isoformat(),
                 ),
             )
         _step(ctx, "roommates", "Connected", "done")
         _ = conn
         return f"Connected with {target.name}."
 
-    async def message_connection(
-        ctx: Context, connection_id: str, body: str
-    ) -> str:
+    async def message_connection(ctx: Context, connection_id: str, body: str) -> str:
         """Send a chat message in an existing roommate connection."""
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         _step(ctx, "roommates", "Sending message", "running")
         roommates_create_message(
-            db, user.id, connection_id,
+            db,
+            user.id,
+            connection_id,
             RoommateMessagePayload(
                 role="user",
                 content=body,
-                time=datetime.now(timezone.utc).isoformat(),
+                time=datetime.now(UTC).isoformat(),
             ),
         )
         _step(ctx, "roommates", "Sent", "done")
         return "Message sent."
 
-    async def start_group_from_connection(
-        ctx: Context, connection_id: str, name: str | None = None
-    ) -> str:
+    async def start_group_from_connection(ctx: Context, connection_id: str, name: str | None = None) -> str:
         """Convert a roommate connection into a co-tenant group."""
         _step(ctx, "roommates", "Creating group from connection", "running")
         result = create_group_from_connection(db, user, connection_id, name)
-        _emit(ctx, "navigation_action", NavigationActionData(
-            title=f"Group: {result.group_name}",
-            description=("Already a member of this group." if result.already_member else "Group created."),
-            href=f"/groups/{result.group_id}",
-            cta="Open group",
-        ))
+        _emit(
+            ctx,
+            "navigation_action",
+            NavigationActionData(
+                title=f"Group: {result.group_name}",
+                description=("Already a member of this group." if result.already_member else "Group created."),
+                href=f"/groups/{result.group_id}",
+                cta="Open group",
+            ),
+        )
         _step(ctx, "roommates", "Group ready", "done")
         return f"Group {result.group_name} ready."
 
     return [
         FunctionTool.from_defaults(
-            async_fn=view_my_roommate_profile, name="view_my_roommate_profile",
+            async_fn=view_my_roommate_profile,
+            name="view_my_roommate_profile",
             description="Show the user's roommate matching profile.",
         ),
         FunctionTool.from_defaults(
-            async_fn=update_my_roommate_profile, name="update_my_roommate_profile",
+            async_fn=update_my_roommate_profile,
+            name="update_my_roommate_profile",
             description="Patch fields on the user's roommate profile (only the fields they mentioned).",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_roommate_matches, name="list_roommate_matches",
+            async_fn=list_roommate_matches,
+            name="list_roommate_matches",
             description="List potential roommate matches; renders match cards.",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_my_connections, name="list_my_connections",
+            async_fn=list_my_connections,
+            name="list_my_connections",
             description="List the user's existing roommate connections.",
         ),
         FunctionTool.from_defaults(
-            async_fn=connect_with_match, name="connect_with_match",
+            async_fn=connect_with_match,
+            name="connect_with_match",
             description="Connect with a roommate match by index_in_last_matches or match_id.",
         ),
         FunctionTool.from_defaults(
-            async_fn=message_connection, name="message_connection",
+            async_fn=message_connection,
+            name="message_connection",
             description="Send a chat message in an existing roommate connection.",
         ),
         FunctionTool.from_defaults(
-            async_fn=start_group_from_connection, name="start_group_from_connection",
+            async_fn=start_group_from_connection,
+            name="start_group_from_connection",
             description="Convert a roommate connection into a co-tenant group.",
         ),
     ]
@@ -1070,24 +1126,18 @@ def make_roommates_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
 # Groups tools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _group_to_summary(db: Session, g: Groups, role: str) -> GroupSummaryData:
-    members = db.execute(
-        select(GroupMembers).where(GroupMembers.group_id == g.id)
-    ).scalars().all()
-    saved_count = db.execute(
-        select(func.count(PropertyFavorites.id)).where(
-            PropertyFavorites.group_id == g.id
-        )
-    ).scalar_one() or 0
+    members = db.execute(select(GroupMembers).where(GroupMembers.group_id == g.id)).scalars().all()
+    saved_count = (
+        db.execute(select(func.count(PropertyFavorites.id)).where(PropertyFavorites.group_id == g.id)).scalar_one() or 0
+    )
     return GroupSummaryData(
         id=str(g.id),
         name=g.name or "Untitled group",
         role=role,
         member_count=len(members),
-        members=[
-            GroupMemberItem(user_id=str(m.user_id), role=m.role)
-            for m in members
-        ],
+        members=[GroupMemberItem(user_id=str(m.user_id), role=m.role) for m in members],
         saved_count=int(saved_count),
     )
 
@@ -1103,10 +1153,14 @@ def make_groups_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
             .order_by(Groups.created_at.desc())
         ).all()
         summaries = [_group_to_summary(db, g, role) for g, role in rows]
-        _emit(ctx, "group_list", GroupListData(
-            groups=summaries,
-            empty_message=("No groups yet." if not summaries else None),
-        ))
+        _emit(
+            ctx,
+            "group_list",
+            GroupListData(
+                groups=summaries,
+                empty_message=("No groups yet." if not summaries else None),
+            ),
+        )
         _step(ctx, "groups", f"{len(summaries)} group(s)", "done")
         if not summaries:
             return "User is not in any groups yet."
@@ -1122,17 +1176,19 @@ def make_groups_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         db.add(GroupMembers(group_id=g.id, user_id=user.id, role="owner"))
         db.commit()
         db.refresh(g)
-        _emit(ctx, "group_list", GroupListData(
-            groups=[_group_to_summary(db, g, "owner")],
-            title="Group created",
-        ))
+        _emit(
+            ctx,
+            "group_list",
+            GroupListData(
+                groups=[_group_to_summary(db, g, "owner")],
+                title="Group created",
+            ),
+        )
         _step(ctx, "groups", "Group created", "done")
         _ = g
         return f"Created group {g.name}."
 
-    async def invite_to_group(
-        ctx: Context, group_id: str, email: str
-    ) -> str:
+    async def invite_to_group(ctx: Context, group_id: str, email: str) -> str:
         """Send an email invite to join a group."""
         _step(ctx, "groups", f"Inviting {email}", "running")
         g = db.get(Groups, uuid.UUID(group_id))
@@ -1147,19 +1203,28 @@ def make_groups_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         if membership is None:
             return "You are not a member of that group."
         invite = groups_create_email_invite(
-            db, group=g, inviter=user, email=email,
+            db,
+            group=g,
+            inviter=user,
+            email=email,
         )
         db.commit()
-        _emit(ctx, "group_list", GroupListData(
-            title="Invite sent",
-            groups=[
-                GroupSummaryData(
-                    id=str(g.id), name=g.name or "", role=membership.role,
-                    member_count=0,
-                    invites=[GroupInviteItem(email=email, status="pending")],
-                ),
-            ],
-        ))
+        _emit(
+            ctx,
+            "group_list",
+            GroupListData(
+                title="Invite sent",
+                groups=[
+                    GroupSummaryData(
+                        id=str(g.id),
+                        name=g.name or "",
+                        role=membership.role,
+                        member_count=0,
+                        invites=[GroupInviteItem(email=email, status="pending")],
+                    ),
+                ],
+            ),
+        )
         _step(ctx, "groups", "Invite sent", "done")
         return f"Sent invite to {email} for group {g.name}. Token: {invite.token[:8]}..."
 
@@ -1173,10 +1238,7 @@ def make_groups_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
     ) -> str:
         """Save a property to a group's shared list (instead of the user's personal saved)."""
         if index_in_last_search is not None and not property_key:
-            cached = (
-                await ctx.store.get("last_search_results", default=None)
-                or _LAST_SEARCH_CACHE.get(user.id, [])
-            )
+            cached = await ctx.store.get("last_search_results", default=None) or _LAST_SEARCH_CACHE.get(user.id, [])
             idx = index_in_last_search - 1
             if 0 <= idx < len(cached):
                 entry = cached[idx]
@@ -1202,32 +1264,38 @@ def make_groups_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         ).scalar_one_or_none()
         if existing:
             return f"{property_name or property_key} already saved to that group."
-        db.add(PropertyFavorites(
-            user_id=user.id,
-            group_id=gid,
-            property_key=property_key,
-            property_name=property_name or "Untitled",
-            property_address=property_address or "",
-        ))
+        db.add(
+            PropertyFavorites(
+                user_id=user.id,
+                group_id=gid,
+                property_key=property_key,
+                property_name=property_name or "Untitled",
+                property_address=property_address or "",
+            )
+        )
         db.commit()
         _step(ctx, "groups", "Saved to group", "done")
         return f"Saved {property_name or property_key} to the group."
 
     return [
         FunctionTool.from_defaults(
-            async_fn=list_my_groups, name="list_my_groups",
+            async_fn=list_my_groups,
+            name="list_my_groups",
             description="List the user's co-tenant groups.",
         ),
         FunctionTool.from_defaults(
-            async_fn=create_group, name="create_group",
+            async_fn=create_group,
+            name="create_group",
             description="Create a new co-tenant group with a given name.",
         ),
         FunctionTool.from_defaults(
-            async_fn=invite_to_group, name="invite_to_group",
+            async_fn=invite_to_group,
+            name="invite_to_group",
             description="Send an email invite for someone to join a group.",
         ),
         FunctionTool.from_defaults(
-            async_fn=save_property_to_group, name="save_property_to_group",
+            async_fn=save_property_to_group,
+            name="save_property_to_group",
             description="Save a property to a group's shared list (instead of personal saved).",
         ),
     ]
@@ -1251,29 +1319,33 @@ def make_lease_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
     async def view_my_lease(ctx: Context) -> str:
         """Show what the user has on file for their current lease."""
         _step(ctx, "lease", "Loading lease", "running")
-        row = db.execute(
-            select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)
-        ).scalar_one_or_none()
+        row = db.execute(select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)).scalar_one_or_none()
         if row is None:
             _emit(ctx, "lease_summary", LeaseSummaryData(has_document=False))
-            _emit(ctx, "navigation_action", NavigationActionData(
-                title="Upload your lease",
-                description="Add your lease PDF so I can answer questions about it.",
-                href="/lease",
-                cta="Upload lease",
-            ))
+            _emit(
+                ctx,
+                "navigation_action",
+                NavigationActionData(
+                    title="Upload your lease",
+                    description="Add your lease PDF so I can answer questions about it.",
+                    href="/lease",
+                    cta="Upload lease",
+                ),
+            )
             _step(ctx, "lease", "No lease on file", "done")
             return "User has no lease document on file."
-        premises = await extract_premises_address_from_lease_text(
-            (row.extracted_text or "")[:8000], llm=llm
+        premises = await extract_premises_address_from_lease_text((row.extracted_text or "")[:8000], llm=llm)
+        _emit(
+            ctx,
+            "lease_summary",
+            LeaseSummaryData(
+                has_document=True,
+                original_filename=row.original_filename,
+                updated_at=row.updated_at.isoformat() if row.updated_at else None,
+                premises_address=premises,
+                char_count=len(row.extracted_text or ""),
+            ),
         )
-        _emit(ctx, "lease_summary", LeaseSummaryData(
-            has_document=True,
-            original_filename=row.original_filename,
-            updated_at=row.updated_at.isoformat() if row.updated_at else None,
-            premises_address=premises,
-            char_count=len(row.extracted_text or ""),
-        ))
         _step(ctx, "lease", "Lease loaded", "done")
         return (
             f"Lease on file: {row.original_filename} "
@@ -1283,16 +1355,18 @@ def make_lease_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
     async def ask_about_my_lease(ctx: Context, question: str) -> str:
         """Answer a question grounded in the user's uploaded lease text."""
         _step(ctx, "lease", "Reading lease", "running")
-        row = db.execute(
-            select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)
-        ).scalar_one_or_none()
+        row = db.execute(select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)).scalar_one_or_none()
         if row is None or not (row.extracted_text or "").strip():
-            _emit(ctx, "navigation_action", NavigationActionData(
-                title="Upload your lease",
-                description="I need your lease PDF before I can answer questions about it.",
-                href="/lease",
-                cta="Upload lease",
-            ))
+            _emit(
+                ctx,
+                "navigation_action",
+                NavigationActionData(
+                    title="Upload your lease",
+                    description="I need your lease PDF before I can answer questions about it.",
+                    href="/lease",
+                    cta="Upload lease",
+                ),
+            )
             _step(ctx, "lease", "No lease", "done")
             return "No lease on file. Suggested upload."
         body = (row.extracted_text or "")[:LEASE_QA_MAX_CHARS]
@@ -1303,19 +1377,26 @@ def make_lease_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         ]
         resp = await llm.achat(history)
         answer = (resp.message.content or "").strip()
-        _emit(ctx, "lease_answer", LeaseAnswerData(
-            question=question, answer=answer,
-        ))
+        _emit(
+            ctx,
+            "lease_answer",
+            LeaseAnswerData(
+                question=question,
+                answer=answer,
+            ),
+        )
         _step(ctx, "lease", "Answered", "done")
         return f"Lease Q&A done. Question: {question[:80]}"
 
     return [
         FunctionTool.from_defaults(
-            async_fn=view_my_lease, name="view_my_lease",
+            async_fn=view_my_lease,
+            name="view_my_lease",
             description="Show the lease document the user has on file (filename, premises address, length).",
         ),
         FunctionTool.from_defaults(
-            async_fn=ask_about_my_lease, name="ask_about_my_lease",
+            async_fn=ask_about_my_lease,
+            name="ask_about_my_lease",
             description="Answer a question grounded in the user's uploaded lease text. Use for any question about lease terms (pets, break clause, rent due date, security deposit, etc.).",
         ),
     ]
@@ -1325,25 +1406,28 @@ def make_lease_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
 # Move-in tools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def make_movein_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
     async def view_movein_plan(ctx: Context) -> str:
         """Show the user's move-in plan (target address, move date, from address)."""
         _step(ctx, "movein", "Loading plan", "running")
         plan = read_plan(db, user.id)
         items = list_checklist(db, user.id)
-        _emit(ctx, "movein_checklist", MoveInChecklistData(
-            target_address=plan.target_address or None,
-            move_date=plan.move_date or None,
-            tasks=[
-                MoveInTaskItem(id=i.id, category=i.category, label=i.label, completed=i.completed)
-                for i in items
-            ],
-            empty_message=("No tasks yet." if not items else None),
-        ))
+        _emit(
+            ctx,
+            "movein_checklist",
+            MoveInChecklistData(
+                target_address=plan.target_address or None,
+                move_date=plan.move_date or None,
+                tasks=[
+                    MoveInTaskItem(id=i.id, category=i.category, label=i.label, completed=i.completed) for i in items
+                ],
+                empty_message=("No tasks yet." if not items else None),
+            ),
+        )
         _step(ctx, "movein", "Plan loaded", "done")
         return (
-            f"Move-in plan: target={plan.target_address or '?'}, "
-            f"date={plan.move_date or '?'}, tasks={len(items)}."
+            f"Move-in plan: target={plan.target_address or '?'}, " f"date={plan.move_date or '?'}, tasks={len(items)}."
         )
 
     async def update_movein_plan(
@@ -1355,19 +1439,19 @@ def make_movein_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         """Update the user's move-in plan. Pass only the fields the user set."""
         _step(ctx, "movein", "Saving plan", "running")
         provided = {
-            k: v for k, v in {
+            k: v
+            for k, v in {
                 "target_address": target_address,
                 "move_date": move_date,
                 "move_from_address": move_from_address,
-            }.items() if v is not None
+            }.items()
+            if v is not None
         }
         patch_plan(db, user.id, MoveInPlanPatch(**provided))
         _step(ctx, "movein", "Plan saved", "done")
         return f"Updated move-in plan: {list(provided.keys())}."
 
-    async def list_movein_tasks(
-        ctx: Context, completed: bool | None = None
-    ) -> str:
+    async def list_movein_tasks(ctx: Context, completed: bool | None = None) -> str:
         """List move-in checklist tasks, optionally filtered by completion.
 
         Returns the task labels and ids so the agent can resolve a user's
@@ -1378,40 +1462,44 @@ def make_movein_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         items = list_checklist(db, user.id)
         if completed is not None:
             items = [i for i in items if i.completed == completed]
-        _emit(ctx, "movein_checklist", MoveInChecklistData(
-            tasks=[
-                MoveInTaskItem(id=i.id, category=i.category, label=i.label, completed=i.completed)
-                for i in items
-            ],
-            empty_message=("No matching tasks." if not items else None),
-        ))
+        _emit(
+            ctx,
+            "movein_checklist",
+            MoveInChecklistData(
+                tasks=[
+                    MoveInTaskItem(id=i.id, category=i.category, label=i.label, completed=i.completed) for i in items
+                ],
+                empty_message=("No matching tasks." if not items else None),
+            ),
+        )
         _step(ctx, "movein", f"{len(items)} task(s)", "done")
         if not items:
             return "No move-in tasks."
         lines = [
-            f"- task_id={i.id} label={i.label!r} "
-            f"{'[done]' if i.completed else '[open]'} category={i.category}"
+            f"- task_id={i.id} label={i.label!r} " f"{'[done]' if i.completed else '[open]'} category={i.category}"
             for i in items
         ]
         return "Move-in tasks:\n" + "\n".join(lines)
 
-    async def add_movein_task(
-        ctx: Context, label: str, category: str = "general"
-    ) -> str:
+    async def add_movein_task(ctx: Context, label: str, category: str = "general") -> str:
         """Add a new task to the move-in checklist."""
         _step(ctx, "movein", f"Adding task: {label[:40]}", "running")
         item = create_checklist_item(
-            db, user.id,
+            db,
+            user.id,
             ChecklistItemCreate(category=category, label=label, completed=False),
         )
         items = list_checklist(db, user.id)
-        _emit(ctx, "movein_checklist", MoveInChecklistData(
-            title="Task added",
-            tasks=[
-                MoveInTaskItem(id=i.id, category=i.category, label=i.label, completed=i.completed)
-                for i in items
-            ],
-        ))
+        _emit(
+            ctx,
+            "movein_checklist",
+            MoveInChecklistData(
+                title="Task added",
+                tasks=[
+                    MoveInTaskItem(id=i.id, category=i.category, label=i.label, completed=i.completed) for i in items
+                ],
+            ),
+        )
         _step(ctx, "movein", "Task added", "done")
         _ = item
         return f"Added task '{label}'."
@@ -1420,7 +1508,9 @@ def make_movein_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         """Mark a checklist task complete."""
         _step(ctx, "movein", "Marking complete", "running")
         patch_checklist_item(
-            db, user.id, uuid.UUID(task_id),
+            db,
+            user.id,
+            uuid.UUID(task_id),
             ChecklistItemPatch(completed=True),
         )
         _step(ctx, "movein", "Done", "done")
@@ -1430,44 +1520,57 @@ def make_movein_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
         """List the user's vendor orders (utilities, internet, movers, etc.)."""
         _step(ctx, "movein", "Loading orders", "running")
         orders = list_orders(db, user.id)
-        _emit(ctx, "movein_orders", MoveInOrdersData(
-            orders=[
-                MoveInOrderItem(
-                    id=o.id, vendor_name=o.vendor_name, plan_name=o.plan_name,
-                    category=o.category, status=o.status,
-                    scheduled_date=o.scheduled_date or None,
-                    monthly_cost=o.monthly_cost or None,
-                )
-                for o in orders
-            ],
-            empty_message=("No orders yet." if not orders else None),
-        ))
+        _emit(
+            ctx,
+            "movein_orders",
+            MoveInOrdersData(
+                orders=[
+                    MoveInOrderItem(
+                        id=o.id,
+                        vendor_name=o.vendor_name,
+                        plan_name=o.plan_name,
+                        category=o.category,
+                        status=o.status,
+                        scheduled_date=o.scheduled_date or None,
+                        monthly_cost=o.monthly_cost or None,
+                    )
+                    for o in orders
+                ],
+                empty_message=("No orders yet." if not orders else None),
+            ),
+        )
         _step(ctx, "movein", f"{len(orders)} order(s)", "done")
         return f"Listed {len(orders)} move-in order(s)."
 
     return [
         FunctionTool.from_defaults(
-            async_fn=view_movein_plan, name="view_movein_plan",
+            async_fn=view_movein_plan,
+            name="view_movein_plan",
             description="Show the user's move-in plan and current checklist.",
         ),
         FunctionTool.from_defaults(
-            async_fn=update_movein_plan, name="update_movein_plan",
+            async_fn=update_movein_plan,
+            name="update_movein_plan",
             description="Update the move-in plan: target address, move date, from address.",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_movein_tasks, name="list_movein_tasks",
+            async_fn=list_movein_tasks,
+            name="list_movein_tasks",
             description="List move-in checklist tasks; optionally filter by completed flag.",
         ),
         FunctionTool.from_defaults(
-            async_fn=add_movein_task, name="add_movein_task",
+            async_fn=add_movein_task,
+            name="add_movein_task",
             description="Add a task to the move-in checklist.",
         ),
         FunctionTool.from_defaults(
-            async_fn=complete_movein_task, name="complete_movein_task",
+            async_fn=complete_movein_task,
+            name="complete_movein_task",
             description="Mark a move-in task complete.",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_movein_orders, name="list_movein_orders",
+            async_fn=list_movein_orders,
+            name="list_movein_orders",
             description="List the user's move-in vendor orders (utilities, internet, movers).",
         ),
     ]
@@ -1477,33 +1580,41 @@ def make_movein_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
 # Guarantor tools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def make_guarantor_tools(user: Users, db: Session, llm: LLM) -> list[FunctionTool]:
     def _emit_summary(ctx: Context) -> int:
         saved = list_saved_guarantors(db, user.id)
         reqs = guarantor_list_requests(db, user.id)
-        _emit(ctx, "guarantor_summary", GuarantorSummaryData(
-            saved=[
-                GuarantorItem(
-                    id=g.id, name=g.name, email=g.email,
-                    phone=g.phone or None, relationship=g.relationship or None,
-                )
-                for g in saved
-            ],
-            requests=[
-                GuarantorRequestItem(
-                    id=r.id,
-                    guarantor_name=(r.guarantor_snapshot or {}).get("name", "Unknown"),
-                    guarantor_email=(r.guarantor_snapshot or {}).get("email", ""),
-                    property_name=r.lease.property_name if r.lease else None,
-                    property_address=r.lease.property_address if r.lease else None,
-                    monthly_rent=r.lease.monthly_rent if r.lease else None,
-                    status=r.status,
-                    verification_status=r.verification_status or None,
-                )
-                for r in reqs
-            ],
-            empty_message=("No guarantors set up yet." if not saved and not reqs else None),
-        ))
+        _emit(
+            ctx,
+            "guarantor_summary",
+            GuarantorSummaryData(
+                saved=[
+                    GuarantorItem(
+                        id=g.id,
+                        name=g.name,
+                        email=g.email,
+                        phone=g.phone or None,
+                        relationship=g.relationship or None,
+                    )
+                    for g in saved
+                ],
+                requests=[
+                    GuarantorRequestItem(
+                        id=r.id,
+                        guarantor_name=(r.guarantor_snapshot or {}).get("name", "Unknown"),
+                        guarantor_email=(r.guarantor_snapshot or {}).get("email", ""),
+                        property_name=r.lease.property_name if r.lease else None,
+                        property_address=r.lease.property_address if r.lease else None,
+                        monthly_rent=r.lease.monthly_rent if r.lease else None,
+                        status=r.status,
+                        verification_status=r.verification_status or None,
+                    )
+                    for r in reqs
+                ],
+                empty_message=("No guarantors set up yet." if not saved and not reqs else None),
+            ),
+        )
         return len(saved) + len(reqs)
 
     async def view_guarantor_center(ctx: Context) -> str:
@@ -1514,15 +1625,22 @@ def make_guarantor_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         return f"Guarantor center: {n} item(s)."
 
     async def add_saved_guarantor(
-        ctx: Context, name: str, email: str,
-        phone: str = "", relationship: str = "",
+        ctx: Context,
+        name: str,
+        email: str,
+        phone: str = "",
+        relationship: str = "",
     ) -> str:
         """Save a new guarantor contact (name + email + optional phone/relationship)."""
         _step(ctx, "guarantor", f"Saving {name}", "running")
         create_saved_guarantor(
-            db, user.id,
+            db,
+            user.id,
             SavedGuarantorCreate(
-                name=name, email=email, phone=phone, relationship=relationship,
+                name=name,
+                email=email,
+                phone=phone,
+                relationship=relationship,
             ),
         )
         _emit_summary(ctx)
@@ -1541,7 +1659,8 @@ def make_guarantor_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         """Start a guarantor request for a specific property + lease + saved guarantor."""
         _step(ctx, "guarantor", "Creating request", "running")
         req = guarantor_create_request(
-            db, user.id,
+            db,
+            user.id,
             GuarantorRequestCreate(
                 guarantor_id=guarantor_id,
                 lease=GuarantorLeasePayload(
@@ -1569,19 +1688,23 @@ def make_guarantor_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
 
     return [
         FunctionTool.from_defaults(
-            async_fn=view_guarantor_center, name="view_guarantor_center",
+            async_fn=view_guarantor_center,
+            name="view_guarantor_center",
             description="Show saved guarantors and active guarantor requests.",
         ),
         FunctionTool.from_defaults(
-            async_fn=add_saved_guarantor, name="add_saved_guarantor",
+            async_fn=add_saved_guarantor,
+            name="add_saved_guarantor",
             description="Save a new guarantor contact (name + email).",
         ),
         FunctionTool.from_defaults(
-            async_fn=start_guarantor_request, name="start_guarantor_request",
+            async_fn=start_guarantor_request,
+            name="start_guarantor_request",
             description="Start a guarantor request for a property; needs saved guarantor_id.",
         ),
         FunctionTool.from_defaults(
-            async_fn=invite_guarantor, name="invite_guarantor",
+            async_fn=invite_guarantor,
+            name="invite_guarantor",
             description="Send the invite link to the guarantor for a request.",
         ),
     ]
@@ -1591,9 +1714,8 @@ def make_guarantor_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
 # Buildings tools (read-only)
 # ─────────────────────────────────────────────────────────────────────────────
 
-async def _resolve_address_to_building(
-    db: Session, llm: LLM, address: str
-) -> Buildings | None:
+
+async def _resolve_address_to_building(db: Session, llm: LLM, address: str) -> Buildings | None:
     """Read-only lookup of an existing building by free-text address.
 
     Buildings has NOT NULL latitude/longitude — we never want to mint zero-coord
@@ -1626,9 +1748,13 @@ async def _resolve_address_to_building(
 
 
 def _building_profile_payload(
-    db: Session, b: Buildings, *,
-    reviews_total: int, reviews_recent: list[Any],
-    hpd_open: int, dob_open: int,
+    db: Session,
+    b: Buildings,
+    *,
+    reviews_total: int,
+    reviews_recent: list[Any],
+    hpd_open: int,
+    dob_open: int,
     landlord: LandlordEntities | None,
 ) -> BuildingProfileData:
     avg = float(landlord.avg_rating_cached) if landlord and landlord.avg_rating_cached else None
@@ -1636,14 +1762,19 @@ def _building_profile_payload(
         id=str(b.id),
         title=b.street_line1 or "Building",
         address=b.normalized_addr or b.street_line1 or "",
-        city=b.city, state=b.state,
+        city=b.city,
+        state=b.state,
         landlord_name=landlord.canonical_name if landlord else None,
-        avg_rating=avg, review_count=reviews_total,
-        hpd_open_count=hpd_open, dob_open_count=dob_open,
+        avg_rating=avg,
+        review_count=reviews_total,
+        hpd_open_count=hpd_open,
+        dob_open_count=dob_open,
         recent_reviews=[
             BuildingReviewSnippet(
-                id=r.id, author=r.author_display_name,
-                rating=r.overall_rating, title=r.title,
+                id=r.id,
+                author=r.author_display_name,
+                rating=r.overall_rating,
+                title=r.title,
                 body=(r.body or "")[:400],
                 verified_tenant=r.verified_tenant,
             )
@@ -1664,8 +1795,8 @@ def make_buildings_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
             _step(ctx, "buildings", "Not found", "done")
             return f"Could not resolve building for: {address}"
         reviews, total = list_building_reviews(db, str(b.id), 5, 0, False)
-        hpd, hpd_total = list_hpd_violations(db, str(b.id), 100, True)
-        dob, dob_total = list_dob_complaints(db, str(b.id), 100, True)
+        _hpd, hpd_total = list_hpd_violations(db, str(b.id), 100, True)
+        _dob, dob_total = list_dob_complaints(db, str(b.id), 100, True)
         landlord_period = db.execute(
             select(BuildingOwnershipPeriods)
             .where(
@@ -1678,49 +1809,56 @@ def make_buildings_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         landlord = None
         if landlord_period:
             landlord = db.get(LandlordEntities, landlord_period.landlord_entity_id)
-        _emit(ctx, "building_profile", _building_profile_payload(
-            db, b,
-            reviews_total=total, reviews_recent=reviews,
-            hpd_open=hpd_total, dob_open=dob_total, landlord=landlord,
-        ))
-        _step(ctx, "buildings", "Loaded", "done")
-        return (
-            f"Building {b.street_line1}: {total} review(s), "
-            f"{hpd_total} open HPD, {dob_total} open DOB."
+        _emit(
+            ctx,
+            "building_profile",
+            _building_profile_payload(
+                db,
+                b,
+                reviews_total=total,
+                reviews_recent=reviews,
+                hpd_open=hpd_total,
+                dob_open=dob_total,
+                landlord=landlord,
+            ),
         )
+        _step(ctx, "buildings", "Loaded", "done")
+        return f"Building {b.street_line1}: {total} review(s), " f"{hpd_total} open HPD, {dob_total} open DOB."
 
-    async def list_reviews_for_building(
-        ctx: Context, building_id: str, limit: int = 10
-    ) -> str:
+    async def list_reviews_for_building(ctx: Context, building_id: str, limit: int = 10) -> str:
         """List existing reviews for a building."""
         _step(ctx, "buildings", "Loading reviews", "running")
-        reviews, total = list_building_reviews(
-            db, building_id, max(1, min(limit, 25)), 0, False
-        )
+        reviews, total = list_building_reviews(db, building_id, max(1, min(limit, 25)), 0, False)
         b = db.get(Buildings, uuid.UUID(building_id))
         if b is None:
             return "Building not found."
-        _emit(ctx, "building_profile", BuildingProfileData(
-            id=str(b.id), title=b.street_line1 or "Building",
-            address=b.normalized_addr or "",
-            city=b.city, state=b.state,
-            review_count=total,
-            recent_reviews=[
-                BuildingReviewSnippet(
-                    id=r.id, author=r.author_display_name,
-                    rating=r.overall_rating, title=r.title,
-                    body=(r.body or "")[:400],
-                    verified_tenant=r.verified_tenant,
-                )
-                for r in reviews[:5]
-            ],
-        ))
+        _emit(
+            ctx,
+            "building_profile",
+            BuildingProfileData(
+                id=str(b.id),
+                title=b.street_line1 or "Building",
+                address=b.normalized_addr or "",
+                city=b.city,
+                state=b.state,
+                review_count=total,
+                recent_reviews=[
+                    BuildingReviewSnippet(
+                        id=r.id,
+                        author=r.author_display_name,
+                        rating=r.overall_rating,
+                        title=r.title,
+                        body=(r.body or "")[:400],
+                        verified_tenant=r.verified_tenant,
+                    )
+                    for r in reviews[:5]
+                ],
+            ),
+        )
         _step(ctx, "buildings", f"{total} review(s)", "done")
         return f"Listed {total} review(s) for the building."
 
-    async def list_hpd_violations_for_building(
-        ctx: Context, building_id: str, open_only: bool = True
-    ) -> str:
+    async def list_hpd_violations_for_building(ctx: Context, building_id: str, open_only: bool = True) -> str:
         """List HPD violations for a building (NYC only). Default: open only."""
         _step(ctx, "buildings", "Loading HPD violations", "running")
         rows, total = list_hpd_violations(db, building_id, 50, open_only)
@@ -1733,76 +1871,79 @@ def make_buildings_tools(user: Users, db: Session, llm: LLM) -> list[FunctionToo
         ]
         return f"{total} HPD violation(s):\n" + "\n".join(lines)
 
-    async def list_dob_complaints_for_building(
-        ctx: Context, building_id: str, open_only: bool = True
-    ) -> str:
+    async def list_dob_complaints_for_building(ctx: Context, building_id: str, open_only: bool = True) -> str:
         """List DOB complaints for a building (NYC only). Default: open only."""
         _step(ctx, "buildings", "Loading DOB complaints", "running")
         rows, total = list_dob_complaints(db, building_id, 50, open_only)
         _step(ctx, "buildings", f"{total} DOB complaint(s)", "done")
         if not rows:
             return f"No {'open ' if open_only else ''}DOB complaints on file."
-        lines = [
-            f"  - {r.complaint_number} cat={r.category or '?'} status={r.status or '?'}"
-            for r in rows[:10]
-        ]
+        lines = [f"  - {r.complaint_number} cat={r.category or '?'} status={r.status or '?'}" for r in rows[:10]]
         return f"{total} DOB complaint(s):\n" + "\n".join(lines)
 
     async def lookup_landlord(ctx: Context, name: str) -> str:
         """Look up a landlord entity by name (fuzzy match). Returns reviews + portfolio size."""
         _step(ctx, "buildings", f"Looking up landlord {name[:40]}", "running")
         ent = db.execute(
-            select(LandlordEntities)
-            .where(LandlordEntities.canonical_name.ilike(f"%{name}%"))
-            .limit(1)
+            select(LandlordEntities).where(LandlordEntities.canonical_name.ilike(f"%{name}%")).limit(1)
         ).scalar_one_or_none()
         if ent is None:
             _step(ctx, "buildings", "Not found", "done")
             return f"No landlord matching '{name}'."
         detail = get_entity_detail(db, str(ent.id))
         reviews_resp = list_entity_reviews(db, str(ent.id), 5, 0, False)
-        _emit(ctx, "landlord_profile", LandlordProfileData(
-            id=detail.id,
-            canonical_name=detail.canonical_name,
-            portfolio_size=detail.portfolio_size,
-            avg_rating=float(detail.avg_rating) if detail.avg_rating is not None else None,
-            review_count=detail.review_count,
-            verified_tenant_review_count=detail.verified_tenant_review_count,
-            recent_reviews=[
-                BuildingReviewSnippet(
-                    id=r.id, author=r.author_display_name,
-                    rating=r.overall_rating, title=r.title,
-                    body=(r.body or "")[:400],
-                    verified_tenant=r.verified_tenant,
-                )
-                for r in reviews_resp.reviews[:3]
-            ],
-        ))
+        _emit(
+            ctx,
+            "landlord_profile",
+            LandlordProfileData(
+                id=detail.id,
+                canonical_name=detail.canonical_name,
+                portfolio_size=detail.portfolio_size,
+                avg_rating=float(detail.avg_rating) if detail.avg_rating is not None else None,
+                review_count=detail.review_count,
+                verified_tenant_review_count=detail.verified_tenant_review_count,
+                recent_reviews=[
+                    BuildingReviewSnippet(
+                        id=r.id,
+                        author=r.author_display_name,
+                        rating=r.overall_rating,
+                        title=r.title,
+                        body=(r.body or "")[:400],
+                        verified_tenant=r.verified_tenant,
+                    )
+                    for r in reviews_resp.reviews[:3]
+                ],
+            ),
+        )
         _step(ctx, "buildings", "Loaded", "done")
         return (
-            f"Landlord {detail.canonical_name}: {detail.portfolio_size} buildings, "
-            f"{detail.review_count} reviews."
+            f"Landlord {detail.canonical_name}: {detail.portfolio_size} buildings, " f"{detail.review_count} reviews."
         )
 
     return [
         FunctionTool.from_defaults(
-            async_fn=lookup_building, name="lookup_building",
+            async_fn=lookup_building,
+            name="lookup_building",
             description="Look up a building by free-text address. Returns building card with HPD/DOB counts and recent reviews.",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_reviews_for_building, name="list_reviews_for_building",
+            async_fn=list_reviews_for_building,
+            name="list_reviews_for_building",
             description="List recent reviews for a building (read-only).",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_hpd_violations_for_building, name="list_hpd_violations_for_building",
+            async_fn=list_hpd_violations_for_building,
+            name="list_hpd_violations_for_building",
             description="List HPD violations for a NYC building. Default open_only=True.",
         ),
         FunctionTool.from_defaults(
-            async_fn=list_dob_complaints_for_building, name="list_dob_complaints_for_building",
+            async_fn=list_dob_complaints_for_building,
+            name="list_dob_complaints_for_building",
             description="List DOB complaints for a NYC building. Default open_only=True.",
         ),
         FunctionTool.from_defaults(
-            async_fn=lookup_landlord, name="lookup_landlord",
+            async_fn=lookup_landlord,
+            name="lookup_landlord",
             description="Look up a landlord entity by name (fuzzy). Returns portfolio + reviews.",
         ),
     ]

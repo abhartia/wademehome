@@ -37,18 +37,10 @@ class GroupPreferencesUpdate(BaseModel):
     notes: str | None = None
 
     @model_validator(mode="after")
-    def _validate_ranges(self) -> "GroupPreferencesUpdate":
-        if (
-            self.min_beds is not None
-            and self.max_beds is not None
-            and self.min_beds > self.max_beds
-        ):
+    def _validate_ranges(self) -> GroupPreferencesUpdate:
+        if self.min_beds is not None and self.max_beds is not None and self.min_beds > self.max_beds:
             raise ValueError("min_beds cannot exceed max_beds")
-        if (
-            self.min_rent_usd is not None
-            and self.max_rent_usd is not None
-            and self.min_rent_usd > self.max_rent_usd
-        ):
+        if self.min_rent_usd is not None and self.max_rent_usd is not None and self.min_rent_usd > self.max_rent_usd:
             raise ValueError("min_rent_usd cannot exceed max_rent_usd")
         return self
 

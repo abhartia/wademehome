@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy import asc, select
@@ -14,10 +14,10 @@ from core.config import Config
 from db.models import (
     GuarantorDocuments,
     GuarantorInviteTokens,
+    GuarantorRequests,
+    GuarantorRequestStatus,
     GuarantorSignatures,
     GuarantorSigningEvents,
-    GuarantorRequestStatus,
-    GuarantorRequests,
     GuarantorVerificationStatus,
     JourneyStage,
     UserGuarantors,
@@ -64,11 +64,13 @@ def _saved_out(row: UserGuarantors) -> SavedGuarantorOut:
 
 
 def list_saved_guarantors(db: Session, user_id: uuid.UUID) -> list[SavedGuarantorOut]:
-    rows = db.execute(
-        select(UserGuarantors)
-        .where(UserGuarantors.user_id == user_id)
-        .order_by(UserGuarantors.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(UserGuarantors).where(UserGuarantors.user_id == user_id).order_by(UserGuarantors.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [_saved_out(row) for row in rows]
 
 
@@ -116,7 +118,7 @@ def delete_saved_guarantor(db: Session, user_id: uuid.UUID, guarantor_id: uuid.U
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _token_hash(token: str) -> str:
@@ -124,11 +126,15 @@ def _token_hash(token: str) -> str:
 
 
 def _request_out(db: Session, row: GuarantorRequests) -> GuarantorRequestOut:
-    events = db.execute(
-        select(GuarantorSigningEvents)
-        .where(GuarantorSigningEvents.request_id == row.id)
-        .order_by(asc(GuarantorSigningEvents.created_at))
-    ).scalars().all()
+    events = (
+        db.execute(
+            select(GuarantorSigningEvents)
+            .where(GuarantorSigningEvents.request_id == row.id)
+            .order_by(asc(GuarantorSigningEvents.created_at))
+        )
+        .scalars()
+        .all()
+    )
     return GuarantorRequestOut(
         id=str(row.id),
         guarantor_id=str(row.guarantor_id) if row.guarantor_id else "",
@@ -163,11 +169,15 @@ def _request_out(db: Session, row: GuarantorRequests) -> GuarantorRequestOut:
 
 
 def list_requests(db: Session, user_id: uuid.UUID) -> list[GuarantorRequestOut]:
-    rows = db.execute(
-        select(GuarantorRequests)
-        .where(GuarantorRequests.user_id == user_id)
-        .order_by(GuarantorRequests.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(GuarantorRequests)
+            .where(GuarantorRequests.user_id == user_id)
+            .order_by(GuarantorRequests.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [_request_out(db, row) for row in rows]
 
 
@@ -565,4 +575,3 @@ def _auto_progress_user_stage(db: Session, user_id: uuid.UUID) -> None:
     target_idx = stage_order.index(JourneyStage.lease_signed)
     if current_idx < target_idx:
         profile.journey_stage_override = JourneyStage.lease_signed
-

@@ -1,5 +1,6 @@
 import os
 
+
 def load_app_prompt(relative_path):
     """
     Loads a markdown prompt file relative to the location of loader.py.
@@ -20,5 +21,5 @@ def load_app_prompt(relative_path):
     if not abs_path.startswith(prompts_dir):
         raise ValueError("Invalid path: Access outside the prompts directory is not allowed.")
 
-    with open(abs_path + '.md', 'r') as f:
+    with open(abs_path + ".md") as f:
         return f.read()

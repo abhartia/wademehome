@@ -5,10 +5,10 @@ from auth.router import get_current_user, get_db
 from db.models import Users
 from landlord.schemas import (
     LandlordApplicationCreate,
+    LandlordApplicationDocumentCreate,
     LandlordApplicationDocumentsResponse,
     LandlordApplicationsResponse,
     LandlordApplicationUpdate,
-    LandlordApplicationDocumentCreate,
     LandlordLeadCreate,
     LandlordLeadsResponse,
     LandlordLeadUpdate,
@@ -199,9 +199,7 @@ def patch_unit(
 
 
 @router.delete("/properties/{property_id}/units/{unit_id}", response_model=LandlordUnitsResponse)
-def remove_unit(
-    property_id: str, unit_id: str, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def remove_unit(property_id: str, unit_id: str, user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     return LandlordUnitsResponse(units=delete_unit(db, user, property_id, unit_id))
 
 
@@ -372,9 +370,7 @@ def patch_lease_offer_action(
 
 
 @router.get("/lease-offers/{lease_offer_id}/signatures", response_model=LandlordLeaseSignaturesResponse)
-def read_lease_signatures(
-    lease_offer_id: str, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def read_lease_signatures(lease_offer_id: str, user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     return LandlordLeaseSignaturesResponse(signatures=list_lease_signatures(db, user, lease_offer_id))
 
 
@@ -385,9 +381,7 @@ def create_lease_signature_route(
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return LandlordLeaseSignaturesResponse(
-        signatures=create_lease_signature(db, user, lease_offer_id, payload)
-    )
+    return LandlordLeaseSignaturesResponse(signatures=create_lease_signature(db, user, lease_offer_id, payload))
 
 
 @router.patch("/lease-signatures/{signature_id}", response_model=LandlordLeaseSignaturesResponse)

@@ -134,8 +134,6 @@ def get_text2sql_llm_cache() -> Text2SqlLlmCache | None:
     ttl = _parse_positive_float(ttl_s, 3600.0)
     with _cache_lock:
         if _cache_singleton is None or _cache_singleton_sig != sig:
-            _cache_singleton = Text2SqlLlmCache(
-                max_entries=max_entries, ttl_seconds=ttl
-            )
+            _cache_singleton = Text2SqlLlmCache(max_entries=max_entries, ttl_seconds=ttl)
             _cache_singleton_sig = sig
         return _cache_singleton

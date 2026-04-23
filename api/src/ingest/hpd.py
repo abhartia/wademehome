@@ -43,6 +43,7 @@ def _to_row(raw: dict[str, Any]) -> dict[str, Any]:
 def run_ingest(max_pages: int | None = None) -> int:
     db: Session = get_session_local()()
     try:
+
         def work(watermark: datetime | None) -> int:
             where = None
             if watermark is not None:
@@ -96,5 +97,6 @@ def _upsert(db: Session, rows: list[dict[str, Any]]) -> int:
 
 if __name__ == "__main__":
     import sys
+
     max_pages = int(sys.argv[1]) if len(sys.argv) > 1 else None
     print(f"Upserted {run_ingest(max_pages)} HPD violation rows.")

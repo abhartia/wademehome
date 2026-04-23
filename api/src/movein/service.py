@@ -37,7 +37,7 @@ def _parse_date(raw: str | None) -> date | None:
     try:
         return date.fromisoformat(raw[:10])
     except ValueError:
-        raise HTTPException(status_code=422, detail="Invalid date format")
+        raise HTTPException(status_code=422, detail="Invalid date format") from None
 
 
 def _parse_decimal(raw: str | None) -> Decimal | None:
@@ -58,9 +58,7 @@ def _to_status(raw: str) -> VendorOrderStatus:
 
 def _ensure_plan(db: Session, user_id: uuid.UUID) -> UserMoveinPlans:
     row = db.execute(
-        select(UserMoveinPlans)
-        .where(UserMoveinPlans.user_id == user_id)
-        .order_by(UserMoveinPlans.updated_at.desc())
+        select(UserMoveinPlans).where(UserMoveinPlans.user_id == user_id).order_by(UserMoveinPlans.updated_at.desc())
     ).scalar_one_or_none()
     if row:
         return row
@@ -138,11 +136,15 @@ def patch_plan(db: Session, user_id: uuid.UUID, body: MoveInPlanPatch) -> MoveIn
 
 def list_orders(db: Session, user_id: uuid.UUID) -> list[VendorOrderOut]:
     plan = _ensure_plan(db, user_id)
-    rows = db.execute(
-        select(UserVendorOrders)
-        .where(UserVendorOrders.movein_plan_id == plan.id)
-        .order_by(UserVendorOrders.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(UserVendorOrders)
+            .where(UserVendorOrders.movein_plan_id == plan.id)
+            .order_by(UserVendorOrders.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [_order_out(row) for row in rows]
 
 
@@ -170,9 +172,7 @@ def create_order(db: Session, user_id: uuid.UUID, body: VendorOrderCreate) -> Ve
 def patch_order(db: Session, user_id: uuid.UUID, order_id: uuid.UUID, body: VendorOrderPatch) -> VendorOrderOut:
     plan = _ensure_plan(db, user_id)
     row = db.execute(
-        select(UserVendorOrders).where(
-            UserVendorOrders.id == order_id, UserVendorOrders.movein_plan_id == plan.id
-        )
+        select(UserVendorOrders).where(UserVendorOrders.id == order_id, UserVendorOrders.movein_plan_id == plan.id)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -197,9 +197,7 @@ def patch_order(db: Session, user_id: uuid.UUID, order_id: uuid.UUID, body: Vend
 def delete_order(db: Session, user_id: uuid.UUID, order_id: uuid.UUID) -> None:
     plan = _ensure_plan(db, user_id)
     row = db.execute(
-        select(UserVendorOrders).where(
-            UserVendorOrders.id == order_id, UserVendorOrders.movein_plan_id == plan.id
-        )
+        select(UserVendorOrders).where(UserVendorOrders.id == order_id, UserVendorOrders.movein_plan_id == plan.id)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -209,15 +207,11 @@ def delete_order(db: Session, user_id: uuid.UUID, order_id: uuid.UUID) -> None:
 
 def list_checklist(db: Session, user_id: uuid.UUID) -> list[ChecklistItemOut]:
     plan = _ensure_plan(db, user_id)
-    rows = db.execute(
-        select(UserChecklistItems).where(UserChecklistItems.movein_plan_id == plan.id)
-    ).scalars().all()
+    rows = db.execute(select(UserChecklistItems).where(UserChecklistItems.movein_plan_id == plan.id)).scalars().all()
     return [_checklist_out(row) for row in rows]
 
 
-def create_checklist_item(
-    db: Session, user_id: uuid.UUID, body: ChecklistItemCreate
-) -> ChecklistItemOut:
+def create_checklist_item(db: Session, user_id: uuid.UUID, body: ChecklistItemCreate) -> ChecklistItemOut:
     plan = _ensure_plan(db, user_id)
     row = UserChecklistItems(
         user_id=user_id,
@@ -237,9 +231,7 @@ def patch_checklist_item(
 ) -> ChecklistItemOut:
     plan = _ensure_plan(db, user_id)
     row = db.execute(
-        select(UserChecklistItems).where(
-            UserChecklistItems.id == item_id, UserChecklistItems.movein_plan_id == plan.id
-        )
+        select(UserChecklistItems).where(UserChecklistItems.id == item_id, UserChecklistItems.movein_plan_id == plan.id)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Checklist item not found")
@@ -255,9 +247,7 @@ def patch_checklist_item(
 def delete_checklist_item(db: Session, user_id: uuid.UUID, item_id: uuid.UUID) -> None:
     plan = _ensure_plan(db, user_id)
     row = db.execute(
-        select(UserChecklistItems).where(
-            UserChecklistItems.id == item_id, UserChecklistItems.movein_plan_id == plan.id
-        )
+        select(UserChecklistItems).where(UserChecklistItems.id == item_id, UserChecklistItems.movein_plan_id == plan.id)
     ).scalar_one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Checklist item not found")
@@ -285,9 +275,7 @@ def list_vendor_catalog_public(
     vendors = db.execute(query.order_by(VendorCatalog.name.asc())).scalars().all()
     out: list[VendorCatalogOut] = []
     for vendor in vendors:
-        plans = db.execute(
-            select(VendorCatalogPlan).where(VendorCatalogPlan.vendor_id == vendor.id)
-        ).scalars().all()
+        plans = db.execute(select(VendorCatalogPlan).where(VendorCatalogPlan.vendor_id == vendor.id)).scalars().all()
         out.append(
             VendorCatalogOut(
                 id=vendor.vendor_key,
@@ -345,9 +333,7 @@ def list_vendor_catalog(
     vendors = db.execute(query.order_by(VendorCatalog.name.asc())).scalars().all()
     out: list[VendorCatalogOut] = []
     for vendor in vendors:
-        plans = db.execute(
-            select(VendorCatalogPlan).where(VendorCatalogPlan.vendor_id == vendor.id)
-        ).scalars().all()
+        plans = db.execute(select(VendorCatalogPlan).where(VendorCatalogPlan.vendor_id == vendor.id)).scalars().all()
         out.append(
             VendorCatalogOut(
                 id=vendor.vendor_key,
@@ -373,4 +359,3 @@ def list_vendor_catalog(
             )
         )
     return out
-

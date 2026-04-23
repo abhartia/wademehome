@@ -23,13 +23,9 @@ def require_group_member(role: str | None = None):
             )
         ).scalar_one_or_none()
         if membership is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Group not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")
         if role == "owner" and membership.role != "owner":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Owner only"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Owner only")
         return membership
 
     return _dep
@@ -53,7 +49,5 @@ def resolve_scope(
         )
     ).scalar_one_or_none()
     if membership is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Group not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")
     return user.id, group_id

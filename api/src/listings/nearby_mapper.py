@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 
 from workflow.events import PropertyDataItem, PropertyDataList
 
@@ -354,9 +355,7 @@ def row_to_property_data_item(row: Mapping[str, Any]) -> PropertyDataItem:
         "url",
     )
     listing_url = (
-        listing_url_raw
-        if isinstance(listing_url_raw, str) and listing_url_raw.strip().startswith("http")
-        else None
+        listing_url_raw if isinstance(listing_url_raw, str) and listing_url_raw.strip().startswith("http") else None
     )
 
     city_v = _get_ci(row, "city", "locality")

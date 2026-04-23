@@ -55,9 +55,7 @@ _URL_RE = re.compile(r"https?://[^\s<>()\[\]{}\"']+", flags=re.IGNORECASE)
 # Zillow whitelists this honest-bot pattern; browser UAs get 403'd there. Apartments.com's
 # Akamai WAF blocks both — for that case we fall back to the address the user pasted in the
 # share blurb (always present in apartments.com shares) and geocode it server-side.
-_USER_AGENT = (
-    "Mozilla/5.0 (compatible; WademeHome-ListingImporter/1.0; +https://wademe.home)"
-)
+_USER_AGENT = "Mozilla/5.0 (compatible; WademeHome-ListingImporter/1.0; +https://wademe.home)"
 
 
 class _MetaParser(HTMLParser):
@@ -104,15 +102,19 @@ class _MetaParser(HTMLParser):
     def handle_data(self, data: str) -> None:
         if self._in_jsonld:
             self._capture.append(data)
-        elif self._in_visible_skip == 0:
-            if data and data.strip():
-                self._visible.append(data)
+        elif self._in_visible_skip == 0 and data and data.strip():
+            self._visible.append(data)
 
     def visible_text(self) -> str:
         return re.sub(r"\s+", " ", " ".join(self._visible)).strip()
 
 
 def _fetch_html(url: str) -> str | None:
+    # SSRF guard: reject non-http(s) schemes (file://, gopher://, etc.) before opening.
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        logger.warning("user_listings url_parser: refusing non-http(s) url %s", url)
+        return None
     req = urllib.request.Request(
         url,
         headers={
@@ -122,7 +124,7 @@ def _fetch_html(url: str) -> str | None:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=_FETCH_TIMEOUT) as resp:
+        with urllib.request.urlopen(req, timeout=_FETCH_TIMEOUT) as resp:  # nosec B310 — scheme validated above
             raw = resp.read(_MAX_HTML_BYTES)
             charset = resp.headers.get_content_charset() or "utf-8"
     except (urllib.error.URLError, OSError, TimeoutError) as exc:
@@ -223,7 +225,8 @@ def _extract_from_jsonld(blocks: list[str]) -> PrefillFields:
             ts = t if isinstance(t, list) else [t]
             if not any(
                 isinstance(s, str)
-                and s in {
+                and s
+                in {
                     "Apartment",
                     "Accommodation",
                     "House",
@@ -247,9 +250,7 @@ def _extract_from_jsonld(blocks: list[str]) -> PrefillFields:
                 if beds is not None:
                     found.beds = str(beds)
             if found.baths is None:
-                baths = node.get("numberOfBathroomsTotal") or node.get(
-                    "numberOfFullBathrooms"
-                )
+                baths = node.get("numberOfBathroomsTotal") or node.get("numberOfFullBathrooms")
                 if baths is not None:
                     found.baths = str(baths)
             if found.image_url is None:
@@ -311,7 +312,7 @@ async def _achat_json(
     for variant in _REASONING_VARIANTS:
         try:
             resp = await llm.achat(messages=messages, **base, **variant)
-        except Exception as exc:  # noqa: BLE001 — try next variant
+        except Exception as exc:
             last_exc = exc
             continue
         raw = (resp.message.content if resp and resp.message else None) or ""
@@ -378,7 +379,7 @@ async def _fetch_structured(url: str) -> tuple[PrefillFields, _MetaParser | None
     parser = _MetaParser()
     try:
         parser.feed(html)
-    except Exception:  # noqa: BLE001 — tolerant of malformed HTML
+    except Exception:
         logger.exception("user_listings url_parser: HTML parsing crashed for %s", url)
 
     from_jsonld = _extract_from_jsonld(parser.jsonld_buffers)
@@ -413,14 +414,11 @@ _PASTE_LLM_SYSTEM = (
 )
 
 _PASTE_LLM_USER = (
-    "Pull the listing fields out of this pasted message. Unknown fields must be null.\n"
-    "---\n{snippet}\n---\n"
+    "Pull the listing fields out of this pasted message. Unknown fields must be null.\n" "---\n{snippet}\n---\n"
 )
 
 
-async def _extract_from_paste(
-    text: str, llm: LLM | None = None
-) -> tuple[str | None, PrefillFields]:
+async def _extract_from_paste(text: str, llm: LLM | None = None) -> tuple[str | None, PrefillFields]:
     """Returns (extracted_url, hint_fields). Never invents values."""
     snippet = (text or "").strip()[:_PASTE_SNIPPET_CHARS]
     if not snippet:
@@ -485,17 +483,10 @@ async def parse_listing_paste(text: str) -> tuple[PrefillFields, bool]:
     if regex_url:
         # Run LLM and HTTP fetch concurrently. Each is 2-4s on its own; this
         # dominates the total wall-clock.
-        (llm_url, paste_hints), (fetched, parser) = await asyncio.gather(
-            paste_coro, _fetch_structured(regex_url)
-        )
+        (llm_url, paste_hints), (fetched, parser) = await asyncio.gather(paste_coro, _fetch_structured(regex_url))
         # If the LLM flagged a different URL than regex and regex fetch came
         # back empty, try the LLM's URL as a last resort.
-        if (
-            llm_url
-            and llm_url != regex_url
-            and not fetched.address
-            and not fetched.price
-        ):
+        if llm_url and llm_url != regex_url and not fetched.address and not fetched.price:
             fetched, parser = await _fetch_structured(llm_url)
     else:
         llm_url, paste_hints = await paste_coro

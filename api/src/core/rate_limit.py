@@ -13,7 +13,6 @@ Backends:
 from __future__ import annotations
 
 import os
-from typing import Optional
 
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -32,7 +31,7 @@ def request_identity(request: Request) -> str:
     return f"ip:{get_remote_address(request)}"
 
 
-def _storage_uri() -> Optional[str]:
+def _storage_uri() -> str | None:
     redis = os.getenv("RATE_LIMIT_REDIS_URL", "").strip()
     return redis or None
 

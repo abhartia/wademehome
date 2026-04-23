@@ -6,10 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-
-ApplicantStatus = Literal[
-    "new", "contacted", "toured", "accepted", "rejected", "withdrawn"
-]
+ApplicantStatus = Literal["new", "contacted", "toured", "accepted", "rejected", "withdrawn"]
 ApplicantSource = Literal["manual", "self_registration"]
 
 
@@ -24,7 +21,7 @@ class ApplicantCreateRequest(BaseModel):
     move_in_date: date | None = None
 
     @model_validator(mode="after")
-    def _require_name_or_email(self) -> "ApplicantCreateRequest":
+    def _require_name_or_email(self) -> ApplicantCreateRequest:
         if not (self.name and self.name.strip()) and not self.email:
             raise ValueError("Provide at least a name or an email")
         return self

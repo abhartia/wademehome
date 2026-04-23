@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import statistics
 from typing import Any
 
 import httpx
@@ -40,14 +39,14 @@ class CensusDemographics:
     """Container for Census-derived demographic data for a ZIP."""
 
     __slots__ = (
-        "zip_code",
+        "affordability_ceiling",
+        "affordable_pct",
+        "census_median_rent",
         "median_household_income",
         "population",
         "renter_pct",
-        "census_median_rent",
-        "affordability_ceiling",
-        "affordable_pct",
         "renter_pool_size",
+        "zip_code",
     )
 
     def __init__(

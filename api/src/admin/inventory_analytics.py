@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -145,7 +145,7 @@ class QualityMetrics(BaseModel):
 
 
 class InventoryAnalyticsResponse(BaseModel):
-    computed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    computed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     bbox: dict[str, float]
     listings_table: str
     available_only: bool = True
@@ -168,12 +168,10 @@ class InventoryAnalyticsResponse(BaseModel):
 
 def _table_columns_lower(conn: Connection, schema: str, tname: str) -> set[str]:
     rows = conn.execute(
-        text(
-            """
+        text("""
             SELECT column_name FROM information_schema.columns
             WHERE table_schema = :schema AND table_name = :tname
-            """
-        ),
+            """),
         {"schema": schema, "tname": tname},
     ).fetchall()
     return {str(r[0]).lower() for r in rows}
@@ -242,10 +240,7 @@ def load_metro_coverage_context_file() -> MetroCoverageContextFile:
     if not isinstance(raw, dict):
         return MetroCoverageContextFile(None, None, [], None)
     b_est = _positive_int(raw.get("estimated_metro_rental_buildings"))
-    l_est = _positive_int(
-        raw.get("estimated_total_available_units")
-        or raw.get("estimated_market_listing_rows")
-    )
+    l_est = _positive_int(raw.get("estimated_total_available_units") or raw.get("estimated_market_listing_rows"))
     note_raw = raw.get("methodology_note") or raw.get("description")
     note = note_raw.strip() if isinstance(note_raw, str) and note_raw.strip() else None
 
@@ -419,9 +414,7 @@ def _availability_where_sql(cols: set[str], cs: ColumnSql, *, active: bool) -> t
             )
         else:
             pred = f"(NOT ({bad}) AND (({trimmed} IS NULL) OR ({good})))"
-            desc = (
-                f"Rows where {av} is available or unset (no rent column to infer availability when unset)."
-            )
+            desc = f"Rows where {av} is available or unset (no rent column to infer availability when unset)."
         return f" AND ({pred})", desc
 
     if rent_ok:
@@ -442,9 +435,7 @@ def build_column_sql(qtable: str, cols: set[str]) -> ColumnSql:
     if "property_id" in cols:
         building_expr = "NULLIF(TRIM(CAST(property_id AS text)), '')"
     else:
-        building_expr = (
-            "CONCAT(ROUND(latitude::numeric, 5)::text, ':', ROUND(longitude::numeric, 5)::text)"
-        )
+        building_expr = "CONCAT(ROUND(latitude::numeric, 5)::text, ':', ROUND(longitude::numeric, 5)::text)"
 
     lu = _first_col(cols, ("listing_url", "listingurl", "url"))
     listing_url_col: str | None = lu
@@ -454,10 +445,9 @@ def build_column_sql(qtable: str, cols: set[str]) -> ColumnSql:
     host_parts: list[str] = []
     if lu:
         host_parts.append(
-            f"NULLIF(LOWER(TRIM(substring(CAST({quote_ident(lu)} AS text) from "
-            f"'^https?://([^/]+)'))), '')"
+            f"NULLIF(LOWER(TRIM(substring(CAST({quote_ident(lu)} AS text) from " f"'^https?://([^/]+)'))), '')"
         )
-    host_expr = host_parts[0] if host_parts else "NULL::text"
+    host_parts[0] if host_parts else "NULL::text"
 
     pk_parts: list[str] = []
     if host_parts:
@@ -471,11 +461,7 @@ def build_column_sql(qtable: str, cols: set[str]) -> ColumnSql:
     else:
         priority_key_expr = "'(unknown)'"
 
-    company_expr = (
-        f"COALESCE(NULLIF(TRIM(CAST({quote_ident(co)} AS text)), ''), '(unknown)')"
-        if co
-        else "'(unknown)'"
-    )
+    company_expr = f"COALESCE(NULLIF(TRIM(CAST({quote_ident(co)} AS text)), ''), '(unknown)')" if co else "'(unknown)'"
 
     st = _first_col(cols, ("scraped_timestamp", "scraped_ts", "scrapedat"))
     scraped_raw_text_sql: str | None = None
@@ -620,13 +606,9 @@ LIMIT 12
         in_ph, in_extra = _in_clause_placeholders(keys)
         pn_col = _first_col(cols, ("property_name", "propertyname"))
         url_peek_sql = (
-            f"NULLIF(TRIM(CAST({quote_ident(cs.listing_url_col)} AS text)), '')"
-            if cs.listing_url_col
-            else "NULL::text"
+            f"NULLIF(TRIM(CAST({quote_ident(cs.listing_url_col)} AS text)), '')" if cs.listing_url_col else "NULL::text"
         )
-        name_peek_sql = (
-            f"NULLIF(TRIM(CAST({quote_ident(pn_col)} AS text)), '')" if pn_col else "NULL::text"
-        )
+        name_peek_sql = f"NULLIF(TRIM(CAST({quote_ident(pn_col)} AS text)), '')" if pn_col else "NULL::text"
         peek_sql = f"""
 WITH numbered AS (
   SELECT
@@ -853,7 +835,7 @@ SELECT
   COUNT(*) FILTER (WHERE ({cs.rent_expr}) IS NOT NULL AND ({cs.rent_expr}) > 0)::bigint AS with_rent
 {base_from}
 """
-        wr = int((_execute_map(conn, rent_sql, params)[0].get("with_rent") or 0))
+        wr = int(_execute_map(conn, rent_sql, params)[0].get("with_rent") or 0)
         rent_pct = round(100.0 * wr / total_rows, 2)
 
     image_pct: float | None = None
@@ -862,7 +844,7 @@ SELECT
 SELECT COUNT(*) FILTER (WHERE ({cs.image_present_expr}))::bigint AS with_img
 {base_from}
 """
-        wi = int((_execute_map(conn, img_sql, params)[0].get("with_img") or 0))
+        wi = int(_execute_map(conn, img_sql, params)[0].get("with_img") or 0)
         image_pct = round(100.0 * wi / total_rows, 2)
 
     listing_null_pct: float | None = None
@@ -872,7 +854,7 @@ SELECT COUNT(*) FILTER (WHERE ({cs.image_present_expr}))::bigint AS with_img
 SELECT COUNT(*) FILTER (WHERE NULLIF(TRIM({cs.listing_id_expr}), '') IS NULL)::bigint AS null_ids
 {base_from}
 """
-        nids = int((_execute_map(conn, null_sql, params)[0].get("null_ids") or 0))
+        nids = int(_execute_map(conn, null_sql, params)[0].get("null_ids") or 0)
         listing_null_pct = round(100.0 * nids / total_rows, 2)
 
         dup_sql = f"""
@@ -885,7 +867,7 @@ FROM (
   HAVING COUNT(*) > 1
 ) t
 """
-        dup_rows = int((_execute_map(conn, dup_sql, params)[0].get("dup_extra") or 0))
+        dup_rows = int(_execute_map(conn, dup_sql, params)[0].get("dup_extra") or 0)
 
     avail_stale: int | None = None
     if cs.scraped_ts_sql and cs.available_at_sql:
@@ -897,7 +879,7 @@ AND {cs.available_at_sql} IS NOT NULL
 AND {cs.scraped_ts_sql} IS NOT NULL
 AND {cs.available_at_sql} < {cs.scraped_ts_sql}
 """
-            avail_stale = int((_execute_map(conn, av_sql, params)[0].get("c") or 0))
+            avail_stale = int(_execute_map(conn, av_sql, params)[0].get("c") or 0)
         except Exception:
             avail_stale = None
 
@@ -994,9 +976,7 @@ LIMIT 50000
                 )
             )
         if not metro_pie:
-            metro_pie.append(
-                MetroCoveragePieSlice("No rows in bbox (vs estimated metro)", buildings=0)
-            )
+            metro_pie.append(MetroCoveragePieSlice("No rows in bbox (vs estimated metro)", buildings=0))
     else:
         metro_pie.append(
             MetroCoveragePieSlice(

@@ -1,12 +1,10 @@
-import os
 import asyncio
+import os
 
 import pytest
-
 from llama_index.core.types import MessageRole
 from llama_index.core.workflow import StopEvent
 from llama_index.server.models.chat import ChatAPIMessage, ChatRequest
-
 from llama_index.server.models.ui import UIEvent
 
 
@@ -124,8 +122,9 @@ def test_live_db_schema_reflection_works() -> None:
     if os.getenv("RUN_LIVE_WORKFLOW_TESTS") != "1":
         pytest.skip("Set RUN_LIVE_WORKFLOW_TESTS=1 to run live DB test.")
 
-    from core.config import Config
     from sqlalchemy import create_engine, text
+
+    from core.config import Config
     from workflow.utils import get_listing_table_info
 
     table_info = get_listing_table_info()
@@ -139,4 +138,3 @@ def test_live_db_schema_reflection_works() -> None:
 
     assert count is not None
     assert count >= 0
-

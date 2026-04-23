@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
-from db.models import Users
 from buildings.schemas import (
     BuildingDetailResponse,
     BuildingResolveRequest,
@@ -15,14 +14,15 @@ from buildings.schemas import (
     OwnershipHistoryResponse,
 )
 from buildings.service import (
+    _to_building_payload,
     get_building_detail,
     list_building_reviews,
     list_dob_complaints,
     list_hpd_violations,
     list_ownership_history,
     resolve_or_create_building,
-    _to_building_payload,
 )
+from db.models import Users
 
 router = APIRouter(prefix="/buildings", tags=["buildings"])
 

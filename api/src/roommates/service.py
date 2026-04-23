@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from db.models import (
     GroupMembers,
     Groups,
-    RoommateConnectionStatus,
     RoommateConnections,
+    RoommateConnectionStatus,
     RoommateMessages,
     RoommateProfiles,
     UserProfiles,
@@ -39,7 +39,7 @@ def _parse_dt(raw: str | None) -> datetime:
             return datetime.fromisoformat(raw.replace("Z", "+00:00"))
         except ValueError:
             pass
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _profile_payload_from_snapshot(data: dict) -> RoommateProfilePayload:
@@ -91,9 +91,7 @@ def read_my_profile(db: Session, user_id: uuid.UUID) -> MyRoommateProfileOut:
     )
 
 
-def patch_my_profile(
-    db: Session, user_id: uuid.UUID, body: MyRoommateProfilePatch
-) -> MyRoommateProfileOut:
+def patch_my_profile(db: Session, user_id: uuid.UUID, body: MyRoommateProfilePatch) -> MyRoommateProfileOut:
     row = db.execute(select(RoommateProfiles).where(RoommateProfiles.user_id == user_id)).scalar_one_or_none()
     if row is None:
         row = RoommateProfiles(user_id=user_id)
@@ -109,16 +107,18 @@ def patch_my_profile(
 
 
 def list_connections(db: Session, user_id: uuid.UUID) -> list[RoommateConnectionOut]:
-    rows = db.execute(
-        select(RoommateConnections).where(RoommateConnections.user_id == user_id)
-    ).scalars().all()
+    rows = db.execute(select(RoommateConnections).where(RoommateConnections.user_id == user_id)).scalars().all()
     out: list[RoommateConnectionOut] = []
     for row in rows:
-        messages = db.execute(
-            select(RoommateMessages)
-            .where(RoommateMessages.connection_id == row.id)
-            .order_by(RoommateMessages.created_at.asc())
-        ).scalars().all()
+        messages = (
+            db.execute(
+                select(RoommateMessages)
+                .where(RoommateMessages.connection_id == row.id)
+                .order_by(RoommateMessages.created_at.asc())
+            )
+            .scalars()
+            .all()
+        )
         out.append(
             RoommateConnectionOut(
                 id=str(row.id),
@@ -137,9 +137,7 @@ def list_connections(db: Session, user_id: uuid.UUID) -> list[RoommateConnection
     return out
 
 
-def create_connection(
-    db: Session, user_id: uuid.UUID, body: RoommateConnectionCreate
-) -> RoommateConnectionOut:
+def create_connection(db: Session, user_id: uuid.UUID, body: RoommateConnectionCreate) -> RoommateConnectionOut:
     row = RoommateConnections(
         user_id=user_id,
         roommate_ref_id=body.roommate.id,
@@ -148,7 +146,7 @@ def create_connection(
         compatibility_score=body.roommate.compatibility_score,
         compatibility_reasons=list(body.roommate.compatibility_reasons or []),
         status=RoommateConnectionStatus.connected,
-        connected_at=datetime.now(timezone.utc),
+        connected_at=datetime.now(UTC),
     )
     db.add(row)
     db.commit()
@@ -166,9 +164,7 @@ def _resolve_connection(db: Session, user_id: uuid.UUID, connection_id: str) -> 
     try:
         as_uuid = uuid.UUID(connection_id)
         row = db.execute(
-            select(RoommateConnections).where(
-                RoommateConnections.user_id == user_id, RoommateConnections.id == as_uuid
-            )
+            select(RoommateConnections).where(RoommateConnections.user_id == user_id, RoommateConnections.id == as_uuid)
         ).scalar_one_or_none()
     except ValueError:
         row = None
@@ -256,19 +252,13 @@ def _build_group_preferences(
     db: Session, group_id: uuid.UUID
 ) -> tuple[list[uuid.UUID], list[str], str, set[str], bool]:
     """Returns (member_user_ids, preferred_cities, max_monthly_rent, preferred_languages, must_have_languages)."""
-    member_rows = db.execute(
-        select(GroupMembers.user_id).where(GroupMembers.group_id == group_id)
-    ).all()
+    member_rows = db.execute(select(GroupMembers.user_id).where(GroupMembers.group_id == group_id)).all()
     member_ids = [r[0] for r in member_rows]
     if not member_ids:
         return [], [], "", set(), False
 
-    user_profiles = db.execute(
-        select(UserProfiles).where(UserProfiles.user_id.in_(member_ids))
-    ).scalars().all()
-    rm_profiles = db.execute(
-        select(RoommateProfiles).where(RoommateProfiles.user_id.in_(member_ids))
-    ).scalars().all()
+    user_profiles = db.execute(select(UserProfiles).where(UserProfiles.user_id.in_(member_ids))).scalars().all()
+    rm_profiles = db.execute(select(RoommateProfiles).where(RoommateProfiles.user_id.in_(member_ids))).scalars().all()
 
     city_sets: list[set[str]] = []
     budgets: list[str] = []
@@ -300,9 +290,7 @@ def _build_group_preferences(
     return member_ids, combined_cities, combined_budget, preferred_languages, must_have
 
 
-def list_matches(
-    db: Session, user_id: uuid.UUID, group_id: uuid.UUID | None = None
-) -> list[RoommateProfilePayload]:
+def list_matches(db: Session, user_id: uuid.UUID, group_id: uuid.UUID | None = None) -> list[RoommateProfilePayload]:
     user_profile = db.execute(select(UserProfiles).where(UserProfiles.user_id == user_id)).scalar_one_or_none()
     my = db.execute(select(RoommateProfiles).where(RoommateProfiles.user_id == user_id)).scalar_one_or_none()
 
@@ -322,8 +310,8 @@ def list_matches(
         ).scalar_one_or_none()
         if membership is None:
             raise HTTPException(status_code=403, detail="Not a member of this group")
-        member_ids, group_cities, group_budget, group_languages, group_must_have_languages = (
-            _build_group_preferences(db, group_id)
+        member_ids, group_cities, group_budget, group_languages, group_must_have_languages = _build_group_preferences(
+            db, group_id
         )
         excluded_user_ids.update(member_ids)
         use_group_scoring = True
@@ -350,9 +338,7 @@ def list_matches(
         preferred_cities = list(user_profile.preferred_cities or []) if user_profile else []
         max_rent = (user_profile.max_monthly_rent if user_profile else "") or ""
         preferred_languages = (
-            {lang.strip().lower() for lang in (my.preferred_languages or []) if lang.strip()}
-            if my
-            else set()
+            {lang.strip().lower() for lang in (my.preferred_languages or []) if lang.strip()} if my else set()
         )
         must_have_preferred_languages = bool(my and my.must_have_preferred_languages)
         city_match_label = "Both looking in"
@@ -364,15 +350,19 @@ def list_matches(
         score = 50
         reasons: list[str] = []
         candidate_languages = {lang.strip().lower() for lang in (c.languages_spoken or []) if lang.strip()}
-        if must_have_preferred_languages and preferred_languages:
-            if candidate_languages.isdisjoint(preferred_languages):
-                continue
-        candidate_city = (
-            (list(c_user.preferred_cities or [])[0] if list(c_user.preferred_cities or []) else "")
-            or (c_user.current_city or "")
+        if (
+            must_have_preferred_languages
+            and preferred_languages
+            and candidate_languages.isdisjoint(preferred_languages)
+        ):
+            continue
+        candidate_city = (next(iter(c_user.preferred_cities or [])) if list(c_user.preferred_cities or []) else "") or (
+            c_user.current_city or ""
         )
-        if preferred_cities and candidate_city and any(
-            city.lower() == candidate_city.lower() for city in preferred_cities
+        if (
+            preferred_cities
+            and candidate_city
+            and any(city.lower() == candidate_city.lower() for city in preferred_cities)
         ):
             score += 15
             reasons.append(f"{city_match_label} {candidate_city}")
@@ -386,21 +376,13 @@ def list_matches(
                 score += 5
             elif dist >= 3:
                 score -= 10
-        if (
-            not use_group_scoring
-            and my
-            and my.sleep_schedule
-            and c.sleep_schedule in (my.sleep_schedule, "flexible")
-        ):
+        if not use_group_scoring and my and my.sleep_schedule and c.sleep_schedule in (my.sleep_schedule, "flexible"):
             score += 8
         if preferred_languages and candidate_languages:
             shared_languages = sorted(candidate_languages.intersection(preferred_languages))
             if shared_languages:
                 score += 12
-                reasons.append(
-                    f"{language_label_prefix}: "
-                    + ", ".join(lang.title() for lang in shared_languages[:2])
-                )
+                reasons.append(f"{language_label_prefix}: " + ", ".join(lang.title() for lang in shared_languages[:2]))
         score = max(15, min(98, score))
         out.append(
             RoommateProfilePayload(
@@ -432,21 +414,17 @@ def list_matches(
     return out
 
 
-def _resolve_matched_user(
-    db: Session, connection: RoommateConnections
-) -> Users:
+def _resolve_matched_user(db: Session, connection: RoommateConnections) -> Users:
     try:
         matched_user_id = uuid.UUID(connection.roommate_ref_id)
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=400,
             detail="Cannot invite this match: missing user reference",
-        )
+        ) from None
     matched = db.get(Users, matched_user_id)
     if matched is None or not matched.email:
-        raise HTTPException(
-            status_code=404, detail="Matched user not found"
-        )
+        raise HTTPException(status_code=404, detail="Matched user not found")
     return matched
 
 
@@ -469,9 +447,7 @@ def create_group_from_connection(
     matched = _resolve_matched_user(db, connection)
 
     my_first = _first_name(
-        (db.execute(
-            select(RoommateProfiles.name).where(RoommateProfiles.user_id == user.id)
-        ).scalar_one_or_none())
+        db.execute(select(RoommateProfiles.name).where(RoommateProfiles.user_id == user.id)).scalar_one_or_none()
     ) or (user.email.split("@")[0] if user.email else "You")
     match_first = _first_name(connection.roommate_name) or "Roommate"
     group_name = (name or "").strip() or f"{my_first} & {match_first}"
@@ -498,9 +474,7 @@ def create_group_from_connection(
             already_member=True,
         )
 
-    invite = create_email_invite(
-        db, group=group, inviter=user, email=matched.email
-    )
+    invite = create_email_invite(db, group=group, inviter=user, email=matched.email)
     db.commit()
     db.refresh(group)
     db.refresh(invite)
@@ -545,12 +519,7 @@ def invite_connection_to_group(
     if existing_member is not None:
         return InviteConnectionToGroupResponse(invite=None, already_member=True)
 
-    invite = create_email_invite(
-        db, group=group, inviter=user, email=matched.email
-    )
+    invite = create_email_invite(db, group=group, inviter=user, email=matched.email)
     db.commit()
     db.refresh(invite)
-    return InviteConnectionToGroupResponse(
-        invite=invite_to_response(invite), already_member=False
-    )
-
+    return InviteConnectionToGroupResponse(invite=invite_to_response(invite), already_member=False)

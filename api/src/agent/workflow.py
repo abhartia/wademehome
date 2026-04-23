@@ -5,6 +5,7 @@ saved, profile, navigator). Each specialist owns the tools for its domain so
 prompts stay focused and tool-call accuracy stays high. Specialists can hand
 back to the orchestrator when the user's intent shifts.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -27,7 +28,6 @@ from agent.tools import (
     make_tours_tools,
 )
 from db.models import Users
-
 
 # Hard rule appended to every specialist prompt. Card UI carries IDs, dates,
 # addresses, etc. — the LLM's text reply must read like a friend, not a JSON
@@ -631,9 +631,7 @@ def build_home_agent_workflow(
     """
     search_tools = make_search_tools(user, db, specialist_llm)
     tours_tools = make_tours_tools(user, db, specialist_llm)
-    saved_tools = make_saved_tools(
-        user, db, specialist_llm, active_group_id=active_group_id
-    )
+    saved_tools = make_saved_tools(user, db, specialist_llm, active_group_id=active_group_id)
     profile_tools = make_profile_tools(user, db, specialist_llm)
     nav_tools = make_navigation_tools(user, db, orchestrator_llm)
     roommates_tools = make_roommates_tools(user, db, specialist_llm)
@@ -646,8 +644,7 @@ def build_home_agent_workflow(
     orchestrator = FunctionAgent(
         name="orchestrator",
         description=(
-            "Top-level concierge. Greets, answers general questions, and "
-            "routes to specialists for domain work."
+            "Top-level concierge. Greets, answers general questions, and " "routes to specialists for domain work."
         ),
         system_prompt=ORCHESTRATOR_SYSTEM,
         llm=orchestrator_llm,
@@ -681,9 +678,7 @@ def build_home_agent_workflow(
 
     tours_agent = FunctionAgent(
         name="tours_agent",
-        description=(
-            "Schedules, lists, updates, and cancels property tours."
-        ),
+        description=("Schedules, lists, updates, and cancels property tours."),
         system_prompt=TOURS_SYSTEM + SPECIALIST_USER_TEXT_RULES,
         llm=specialist_llm,
         tools=tours_tools,
@@ -730,8 +725,7 @@ def build_home_agent_workflow(
     roommates_agent = FunctionAgent(
         name="roommates_agent",
         description=(
-            "Roommate matching, profile, connections, and messaging. Use for "
-            "any roommate-related request."
+            "Roommate matching, profile, connections, and messaging. Use for " "any roommate-related request."
         ),
         system_prompt=ROOMMATES_SYSTEM + SPECIALIST_USER_TEXT_RULES,
         llm=specialist_llm,
@@ -741,9 +735,7 @@ def build_home_agent_workflow(
 
     groups_agent = FunctionAgent(
         name="groups_agent",
-        description=(
-            "Co-tenant groups: create, list, invite, and share saved properties."
-        ),
+        description=("Co-tenant groups: create, list, invite, and share saved properties."),
         system_prompt=GROUPS_SYSTEM + SPECIALIST_USER_TEXT_RULES,
         llm=specialist_llm,
         tools=groups_tools,
@@ -776,9 +768,7 @@ def build_home_agent_workflow(
 
     guarantor_agent = FunctionAgent(
         name="guarantor_agent",
-        description=(
-            "Renter-side guarantor flow: saved guarantors, requests, invites."
-        ),
+        description=("Renter-side guarantor flow: saved guarantors, requests, invites."),
         system_prompt=GUARANTOR_SYSTEM + SPECIALIST_USER_TEXT_RULES,
         llm=specialist_llm,
         tools=guarantor_tools,

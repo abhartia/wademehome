@@ -41,8 +41,7 @@ def _post_resend(*, to: list[str], subject: str, html: str) -> None:
             e.message,
         )
         raise ValueError(
-            "Resend rejected the send (HTTP %s). Check API key, verified domain, and sender. %s"
-            % (e.code, e.message)
+            f"Resend rejected the send (HTTP {e.code}). Check API key, verified domain, and sender. {e.message}"
         ) from e
 
 

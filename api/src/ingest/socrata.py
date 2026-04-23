@@ -8,12 +8,12 @@ fetch only the newer rows. Socrata paginates via `$limit` + `$offset`.
 from __future__ import annotations
 
 import os
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import requests
 
 from core.config import Config
-
 
 SOCRATA_BASE = "https://data.cityofnewyork.us/resource"
 
@@ -57,8 +57,7 @@ def iter_dataset_rows(
         rows = resp.json()
         if not rows:
             return
-        for row in rows:
-            yield row
+        yield from rows
         if len(rows) < page_size:
             return
         offset += page_size

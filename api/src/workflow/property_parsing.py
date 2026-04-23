@@ -44,4 +44,3 @@ def parse_property_data_list_from_json(listings_properties_json: str) -> Propert
     listings_properties: PropertyDataList = PropertyDataList.model_validate(parsed_data)
 
     return listings_properties
-

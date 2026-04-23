@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
-
 from pydantic import BaseModel, Field
 
 
@@ -109,4 +107,3 @@ class SavedGuarantorListResponse(BaseModel):
 
 class GuarantorRequestListResponse(BaseModel):
     requests: list[GuarantorRequestOut]
-

@@ -34,16 +34,12 @@ router = APIRouter(prefix="/move-in/photos", tags=["move-in-photos"])
 
 
 @router.get("/summary", response_model=PhotoDocumentationSummary)
-def read_photo_summary(
-    user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def read_photo_summary(user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     return get_summary(db, user.id)
 
 
 @router.get("/rooms", response_model=list[PhotoRoomOut])
-def read_photo_rooms(
-    user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def read_photo_rooms(user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     return list_rooms(db, user.id)
 
 
@@ -154,5 +150,3 @@ def serve_photo(
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(abs_path)
-
-

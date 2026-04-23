@@ -48,25 +48,19 @@ def build_price_histogram_sql(
     if bbox_supplied:
         wheres.append("latitude BETWEEN :south AND :north")
         wheres.append("longitude BETWEEN :west AND :east")
-        params.update(
-            {"west": west, "south": south, "east": east, "north": north}
-        )
+        params.update({"west": west, "south": south, "east": east, "north": north})
     else:
         c = (city or "").strip()
         s = (state or "").strip()
         if c:
             ccol = resolve_city_column(cols)
             if ccol:
-                wheres.append(
-                    f"LOWER(TRIM(CAST({quote_ident(ccol)} AS text))) = LOWER(TRIM(:city_q))"
-                )
+                wheres.append(f"LOWER(TRIM(CAST({quote_ident(ccol)} AS text))) = LOWER(TRIM(:city_q))")
                 params["city_q"] = c
         if s:
             scol = resolve_state_column(cols)
             if scol:
-                wheres.append(
-                    f"LOWER(TRIM(CAST({quote_ident(scol)} AS text))) = LOWER(TRIM(:state_q))"
-                )
+                wheres.append(f"LOWER(TRIM(CAST({quote_ident(scol)} AS text))) = LOWER(TRIM(:state_q))")
                 params["state_q"] = s
 
     # Bedroom filter when corresponding columns are present.

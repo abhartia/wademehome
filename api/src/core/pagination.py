@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -20,7 +20,7 @@ def encode_cursor(payload: dict[str, Any]) -> str:
     return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 
 
-def decode_cursor(cursor: Optional[str]) -> Optional[dict[str, Any]]:
+def decode_cursor(cursor: str | None) -> dict[str, Any] | None:
     if not cursor:
         return None
     try:
@@ -36,9 +36,9 @@ def decode_cursor(cursor: Optional[str]) -> Optional[dict[str, Any]]:
 
 class Page(BaseModel, Generic[T]):
     items: list[T]
-    next_cursor: Optional[str] = None
+    next_cursor: str | None = None
     has_more: bool = False
-    total: Optional[int] = Field(
+    total: int | None = Field(
         default=None,
         description="Approximate total when cheap to compute; omit for large result sets.",
     )

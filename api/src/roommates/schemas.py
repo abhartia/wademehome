@@ -109,4 +109,3 @@ class InviteConnectionToGroupRequest(BaseModel):
 class InviteConnectionToGroupResponse(BaseModel):
     invite: GroupInviteResponse | None = None
     already_member: bool = False
-

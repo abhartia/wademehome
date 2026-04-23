@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 
 from azure.storage.blob import BlobServiceClient, ContentSettings
 from fastapi import HTTPException, UploadFile
@@ -26,13 +26,12 @@ from db.models import (
     ReviewLandlordRelation,
     ReviewModeration,
     ReviewResponses,
+    Reviews,
     ReviewStatus,
     ReviewSubratings,
     ReviewVerificationProofType,
-    ReviewVerificationStatus,
     ReviewVerifications,
-    Reviews,
-    UserProfiles,
+    ReviewVerificationStatus,
     UserRole,
     Users,
 )
@@ -46,7 +45,6 @@ from reviews.schemas import (
     ReviewVerificationCreate,
     ReviewVerificationPayload,
 )
-
 
 # Negative reviews enter a 24h cooldown before publishing; positive reviews
 # publish immediately. Keeps room for admin moderation + landlord flag before
@@ -132,16 +130,12 @@ def _resolve_landlord_entity_for_tenancy(
 
 def _subratings_dict(db: Session, review_id: uuid.UUID) -> dict[str, int]:
     rows = db.execute(
-        select(ReviewSubratings.dimension, ReviewSubratings.score).where(
-            ReviewSubratings.review_id == review_id
-        )
+        select(ReviewSubratings.dimension, ReviewSubratings.score).where(ReviewSubratings.review_id == review_id)
     ).all()
     return {dim.value: score for dim, score in rows}
 
 
-def _to_review_payload(
-    db: Session, review: Reviews
-) -> ReviewPayload:
+def _to_review_payload(db: Session, review: Reviews) -> ReviewPayload:
     entity = db.get(LandlordEntities, review.landlord_entity_id)
     response_row = db.execute(
         select(ReviewResponses).where(ReviewResponses.review_id == review.id)
@@ -177,9 +171,7 @@ def _to_review_payload(
     )
 
 
-def create_review(
-    db: Session, user: Users, payload: ReviewCreateRequest
-) -> ReviewPayload:
+def create_review(db: Session, user: Users, payload: ReviewCreateRequest) -> ReviewPayload:
     if payload.tenancy_end and payload.tenancy_end < payload.tenancy_start:
         raise HTTPException(status_code=422, detail="tenancy_end before tenancy_start")
 
@@ -248,12 +240,16 @@ def publish_due_reviews(db: Session) -> int:
     so a review becomes visible without waiting on the scheduler.
     """
     threshold = utc_now() - timedelta(hours=COOLDOWN_HOURS)
-    rows = db.execute(
-        select(Reviews).where(
-            Reviews.status == ReviewStatus.pending_cooldown,
-            Reviews.created_at <= threshold,
+    rows = (
+        db.execute(
+            select(Reviews).where(
+                Reviews.status == ReviewStatus.pending_cooldown,
+                Reviews.created_at <= threshold,
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     for r in rows:
         r.status = ReviewStatus.published
         r.published_at = utc_now()
@@ -265,28 +261,20 @@ def publish_due_reviews(db: Session) -> int:
 # ── Landlord response ────────────────────────────────────────────────────
 
 
-def create_response(
-    db: Session, user: Users, review_id: str, payload: ReviewResponseCreate
-) -> ReviewResponsePayload:
+def create_response(db: Session, user: Users, review_id: str, payload: ReviewResponseCreate) -> ReviewResponsePayload:
     review = _get_review_or_404(db, review_id)
 
     # Authorization: user must have a landlord_profile that is linked to the
     # review's landlord_entity via LandlordEntities.claimed_profile_id.
-    profile = db.execute(
-        select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)
-    ).scalar_one_or_none()
+    profile = db.execute(select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)).scalar_one_or_none()
     if profile is None:
         raise HTTPException(status_code=403, detail="Not a landlord account")
 
     entity = db.get(LandlordEntities, review.landlord_entity_id)
     if entity is None or entity.claimed_profile_id != profile.id:
-        raise HTTPException(
-            status_code=403, detail="Entity not claimed by this landlord"
-        )
+        raise HTTPException(status_code=403, detail="Entity not claimed by this landlord")
 
-    existing = db.execute(
-        select(ReviewResponses).where(ReviewResponses.review_id == review.id)
-    ).scalar_one_or_none()
+    existing = db.execute(select(ReviewResponses).where(ReviewResponses.review_id == review.id)).scalar_one_or_none()
     if existing is not None:
         raise HTTPException(status_code=409, detail="Response already exists")
 
@@ -309,9 +297,7 @@ def create_response(
 # ── Moderation flag ──────────────────────────────────────────────────────
 
 
-def create_flag(
-    db: Session, user: Users | None, review_id: str, payload: ReviewFlagRequest
-) -> ReviewFlagPayload:
+def create_flag(db: Session, user: Users | None, review_id: str, payload: ReviewFlagRequest) -> ReviewFlagPayload:
     review = _get_review_or_404(db, review_id)
 
     role = ReviewFlagSubmitterRole.public
@@ -405,9 +391,7 @@ def _verification_to_payload(v: ReviewVerifications) -> ReviewVerificationPayloa
 
 def _blob_container_for_verifications() -> tuple[BlobServiceClient, str]:
     conn = (Config.get("AZURE_BLOB_CONNECTION_STRING", "") or "").strip()
-    container = (
-        Config.get("AZURE_BLOB_REVIEW_VERIFICATIONS_CONTAINER", "") or ""
-    ).strip()
+    container = (Config.get("AZURE_BLOB_REVIEW_VERIFICATIONS_CONTAINER", "") or "").strip()
     if not conn or not container:
         raise HTTPException(
             status_code=500,
@@ -448,10 +432,8 @@ def upload_verification_file(
         )
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001 — bubble up as 502 so UI shows a clear error
-        raise HTTPException(
-            status_code=502, detail=f"Failed to upload proof: {exc!s}"
-        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to upload proof: {exc!s}") from exc
 
     storage_key = blob_name
 
@@ -489,16 +471,10 @@ def upload_verification_file(
 # ── Listings ──────────────────────────────────────────────────────────
 
 
-def list_reviews_by_author(
-    db: Session, user: Users, limit: int, offset: int
-) -> tuple[list[ReviewPayload], int]:
+def list_reviews_by_author(db: Session, user: Users, limit: int, offset: int) -> tuple[list[ReviewPayload], int]:
     base = select(Reviews).where(Reviews.author_user_id == user.id)
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = (
-        db.execute(base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset))
-        .scalars()
-        .all()
-    )
+    rows = db.execute(base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset)).scalars().all()
     payloads = [_to_review_payload(db, r) for r in rows]
     return payloads, int(total or 0)
 
@@ -511,29 +487,17 @@ def list_reviews_for_claimed_entities(
     include_flagged: bool = False,
 ) -> tuple[list[ReviewPayload], int]:
     """Reviews on every landlord entity claimed by the current user's profile."""
-    profile = db.execute(
-        select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)
-    ).scalar_one_or_none()
+    profile = db.execute(select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)).scalar_one_or_none()
     if profile is None:
         return [], 0
 
-    entity_ids_subq = (
-        select(LandlordEntities.id)
-        .where(LandlordEntities.claimed_profile_id == profile.id)
-        .subquery()
-    )
+    entity_ids_subq = select(LandlordEntities.id).where(LandlordEntities.claimed_profile_id == profile.id).subquery()
 
-    base = select(Reviews).where(
-        Reviews.landlord_entity_id.in_(select(entity_ids_subq.c.id))
-    )
+    base = select(Reviews).where(Reviews.landlord_entity_id.in_(select(entity_ids_subq.c.id)))
     if not include_flagged:
         base = base.where(Reviews.status.in_([ReviewStatus.published, ReviewStatus.pending_cooldown]))
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = (
-        db.execute(base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset))
-        .scalars()
-        .all()
-    )
+    rows = db.execute(base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset)).scalars().all()
     payloads = [_to_review_payload(db, r) for r in rows]
     return payloads, int(total or 0)

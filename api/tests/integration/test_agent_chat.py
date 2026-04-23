@@ -8,6 +8,7 @@ Run with:
     cd api
     RUN_LIVE_AGENT_TESTS=1 .venv/bin/pytest -m live tests/integration/test_agent_chat.py -v
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -36,9 +37,7 @@ async def test_live_agent_chat_search_emits_property_card() -> None:
     SessionLocal = get_session_local()
     db = SessionLocal()
     try:
-        user = db.execute(
-            select(Users).order_by(Users.created_at.asc()).limit(1)
-        ).scalar_one_or_none()
+        user = db.execute(select(Users).order_by(Users.created_at.asc()).limit(1)).scalar_one_or_none()
         assert user is not None, "Need at least one Users row in the DB to run this test."
 
         workflow = build_home_agent_workflow(
@@ -75,12 +74,10 @@ async def test_live_agent_chat_search_emits_property_card() -> None:
         await asyncio.wait_for(consume(), timeout=180.0)
 
         assert any(tc.tool_name == "search_listings" for tc in tool_calls), (
-            f"Expected search_listings tool to be called. Got: "
-            f"{[tc.tool_name for tc in tool_calls]}"
+            f"Expected search_listings tool to be called. Got: " f"{[tc.tool_name for tc in tool_calls]}"
         )
         assert any(ev.type == "property_results" for ev in ui_events), (
-            f"Expected at least one property_results UIEvent. Got types: "
-            f"{[ev.type for ev in ui_events]}"
+            f"Expected at least one property_results UIEvent. Got types: " f"{[ev.type for ev in ui_events]}"
         )
         assert saw_stop, "Workflow did not reach StopEvent."
     finally:

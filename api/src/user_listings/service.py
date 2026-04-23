@@ -10,7 +10,6 @@ from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from core.config import Config
 from core.logger import get_logger
@@ -95,12 +94,10 @@ def _column_set(conn) -> set[str]:
     schema = (listing_table_schema or "").strip() or "public"
     tname = (listing_table_name or "").strip()
     rows = conn.execute(
-        text(
-            """
+        text("""
             SELECT column_name FROM information_schema.columns
             WHERE table_schema = :schema AND table_name = :tname
-            """
-        ),
+            """),
         {"schema": schema, "tname": tname},
     ).fetchall()
     return {str(r[0]).lower() for r in rows}
@@ -152,10 +149,7 @@ def _query_candidates(
     }
     if has_vis and has_contrib:
         if visibility_scope == "private_add":
-            vis_where = (
-                "(t.visibility = 'public' "
-                "OR (t.visibility = 'private' AND t.contributed_by_user_id = :uid))"
-            )
+            vis_where = "(t.visibility = 'public' " "OR (t.visibility = 'private' AND t.contributed_by_user_id = :uid))"
             params["uid"] = current_user_id
         elif visibility_scope == "public_promote":
             vis_where = (
@@ -165,8 +159,7 @@ def _query_candidates(
             )
             params["uid"] = current_user_id
 
-    sql = text(
-        f"""
+    sql = text(f"""
         SELECT
             t.{name_col} AS name_out,
             t.address AS address_out,
@@ -181,8 +174,7 @@ def _query_candidates(
           AND t.longitude BETWEEN :west AND :east
           AND {vis_where}
         LIMIT 50
-        """
-    )
+        """)
     rows = conn.execute(sql, params).mappings().all()
     out: list[CandidateRow] = []
     for r in rows:
@@ -322,14 +314,10 @@ def find_exact_duplicate(
             conds.append("t.visibility = :vis_filter")
             params["vis_filter"] = visibility_filter
         if exclude_user_id is not None and has_contrib:
-            conds.append(
-                "(t.contributed_by_user_id IS NULL "
-                "OR t.contributed_by_user_id <> :exclude_uid)"
-            )
+            conds.append("(t.contributed_by_user_id IS NULL " "OR t.contributed_by_user_id <> :exclude_uid)")
             params["exclude_uid"] = exclude_user_id
 
-        sql = text(
-            f"""
+        sql = text(f"""
             SELECT
                 t.{name_col} AS name_out,
                 t.address AS address_out,
@@ -341,8 +329,7 @@ def find_exact_duplicate(
             FROM {qtable} AS t
             WHERE {" AND ".join(conds)}
             LIMIT 50
-            """
-        )
+            """)
         rows = conn.execute(sql, params).mappings().all()
     for r in rows:
         name = str(r.get("name_out") or "").strip() or "Property"
@@ -379,9 +366,7 @@ class CreatedListing:
     visibility: str
 
 
-def create_user_listing(
-    payload: CreateUserListingRequest, user_id: uuid.UUID
-) -> CreatedListing:
+def create_user_listing(payload: CreateUserListingRequest, user_id: uuid.UUID) -> CreatedListing:
     """Geocode (if needed), assemble the row, insert. Raises 409 if property_key already exists."""
     address_full = payload.address
     if payload.unit:
@@ -477,9 +462,7 @@ def create_user_listing(
                 detail="No writable columns on listings table.",
             )
 
-        sql = text(
-            f"INSERT INTO {qtable} ({', '.join(insert_cols)}) VALUES ({', '.join(placeholders)})"
-        )
+        sql = text(f"INSERT INTO {qtable} ({', '.join(insert_cols)}) VALUES ({', '.join(placeholders)})")
         conn.execute(sql, params)
 
     return CreatedListing(
@@ -517,19 +500,21 @@ def set_visibility(
                 detail="Listings table missing user-contribution columns — run migrations.",
             )
 
-        row = conn.execute(
-            text(
-                f"""
+        row = (
+            conn.execute(
+                text(f"""
                 SELECT t.latitude AS latitude_out, t.longitude AS longitude_out,
                        t.address AS address_out, t.visibility AS vis_out
                 FROM {qtable} AS t
                 WHERE t.contributed_by_user_id = :uid
                   AND {_property_key_match_sql(cols, "t")}
                 LIMIT 1
-                """
-            ),
-            {"uid": user_id, **_property_key_match_params(property_key)},
-        ).mappings().first()
+                """),
+                {"uid": user_id, **_property_key_match_params(property_key)},
+            )
+            .mappings()
+            .first()
+        )
         if row is None:
             raise HTTPException(status_code=404, detail="Listing not found or not owned by current user.")
 
@@ -552,13 +537,11 @@ def set_visibility(
                 )
 
         conn.execute(
-            text(
-                f"""
+            text(f"""
                 UPDATE {qtable} SET visibility = :vis
                 WHERE contributed_by_user_id = :uid
                   AND {_property_key_match_sql(cols, None)}
-                """
-            ),
+                """),
             {
                 "vis": new_visibility,
                 "uid": user_id,
@@ -592,13 +575,11 @@ def delete_user_listing(*, property_key: str, user_id: uuid.UUID) -> None:
         if "contributed_by_user_id" not in cols:
             raise HTTPException(status_code=500, detail="Migrations not applied.")
         result = conn.execute(
-            text(
-                f"""
+            text(f"""
                 DELETE FROM {qtable}
                 WHERE contributed_by_user_id = :uid
                   AND {_property_key_match_sql(cols, None)}
-                """
-            ),
+                """),
             {"uid": user_id, **_property_key_match_params(property_key)},
         )
         if result.rowcount == 0:

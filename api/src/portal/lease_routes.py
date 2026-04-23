@@ -66,9 +66,7 @@ def read_lease_document(
     db: Session = Depends(get_db),
 ):
     _require_current_lease(db, user)
-    row = db.execute(
-        select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)
-    ).scalar_one_or_none()
+    row = db.execute(select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)).scalar_one_or_none()
     if not row:
         return LeaseDocumentOut(has_document=False)
     return LeaseDocumentOut(
@@ -112,9 +110,7 @@ async def upload_lease_document(
             detail="No text could be extracted from this PDF (it may be scanned images only).",
         )
 
-    row = db.execute(
-        select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)
-    ).scalar_one_or_none()
+    row = db.execute(select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)).scalar_one_or_none()
     if row:
         row.original_filename = file.filename[:512]
         row.content_type = file.content_type or "application/pdf"
@@ -162,9 +158,7 @@ async def lease_chat(
     db: Session = Depends(get_db),
 ):
     _require_current_lease(db, user)
-    row = db.execute(
-        select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)
-    ).scalar_one_or_none()
+    row = db.execute(select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)).scalar_one_or_none()
     if not row or not (row.extracted_text or "").strip():
         raise HTTPException(
             status_code=400,

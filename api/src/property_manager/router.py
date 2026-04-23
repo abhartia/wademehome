@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
@@ -10,6 +11,7 @@ from core.env_utils import env_manager
 from core.logger import get_logger
 from db.models import Users
 from listings.schemas import NearbyListingsResponse
+from property_manager import service as pm_service
 from property_manager.schemas import (
     BuildingTrendsRequest,
     BuildingTrendsResponse,
@@ -22,7 +24,6 @@ from property_manager.schemas import (
     TrendsResponse,
     WeeklySendResponse,
 )
-from property_manager import service as pm_service
 
 router = APIRouter(prefix="/property-manager", tags=["property-manager"])
 logger = get_logger(__name__)
@@ -114,14 +115,15 @@ def get_insights(
             payload.center_longitude,
             payload.radius_miles,
         )
-    # Archive snapshot for time-series (fire-and-forget)
-    try:
+    # Archive snapshot for time-series (fire-and-forget; non-critical — logged inside archive_snapshots)
+    with contextlib.suppress(Exception):
         pm_service.archive_snapshots(
-            db, payload.center_latitude, payload.center_longitude,
-            payload.radius_miles, result,
+            db,
+            payload.center_latitude,
+            payload.center_longitude,
+            payload.radius_miles,
+            result,
         )
-    except Exception:
-        pass  # Non-critical; logged inside archive_snapshots
     return result
 
 

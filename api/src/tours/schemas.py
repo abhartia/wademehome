@@ -78,9 +78,7 @@ class TourNoteUpsert(BaseModel):
 
 
 class TourSortParams(BaseModel):
-    sort: Literal["created_at_desc", "created_at_asc", "tour_date_asc", "tour_date_desc"] = (
-        "created_at_desc"
-    )
+    sort: Literal["created_at_desc", "created_at_asc", "tour_date_asc", "tour_date_desc"] = "created_at_desc"
     status: str | None = None
     from_date: date | None = None
     to_date: date | None = None

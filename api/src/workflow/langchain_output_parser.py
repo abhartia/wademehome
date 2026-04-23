@@ -1,6 +1,6 @@
 """Compatibility shim: LlamaIndex 0.14 removed llama_index.core.output_parsers.langchain."""
 
-from typing import Any, Optional
+from typing import Any
 
 from langchain_core.output_parsers import BaseOutputParser as LangchainBaseOutputParser
 from llama_index.core.llms import ChatResponse
@@ -14,7 +14,7 @@ class LangchainOutputParser(BaseOutputParser):
     def __init__(
         self,
         output_parser: LangchainBaseOutputParser,
-        format_key: Optional[str] = None,
+        format_key: str | None = None,
     ) -> None:
         self._output_parser = output_parser
         self._format_key = format_key

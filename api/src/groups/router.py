@@ -12,15 +12,7 @@ from auth.emailer import send_group_invite_email, send_group_member_joined_email
 from auth.router import get_current_user, get_db
 from core.logger import get_logger
 from db.models import GroupInvites, GroupMembers, Groups, Users
-
-logger = get_logger(__name__)
 from groups.deps import require_group_member
-from groups.service import (
-    accept_url as _accept_url,
-    app_base_url as _app_base_url,
-    invite_to_response as _invite_to_response,
-    utc_now as _utc_now,
-)
 from groups.schemas import (
     GroupCreateRequest,
     GroupInviteCreateRequest,
@@ -38,6 +30,20 @@ from groups.schemas import (
     InviteAcceptResponse,
     InvitePreviewResponse,
 )
+from groups.service import (
+    accept_url as _accept_url,
+)
+from groups.service import (
+    app_base_url as _app_base_url,
+)
+from groups.service import (
+    invite_to_response as _invite_to_response,
+)
+from groups.service import (
+    utc_now as _utc_now,
+)
+
+logger = get_logger(__name__)
 
 
 def _clean_str_list(values: list[str] | None) -> list[str] | None:
@@ -69,9 +75,7 @@ def _group_preferences(group: Groups) -> GroupPreferences:
     )
 
 
-def _build_group_response(
-    group: Groups, *, role: str, member_count: int
-) -> GroupResponse:
+def _build_group_response(group: Groups, *, role: str, member_count: int) -> GroupResponse:
     return GroupResponse(
         id=group.id,
         name=group.name,
@@ -80,6 +84,7 @@ def _build_group_response(
         created_at=group.created_at,
         preferences=_group_preferences(group),
     )
+
 
 router = APIRouter(tags=["groups"])
 
@@ -149,13 +154,9 @@ def rename_group(
     db.commit()
     db.refresh(group)
     member_count = int(
-        db.execute(
-            select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)
-        ).scalar_one()
+        db.execute(select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)).scalar_one()
     )
-    return _build_group_response(
-        group, role=membership.role, member_count=member_count
-    )
+    return _build_group_response(group, role=membership.role, member_count=member_count)
 
 
 @router.get("/groups/{group_id}", response_model=GroupResponse)
@@ -168,18 +169,12 @@ def get_group(
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
     member_count = int(
-        db.execute(
-            select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)
-        ).scalar_one()
+        db.execute(select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)).scalar_one()
     )
-    return _build_group_response(
-        group, role=membership.role, member_count=member_count
-    )
+    return _build_group_response(group, role=membership.role, member_count=member_count)
 
 
-@router.patch(
-    "/groups/{group_id}/preferences", response_model=GroupResponse
-)
+@router.patch("/groups/{group_id}/preferences", response_model=GroupResponse)
 def update_group_preferences(
     group_id: uuid.UUID,
     payload: GroupPreferencesUpdate,
@@ -210,13 +205,9 @@ def update_group_preferences(
     db.commit()
     db.refresh(group)
     member_count = int(
-        db.execute(
-            select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)
-        ).scalar_one()
+        db.execute(select(func.count(GroupMembers.id)).where(GroupMembers.group_id == group.id)).scalar_one()
     )
-    return _build_group_response(
-        group, role=membership.role, member_count=member_count
-    )
+    return _build_group_response(group, role=membership.role, member_count=member_count)
 
 
 @router.delete("/groups/{group_id}", status_code=204)
@@ -297,9 +288,7 @@ def remove_member(
     if user_id == membership.user_id:
         raise HTTPException(status_code=400, detail="Owner cannot remove themselves")
     target = db.execute(
-        select(GroupMembers).where(
-            GroupMembers.group_id == group_id, GroupMembers.user_id == user_id
-        )
+        select(GroupMembers).where(GroupMembers.group_id == group_id, GroupMembers.user_id == user_id)
     ).scalar_one_or_none()
     if target is None:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -308,9 +297,7 @@ def remove_member(
     return None
 
 
-@router.patch(
-    "/groups/{group_id}/members/{user_id}/role", response_model=GroupMemberResponse
-)
+@router.patch("/groups/{group_id}/members/{user_id}/role", response_model=GroupMemberResponse)
 def update_member_role(
     group_id: uuid.UUID,
     user_id: uuid.UUID,
@@ -319,9 +306,7 @@ def update_member_role(
     db: Session = Depends(get_db),
 ):
     target = db.execute(
-        select(GroupMembers).where(
-            GroupMembers.group_id == group_id, GroupMembers.user_id == user_id
-        )
+        select(GroupMembers).where(GroupMembers.group_id == group_id, GroupMembers.user_id == user_id)
     ).scalar_one_or_none()
     if target is None:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -365,9 +350,7 @@ def list_invites(
     db: Session = Depends(get_db),
 ):
     rows = db.execute(
-        select(GroupInvites)
-        .where(GroupInvites.group_id == group_id)
-        .order_by(GroupInvites.created_at.desc())
+        select(GroupInvites).where(GroupInvites.group_id == group_id).order_by(GroupInvites.created_at.desc())
     ).scalars()
     return GroupInvitesListResponse(invites=[_invite_to_response(r) for r in rows])
 
@@ -424,9 +407,7 @@ def revoke_invite(
     db: Session = Depends(get_db),
 ):
     invite = db.execute(
-        select(GroupInvites).where(
-            GroupInvites.id == invite_id, GroupInvites.group_id == group_id
-        )
+        select(GroupInvites).where(GroupInvites.id == invite_id, GroupInvites.group_id == group_id)
     ).scalar_one_or_none()
     if invite is None:
         raise HTTPException(status_code=404, detail="Invite not found")
@@ -438,9 +419,7 @@ def revoke_invite(
 
 @router.get("/invites/{token}", response_model=InvitePreviewResponse)
 def preview_invite(token: str, db: Session = Depends(get_db)):
-    invite = db.execute(
-        select(GroupInvites).where(GroupInvites.token == token)
-    ).scalar_one_or_none()
+    invite = db.execute(select(GroupInvites).where(GroupInvites.token == token)).scalar_one_or_none()
     if invite is None:
         raise HTTPException(status_code=404, detail="Invite not found")
     group = db.get(Groups, invite.group_id)
@@ -468,21 +447,18 @@ def accept_invite(
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    invite = db.execute(
-        select(GroupInvites).where(GroupInvites.token == payload.token)
-    ).scalar_one_or_none()
+    invite = db.execute(select(GroupInvites).where(GroupInvites.token == payload.token)).scalar_one_or_none()
     if invite is None:
         raise HTTPException(status_code=404, detail="Invite not found")
     if invite.revoked_at is not None:
         raise HTTPException(status_code=410, detail="Invite was revoked")
     if invite.expires_at <= _utc_now():
         raise HTTPException(status_code=410, detail="Invite has expired")
-    if invite.kind == "email" and invite.email:
-        if invite.email.strip().lower() != user.email.strip().lower():
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="This invite was sent to a different email",
-            )
+    if invite.kind == "email" and invite.email and invite.email.strip().lower() != user.email.strip().lower():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This invite was sent to a different email",
+        )
     if (
         invite.accepted_at is not None
         and invite.kind == "email"
@@ -503,9 +479,7 @@ def accept_invite(
     ).scalar_one_or_none()
     newly_joined = existing is None
     if newly_joined:
-        db.add(
-            GroupMembers(group_id=invite.group_id, user_id=user.id, role="member")
-        )
+        db.add(GroupMembers(group_id=invite.group_id, user_id=user.id, role="member"))
     if invite.accepted_at is None:
         invite.accepted_at = _utc_now()
         invite.accepted_by_user_id = user.id
@@ -527,8 +501,6 @@ def accept_invite(
                 group_url=f"{_app_base_url()}/groups/{group.id}",
             )
         except ValueError:
-            logger.exception(
-                "Failed to send group join notification to inviter %s", inviter_email
-            )
+            logger.exception("Failed to send group join notification to inviter %s", inviter_email)
 
     return InviteAcceptResponse(group_id=group.id, group_name=group.name)

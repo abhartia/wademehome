@@ -14,7 +14,6 @@ from __future__ import annotations
 import hashlib
 import os
 import time
-from typing import Optional
 
 from sqlalchemy import text
 
@@ -26,14 +25,14 @@ _CACHE: dict[str, tuple[float, dict]] = {}
 _TTL_SECONDS = 30
 
 
-def _env_override(key: str) -> Optional[bool]:
+def _env_override(key: str) -> bool | None:
     raw = os.getenv(f"FLAG_{key.upper().replace('-', '_')}")
     if raw is None:
         return None
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _fetch(key: str) -> Optional[dict]:
+def _fetch(key: str) -> dict | None:
     """Pull one flag row. Lazy import avoids pulling DB at module load."""
     try:
         from db.session import get_session_local
@@ -45,10 +44,7 @@ def _fetch(key: str) -> Optional[dict]:
     try:
         with factory() as session:
             row = session.execute(
-                text(
-                    "SELECT enabled, rollout_percent, user_allowlist "
-                    "FROM feature_flags WHERE key = :key"
-                ),
+                text("SELECT enabled, rollout_percent, user_allowlist " "FROM feature_flags WHERE key = :key"),
                 {"key": key},
             ).first()
     except Exception as e:
@@ -64,7 +60,7 @@ def _fetch(key: str) -> Optional[dict]:
     }
 
 
-def _get_cached(key: str) -> Optional[dict]:
+def _get_cached(key: str) -> dict | None:
     entry = _CACHE.get(key)
     now = time.monotonic()
     if entry and now - entry[0] < _TTL_SECONDS:
@@ -75,7 +71,7 @@ def _get_cached(key: str) -> Optional[dict]:
     return row
 
 
-def invalidate(key: Optional[str] = None) -> None:
+def invalidate(key: str | None = None) -> None:
     if key is None:
         _CACHE.clear()
     else:
@@ -83,12 +79,16 @@ def invalidate(key: Optional[str] = None) -> None:
 
 
 def _bucket(user_id: str, key: str) -> int:
-    """Stable 0–99 bucket for consistent user rollouts."""
-    digest = hashlib.sha1(f"{key}:{user_id}".encode()).digest()
+    """Stable 0-99 bucket for consistent user rollouts.
+
+    SHA-1 is used only as a fast stable hash; ``usedforsecurity=False`` makes
+    that explicit (and keeps it working on FIPS-restricted runtimes).
+    """
+    digest = hashlib.sha1(f"{key}:{user_id}".encode(), usedforsecurity=False).digest()
     return digest[0] % 100
 
 
-def is_enabled(key: str, user_id: Optional[str] = None, default: bool = False) -> bool:
+def is_enabled(key: str, user_id: str | None = None, default: bool = False) -> bool:
     override = _env_override(key)
     if override is not None:
         return override
@@ -114,7 +114,7 @@ def is_enabled(key: str, user_id: Optional[str] = None, default: bool = False) -
     return _bucket(user_id, key) < percent
 
 
-def evaluate_all(user_id: Optional[str] = None) -> dict[str, bool]:
+def evaluate_all(user_id: str | None = None) -> dict[str, bool]:
     """Return all known flags — used by the frontend bootstrap hook."""
     try:
         from db.session import get_session_local

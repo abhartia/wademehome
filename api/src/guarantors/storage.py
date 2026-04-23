@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from azure.storage.blob import BlobServiceClient, ContentSettings
 from fastapi import HTTPException
@@ -25,7 +25,7 @@ def upload_guarantor_document_to_blob(
         )
 
     safe_name = (filename or "document").strip().replace(" ", "_")
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     blob_name = f"guarantor/{request_id}/{timestamp}-{uuid.uuid4().hex}-{safe_name}"
 
     try:

@@ -1,4 +1,5 @@
 """SSE chat endpoint for the home agent."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,7 +12,8 @@ from typing import Any
 from azure.storage.blob import BlobServiceClient, ContentSettings
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
-from langfuse import get_client as get_langfuse_client, propagate_attributes
+from langfuse import get_client as get_langfuse_client
+from langfuse import propagate_attributes
 from llama_index.core.agent.workflow import (
     AgentInput,
     AgentOutput,
@@ -36,7 +38,6 @@ from db.models import UserLeaseDocuments, Users
 from movein.lease_premises_extract import extract_premises_address_from_lease_text
 from movein.service import set_move_from_address_if_empty
 from portal.lease_routes import (
-    LEASE_TEXT_MAX_CHARS,
     MAX_LEASE_UPLOAD_BYTES,
     extract_text_from_pdf,
 )
@@ -58,9 +59,7 @@ def _sse_annotation(payload: list[dict[str, Any]]) -> str:
     return f"8:{json.dumps(payload)}\n\n"
 
 
-def _agent_step_payload(
-    agent_name: str, label: str, state: str = "running"
-) -> dict[str, Any]:
+def _agent_step_payload(agent_name: str, label: str, state: str = "running") -> dict[str, Any]:
     return {
         "type": "agent_step",
         "data": {"agent": agent_name, "label": label, "state": state},
@@ -120,10 +119,7 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
         pending_running: list[tuple[str, str]] = []
 
         def _finish_pending_running() -> list[dict[str, Any]]:
-            payloads = [
-                _agent_step_payload(agent, label, "done")
-                for agent, label in pending_running
-            ]
+            payloads = [_agent_step_payload(agent, label, "done") for agent, label in pending_running]
             pending_running.clear()
             return payloads
 
@@ -138,9 +134,7 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
         # the assistant message exists, AgentStepStrip renders inline with
         # live agent_step / tool_call annotations as they stream in.
         yield _sse_text("")
-        yield _sse_annotation([
-            _agent_step_payload("orchestrator", "Routing your request", "running")
-        ])
+        yield _sse_annotation([_agent_step_payload("orchestrator", "Routing your request", "running")])
         pending_running.append(("orchestrator", "Routing your request"))
         try:
             async for event in handler.stream_events():
@@ -165,9 +159,7 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
                             yield _sse_annotation(closing)
                         if name in _TOOLLESS_AGENTS:
                             label = f"{name} thinking"
-                            yield _sse_annotation([
-                                _agent_step_payload(name, label, "running")
-                            ])
+                            yield _sse_annotation([_agent_step_payload(name, label, "running")])
                             pending_running.append((name, label))
                     current_agent = name
                     continue
@@ -208,11 +200,7 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
                 if isinstance(event, StopEvent):
                     result = getattr(event, "result", None)
                     if result and not first:
-                        text = (
-                            getattr(result, "response", None)
-                            or getattr(result, "content", None)
-                            or str(result)
-                        )
+                        text = getattr(result, "response", None) or getattr(result, "content", None) or str(result)
                         if isinstance(text, str) and text.strip():
                             yield _sse_text(text)
                     continue
@@ -225,10 +213,14 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
             closing = _finish_pending_running()
             if closing:
                 yield _sse_annotation(closing)
-            yield _sse_annotation([{
-                "type": "agent_error",
-                "data": {"message": "Something went wrong while thinking."},
-            }])
+            yield _sse_annotation(
+                [
+                    {
+                        "type": "agent_error",
+                        "data": {"message": "Something went wrong while thinking."},
+                    }
+                ]
+            )
             raise
         else:
             # Fail-loud guard. If the stream closed without any text from an
@@ -247,15 +239,18 @@ def _agent_event_generator(handler: WorkflowHandler, request: Request):
                 closing = _finish_pending_running()
                 if closing:
                     yield _sse_annotation(closing)
-                yield _sse_annotation([{
-                    "type": "agent_error",
-                    "data": {
-                        "message": (
-                            "The concierge didn't produce a reply — please "
-                            "try rephrasing, or try again."
-                        )
-                    },
-                }])
+                yield _sse_annotation(
+                    [
+                        {
+                            "type": "agent_error",
+                            "data": {
+                                "message": (
+                                    "The concierge didn't produce a reply — please " "try rephrasing, or try again."
+                                )
+                            },
+                        }
+                    ]
+                )
             else:
                 # Normal close: mark any still-open synthetic running steps
                 # as done so AgentStepStrip stops spinning. The cascade logic
@@ -289,9 +284,7 @@ async def agent_chat(
             try:
                 active_group_id = uuid.UUID(raw_group)
             except ValueError:
-                logger.warning(
-                    "agent/chat: ignoring malformed X-Active-Group-Id header"
-                )
+                logger.warning("agent/chat: ignoring malformed X-Active-Group-Id header")
         workflow = build_home_agent_workflow(
             user=user,
             db=db,
@@ -314,11 +307,7 @@ async def agent_chat(
         # every child span the workflow creates below. Both context managers
         # must be entered BEFORE `workflow.run()` so downstream agent/tool
         # spans inherit the trace context.
-        session_id = (
-            getattr(chat_request, "id", None)
-            or request.headers.get("x-chat-session-id")
-            or str(uuid.uuid4())
-        )
+        session_id = getattr(chat_request, "id", None) or request.headers.get("x-chat-session-id") or str(uuid.uuid4())
         langfuse = get_langfuse_client()
         span_cm = langfuse.start_as_current_observation(
             name="agent_chat",
@@ -361,7 +350,7 @@ async def agent_chat(
         )
     except Exception as exc:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -381,9 +370,7 @@ def _is_image(filename: str, content_type: str) -> bool:
     return content_type.startswith("image/") or filename.lower().endswith(_IMAGE_EXTS)
 
 
-async def _ingest_lease_pdf(
-    db: Session, user: Users, file: UploadFile, data: bytes
-) -> dict[str, Any]:
+async def _ingest_lease_pdf(db: Session, user: Users, file: UploadFile, data: bytes) -> dict[str, Any]:
     if len(data) > MAX_LEASE_UPLOAD_BYTES:
         raise HTTPException(
             status_code=400,
@@ -400,9 +387,7 @@ async def _ingest_lease_pdf(
             detail="No text could be extracted (the PDF may be scanned images only).",
         )
 
-    row = db.execute(
-        select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)
-    ).scalar_one_or_none()
+    row = db.execute(select(UserLeaseDocuments).where(UserLeaseDocuments.user_id == user.id)).scalar_one_or_none()
     filename = (file.filename or "lease.pdf")[:512]
     if row:
         row.original_filename = filename
@@ -425,10 +410,8 @@ async def _ingest_lease_pdf(
     if extracted_addr:
         set_move_from_address_if_empty(db, user.id, extracted_addr)
 
-    summary = (
-        f"Lease '{filename}' uploaded "
-        f"({len(extracted):,} chars extracted)"
-        + (f"; premises: {extracted_addr}" if extracted_addr else "")
+    summary = f"Lease '{filename}' uploaded " f"({len(extracted):,} chars extracted)" + (
+        f"; premises: {extracted_addr}" if extracted_addr else ""
     )
     return {
         "kind": "lease",
@@ -470,9 +453,7 @@ def _ingest_chat_photo(user: Users, file: UploadFile, data: bytes) -> dict[str, 
         photo_url = blob.url
     except Exception as exc:
         logger.exception("agent/upload: blob upload failed")
-        raise HTTPException(
-            status_code=502, detail=f"Failed to upload photo: {exc!s}"
-        ) from exc
+        raise HTTPException(status_code=502, detail=f"Failed to upload photo: {exc!s}") from exc
 
     return {
         "kind": "photo",
@@ -512,8 +493,5 @@ async def agent_upload(
 
     raise HTTPException(
         status_code=400,
-        detail=(
-            "Unsupported file type. The chat accepts PDF leases and image uploads "
-            "(jpg, png, heic, webp)."
-        ),
+        detail=("Unsupported file type. The chat accepts PDF leases and image uploads " "(jpg, png, heic, webp)."),
     )

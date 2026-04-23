@@ -41,10 +41,7 @@ def get_llm() -> LLM:
 
 
 def _azure_configured() -> bool:
-    return bool(
-        Config.get("AZURE_OPENAI_ENDPOINT", "")
-        and Config.get("AZURE_OPENAI_API_KEY")
-    )
+    return bool(Config.get("AZURE_OPENAI_ENDPOINT", "") and Config.get("AZURE_OPENAI_API_KEY"))
 
 
 def get_llm_nano() -> LLM:
@@ -100,9 +97,7 @@ def get_llm_mini_reasoning() -> LLM:
     """
     if _azure_configured():
         nano_deployment = Config.get("AZURE_OPENAI_DEPLOYMENT")
-        mini_deployment = Config.get(
-            "AZURE_OPENAI_DEPLOYMENT_MINI", nano_deployment
-        )
+        mini_deployment = Config.get("AZURE_OPENAI_DEPLOYMENT_MINI", nano_deployment)
         is_real_mini = mini_deployment != nano_deployment
         return AzureOpenAI(
             azure_endpoint=Config.get("AZURE_OPENAI_ENDPOINT").strip().rstrip("/"),

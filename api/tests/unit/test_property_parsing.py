@@ -90,4 +90,3 @@ def test_parse_property_data_list_validation_error_raises() -> None:
 
     with pytest.raises(ValidationError):
         parse_property_data_list_from_json(json.dumps(payload))
-

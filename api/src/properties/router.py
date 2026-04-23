@@ -1,22 +1,21 @@
 import uuid
 
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-
-from auth.router import get_current_user, get_db
 from auth.emailer import send_tour_request_email
+from auth.router import get_current_user, get_db
 from core.config import Config
 from db.models import PropertyFavorites, PropertyNotes, PropertyReactions, Users
 from groups.deps import resolve_scope
 from properties.schemas import (
+    CommentedPropertiesListResponse,
+    CommentedPropertyResponse,
     FavoriteListResponse,
     FavoriteResponse,
     FavoriteToggleRequest,
     FavoriteToggleResponse,
-    CommentedPropertiesListResponse,
-    CommentedPropertyResponse,
     GroupNoteCreateRequest,
     GroupNoteResponse,
     GroupNotesListResponse,
@@ -156,9 +155,7 @@ def upsert_property_note(
     if existing:
         existing.note = payload.note
     else:
-        existing = PropertyNotes(
-            user_id=user.id, property_key=property_key, note=payload.note
-        )
+        existing = PropertyNotes(user_id=user.id, property_key=property_key, note=payload.note)
         db.add(existing)
 
     db.commit()
@@ -209,8 +206,7 @@ def list_commented_properties(
         .join(Users, Users.id == latest_note.user_id)
         .join(
             PropertyFavorites,
-            (PropertyFavorites.property_key == agg.c.property_key)
-            & (PropertyFavorites.group_id == group_id),
+            (PropertyFavorites.property_key == agg.c.property_key) & (PropertyFavorites.group_id == group_id),
             isouter=True,
         )
         .order_by(agg.c.latest_at.desc())

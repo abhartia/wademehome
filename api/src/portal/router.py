@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
 from db.models import Users
+from portal.lease_routes import router as lease_router
 from portal.schemas import (
     MoveInStatePayload,
     ProfileOut,
@@ -10,7 +11,6 @@ from portal.schemas import (
     RoommateStatePayload,
     ToursStatePayload,
 )
-from portal.lease_routes import router as lease_router
 from portal.service import (
     get_movein_state,
     get_profile,

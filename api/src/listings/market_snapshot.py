@@ -5,8 +5,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from sqlalchemy import text
-
 from listings.location_columns import quote_ident, resolve_city_column, resolve_state_column, resolve_zip_column
 
 # Fallback only when callers pass a free-text address without structured fields.

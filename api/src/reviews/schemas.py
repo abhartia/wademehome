@@ -5,7 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, conint
 
-
 Rating = conint(ge=1, le=5)
 
 
@@ -73,9 +72,7 @@ class ReviewResponseCreate(BaseModel):
 
 
 class ReviewFlagRequest(BaseModel):
-    flag_type: Literal[
-        "defamation", "factual_error", "spam", "harassment", "off_topic", "other"
-    ]
+    flag_type: Literal["defamation", "factual_error", "spam", "harassment", "off_topic", "other"]
     details: str | None = None
 
 

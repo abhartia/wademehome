@@ -6,8 +6,6 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from reviews.schemas import ReviewVerificationPayload
-
 
 class VerificationQueueItem(BaseModel):
     id: str

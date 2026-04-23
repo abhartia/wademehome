@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
 from core.logger import get_logger
-from db.models import PropertyFavorites, TourStatus, UserTours, Users
+from db.models import PropertyFavorites, TourStatus, Users, UserTours
 from user_listings.schemas import (
     CreateUserListingRequest,
     CreateUserListingResponse,
@@ -66,9 +66,7 @@ def dedupe_check(
     return DedupeCheckResponse(matches=matches)
 
 
-def _perform_create(
-    payload: CreateUserListingRequest, user: Users, db: Session
-) -> CreateUserListingResponse:
+def _perform_create(payload: CreateUserListingRequest, user: Users, db: Session) -> CreateUserListingResponse:
     """Shared by POST / and POST /paste — listing insert + favorite + saved tour.
 
     Respects payload.group_id so the favorite entry is scoped to the sidebar's
@@ -239,11 +237,7 @@ async def paste_and_create(
         # Exact property_key collision is rare but real (same address saved twice
         # in quick succession) — surface as a parse_error so the chip can show it.
         detail = exc.detail
-        message = (
-            detail.get("message")
-            if isinstance(detail, dict) and "message" in detail
-            else str(detail)
-        )
+        message = detail.get("message") if isinstance(detail, dict) and "message" in detail else str(detail)
         return PasteCreateResponse(parse_error=message or "Could not save listing.")
 
     return PasteCreateResponse(listing=created)

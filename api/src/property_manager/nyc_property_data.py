@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import text
@@ -111,6 +111,7 @@ def _bbox(lat: float, lng: float, radius_miles: float) -> tuple[float, float, fl
     """Return (min_lat, max_lat, min_lng, max_lng) bounding box."""
     # 1 degree lat ≈ 69 miles, 1 degree lng ≈ 69 * cos(lat) miles
     import math
+
     d_lat = radius_miles / 69.0
     d_lng = radius_miles / (69.0 * math.cos(math.radians(lat)))
     return (lat - d_lat, lat + d_lat, lng - d_lng, lng + d_lng)
@@ -124,13 +125,18 @@ def _socrata_get(url: str, params: dict[str, str]) -> list[dict[str, Any]]:
         parts.append(f"{k}={urllib.parse.quote(v, safe=_SOCRATA_SAFE_CHARS)}")
     full_url = url + "?" + "&".join(parts)
     req = urllib.request.Request(full_url, headers=_socrata_headers())
-    with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
+    with urllib.request.urlopen(
+        req, timeout=_TIMEOUT
+    ) as resp:  # nosec B310 — url built from constant NYC Socrata https base
         data = json.loads(resp.read())
     return data if isinstance(data, list) else []
 
 
 def fetch_pluto_in_radius(
-    lat: float, lng: float, radius_miles: float, limit: int = 500,
+    lat: float,
+    lng: float,
+    radius_miles: float,
+    limit: int = 500,
 ) -> list[PlutoBuilding]:
     """Fetch PLUTO buildings with residential units within a radius."""
     min_lat, max_lat, min_lng, max_lng = _bbox(lat, lng, radius_miles)
@@ -212,6 +218,7 @@ def fetch_assessments_for_bbls(bbls: list[str]) -> dict[str, dict[str, Any]]:
 
 def _get_engine():
     from workflow.utils import engine
+
     return engine
 
 
@@ -225,8 +232,7 @@ def _cache_get_bbls(bbls: list[str]) -> dict[str, PlutoBuilding]:
                 text(
                     "SELECT bbl, data_json FROM pluto_building_cache "
                     "WHERE bbl = ANY(:bbls) "
-                    "AND fetched_at > now() - interval ':ttl days'"
-                    .replace(":ttl days", f"{_CACHE_TTL_DAYS} days")
+                    "AND fetched_at > now() - interval ':ttl days'".replace(":ttl days", f"{_CACHE_TTL_DAYS} days")
                 ),
                 {"bbls": bbls},
             ).fetchall()
@@ -247,17 +253,27 @@ def _cache_set(buildings: list[PlutoBuilding]) -> None:
     try:
         with _get_engine().connect() as conn:
             for b in buildings:
-                data = json.dumps({
-                    "bbl": b.bbl, "address": b.address, "borough": b.borough,
-                    "block": b.block, "lot": b.lot, "units_res": b.units_res,
-                    "units_total": b.units_total, "bldg_area": b.bldg_area,
-                    "num_floors": b.num_floors, "year_built": b.year_built,
-                    "bldg_class": b.bldg_class, "lot_area": b.lot_area,
-                    "zone_dist": b.zone_dist, "owner_name": b.owner_name,
-                    "assessed_total": b.assessed_total,
-                    "market_value": b.market_value,
-                    "market_land_value": b.market_land_value,
-                })
+                data = json.dumps(
+                    {
+                        "bbl": b.bbl,
+                        "address": b.address,
+                        "borough": b.borough,
+                        "block": b.block,
+                        "lot": b.lot,
+                        "units_res": b.units_res,
+                        "units_total": b.units_total,
+                        "bldg_area": b.bldg_area,
+                        "num_floors": b.num_floors,
+                        "year_built": b.year_built,
+                        "bldg_class": b.bldg_class,
+                        "lot_area": b.lot_area,
+                        "zone_dist": b.zone_dist,
+                        "owner_name": b.owner_name,
+                        "assessed_total": b.assessed_total,
+                        "market_value": b.market_value,
+                        "market_land_value": b.market_land_value,
+                    }
+                )
                 conn.execute(
                     text(
                         "INSERT INTO pluto_building_cache (bbl, data_json, fetched_at) "
@@ -275,7 +291,9 @@ def _cache_set(buildings: list[PlutoBuilding]) -> None:
 
 
 def fetch_pluto_with_assessments(
-    lat: float, lng: float, radius_miles: float,
+    lat: float,
+    lng: float,
+    radius_miles: float,
 ) -> list[PlutoBuilding]:
     """Fetch PLUTO buildings in radius, enrich with assessment data, cache results."""
     # Always query Socrata for the geospatial lookup (need to know which BBLs are in radius)

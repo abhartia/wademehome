@@ -86,12 +86,15 @@ def enrich_building(db: Session, building: Buildings) -> bool:
 def run_backfill(batch_size: int = 200) -> int:
     db: Session = get_session_local()()
     try:
+
         def work(_watermark) -> int:
-            rows = db.execute(
-                select(Buildings)
-                .where((Buildings.bbl.is_(None)) | (Buildings.bin.is_(None)))
-                .limit(batch_size)
-            ).scalars().all()
+            rows = (
+                db.execute(
+                    select(Buildings).where((Buildings.bbl.is_(None)) | (Buildings.bin.is_(None))).limit(batch_size)
+                )
+                .scalars()
+                .all()
+            )
             enriched = 0
             for b in rows:
                 if enrich_building(db, b):

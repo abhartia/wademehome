@@ -2,7 +2,7 @@ import base64
 import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from core.config import Config
 from core.logger import get_logger
@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def hash_password(password: str) -> str:
@@ -53,9 +53,7 @@ def build_cookie_settings() -> dict[str, object]:
     # needs none + secure or credentialed fetches will not send the session cookie.
     if same_site == "none" and not secure:
         secure = True
-        logger.warning(
-            "AUTH_COOKIE_SAMESITE=none requires Secure cookies; treating session cookie as secure=True"
-        )
+        logger.warning("AUTH_COOKIE_SAMESITE=none requires Secure cookies; treating session cookie as secure=True")
     return {
         "key": Config.get("AUTH_COOKIE_NAME", "wmh_session") or "wmh_session",
         "httponly": True,

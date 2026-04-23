@@ -16,9 +16,9 @@ from movein.schemas import (
     MoveInPlanPatch,
     VendorCatalogListResponse,
     VendorOrderCreate,
+    VendorOrderListResponse,
     VendorOrderOut,
     VendorOrderPatch,
-    VendorOrderListResponse,
 )
 from movein.service import (
     create_checklist_item,
@@ -44,9 +44,7 @@ def read_move_in_plan(user: Users = Depends(get_current_user), db: Session = Dep
 
 
 @router.patch("/plan", response_model=MoveInPlanOut)
-def patch_move_in_plan(
-    body: MoveInPlanPatch, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def patch_move_in_plan(body: MoveInPlanPatch, user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     return patch_plan(db, user.id, body)
 
 
@@ -73,9 +71,7 @@ def patch_move_in_order(
 
 
 @router.delete("/orders/{order_id}", status_code=204)
-def delete_move_in_order(
-    order_id: uuid.UUID, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def delete_move_in_order(order_id: uuid.UUID, user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     delete_order(db, user.id, order_id)
     return None
 
@@ -127,4 +123,3 @@ def read_vendor_catalog_public(
 ):
     """Public endpoint — no auth required. Returns vendors available in the given state."""
     return VendorCatalogListResponse(vendors=list_vendor_catalog_public(db, state, category))
-

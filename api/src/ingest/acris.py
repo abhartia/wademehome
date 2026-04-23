@@ -12,7 +12,7 @@ raw ACRIS party names collide badly (shell LLCs, P.O. box addresses, etc.).
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -20,7 +20,6 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from auth.security import utc_now
 from db.models import (
     AcrisDocuments,
     AcrisParties,
@@ -109,20 +108,17 @@ def _party_role(party_type: str | None) -> str | None:
 def run_documents_ingest(max_pages: int | None = None) -> int:
     db: Session = get_session_local()()
     try:
+
         def work(watermark: datetime | None) -> int:
             # Restrict to ownership-relevant doc types.
             doc_filter = " OR ".join(f"doc_type='{dt}'" for dt in sorted(OWNERSHIP_DOC_TYPES))
             where = f"({doc_filter})"
             if watermark is not None:
-                where = (
-                    f"{where} AND :updated_at > '{watermark.replace(tzinfo=None).isoformat()}'"
-                )
+                where = f"{where} AND :updated_at > '{watermark.replace(tzinfo=None).isoformat()}'"
 
             batch: list[dict[str, Any]] = []
             count = 0
-            for raw in iter_dataset_rows(
-                DOCUMENTS_DATASET, where=where, max_pages=max_pages
-            ):
+            for raw in iter_dataset_rows(DOCUMENTS_DATASET, where=where, max_pages=max_pages):
                 row = _doc_row(raw)
                 if not row["document_id"]:
                     continue
@@ -159,6 +155,7 @@ def _upsert_documents(db: Session, rows: list[dict[str, Any]]) -> int:
 def run_parties_ingest(max_pages: int | None = None) -> int:
     db: Session = get_session_local()()
     try:
+
         def work(watermark: datetime | None) -> int:
             where = None
             if watermark is not None:
@@ -167,9 +164,7 @@ def run_parties_ingest(max_pages: int | None = None) -> int:
             batch: list[dict[str, Any]] = []
             count = 0
             known_docs: set[str] = set()
-            for raw in iter_dataset_rows(
-                PARTIES_DATASET, where=where, max_pages=max_pages
-            ):
+            for raw in iter_dataset_rows(PARTIES_DATASET, where=where, max_pages=max_pages):
                 row = _party_row(raw)
                 if not row["document_id"] or not row["name"]:
                     continue
@@ -177,9 +172,7 @@ def run_parties_ingest(max_pages: int | None = None) -> int:
                 # can FK back cleanly.
                 if row["document_id"] not in known_docs:
                     exists = db.execute(
-                        select(AcrisDocuments.document_id).where(
-                            AcrisDocuments.document_id == row["document_id"]
-                        )
+                        select(AcrisDocuments.document_id).where(AcrisDocuments.document_id == row["document_id"])
                     ).scalar_one_or_none()
                     if exists is None:
                         continue
@@ -220,9 +213,7 @@ def _upsert_parties(db: Session, rows: list[dict[str, Any]]) -> int:
 
 def _promote_grantees_to_aliases(db: Session) -> None:
     """For every new grantee party, ensure a landlord_entity + alias exists."""
-    parties = db.execute(
-        select(AcrisParties).where(AcrisParties.role == "grantee")
-    ).scalars().all()
+    parties = db.execute(select(AcrisParties).where(AcrisParties.role == "grantee")).scalars().all()
 
     for p in parties:
         if not p.name:
@@ -258,6 +249,7 @@ def _promote_grantees_to_aliases(db: Session) -> None:
 
 if __name__ == "__main__":
     import sys
+
     max_pages = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     print(f"ACRIS documents upserted: {run_documents_ingest(max_pages)}")
     print(f"ACRIS parties upserted:   {run_parties_ingest(max_pages)}")

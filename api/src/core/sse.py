@@ -11,4 +11,3 @@ def stop_event_result_to_sse_chunk(result: Any) -> str:
     """
     payload = "" if result is None else str(result)
     return f"0:{json.dumps(payload)}\n\n"
-

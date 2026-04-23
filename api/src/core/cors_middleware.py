@@ -1,6 +1,8 @@
 """CORS middleware for controlled cross-origin requests."""
-from starlette.types import ASGIApp, Receive, Scope, Send
+
 from starlette.responses import Response
+from starlette.types import ASGIApp, Receive, Scope, Send
+
 from core.cors_config import cors_config
 from core.logger import get_logger
 
@@ -75,16 +77,19 @@ class CORSMiddleware:
 
                     # Remove any existing CORS headers to prevent duplicates
                     headers = [
-                        (name, value) for name, value in headers
+                        (name, value)
+                        for name, value in headers
                         if name.lower() not in [b"access-control-allow-origin", b"access-control-allow-credentials"]
                     ]
 
                     # Add our CORS headers
-                    headers.extend([
-                        (b"access-control-allow-origin", cors_origin.encode()),
-                        (b"access-control-allow-credentials", b"true"),
-                        (b"vary", b"Origin"),
-                    ])
+                    headers.extend(
+                        [
+                            (b"access-control-allow-origin", cors_origin.encode()),
+                            (b"access-control-allow-credentials", b"true"),
+                            (b"vary", b"Origin"),
+                        ]
+                    )
 
                     message = {**message, "headers": headers}
 

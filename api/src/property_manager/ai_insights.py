@@ -230,10 +230,11 @@ def _cache_set(key: str, summary: AiSummary) -> None:
 
 def _call_llm(data: dict[str, Any]) -> AiSummary:
     """Call the LLM via LlamaIndex and parse structured JSON response."""
-    from core.config import Config
     from llama_index.core.base.llms.types import ChatMessage, MessageRole
     from llama_index.llms.azure_openai import AzureOpenAI
     from llama_index.llms.openai import OpenAI
+
+    from core.config import Config
 
     endpoint = (Config.get("AZURE_OPENAI_ENDPOINT", "") or "").strip()
     if endpoint and Config.get("AZURE_OPENAI_API_KEY") and Config.get("AZURE_OPENAI_DEPLOYMENT"):
@@ -262,15 +263,16 @@ def _call_llm(data: dict[str, Any]) -> AiSummary:
             additional_kwargs={"max_completion_tokens": 16000},
         )
 
-    user_msg = (
-        "Here is the market data for the area. Produce your analysis as JSON.\n\n"
-        + json.dumps(data, indent=2, default=str)
+    user_msg = "Here is the market data for the area. Produce your analysis as JSON.\n\n" + json.dumps(
+        data, indent=2, default=str
     )
 
-    response = llm.chat([
-        ChatMessage(role=MessageRole.SYSTEM, content=_SYSTEM_PROMPT),
-        ChatMessage(role=MessageRole.USER, content=user_msg),
-    ])
+    response = llm.chat(
+        [
+            ChatMessage(role=MessageRole.SYSTEM, content=_SYSTEM_PROMPT),
+            ChatMessage(role=MessageRole.USER, content=user_msg),
+        ]
+    )
     content = response.message.content
     if not content:
         raise ValueError("LLM returned empty content")
@@ -314,7 +316,12 @@ def generate_ai_summary(
 ) -> AiSummary | None:
     """Generate (or return cached) AI narrative summary. Returns None on failure."""
     data = _build_data_payload(
-        market, demographics, competitors, fee_intelligence, supply_pressure, amenities,
+        market,
+        demographics,
+        competitors,
+        fee_intelligence,
+        supply_pressure,
+        amenities,
         building_financials=building_financials,
         trend_data=trend_data,
     )
@@ -382,10 +389,11 @@ Return JSON: {"cleaned": {"original_label": "Clean Label", ...}, "remove": ["lab
 def _call_llm_raw(system_prompt: str, user_msg: str) -> str:
     """Call LLM and return raw text content. Uses same Azure/OpenAI config
     as the main _call_llm but with reasoning disabled for speed."""
-    from core.config import Config
     from llama_index.core.base.llms.types import ChatMessage, MessageRole
     from llama_index.llms.azure_openai import AzureOpenAI
     from llama_index.llms.openai import OpenAI
+
+    from core.config import Config
 
     endpoint = (Config.get("AZURE_OPENAI_ENDPOINT", "") or "").strip()
     if endpoint and Config.get("AZURE_OPENAI_API_KEY") and Config.get("AZURE_OPENAI_DEPLOYMENT"):
@@ -407,10 +415,12 @@ def _call_llm_raw(system_prompt: str, user_msg: str) -> str:
             max_retries=_LLM_MAX_RETRIES,
         )
 
-    response = llm.chat([
-        ChatMessage(role=MessageRole.SYSTEM, content=system_prompt),
-        ChatMessage(role=MessageRole.USER, content=user_msg),
-    ])
+    response = llm.chat(
+        [
+            ChatMessage(role=MessageRole.SYSTEM, content=system_prompt),
+            ChatMessage(role=MessageRole.USER, content=user_msg),
+        ]
+    )
     content = (response.message.content or "").strip()
     if content.startswith("```"):
         lines = content.split("\n")
@@ -451,8 +461,11 @@ def clean_amenity_labels(amenities: AmenityAnalysis) -> AmenityAnalysis:
         logger.info("Amenity label cache MISS — calling LLM (%s)", key[:12])
         content = _call_llm_raw(_AMENITY_CLEAN_PROMPT, json.dumps(raw_labels))
         cached = json.loads(content)
-        logger.info("Amenity LLM returned: %d cleaned, %d removed",
-                     len(cached.get("cleaned", {})), len(cached.get("remove", [])))
+        logger.info(
+            "Amenity LLM returned: %d cleaned, %d removed",
+            len(cached.get("cleaned", {})),
+            len(cached.get("remove", [])),
+        )
 
         # Persist to cache
         try:
@@ -490,11 +503,13 @@ def clean_amenity_labels(amenities: AmenityAnalysis) -> AmenityAnalysis:
                 )
             else:
                 seen_labels[label] = len(result)
-                result.append(AmenityFrequency(
-                    amenity=label,
-                    count=item.count,
-                    pct_of_buildings=item.pct_of_buildings,
-                ))
+                result.append(
+                    AmenityFrequency(
+                        amenity=label,
+                        count=item.count,
+                        pct_of_buildings=item.pct_of_buildings,
+                    )
+                )
         return result
 
     return AmenityAnalysis(

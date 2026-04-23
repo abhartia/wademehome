@@ -27,9 +27,7 @@ def _parse_date(value: str | None) -> date | None:
 
 def _to_row(raw: dict[str, Any]) -> dict[str, Any]:
     return {
-        "complaint_number": str(
-            raw.get("complaint_number") or raw.get("complaintnumber") or ""
-        ).strip(),
+        "complaint_number": str(raw.get("complaint_number") or raw.get("complaintnumber") or "").strip(),
         "bbl": str(raw.get("bbl") or "").strip() or None,
         "bin": str(raw.get("bin") or raw.get("bin_number") or "").strip() or None,
         "category": raw.get("complaint_category") or raw.get("category"),
@@ -43,6 +41,7 @@ def _to_row(raw: dict[str, Any]) -> dict[str, Any]:
 def run_ingest(max_pages: int | None = None) -> int:
     db: Session = get_session_local()()
     try:
+
         def work(watermark: datetime | None) -> int:
             where = None
             if watermark is not None:
@@ -93,5 +92,6 @@ def _upsert(db: Session, rows: list[dict[str, Any]]) -> int:
 
 if __name__ == "__main__":
     import sys
+
     max_pages = int(sys.argv[1]) if len(sys.argv) > 1 else None
     print(f"Upserted {run_ingest(max_pages)} DOB complaint rows.")

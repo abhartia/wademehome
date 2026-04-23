@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import html
 import json
@@ -7,7 +8,7 @@ import re
 import statistics
 import uuid
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -15,11 +16,10 @@ from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from auth.emailer import send_property_manager_weekly_report_email
-from core.config import Config
 from core.logger import get_logger
-from db.models import PmBuildingSnapshots, PmMarketSnapshots, PropertyManagerReportSubscriptions, Users
+from db.models import PropertyManagerReportSubscriptions, Users
 from listings.router import fetch_nearby_listings_radius, fetch_poi_nearby
-from listings.schemas import MarketSnapshotResponse, NearbyListingsResponse, PoiNearbyResponse
+from listings.schemas import MarketSnapshotResponse, NearbyListingsResponse
 from property_manager.ai_insights import generate_ai_summary
 from property_manager.census import CensusDemographics, fetch_census_demographics
 from property_manager.schemas import (
@@ -60,7 +60,7 @@ def _snapshot_tables_ready() -> bool:
     """Return whether snapshot tables are present; cache check to avoid repeated inspector calls."""
     global _snapshot_tables_ready_cache, _snapshot_tables_checked_at, _snapshot_tables_missing_logged
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if (
         _snapshot_tables_checked_at is not None
         and _snapshot_tables_ready_cache is not None
@@ -99,11 +99,15 @@ def _to_response(row: PropertyManagerReportSubscriptions) -> ReportSubscriptionR
 
 
 def list_subscriptions(db: Session, user_id: uuid.UUID) -> list[ReportSubscriptionResponse]:
-    rows = db.execute(
-        select(PropertyManagerReportSubscriptions)
-        .where(PropertyManagerReportSubscriptions.user_id == user_id)
-        .order_by(PropertyManagerReportSubscriptions.created_at.desc())
-    ).scalars().all()
+    rows = (
+        db.execute(
+            select(PropertyManagerReportSubscriptions)
+            .where(PropertyManagerReportSubscriptions.user_id == user_id)
+            .order_by(PropertyManagerReportSubscriptions.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [_to_response(r) for r in rows]
 
 
@@ -173,43 +177,61 @@ def _insights_html_section(insights: InsightsResponse) -> str:
     # Demographics / Affordability
     demo = insights.demographics
     if demo:
-        parts.append('<table border="0" cellpadding="4" style="font-family:sans-serif;font-size:13px;margin-bottom:12px;">')
+        parts.append(
+            '<table border="0" cellpadding="4" style="font-family:sans-serif;font-size:13px;margin-bottom:12px;">'
+        )
         if demo.median_household_income:
-            parts.append(f'<tr><td><strong>Median Household Income</strong></td><td>${demo.median_household_income:,.0f}</td></tr>')
+            parts.append(
+                f"<tr><td><strong>Median Household Income</strong></td><td>${demo.median_household_income:,.0f}</td></tr>"
+            )
         if demo.affordability_ceiling:
-            parts.append(f'<tr><td><strong>Affordability Ceiling (30% rule)</strong></td><td>${demo.affordability_ceiling:,.0f}/mo</td></tr>')
+            parts.append(
+                f"<tr><td><strong>Affordability Ceiling (30% rule)</strong></td><td>${demo.affordability_ceiling:,.0f}/mo</td></tr>"
+            )
         if demo.affordable_pct is not None:
-            parts.append(f'<tr><td><strong>Households That Can Afford Area Rent</strong></td><td>{demo.affordable_pct}%</td></tr>')
+            parts.append(
+                f"<tr><td><strong>Households That Can Afford Area Rent</strong></td><td>{demo.affordable_pct}%</td></tr>"
+            )
         if demo.renter_pct is not None:
-            parts.append(f'<tr><td><strong>Renter Population</strong></td><td>{demo.renter_pct}%')
+            parts.append(f"<tr><td><strong>Renter Population</strong></td><td>{demo.renter_pct}%")
             if demo.renter_pool_size:
-                parts.append(f' (~{demo.renter_pool_size:,} people)')
-            parts.append('</td></tr>')
+                parts.append(f" (~{demo.renter_pool_size:,} people)")
+            parts.append("</td></tr>")
         if demo.population:
-            parts.append(f'<tr><td><strong>Total Population</strong></td><td>{demo.population:,}</td></tr>')
-        parts.append('</table>')
+            parts.append(f"<tr><td><strong>Total Population</strong></td><td>{demo.population:,}</td></tr>")
+        parts.append("</table>")
 
     # Supply pressure
     sp = insights.supply_pressure
     if sp.total_units > 0:
         parts.append(
             '<p style="font-size:13px;"><strong>Supply:</strong> '
-            f'{sp.available_units} of {sp.total_units} listed units currently available '
-            f'({sp.listing_sample_vacancy_rate_pct}% listing availability rate). '
-            f'Based on listing platform data; actual market vacancy is typically lower.</p>'
+            f"{sp.available_units} of {sp.total_units} listed units currently available "
+            f"({sp.listing_sample_vacancy_rate_pct}% listing availability rate). "
+            f"Based on listing platform data; actual market vacancy is typically lower.</p>"
         )
 
     # Top fees
     fi = insights.fee_intelligence
     if fi.fee_categories:
         parts.append('<p style="font-size:13px;margin-bottom:4px;"><strong>Top Fee Benchmarks:</strong></p>')
-        parts.append('<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-family:sans-serif;font-size:12px;margin-bottom:12px;">')
-        parts.append('<tr style="background:#f5f5f5;"><th>Fee</th><th>% Charging</th><th>Median</th><th>Range</th></tr>')
+        parts.append(
+            '<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-family:sans-serif;font-size:12px;margin-bottom:12px;">'
+        )
+        parts.append(
+            '<tr style="background:#f5f5f5;"><th>Fee</th><th>% Charging</th><th>Median</th><th>Range</th></tr>'
+        )
         for fc in fi.fee_categories[:8]:
-            med = f'${fc.median_amount:,.0f}' if fc.median_amount else '—'
-            rng = f'${fc.min_amount:,.0f}–${fc.max_amount:,.0f}' if fc.min_amount is not None and fc.max_amount is not None else '—'
-            parts.append(f'<tr><td>{html.escape(fc.label)}</td><td>{fc.pct_buildings}%</td><td>{med}</td><td>{rng}</td></tr>')
-        parts.append('</table>')
+            med = f"${fc.median_amount:,.0f}" if fc.median_amount else "—"
+            rng = (
+                f"${fc.min_amount:,.0f}–${fc.max_amount:,.0f}"
+                if fc.min_amount is not None and fc.max_amount is not None
+                else "—"
+            )
+            parts.append(
+                f"<tr><td>{html.escape(fc.label)}</td><td>{fc.pct_buildings}%</td><td>{med}</td><td>{rng}</td></tr>"
+            )
+        parts.append("</table>")
 
     # Amenity gaps
     am = insights.amenities
@@ -269,8 +291,7 @@ def _building_movers_html(building_deltas: list[BuildingDelta]) -> str:
         color = "#dc2626" if (d.rent_change_pct or 0) > 0 else "#16a34a"
         pct_str = f"{d.rent_change_pct:+.1f}%" if d.rent_change_pct else ""
         parts.append(
-            f'<li>{name}: {prev_str} &rarr; {cur_str} '
-            f'<span style="color:{color};">({pct_str})</span></li>'
+            f"<li>{name}: {prev_str} &rarr; {cur_str} " f'<span style="color:{color};">({pct_str})</span></li>'
         )
     for d in new_buildings:
         name = html.escape(d.property_name or d.address or d.property_id)
@@ -322,11 +343,26 @@ def build_report_html(
     if market_deltas:
         badges = []
         if market_deltas.median_rent:
-            badges.append(_delta_badge_html("Median rent", market_deltas.median_rent.current, market_deltas.median_rent.previous, "dollar"))
+            badges.append(
+                _delta_badge_html(
+                    "Median rent", market_deltas.median_rent.current, market_deltas.median_rent.previous, "dollar"
+                )
+            )
         if market_deltas.vacancy_rate_pct:
-            badges.append(_delta_badge_html("Availability", market_deltas.vacancy_rate_pct.current, market_deltas.vacancy_rate_pct.previous, "pct"))
+            badges.append(
+                _delta_badge_html(
+                    "Availability",
+                    market_deltas.vacancy_rate_pct.current,
+                    market_deltas.vacancy_rate_pct.previous,
+                    "pct",
+                )
+            )
         if market_deltas.sample_size:
-            badges.append(_delta_badge_html("Supply", market_deltas.sample_size.current, market_deltas.sample_size.previous, "int"))
+            badges.append(
+                _delta_badge_html(
+                    "Supply", market_deltas.sample_size.current, market_deltas.sample_size.previous, "int"
+                )
+            )
         if badges:
             deltas_section = (
                 '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:10px 14px;'
@@ -418,8 +454,11 @@ def send_subscription_report_now(
             db.rollback()
 
     html_body = build_report_html(
-        label=sub.label, nearby=nearby, insights=insights,
-        market_deltas=market_deltas, building_deltas=building_deltas,
+        label=sub.label,
+        nearby=nearby,
+        insights=insights,
+        market_deltas=market_deltas,
+        building_deltas=building_deltas,
     )
     subject = f"Weekly comps: {sub.label}"
     send_property_manager_weekly_report_email(
@@ -427,7 +466,7 @@ def send_subscription_report_now(
         subject=subject,
         html_body=html_body,
     )
-    sub.last_sent_at = datetime.now(timezone.utc)
+    sub.last_sent_at = datetime.now(UTC)
     db.add(sub)
     db.commit()
     db.refresh(sub)
@@ -448,7 +487,7 @@ def send_weekly_reports_for_all_active(db: Session) -> tuple[int, int]:
 
     sent = 0
     failed = 0
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for sub, user in rows:
         try:
             s_lat = float(sub.center_latitude)
@@ -479,8 +518,11 @@ def send_weekly_reports_for_all_active(db: Session) -> tuple[int, int]:
                     db.rollback()
 
             html_body = build_report_html(
-                label=sub.label, nearby=nearby, insights=insights,
-                market_deltas=market_deltas, building_deltas=building_deltas,
+                label=sub.label,
+                nearby=nearby,
+                insights=insights,
+                market_deltas=market_deltas,
+                building_deltas=building_deltas,
             )
             subject = f"Weekly comps: {sub.label}"
             send_property_manager_weekly_report_email(
@@ -517,7 +559,9 @@ def _qualified_table() -> str:
 
 
 def _fetch_building_details_in_radius(
-    lat: float, lng: float, radius_miles: float,
+    lat: float,
+    lng: float,
+    radius_miles: float,
 ) -> list[dict[str, Any]]:
     """Fetch raw unit rows with fees/sqft/availability within a radius."""
     qtable = _qualified_table()
@@ -575,10 +619,8 @@ def _parse_rent_midpoint(rent_range: str | None) -> float | None:
     matches = _RENT_RE.findall(rent_range)
     nums = []
     for m in matches:
-        try:
+        with contextlib.suppress(ValueError):
             nums.append(float(m.replace(",", "")))
-        except ValueError:
-            pass
     if not nums:
         return None
     return statistics.mean(nums)
@@ -640,7 +682,7 @@ def _compute_rent_positioning(
         buildings[pid].append(r)
 
     out: list[CompetitorPosition] = []
-    for pid, units in buildings.items():
+    for _pid, units in buildings.items():
         first = units[0]
         rents = [u["rent_price"] for u in units if u.get("rent_price") and u["rent_price"] > 0]
         sqfts = [u["sqft"] for u in units if u.get("sqft") and u["sqft"] > 0]
@@ -665,18 +707,20 @@ def _compute_rent_positioning(
 
         beds_str = ", ".join(f"{b} BR" for b in beds_set) if beds_set else ""
 
-        out.append(CompetitorPosition(
-            name=first.get("property_name") or first.get("address") or "Unknown",
-            address=first.get("address") or "",
-            unit_count=len(units),
-            median_rent=round(med_rent, 0) if med_rent else None,
-            median_sqft=round(med_sqft, 0) if med_sqft else None,
-            rent_per_sqft=rent_per_sqft,
-            vs_median_pct=vs_pct,
-            position_label=label,
-            beds_available=beds_str,
-            listing_url=first.get("listing_url"),
-        ))
+        out.append(
+            CompetitorPosition(
+                name=first.get("property_name") or first.get("address") or "Unknown",
+                address=first.get("address") or "",
+                unit_count=len(units),
+                median_rent=round(med_rent, 0) if med_rent else None,
+                median_sqft=round(med_sqft, 0) if med_sqft else None,
+                rent_per_sqft=rent_per_sqft,
+                vs_median_pct=vs_pct,
+                position_label=label,
+                beds_available=beds_str,
+                listing_url=first.get("listing_url"),
+            )
+        )
 
     out.sort(key=lambda c: c.rent_per_sqft if c.rent_per_sqft is not None else 9999)
     return out
@@ -707,10 +751,15 @@ def _compute_fee_intelligence(rows: list[dict[str, Any]]) -> FeeIntelligence:
         return FeeIntelligence(total_buildings_with_fees=0, fee_categories=[])
 
     # Aggregate by fee label
-    label_data: dict[str, dict] = defaultdict(lambda: {
-        "type": "", "frequency": "", "amounts": [], "building_count": 0,
-    })
-    for pid, items in building_fees.items():
+    label_data: dict[str, dict] = defaultdict(
+        lambda: {
+            "type": "",
+            "frequency": "",
+            "amounts": [],
+            "building_count": 0,
+        }
+    )
+    for _pid, items in building_fees.items():
         seen_labels: set[str] = set()
         for f in items:
             label = (f.get("label") or "").strip()
@@ -730,16 +779,18 @@ def _compute_fee_intelligence(rows: list[dict[str, Any]]) -> FeeIntelligence:
     categories: list[FeeCategoryStats] = []
     for label, data in label_data.items():
         amts = data["amounts"]
-        categories.append(FeeCategoryStats(
-            label=label,
-            fee_type=data["type"],
-            buildings_charging=data["building_count"],
-            pct_buildings=round(data["building_count"] / total_with_fees * 100, 1),
-            median_amount=round(statistics.median(amts), 2) if amts else None,
-            min_amount=round(min(amts), 2) if amts else None,
-            max_amount=round(max(amts), 2) if amts else None,
-            frequency=data["frequency"],
-        ))
+        categories.append(
+            FeeCategoryStats(
+                label=label,
+                fee_type=data["type"],
+                buildings_charging=data["building_count"],
+                pct_buildings=round(data["building_count"] / total_with_fees * 100, 1),
+                median_amount=round(statistics.median(amts), 2) if amts else None,
+                min_amount=round(min(amts), 2) if amts else None,
+                max_amount=round(max(amts), 2) if amts else None,
+                frequency=data["frequency"],
+            )
+        )
 
     categories.sort(key=lambda c: c.buildings_charging, reverse=True)
     return FeeIntelligence(
@@ -767,8 +818,13 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
         bed_totals[bed_label] += 1
 
         is_available = status in (
-            "available", "available now", "available soon", "vacant",
-            "not yet leased", "ready", "open",
+            "available",
+            "available now",
+            "available soon",
+            "vacant",
+            "not yet leased",
+            "ready",
+            "open",
         )
 
         # Exclude "Unknown" bedroom units from headline totals — they inflate
@@ -788,12 +844,14 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
             continue
         t = bed_totals[bed_label]
         a = bed_available.get(bed_label, 0)
-        by_bedroom.append(BedroomSupply(
-            beds=bed_label,
-            total=t,
-            available=a,
-            vacancy_pct=round(a / t * 100, 1) if t > 0 else 0,
-        ))
+        by_bedroom.append(
+            BedroomSupply(
+                beds=bed_label,
+                total=t,
+                available=a,
+                vacancy_pct=round(a / t * 100, 1) if t > 0 else 0,
+            )
+        )
 
     listing_availability = round(available / total * 100, 1) if total > 0 else 0.0
     unlisted_share = min(max(_SUPPLY_UNLISTED_MARKET_SHARE_PCT, 0.0), 99.0)
@@ -814,7 +872,7 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
         )
 
     est_market = total / share_in_db
-    est_unlisted = max(0, int(round(est_market - total)))
+    est_unlisted = max(0, round(est_market - total))
     avail_unlisted = est_unlisted * (assumed_uv / 100.0)
     est_vacancy = (available + avail_unlisted) / est_market * 100 if est_market > 0 else 0.0
 
@@ -823,7 +881,7 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
         available_units=available,
         vacancy_rate_pct=round(est_vacancy, 1),
         listing_sample_vacancy_rate_pct=listing_availability,
-        estimated_market_units=int(round(est_market)),
+        estimated_market_units=round(est_market),
         estimated_unlisted_units=est_unlisted,
         unlisted_market_share_pct=unlisted_share,
         assumed_unlisted_vacancy_pct=assumed_uv,
@@ -834,30 +892,72 @@ def _compute_supply_pressure(rows: list[dict[str, Any]]) -> SupplyPressure:
 # Amenities that are too generic (every apartment has these), malformed, or placeholder text.
 _AMENITY_BLOCKLIST: set[str] = {
     # Basic appliances every unit has
-    "refrigerator", "fridge", "stove", "oven", "microwave", "range",
-    "garbage disposal", "smoke detector", "carbon monoxide detector",
-    "fire extinguisher", "smoke free", "smoke free community",
+    "refrigerator",
+    "fridge",
+    "stove",
+    "oven",
+    "microwave",
+    "range",
+    "garbage disposal",
+    "smoke detector",
+    "carbon monoxide detector",
+    "fire extinguisher",
+    "smoke free",
+    "smoke free community",
     # Generic / meaningless
-    "other", "none", "n/a", "na", "tbd", "ask", "call for details",
-    "information coming soon", "coming soon", "please inquire",
-    "see website", "visit website", "contact us", "inquire within",
+    "other",
+    "none",
+    "n/a",
+    "na",
+    "tbd",
+    "ask",
+    "call for details",
+    "information coming soon",
+    "coming soon",
+    "please inquire",
+    "see website",
+    "visit website",
+    "contact us",
+    "inquire within",
     # Too vague
-    "kitchen", "bathroom", "bedroom", "living room", "closet",
-    "window", "windows", "door", "doors", "floor", "floors",
-    "wall", "walls", "ceiling", "ceilings", "light", "lights",
-    "cable ready", "cable", "internet ready",
+    "kitchen",
+    "bathroom",
+    "bedroom",
+    "living room",
+    "closet",
+    "window",
+    "windows",
+    "door",
+    "doors",
+    "floor",
+    "floors",
+    "wall",
+    "walls",
+    "ceiling",
+    "ceilings",
+    "light",
+    "lights",
+    "cable ready",
+    "cable",
+    "internet ready",
 }
 
 # Substrings that indicate junk entries
 _AMENITY_JUNK_SUBSTRINGS = (
-    "coming soon", "information coming", "call for", "please call",
-    "contact for", "inquire", "see manager", "ask about",
+    "coming soon",
+    "information coming",
+    "call for",
+    "please call",
+    "contact for",
+    "inquire",
+    "see manager",
+    "ask about",
 )
 
 _AMENITY_JUNK_RE = re.compile(
     r"^\d+\s*(foot|ft|'|ceiling)"  # "9 foot ceilings", "9 ceilings", "9' ceilings"
-    r"|^\d+$"                       # bare numbers
-    r"|^.{1,2}$"                    # 1-2 char junk
+    r"|^\d+$"  # bare numbers
+    r"|^.{1,2}$"  # 1-2 char junk
 )
 
 
@@ -868,9 +968,7 @@ def _is_junk_amenity(amenity: str) -> bool:
         return True
     if any(sub in a for sub in _AMENITY_JUNK_SUBSTRINGS):
         return True
-    if _AMENITY_JUNK_RE.search(a):
-        return True
-    return False
+    return bool(_AMENITY_JUNK_RE.search(a))
 
 
 def _compute_amenity_analysis(listing_ids: list[str]) -> AmenityAnalysis:
@@ -945,7 +1043,7 @@ def _compute_amenity_analysis(listing_ids: list[str]) -> AmenityAnalysis:
 
 # ── NYC Building Financials (PLUTO + DOF assessments) ──────────────────
 
-_NYC_CAP_RATE = 0.05       # ~5% for NYC multifamily (RGB study baseline)
+_NYC_CAP_RATE = 0.05  # ~5% for NYC multifamily (RGB study baseline)
 _NYC_EXPENSE_RATIO = 0.60  # ~60% operating expense ratio per RGB studies
 
 
@@ -982,25 +1080,27 @@ def _compute_building_financials(
         if est_rent and area_median_asking_rent and est_rent > 0:
             gap_pct = round((area_median_asking_rent - est_rent) / est_rent * 100, 1)
 
-        profiles.append(BuildingFinancialProfile(
-            bbl=b.bbl,
-            address=b.address,
-            owner_name=b.owner_name,
-            units_res=units,
-            bldg_area_sqft=b.bldg_area,
-            num_floors=b.num_floors,
-            year_built=b.year_built,
-            bldg_class=b.bldg_class,
-            zone_dist=b.zone_dist,
-            assessed_total=b.assessed_total,
-            market_value=mv,
-            value_per_unit=vpu,
-            value_per_sqft=vps,
-            estimated_noi=est_noi,
-            estimated_gross_income=est_gross,
-            estimated_avg_in_place_rent=est_rent,
-            asking_vs_in_place_gap_pct=gap_pct,
-        ))
+        profiles.append(
+            BuildingFinancialProfile(
+                bbl=b.bbl,
+                address=b.address,
+                owner_name=b.owner_name,
+                units_res=units,
+                bldg_area_sqft=b.bldg_area,
+                num_floors=b.num_floors,
+                year_built=b.year_built,
+                bldg_class=b.bldg_class,
+                zone_dist=b.zone_dist,
+                assessed_total=b.assessed_total,
+                market_value=mv,
+                value_per_unit=vpu,
+                value_per_sqft=vps,
+                estimated_noi=est_noi,
+                estimated_gross_income=est_gross,
+                estimated_avg_in_place_rent=est_rent,
+                asking_vs_in_place_gap_pct=gap_pct,
+            )
+        )
 
         if vpu is not None:
             values_per_unit.append(vpu)
@@ -1045,7 +1145,9 @@ def _demographics_out(demo: CensusDemographics | None) -> DemographicsOut | None
     )
 
 
-def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict[str, Any] | None = None) -> InsightsResponse:
+def build_insights(
+    lat: float, lng: float, radius_miles: float, trend_data: dict[str, Any] | None = None
+) -> InsightsResponse:
     """Orchestrate all insight modules into a single response."""
     # 1. Nearby listings (for property list + zip extraction)
     nearby = fetch_nearby_listings_radius(lat, lng, radius_miles, 150)
@@ -1084,6 +1186,7 @@ def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict
     amenities = _compute_amenity_analysis(listing_ids)
     try:
         from property_manager.ai_insights import clean_amenity_labels
+
         amenities = clean_amenity_labels(amenities)
     except Exception:
         logger.warning("AI amenity label cleanup failed", exc_info=True)
@@ -1105,7 +1208,12 @@ def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict
     # 12. AI narrative summary (cached by data hash)
     demographics_out = _demographics_out(demographics)
     ai_summary = generate_ai_summary(
-        market, demographics_out, competitors, fee_intel, supply, amenities,
+        market,
+        demographics_out,
+        competitors,
+        fee_intel,
+        supply,
+        amenities,
         building_financials=building_financials,
         trend_data=trend_data,
     )
@@ -1123,7 +1231,7 @@ def build_insights(lat: float, lng: float, radius_miles: float, trend_data: dict
         center_latitude=lat,
         center_longitude=lng,
         radius_miles=radius_miles,
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
     )
 
 
@@ -1142,10 +1250,17 @@ def _location_key(lat: float, lng: float, radius: float) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
-_AVAIL_STATUSES = frozenset({
-    "available", "available now", "available soon", "vacant",
-    "not yet leased", "ready", "open",
-})
+_AVAIL_STATUSES = frozenset(
+    {
+        "available",
+        "available now",
+        "available soon",
+        "vacant",
+        "not yet leased",
+        "ready",
+        "open",
+    }
+)
 
 
 def archive_snapshots(
@@ -1185,10 +1300,7 @@ def archive_snapshots(
         med_sqft = round(statistics.median(sqfts), 0) if sqfts else None
         rps = round(med_rent / med_sqft, 2) if med_rent and med_sqft else None
 
-        avail_count = sum(
-            1 for u in units
-            if (u.get("availability_status") or "").strip().lower() in _AVAIL_STATUSES
-        )
+        avail_count = sum(1 for u in units if (u.get("availability_status") or "").strip().lower() in _AVAIL_STATUSES)
         beds_str = ", ".join(f"{b} BR" for b in beds_set) if beds_set else ""
 
         # Collect fees for this building (first unit that has fees)
@@ -1249,10 +1361,14 @@ def archive_snapshots(
     # ── Market-level snapshot ─────────────────────────────────────────
     mkt = insights.market
     sp = insights.supply_pressure
-    bed_vac = {
-        b.beds: {"total": b.total, "available": b.available, "vacancy_pct": b.vacancy_pct}
-        for b in (sp.by_bedroom or [])
-    } if sp.by_bedroom else None
+    bed_vac = (
+        {
+            b.beds: {"total": b.total, "available": b.available, "vacancy_pct": b.vacancy_pct}
+            for b in (sp.by_bedroom or [])
+        }
+        if sp.by_bedroom
+        else None
+    )
 
     db.execute(
         text("""
@@ -1324,7 +1440,10 @@ def _fetch_building_amenities(listing_ids: list[str]) -> list[str] | None:
 
 
 def get_market_history(
-    lat: float, lng: float, radius: float, weeks: int = 12,
+    lat: float,
+    lng: float,
+    radius: float,
+    weeks: int = 12,
 ) -> list[MarketSnapshotPoint]:
     """Return market-level snapshots for a location, newest first."""
     if not _snapshot_tables_ready():
@@ -1332,8 +1451,9 @@ def get_market_history(
     loc_key = _location_key(lat, lng, radius)
     try:
         with engine.connect() as conn:
-            rows = conn.execute(
-                text("""
+            rows = (
+                conn.execute(
+                    text("""
                     SELECT snapshot_week, median_rent, p25_rent, p75_rent,
                            sample_size, vacancy_rate_pct, available_units, total_units
                     FROM pm_market_snapshots
@@ -1341,8 +1461,11 @@ def get_market_history(
                     ORDER BY snapshot_week DESC
                     LIMIT :lim
                 """),
-                {"loc_key": loc_key, "lim": weeks},
-            ).mappings().all()
+                    {"loc_key": loc_key, "lim": weeks},
+                )
+                .mappings()
+                .all()
+            )
             return [
                 MarketSnapshotPoint(
                     snapshot_week=r["snapshot_week"],
@@ -1362,7 +1485,11 @@ def get_market_history(
 
 
 def get_building_history(
-    lat: float, lng: float, radius: float, property_id: str, weeks: int = 12,
+    lat: float,
+    lng: float,
+    radius: float,
+    property_id: str,
+    weeks: int = 12,
 ) -> BuildingTrendsResponse:
     """Return per-building snapshots for a specific building, newest first."""
     if not _snapshot_tables_ready():
@@ -1370,8 +1497,9 @@ def get_building_history(
     loc_key = _location_key(lat, lng, radius)
     try:
         with engine.connect() as conn:
-            rows = conn.execute(
-                text("""
+            rows = (
+                conn.execute(
+                    text("""
                     SELECT snapshot_week, property_id, property_name, address,
                            median_rent, rent_per_sqft, unit_count, available_units
                     FROM pm_building_snapshots
@@ -1379,8 +1507,11 @@ def get_building_history(
                     ORDER BY snapshot_week DESC
                     LIMIT :lim
                 """),
-                {"loc_key": loc_key, "pid": property_id, "lim": weeks},
-            ).mappings().all()
+                    {"loc_key": loc_key, "pid": property_id, "lim": weeks},
+                )
+                .mappings()
+                .all()
+            )
             snapshots = [
                 BuildingSnapshotPoint(
                     snapshot_week=r["snapshot_week"],
@@ -1406,7 +1537,9 @@ def get_building_history(
 
 
 def get_buildings_latest_vs_previous(
-    lat: float, lng: float, radius: float,
+    lat: float,
+    lng: float,
+    radius: float,
 ) -> list[BuildingDelta]:
     """Compare latest and previous week building snapshots to compute deltas."""
     if not _snapshot_tables_ready():
@@ -1432,26 +1565,34 @@ def get_buildings_latest_vs_previous(
             prev_week = week_rows[1][0] if len(week_rows) >= 2 else None
 
             # Fetch latest week buildings
-            latest_rows = conn.execute(
-                text("""
+            latest_rows = (
+                conn.execute(
+                    text("""
                     SELECT property_id, property_name, address, median_rent, available_units
                     FROM pm_building_snapshots
                     WHERE location_key = :loc_key AND snapshot_week = :week
                 """),
-                {"loc_key": loc_key, "week": latest_week},
-            ).mappings().all()
+                    {"loc_key": loc_key, "week": latest_week},
+                )
+                .mappings()
+                .all()
+            )
 
             # Fetch previous week buildings
             prev_map: dict[str, dict] = {}
             if prev_week:
-                prev_rows = conn.execute(
-                    text("""
+                prev_rows = (
+                    conn.execute(
+                        text("""
                         SELECT property_id, median_rent, available_units
                         FROM pm_building_snapshots
                         WHERE location_key = :loc_key AND snapshot_week = :week
                     """),
-                    {"loc_key": loc_key, "week": prev_week},
-                ).mappings().all()
+                        {"loc_key": loc_key, "week": prev_week},
+                    )
+                    .mappings()
+                    .all()
+                )
                 prev_map = {r["property_id"]: dict(r) for r in prev_rows}
 
             deltas: list[BuildingDelta] = []
@@ -1467,18 +1608,20 @@ def get_buildings_latest_vs_previous(
                     rent_change = round(cur_rent - prev_rent, 0)
                     rent_change_pct = round((cur_rent - prev_rent) / prev_rent * 100, 1)
 
-                deltas.append(BuildingDelta(
-                    property_id=pid,
-                    property_name=r["property_name"],
-                    address=r["address"],
-                    current_rent=cur_rent,
-                    previous_rent=prev_rent,
-                    rent_change=rent_change,
-                    rent_change_pct=rent_change_pct,
-                    current_vacancy=r["available_units"],
-                    previous_vacancy=prev["available_units"] if prev else None,
-                    is_new=prev is None and prev_week is not None,
-                ))
+                deltas.append(
+                    BuildingDelta(
+                        property_id=pid,
+                        property_name=r["property_name"],
+                        address=r["address"],
+                        current_rent=cur_rent,
+                        previous_rent=prev_rent,
+                        rent_change=rent_change,
+                        rent_change_pct=rent_change_pct,
+                        current_vacancy=r["available_units"],
+                        previous_vacancy=prev["available_units"] if prev else None,
+                        is_new=prev is None and prev_week is not None,
+                    )
+                )
 
             # Sort by absolute rent change percentage (biggest movers first)
             deltas.sort(key=lambda d: abs(d.rent_change_pct) if d.rent_change_pct is not None else 0, reverse=True)
@@ -1564,10 +1707,7 @@ def _build_ai_trend_payload(lat: float, lng: float, radius: float) -> dict[str, 
         "rent_direction": rent_dir,
         "rent_change_pct": rent_change_pct,
         "vacancy_direction": vac_dir,
-        "recent_rents": [
-            {"week": str(h.snapshot_week), "median": h.median_rent}
-            for h in history[:4]
-        ],
+        "recent_rents": [{"week": str(h.snapshot_week), "median": h.median_rent} for h in history[:4]],
         "top_movers": top_movers,
     }
 
@@ -1600,7 +1740,10 @@ def archive_snapshots_for_all_subscriptions(db: Session) -> int:
         except Exception:
             logger.exception(
                 "Snapshot failed for subscription %s (lat=%s, lng=%s, r=%s)",
-                sub.id, lat, lng, radius,
+                sub.id,
+                lat,
+                lng,
+                radius,
             )
     logger.info("archive_snapshots_for_all_subscriptions: %d/%d succeeded", count, len(subs))
     return count

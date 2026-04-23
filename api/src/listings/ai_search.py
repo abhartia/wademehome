@@ -8,21 +8,20 @@ from dataclasses import dataclass
 from threading import Lock
 from typing import Any
 
+from llama_index.core.base.llms.types import ChatMessage, ChatResponse
+from llama_index.core.llms import LLM
 from openai import AzureOpenAI as AzureOpenAIClient
 from openai import OpenAI as OpenAIClient
 from pydantic import BaseModel, Field
 from sqlalchemy import text
-from llama_index.core.base.llms.types import ChatMessage, ChatResponse
-from llama_index.core.llms import LLM
 
 from core.config import Config
 from core.logger import get_logger
-from prompts.loader import load_app_prompt
-from workflow.utils import get_engine
 from listings.listings_table_cache import cached_execute_all, cached_execute_scalar
 from listings.nearby_mapper import property_list_from_sql_rows
+from prompts.loader import load_app_prompt
 from workflow.events import PropertyDataItem, PropertyDataList
-
+from workflow.utils import get_engine
 
 SEARCH_QUERY_PLAN_SYSTEM = load_app_prompt("search_query_plan")
 logger = get_logger(__name__)
@@ -30,7 +29,7 @@ logger = get_logger(__name__)
 _PLAN_CACHE_TTL_S = 300.0
 _PLAN_CACHE_MAX = 256
 _plan_cache_lock = Lock()
-_plan_cache: dict[str, tuple[float, "SearchQueryPlan"]] = {}
+_plan_cache: dict[str, tuple[float, SearchQueryPlan]] = {}
 
 # Terms matched with LIKE against listing blobs rarely contain these; keep them in semantic ranker.
 # Multi-word phrases ending like a neighborhood; listing blobs rarely repeat them verbatim.
@@ -201,14 +200,12 @@ def _parse_non_negative_int(raw: str | None, default: int) -> int:
 def _table_columns() -> set[str]:
     with get_engine().connect() as conn:
         rows = conn.execute(
-            text(
-                """
+            text("""
                 SELECT column_name
                 FROM information_schema.columns
                 WHERE table_schema = :schema
                   AND table_name = :table
-                """
-            ),
+                """),
             {"schema": _table_schema(), "table": _table_name()},
         )
         return {str(r[0]).lower() for r in rows}
@@ -539,14 +536,12 @@ def fetch_amenities_for_listings(
         key = f"lid_{i}"
         placeholders.append(f":{key}")
         binds[key] = lid
-    sql = text(
-        f"""
+    sql = text(f"""
         SELECT listing_id, amenity_text_norm
         FROM {qtable}
         WHERE listing_id IN ({", ".join(placeholders)})
         ORDER BY listing_id, id
-        """
-    )
+        """)
     try:
         with get_engine().connect() as conn:
             rows = cached_execute_all(conn, sql, binds)
@@ -566,7 +561,7 @@ def _amenity_distances(
     listing_ids: list[str],
     *,
     query_embedding: list[float],
- ) -> tuple[dict[str, float], int]:
+) -> tuple[dict[str, float], int]:
     if not listing_ids or not query_embedding:
         return {}, 0
     t0 = time.perf_counter()
@@ -578,8 +573,7 @@ def _amenity_distances(
         key = f"lid_{i}"
         placeholders.append(f":{key}")
         binds[key] = listing_id
-    sql = text(
-        f"""
+    sql = text(f"""
         SELECT
           listing_id AS listing_id,
           MIN(amenity_embedding <=> '{vec}'::vector) AS d
@@ -587,8 +581,7 @@ def _amenity_distances(
         WHERE amenity_embedding IS NOT NULL
           AND listing_id IN ({", ".join(placeholders)})
         GROUP BY listing_id
-        """
-    )
+        """)
     try:
         with get_engine().connect() as conn:
             rows = cached_execute_all(conn, sql, binds)
@@ -616,7 +609,7 @@ def _text_blob_expr(cols: set[str]) -> str:
         _pick_column(cols, "address", "street_address", "full_address", "formatted_address"),
     ):
         if c:
-            parts.append(f'COALESCE("{c}"::text, \'\')')
+            parts.append(f"COALESCE(\"{c}\"::text, '')")
     if not parts:
         return "''"
     return f"concat_ws(' ', {', '.join(parts)})"
@@ -695,7 +688,7 @@ def _number_expr(cols: set[str], aliases: tuple[str, ...]) -> str | None:
     col = _pick_column(cols, *aliases)
     if not col:
         return None
-    return f'NULLIF(regexp_replace(COALESCE("{col}"::text, \'\'), \'[^0-9.]\', \'\', \'g\'), \'\')::double precision'
+    return f"NULLIF(regexp_replace(COALESCE(\"{col}\"::text, ''), '[^0-9.]', '', 'g'), '')::double precision"
 
 
 def _build_criteria(
@@ -716,8 +709,7 @@ def _build_criteria(
             (
                 "city",
                 f"City: {plan.city.strip()}",
-                f'(LOWER(TRIM("{city_col}"::text)) = :city OR '
-                f'LOWER("{city_col}"::text) LIKE :city_like)',
+                f'(LOWER(TRIM("{city_col}"::text)) = :city OR ' f'LOWER("{city_col}"::text) LIKE :city_like)',
             )
         )
 
@@ -728,9 +720,7 @@ def _build_criteria(
         label_st = plan.state.strip()
         if len(variants) == 1:
             params["state"] = variants[0]
-            criteria.append(
-                ("state", f"State: {label_st}", f'LOWER(TRIM("{state_col}"::text)) = :state')
-            )
+            criteria.append(("state", f"State: {label_st}", f'LOWER(TRIM("{state_col}"::text)) = :state'))
         else:
             parts = []
             for i, v in enumerate(variants):
@@ -773,7 +763,9 @@ def _build_criteria(
             )
         )
 
-    rent_expr = _number_expr(cols, ("monthly_rent", "rent_price", "rent", "price", "list_price", "min_rent", "max_rent"))
+    rent_expr = _number_expr(
+        cols, ("monthly_rent", "rent_price", "rent", "price", "list_price", "min_rent", "max_rent")
+    )
     if rent_expr and plan.min_rent is not None:
         params["min_rent"] = float(plan.min_rent)
         criteria.append(("min_rent", f"Rent >= ${int(plan.min_rent)}", f"({rent_expr}) >= :min_rent"))
@@ -784,14 +776,10 @@ def _build_criteria(
     beds_expr = _number_expr(cols, ("bedrooms", "bedroom_count", "beds", "num_bedrooms", "n_bedrooms"))
     if beds_expr and plan.min_bedrooms is not None:
         params["min_bedrooms"] = float(plan.min_bedrooms)
-        criteria.append(
-            ("min_bedrooms", f"Beds >= {plan.min_bedrooms:g}", f"({beds_expr}) >= :min_bedrooms")
-        )
+        criteria.append(("min_bedrooms", f"Beds >= {plan.min_bedrooms:g}", f"({beds_expr}) >= :min_bedrooms"))
     if beds_expr and plan.max_bedrooms is not None:
         params["max_bedrooms"] = float(plan.max_bedrooms)
-        criteria.append(
-            ("max_bedrooms", f"Beds <= {plan.max_bedrooms:g}", f"({beds_expr}) <= :max_bedrooms")
-        )
+        criteria.append(("max_bedrooms", f"Beds <= {plan.max_bedrooms:g}", f"({beds_expr}) <= :max_bedrooms"))
 
     blob = _text_blob_expr(cols)
     if plan.must_have_terms:
@@ -824,15 +812,13 @@ def _fetch_listing_rows(
         rows = list(
             cached_execute_all(
                 conn,
-                text(
-                    f"""
+                text(f"""
                     SELECT {select_cols}
                     FROM {qtable}
                     WHERE {all_expr}
                     ORDER BY {order_sql}
                     LIMIT :limit_rows
-                    """
-                ),
+                    """),
                 params,
             )
         )
@@ -890,13 +876,50 @@ def _apply_text_post_filter(
     return out
 
 
-_FTS_STOP_WORDS = frozenset({
-    "a", "an", "the", "in", "on", "at", "to", "for", "of", "with",
-    "and", "or", "is", "are", "was", "were", "be", "been", "being",
-    "it", "its", "this", "that", "by", "from", "as", "not", "no",
-    "unit", "units", "property", "properties", "apartment", "apartments",
-    "bedroom", "bedrooms", "br", "bed", "bath", "baths",
-})
+_FTS_STOP_WORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "with",
+        "and",
+        "or",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "it",
+        "its",
+        "this",
+        "that",
+        "by",
+        "from",
+        "as",
+        "not",
+        "no",
+        "unit",
+        "units",
+        "property",
+        "properties",
+        "apartment",
+        "apartments",
+        "bedroom",
+        "bedrooms",
+        "br",
+        "bed",
+        "bath",
+        "baths",
+    }
+)
 
 _FTS_WORD_RE = re.compile(r"[a-zA-Z0-9]+")
 
@@ -1014,8 +1037,7 @@ def run_fast_search(
         sql_criteria = [c for c in all_criteria if c[0] not in _TEXT_FILTER_KEYS]
         column_where = " AND ".join(e for _, _, e in sql_criteria) if sql_criteria else "TRUE"
         fts_clause = (
-            "to_tsvector('english', COALESCE(search_doc, '')) "
-            "@@ websearch_to_tsquery('english', :fts_query)"
+            "to_tsvector('english', COALESCE(search_doc, '')) " "@@ websearch_to_tsquery('english', :fts_query)"
         )
         combined_where = f"{fts_clause} AND {column_where}"
 
@@ -1030,9 +1052,7 @@ def run_fast_search(
         if "geog" in cols and plan.latitude is not None and plan.longitude is not None:
             params_fts["rank_lat"] = float(plan.latitude)
             params_fts["rank_lon"] = float(plan.longitude)
-            ranking_bits.append(
-                "geog <-> ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography"
-            )
+            ranking_bits.append("geog <-> ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography")
         if not ranking_bits:
             fallback_sort = _pick_column(cols, "listing_id", "property_id", "address")
             ranking_bits.append(f'"{fallback_sort}" ASC' if fallback_sort else "1")
@@ -1044,7 +1064,10 @@ def run_fast_search(
         rows = _apply_text_post_filter(rows, plan)
         logger.info(
             "search FTS path: fts_query=%r pre=%d post=%d db_ms=%d",
-            fts_query, pre_post_filter, len(rows), t_sel,
+            fts_query,
+            pre_post_filter,
+            len(rows),
+            t_sel,
         )
     else:
         # Fallback: column-based WHERE (no GIN index available)
@@ -1063,9 +1086,7 @@ def run_fast_search(
         if "geog" in cols and plan.latitude is not None and plan.longitude is not None:
             params["rank_lat"] = float(plan.latitude)
             params["rank_lon"] = float(plan.longitude)
-            ranking_bits.append(
-                "geog <-> ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography"
-            )
+            ranking_bits.append("geog <-> ST_SetSRID(ST_MakePoint(:rank_lon, :rank_lat), 4326)::geography")
         if not ranking_bits:
             fallback_sort = _pick_column(cols, "listing_id", "property_id", "address")
             ranking_bits.append(f'"{fallback_sort}" ASC' if fallback_sort else "1")
@@ -1077,7 +1098,9 @@ def run_fast_search(
             rows = _apply_text_post_filter(rows, plan)
         logger.info(
             "search column path: pre=%d post=%d db_ms=%d",
-            pre_post_filter, len(rows), t_sel,
+            pre_post_filter,
+            len(rows),
+            t_sel,
         )
 
     listing_id_col = _pick_column(cols, "listing_id")
@@ -1085,11 +1108,7 @@ def run_fast_search(
     amenity_ms = 0
     amenity_scored_count = 0
     if listing_id_col and query_embedding and rows:
-        ids = [
-            str(r.get(listing_id_col))
-            for r in rows
-            if r.get(listing_id_col) not in (None, "")
-        ][:amenity_top_k]
+        ids = [str(r.get(listing_id_col)) for r in rows if r.get(listing_id_col) not in (None, "")][:amenity_top_k]
         amenity_scores, amenity_ms = _amenity_distances(
             ids,
             query_embedding=query_embedding,
@@ -1116,11 +1135,7 @@ def run_fast_search(
     # the nearby_mapper's _amenities_merged picks them up.
     listing_id_col_for_amenities = _pick_column(cols, "listing_id")
     if listing_id_col_for_amenities and rows:
-        lids = [
-            str(r[listing_id_col_for_amenities])
-            for r in rows
-            if r.get(listing_id_col_for_amenities)
-        ]
+        lids = [str(r[listing_id_col_for_amenities]) for r in rows if r.get(listing_id_col_for_amenities)]
         amenity_map = fetch_amenities_for_listings(lids)
         for row in rows:
             lid = str(row.get(listing_id_col_for_amenities, ""))
@@ -1171,9 +1186,7 @@ def _compute_breakdown(
         return [], matched, False
 
     # Evaluate each predicate once per row in a CTE, then aggregate booleans.
-    criterion_select = [
-        f"({expr}) AS c_{idx}" for idx, (_, _, expr) in enumerate(criteria)
-    ]
+    criterion_select = [f"({expr}) AS c_{idx}" for idx, (_, _, expr) in enumerate(criteria)]
     matched_expr = " AND ".join(f"c_{idx}" for idx in range(len(criteria)))
     select_parts = [f"COUNT(*) FILTER (WHERE {matched_expr}) AS matched_count"]
     for idx in range(len(criteria)):

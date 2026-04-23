@@ -5,6 +5,7 @@ non-search domains (tours, favorites, profile, etc.). Each payload is wrapped
 in `llama_index.server.models.ui.UIEvent` and serialized as an `8:` annotation
 chunk in the SSE stream, matching the protocol the existing chat UI consumes.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal

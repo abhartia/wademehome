@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_user, get_db
 from auth.security import build_cookie_settings, hash_token, utc_now
-from db.models import UserSessions, Users
+from db.models import Users, UserSessions
 from reviews.schemas import (
     ReviewCreateRequest,
     ReviewFlagPayload,
@@ -34,16 +34,12 @@ from reviews.service import (
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 
-def _optional_current_user(
-    request: Request, db: Session = Depends(get_db)
-) -> Users | None:
+def _optional_current_user(request: Request, db: Session = Depends(get_db)) -> Users | None:
     cookie_name = str(build_cookie_settings()["key"])
     token = request.cookies.get(cookie_name)
     if not token:
         return None
-    session = db.execute(
-        select(UserSessions).where(UserSessions.token_hash == hash_token(token))
-    ).scalar_one_or_none()
+    session = db.execute(select(UserSessions).where(UserSessions.token_hash == hash_token(token))).scalar_one_or_none()
     if not session or session.revoked_at is not None or session.expires_at <= utc_now():
         return None
     user = db.execute(select(Users).where(Users.id == session.user_id)).scalar_one_or_none()

@@ -67,9 +67,7 @@ def read_tour(tour_id: uuid.UUID, user: Users = Depends(get_current_user), db: S
 
 
 @router.post("", response_model=TourResponse)
-def create_tour_route(
-    payload: TourCreate, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def create_tour_route(payload: TourCreate, user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     _, scope_group_id = resolve_scope(payload.group_id, user, db)
     payload.group_id = scope_group_id
     tour = create_tour(db, user.id, payload)
@@ -88,9 +86,7 @@ def update_tour_route(
 
 
 @router.delete("/{tour_id}", status_code=204)
-def delete_tour_route(
-    tour_id: uuid.UUID, user: Users = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def delete_tour_route(tour_id: uuid.UUID, user: Users = Depends(get_current_user), db: Session = Depends(get_db)):
     delete_tour(db, user.id, tour_id)
     return None
 

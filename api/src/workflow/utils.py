@@ -1,33 +1,33 @@
-from typing import List
+from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from llama_index.core import SQLDatabase
-from sqlalchemy import create_engine
-from llama_index.core.retrievers import SQLRetriever
-
-from core.config import Config
-
-from prompts.loader import load_app_prompt
+from llama_index.core.llms import ChatMessage, ChatResponse
 from llama_index.core.prompts.base import PromptTemplate
 from llama_index.core.prompts.prompt_type import PromptType
-from workflow.langchain_output_parser import LangchainOutputParser
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from llama_index.core.retrievers import SQLRetriever
 from llama_index.server.models.chat import ChatAPIMessage
-from llama_index.core.llms import ChatResponse, ChatMessage
+from sqlalchemy import create_engine
+
+from core.config import Config
+from prompts.loader import load_app_prompt
+from workflow.langchain_output_parser import LangchainOutputParser
 
 
-def extract_chat_messages_query_tables(messages: List[ChatAPIMessage]) -> str:
-  chat_messages_query_tables = ''
+def extract_chat_messages_query_tables(messages: list[ChatAPIMessage]) -> str:
+    chat_messages_query_tables = ""
 
-  for i, msg in enumerate(messages):
-      if msg.annotations is None:
-          continue
+    for i, msg in enumerate(messages):
+        if msg.annotations is None:
+            continue
 
-      for annotation in msg.annotations:
-          if annotation["type"] == "sql_table":
-              query = annotation["data"]
-              if query:
-                  chat_messages_query_tables += f"\n\nThis is the table data used in the response message #{i}: {query}\n\n"
+        for annotation in msg.annotations:
+            if annotation["type"] == "sql_table":
+                query = annotation["data"]
+                if query:
+                    chat_messages_query_tables += (
+                        f"\n\nThis is the table data used in the response message #{i}: {query}\n\n"
+                    )
 
-  return chat_messages_query_tables
+    return chat_messages_query_tables
 
 
 def parse_response_to_sql(chat_response: ChatResponse) -> str:
@@ -44,33 +44,32 @@ def parse_response_to_sql(chat_response: ChatResponse) -> str:
     sql_result_start = response.find("SQLResult:")
     if sql_result_start != -1:
         response = response[:sql_result_start]
-    return response.strip().strip("```sql").strip("```").strip()
+    response = response.strip()
+    response = response.removeprefix("```sql").removeprefix("```")
+    response = response.removesuffix("```")
+    return response.strip()
+
 
 def get_response_synthesis_message(
     query_str: str,
-    query_result_tuples: List[tuple[str, str]],
-    chat_history: List[ChatMessage] = [],
-    extra_instructions: str = ""
+    query_result_tuples: list[tuple[str, str]],
+    chat_history: list[ChatMessage] | None = None,
+    extra_instructions: str = "",
 ):
-  prompt = f""""
+    if chat_history is None:
+        chat_history = []
+    prompt = f""""
     Given an input question, synthesize a response from the query results with the conversation history in mind.
     {extra_instructions}
     Query: {query_str}
   """
 
-  for query_result_tuple in query_result_tuples:
-      prompt += f"Query: {query_result_tuple[0]}\n"
-      prompt += f"SQL Response: {str(query_result_tuple[1])}\n"
-  prompt += "Response: "
+    for query_result_tuple in query_result_tuples:
+        prompt += f"Query: {query_result_tuple[0]}\n"
+        prompt += f"SQL Response: {query_result_tuple[1]!s}\n"
+    prompt += "Response: "
 
-
-  return [
-      *chat_history,
-      ChatMessage(
-          role="user",
-          content=prompt
-      )
-  ]
+    return [*chat_history, ChatMessage(role="user", content=prompt)]
 
 
 listing_table_name = Config.get("LISTINGS_TABLE_NAME")
@@ -87,9 +86,7 @@ def get_engine():
     if _workflow_engine is None:
         database_url = (Config.get("DATABASE_URL") or "").strip()
         if not database_url:
-            raise ValueError(
-                "DATABASE_URL is empty or unset; configure it in App Service application settings."
-            )
+            raise ValueError("DATABASE_URL is empty or unset; configure it in App Service application settings.")
         connect_args: dict = {}
         if "postgresql" in database_url:
             connect_args["connect_timeout"] = 5
@@ -132,7 +129,7 @@ def get_sql_retriever() -> SQLRetriever:
 
 
 CHAT_TEXT_TO_SQL_PROMPT = PromptTemplate(
-    load_app_prompt('text2sql_chat'),
+    load_app_prompt("text2sql_chat"),
     prompt_type=PromptType.TEXT_TO_SQL,
 )
 
@@ -142,40 +139,40 @@ text2sql_prompt = CHAT_TEXT_TO_SQL_PROMPT.partial_format(
     dialect="postgresql",
 )
 
+
 def get_listing_table_info():
-  if not listing_table_name:
-    return (
-      "No table configured. Set LISTINGS_TABLE_NAME and DATABASE_URL in .env, "
-      "then ensure the database has that table."
-    )
-  try:
-    info = get_sql_database().get_single_table_info(listing_table_name)
-    return info if info is not None else "(Table not found or empty schema.)"
-  except Exception:
-    return "(Could not load table schema. Check LISTINGS_TABLE_NAME and database.)"
+    if not listing_table_name:
+        return (
+            "No table configured. Set LISTINGS_TABLE_NAME and DATABASE_URL in .env, "
+            "then ensure the database has that table."
+        )
+    try:
+        info = get_sql_database().get_single_table_info(listing_table_name)
+        return info if info is not None else "(Table not found or empty schema.)"
+    except Exception:
+        return "(Could not load table schema. Check LISTINGS_TABLE_NAME and database.)"
+
 
 ##
 # Check query prompt mounting
 ##
-check_query_struct_output_parser = StructuredOutputParser.from_response_schemas([
-    ResponseSchema(
-        name="should_retrieve_data",
-        description=(
-            "Describes whether the query requires data retrieval."
+check_query_struct_output_parser = StructuredOutputParser.from_response_schemas(
+    [
+        ResponseSchema(
+            name="should_retrieve_data",
+            description=("Describes whether the query requires data retrieval."),
+            type="boolean",
         ),
-        type="boolean",
-    ),
-    ResponseSchema(
-        name="response_to_user",
-        description="In case data retrieval is not needed, this is the response to the user.",
-    )
-])
+        ResponseSchema(
+            name="response_to_user",
+            description="In case data retrieval is not needed, this is the response to the user.",
+        ),
+    ]
+)
 
 CHECK_QUERY_OUTPUT_PARSER = LangchainOutputParser(check_query_struct_output_parser)
 
-CHECK_QUERY_LAST_MESSAGE = CHECK_QUERY_OUTPUT_PARSER.format(
-    load_app_prompt('check_data_query')
-)
+CHECK_QUERY_LAST_MESSAGE = CHECK_QUERY_OUTPUT_PARSER.format(load_app_prompt("check_data_query"))
 
 SEARCH_HINT_SYSTEM = load_app_prompt("search_hint")
 
@@ -187,33 +184,27 @@ PROFILE_MEMORY_UPDATE_SYSTEM = load_app_prompt("profile_memory_update")
 # Wrong SQL prompt mounting
 ##
 
-WRONG_SQL_PROMPT = PromptTemplate(
-    load_app_prompt('wrong_sql')
-)
+WRONG_SQL_PROMPT = PromptTemplate(load_app_prompt("wrong_sql"))
 
-wrong_sql_struct_output_parser = StructuredOutputParser.from_response_schemas([
-    ResponseSchema(
-        name="corrected_sql_query",
-        description=(
-            "The corrected SQL query that fixes the problems in the original query."
-        ),
-        type="string",
-    )
-])
+wrong_sql_struct_output_parser = StructuredOutputParser.from_response_schemas(
+    [
+        ResponseSchema(
+            name="corrected_sql_query",
+            description=("The corrected SQL query that fixes the problems in the original query."),
+            type="string",
+        )
+    ]
+)
 
 WRONG_SQL_OUTPUT_PARSER = LangchainOutputParser(wrong_sql_struct_output_parser)
 
-def format_wrong_sql_message(
-    user_query: str,
-    wrong_sql: str,
-    table_context: str,
-    exception: BaseException
-) -> str:
+
+def format_wrong_sql_message(user_query: str, wrong_sql: str, table_context: str, exception: BaseException) -> str:
     return WRONG_SQL_OUTPUT_PARSER.format(
         WRONG_SQL_PROMPT.format(
             user_query=user_query,
             wrong_sql=wrong_sql,
             table_context=table_context,
-            stringified_exception=str(exception)
+            stringified_exception=str(exception),
         )
     )

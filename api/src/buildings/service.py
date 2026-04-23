@@ -8,22 +8,6 @@ from fastapi import HTTPException
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from db.models import (
-    Buildings,
-    BuildingOwnershipPeriods,
-    DobComplaints,
-    HpdViolations,
-    LandlordEntities,
-    OwnershipRole,
-    REVIEW_DIMENSION_SCOPE,
-    ReviewDimension,
-    ReviewResponses,
-    ReviewStatus,
-    ReviewSubratings,
-    Reviews,
-    UserProfiles,
-    Users,
-)
 from buildings.schemas import (
     BuildingAggregates,
     BuildingDetailResponse,
@@ -34,6 +18,19 @@ from buildings.schemas import (
     LandlordEntitySummary,
     OwnershipPeriodPayload,
     ReviewSummaryPayload,
+)
+from db.models import (
+    BuildingOwnershipPeriods,
+    Buildings,
+    DobComplaints,
+    HpdViolations,
+    LandlordEntities,
+    OwnershipRole,
+    ReviewResponses,
+    Reviews,
+    ReviewStatus,
+    ReviewSubratings,
+    UserProfiles,
 )
 
 
@@ -77,9 +74,7 @@ def _to_entity_summary(entity: LandlordEntities) -> LandlordEntitySummary:
     )
 
 
-def resolve_or_create_building(
-    db: Session, payload: BuildingResolveRequest
-) -> tuple[Buildings, bool]:
+def resolve_or_create_building(db: Session, payload: BuildingResolveRequest) -> tuple[Buildings, bool]:
     """Dedupe by (bbl, bin) when both present, else by normalized address."""
     normalized = _normalize_addr(payload.street_line1, payload.postal_code)
 
@@ -93,9 +88,7 @@ def resolve_or_create_building(
         ).scalar_one_or_none()
 
     if existing is None:
-        existing = db.execute(
-            select(Buildings).where(Buildings.normalized_addr == normalized)
-        ).scalar_one_or_none()
+        existing = db.execute(select(Buildings).where(Buildings.normalized_addr == normalized)).scalar_one_or_none()
 
     if existing is not None:
         return existing, False
@@ -117,9 +110,7 @@ def resolve_or_create_building(
     return building, True
 
 
-def _current_owner_period(
-    db: Session, building_id: uuid.UUID, role: OwnershipRole
-) -> BuildingOwnershipPeriods | None:
+def _current_owner_period(db: Session, building_id: uuid.UUID, role: OwnershipRole) -> BuildingOwnershipPeriods | None:
     return db.execute(
         select(BuildingOwnershipPeriods)
         .where(
@@ -132,9 +123,7 @@ def _current_owner_period(
     ).scalar_one_or_none()
 
 
-def find_owner_at_date(
-    db: Session, building_id: uuid.UUID, on_date: date
-) -> BuildingOwnershipPeriods | None:
+def find_owner_at_date(db: Session, building_id: uuid.UUID, on_date: date) -> BuildingOwnershipPeriods | None:
     return db.execute(
         select(BuildingOwnershipPeriods)
         .where(
@@ -187,9 +176,7 @@ def _building_aggregates(db: Session, building_id: uuid.UUID) -> BuildingAggrega
         .group_by(ReviewSubratings.dimension)
     ).all()
     dimension_averages: dict[str, Decimal] = {
-        dim.value: Decimal(score).quantize(Decimal("0.01"))
-        for dim, score in dim_rows
-        if score is not None
+        dim.value: Decimal(score).quantize(Decimal("0.01")) for dim, score in dim_rows if score is not None
     }
 
     return BuildingAggregates(
@@ -211,23 +198,23 @@ def get_building_detail(db: Session, building_id: str) -> BuildingDetailResponse
 
     return BuildingDetailResponse(
         building=_to_building_payload(building),
-        current_owner=(
-            _to_entity_summary(owner_period.landlord_entity) if owner_period else None
-        ),
-        current_manager=(
-            _to_entity_summary(manager_period.landlord_entity) if manager_period else None
-        ),
+        current_owner=(_to_entity_summary(owner_period.landlord_entity) if owner_period else None),
+        current_manager=(_to_entity_summary(manager_period.landlord_entity) if manager_period else None),
         aggregates=_building_aggregates(db, bid),
     )
 
 
 def list_ownership_history(db: Session, building_id: str) -> list[OwnershipPeriodPayload]:
     bid = _parse_uuid(building_id, "building id")
-    periods = db.execute(
-        select(BuildingOwnershipPeriods)
-        .where(BuildingOwnershipPeriods.building_id == bid)
-        .order_by(BuildingOwnershipPeriods.start_date.desc())
-    ).scalars().all()
+    periods = (
+        db.execute(
+            select(BuildingOwnershipPeriods)
+            .where(BuildingOwnershipPeriods.building_id == bid)
+            .order_by(BuildingOwnershipPeriods.start_date.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [
         OwnershipPeriodPayload(
             id=str(p.id),
@@ -256,30 +243,22 @@ def list_building_reviews(
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
 
-    rows = db.execute(
-        base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset)
-    ).scalars().all()
+    rows = db.execute(base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset)).scalars().all()
 
     if not rows:
         return [], int(total or 0)
 
     author_ids = {r.author_user_id for r in rows}
     profile_rows = db.execute(
-        select(UserProfiles.user_id, UserProfiles.name).where(
-            UserProfiles.user_id.in_(author_ids)
-        )
+        select(UserProfiles.user_id, UserProfiles.name).where(UserProfiles.user_id.in_(author_ids))
     ).all()
-    name_by_user: dict[uuid.UUID, str | None] = {
-        uid: name for uid, name in profile_rows
-    }
+    name_by_user: dict[uuid.UUID, str | None] = dict(profile_rows)
 
     entity_ids = {r.landlord_entity_id for r in rows}
     entity_rows = db.execute(
-        select(LandlordEntities.id, LandlordEntities.canonical_name).where(
-            LandlordEntities.id.in_(entity_ids)
-        )
+        select(LandlordEntities.id, LandlordEntities.canonical_name).where(LandlordEntities.id.in_(entity_ids))
     ).all()
-    entity_name_by_id = {eid: name for eid, name in entity_rows}
+    entity_name_by_id = dict(entity_rows)
 
     review_ids = [r.id for r in rows]
     sub_rows = db.execute(
@@ -294,11 +273,9 @@ def list_building_reviews(
         subs_by_review.setdefault(rid, {})[dim.value] = score
 
     response_rows = db.execute(
-        select(ReviewResponses.review_id, ReviewResponses.body).where(
-            ReviewResponses.review_id.in_(review_ids)
-        )
+        select(ReviewResponses.review_id, ReviewResponses.body).where(ReviewResponses.review_id.in_(review_ids))
     ).all()
-    response_by_review = {rid: body for rid, body in response_rows}
+    response_by_review = dict(response_rows)
 
     payloads = [
         ReviewSummaryPayload(
@@ -345,9 +322,7 @@ def list_hpd_violations(
         base = base.where(HpdViolations.status.ilike("%open%"))
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = db.execute(
-        base.order_by(HpdViolations.novissued_date.desc().nullslast()).limit(limit)
-    ).scalars().all()
+    rows = db.execute(base.order_by(HpdViolations.novissued_date.desc().nullslast()).limit(limit)).scalars().all()
 
     return (
         [
@@ -389,9 +364,7 @@ def list_dob_complaints(
         base = base.where(DobComplaints.status.ilike("%active%"))
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = db.execute(
-        base.order_by(DobComplaints.date_entered.desc().nullslast()).limit(limit)
-    ).scalars().all()
+    rows = db.execute(base.order_by(DobComplaints.date_entered.desc().nullslast()).limit(limit)).scalars().all()
 
     return (
         [

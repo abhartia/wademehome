@@ -1,13 +1,14 @@
 """Authentication middleware for API token validation."""
 
 import secrets
-from typing import Optional
+
 from fastapi import HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
-from core.logger import get_logger
+
 from core.env_utils import env_manager
+from core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -23,7 +24,7 @@ class TokenValidator:
         # Support multiple tokens separated by comma
         tokens_str = env_manager.get("API_TOKENS", "")
         if tokens_str:
-            self.valid_tokens = set(token.strip() for token in tokens_str.split(",") if token.strip())
+            self.valid_tokens = {token.strip() for token in tokens_str.split(",") if token.strip()}
         else:
             # Generate a default token if none specified (for development)
             default_token = env_manager.get("DEFAULT_API_TOKEN", "")
@@ -52,7 +53,7 @@ class TokenValidator:
 class TokenAuthMiddleware(BaseHTTPMiddleware):
     """Middleware to validate API tokens on all requests."""
 
-    def __init__(self, app, exclude_paths: Optional[list] = None):
+    def __init__(self, app, exclude_paths: list | None = None):
         super().__init__(app)
         self.validator = TokenValidator()
         # Paths that don't require authentication
@@ -100,7 +101,7 @@ class TokenAuthMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
 
-    def _extract_token(self, request: Request) -> Optional[str]:
+    def _extract_token(self, request: Request) -> str | None:
         """Extract token from Authorization header or query parameter.
 
         Args:
@@ -135,7 +136,7 @@ class BearerTokenAuth(HTTPBearer):
         super().__init__(auto_error=auto_error)
         self.validator = TokenValidator()
 
-    async def __call__(self, request: Request) -> Optional[str]:
+    async def __call__(self, request: Request) -> str | None:
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         if credentials:
             if not self.validator.validate_token(credentials.credentials):

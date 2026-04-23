@@ -1,7 +1,6 @@
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from auth.emailer import send_magic_link_email, send_verification_email
 from auth.schemas import (
@@ -27,7 +26,7 @@ from auth.security import (
     verify_password,
 )
 from core.config import Config
-from db.models import MagicLinkTokens, UserProfiles, UserSessions, UserRole, Users
+from db.models import MagicLinkTokens, UserProfiles, UserRole, Users, UserSessions
 from db.session import get_session_local
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -88,9 +87,7 @@ def _issue_session(db: Session, user: Users, response: Response) -> None:
 
 
 def _user_response(db: Session, user: Users) -> UserResponse:
-    profile = db.execute(
-        select(UserProfiles).where(UserProfiles.user_id == user.id)
-    ).scalar_one_or_none()
+    profile = db.execute(select(UserProfiles).where(UserProfiles.user_id == user.id)).scalar_one_or_none()
     return UserResponse(
         id=str(user.id),
         email=user.email,
@@ -107,9 +104,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> Users:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
 
     token_hash = hash_token(session_token)
-    session = db.execute(
-        select(UserSessions).where(UserSessions.token_hash == token_hash)
-    ).scalar_one_or_none()
+    session = db.execute(select(UserSessions).where(UserSessions.token_hash == token_hash)).scalar_one_or_none()
     if not session or session.revoked_at is not None or session.expires_at <= utc_now():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
 
@@ -124,9 +119,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> Users:
     return user
 
 
-def get_current_user_or_none(
-    request: Request, db: Session = Depends(get_db)
-) -> Users | None:
+def get_current_user_or_none(request: Request, db: Session = Depends(get_db)) -> Users | None:
     """Non-raising variant of get_current_user — used on endpoints that stay
     readable when logged out but need to know *who* is asking (e.g. to show
     private user-contributed rows to their contributor only)."""
@@ -135,14 +128,10 @@ def get_current_user_or_none(
     if not session_token:
         return None
     token_hash = hash_token(session_token)
-    session = db.execute(
-        select(UserSessions).where(UserSessions.token_hash == token_hash)
-    ).scalar_one_or_none()
+    session = db.execute(select(UserSessions).where(UserSessions.token_hash == token_hash)).scalar_one_or_none()
     if not session or session.revoked_at is not None or session.expires_at <= utc_now():
         return None
-    user = db.execute(
-        select(Users).where(Users.id == session.user_id)
-    ).scalar_one_or_none()
+    user = db.execute(select(Users).where(Users.id == session.user_id)).scalar_one_or_none()
     if not user or not user.is_active or user.email_verified_at is None:
         return None
     return user
@@ -192,18 +181,10 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/verify-email", response_model=AuthResponse)
-def verify_email_route(
-    payload: VerifyEmailRequest, response: Response, db: Session = Depends(get_db)
-):
+def verify_email_route(payload: VerifyEmailRequest, response: Response, db: Session = Depends(get_db)):
     token_hash = hash_token(payload.token)
-    user = db.execute(
-        select(Users).where(Users.email_verification_token_hash == token_hash)
-    ).scalar_one_or_none()
-    if (
-        not user
-        or user.email_verification_expires_at is None
-        or user.email_verification_expires_at <= utc_now()
-    ):
+    user = db.execute(select(Users).where(Users.email_verification_token_hash == token_hash)).scalar_one_or_none()
+    if not user or user.email_verification_expires_at is None or user.email_verification_expires_at <= utc_now():
         raise HTTPException(status_code=400, detail="Invalid or expired verification link")
 
     user.email_verified_at = utc_now()
@@ -272,13 +253,9 @@ def request_magic_link(payload: MagicLinkRequest, db: Session = Depends(get_db))
 
 
 @router.post("/magic-link/verify", response_model=AuthResponse)
-def verify_magic_link(
-    payload: MagicLinkVerifyRequest, response: Response, db: Session = Depends(get_db)
-):
+def verify_magic_link(payload: MagicLinkVerifyRequest, response: Response, db: Session = Depends(get_db)):
     token_hash = hash_token(payload.token)
-    token_row = db.execute(
-        select(MagicLinkTokens).where(MagicLinkTokens.token_hash == token_hash)
-    ).scalar_one_or_none()
+    token_row = db.execute(select(MagicLinkTokens).where(MagicLinkTokens.token_hash == token_hash)).scalar_one_or_none()
     if not token_row or token_row.used_at is not None or token_row.expires_at <= utc_now():
         raise HTTPException(status_code=400, detail="Invalid or expired magic link")
 
@@ -310,9 +287,7 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     session_token = request.cookies.get(cookie_name)
     if session_token:
         token_hash = hash_token(session_token)
-        session = db.execute(
-            select(UserSessions).where(UserSessions.token_hash == token_hash)
-        ).scalar_one_or_none()
+        session = db.execute(select(UserSessions).where(UserSessions.token_hash == token_hash)).scalar_one_or_none()
         if session and session.revoked_at is None:
             session.revoked_at = utc_now()
             db.commit()

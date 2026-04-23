@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from sqlalchemy import asc, delete, select
 from sqlalchemy.orm import Session
 
-from movein.geocode import resolve_target_state_from_address
 from db.models import (
     GuarantorRequests,
     GuarantorRequestStatus,
@@ -29,6 +28,7 @@ from db.models import (
     UserVendorOrders,
     VendorOrderStatus,
 )
+from movein.geocode import resolve_target_state_from_address
 from portal.schemas import (
     GuarantorStatePayload,
     MoveInStatePayload,
@@ -165,7 +165,7 @@ def patch_profile(db: Session, user_id: uuid.UUID, body: ProfilePatch) -> Profil
     for key, val in data.items():
         if hasattr(row, key):
             setattr(row, key, val)
-    row.last_updated = datetime.now(timezone.utc)
+    row.last_updated = datetime.now(UTC)
     db.commit()
     db.refresh(row)
     out = get_profile(db, user_id)
@@ -272,16 +272,18 @@ def get_guarantor_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
         }
         for g in gtor_rows
     ]
-    req_rows = db.execute(
-        select(GuarantorRequests).where(GuarantorRequests.user_id == user_id)
-    ).scalars().all()
+    req_rows = db.execute(select(GuarantorRequests).where(GuarantorRequests.user_id == user_id)).scalars().all()
     requests_out: list[dict[str, Any]] = []
     for r in req_rows:
-        hist = db.execute(
-            select(GuarantorSigningEvents)
-            .where(GuarantorSigningEvents.request_id == r.id)
-            .order_by(asc(GuarantorSigningEvents.created_at))
-        ).scalars().all()
+        hist = (
+            db.execute(
+                select(GuarantorSigningEvents)
+                .where(GuarantorSigningEvents.request_id == r.id)
+                .order_by(asc(GuarantorSigningEvents.created_at))
+            )
+            .scalars()
+            .all()
+        )
         requests_out.append(
             {
                 "id": str(r.id),
@@ -318,9 +320,7 @@ def get_guarantor_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
 
 
 def replace_guarantors(db: Session, user_id: uuid.UUID, payload: GuarantorStatePayload) -> None:
-    req_ids = db.execute(
-        select(GuarantorRequests.id).where(GuarantorRequests.user_id == user_id)
-    ).scalars().all()
+    req_ids = db.execute(select(GuarantorRequests.id).where(GuarantorRequests.user_id == user_id)).scalars().all()
     if req_ids:
         db.execute(delete(GuarantorSigningEvents).where(GuarantorSigningEvents.request_id.in_(req_ids)))
     db.execute(delete(GuarantorRequests).where(GuarantorRequests.user_id == user_id))
@@ -387,18 +387,22 @@ def replace_guarantors(db: Session, user_id: uuid.UUID, payload: GuarantorStateP
                     event_type=h.status,
                     actor="renter",
                     note=h.note or None,
-                    created_at=_parse_dt(h.timestamp) or datetime.now(timezone.utc),
+                    created_at=_parse_dt(h.timestamp) or datetime.now(UTC),
                 )
             )
     db.commit()
 
 
 def get_movein_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
-    plans = db.execute(
-        select(UserMoveinPlans)
-        .where(UserMoveinPlans.user_id == user_id)
-        .order_by(UserMoveinPlans.updated_at.desc())
-    ).scalars().all()
+    plans = (
+        db.execute(
+            select(UserMoveinPlans)
+            .where(UserMoveinPlans.user_id == user_id)
+            .order_by(UserMoveinPlans.updated_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     if not plans:
         return {
             "plan": {
@@ -412,12 +416,8 @@ def get_movein_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
         }
     plan = plans[0]
     pid = plan.id
-    orders = db.execute(
-        select(UserVendorOrders).where(UserVendorOrders.movein_plan_id == pid)
-    ).scalars().all()
-    checklist = db.execute(
-        select(UserChecklistItems).where(UserChecklistItems.movein_plan_id == pid)
-    ).scalars().all()
+    orders = db.execute(select(UserVendorOrders).where(UserVendorOrders.movein_plan_id == pid)).scalars().all()
+    checklist = db.execute(select(UserChecklistItems).where(UserChecklistItems.movein_plan_id == pid)).scalars().all()
     return {
         "plan": {
             "target_address": plan.target_address,
@@ -536,9 +536,7 @@ def _roommate_snapshot_dict(rp: Any) -> dict[str, Any]:
 
 
 def get_roommate_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
-    prof = db.execute(
-        select(RoommateProfiles).where(RoommateProfiles.user_id == user_id)
-    ).scalar_one_or_none()
+    prof = db.execute(select(RoommateProfiles).where(RoommateProfiles.user_id == user_id)).scalar_one_or_none()
     my_profile = {
         "name": prof.name or "" if prof else "",
         "age": prof.age or 0 if prof else 0,
@@ -555,17 +553,19 @@ def get_roommate_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
         "bio": prof.bio or "" if prof else "",
         "profile_completed": prof.profile_completed if prof else False,
     }
-    conns = db.execute(
-        select(RoommateConnections).where(RoommateConnections.user_id == user_id)
-    ).scalars().all()
+    conns = db.execute(select(RoommateConnections).where(RoommateConnections.user_id == user_id)).scalars().all()
     connections: list[dict[str, Any]] = []
     for c in conns:
         snap = c.roommate_snapshot_json or {}
-        msgs = db.execute(
-            select(RoommateMessages)
-            .where(RoommateMessages.connection_id == c.id)
-            .order_by(RoommateMessages.created_at)
-        ).scalars().all()
+        msgs = (
+            db.execute(
+                select(RoommateMessages)
+                .where(RoommateMessages.connection_id == c.id)
+                .order_by(RoommateMessages.created_at)
+            )
+            .scalars()
+            .all()
+        )
         roommate = {
             "id": snap.get("id") or c.roommate_ref_id,
             "name": snap.get("name") or c.roommate_name or "",
@@ -608,9 +608,7 @@ def get_roommate_state(db: Session, user_id: uuid.UUID) -> dict[str, Any]:
 
 
 def replace_roommates(db: Session, user_id: uuid.UUID, payload: RoommateStatePayload) -> None:
-    conns = db.execute(
-        select(RoommateConnections).where(RoommateConnections.user_id == user_id)
-    ).scalars().all()
+    conns = db.execute(select(RoommateConnections).where(RoommateConnections.user_id == user_id)).scalars().all()
     for c in conns:
         db.execute(delete(RoommateMessages).where(RoommateMessages.connection_id == c.id))
     db.execute(delete(RoommateConnections).where(RoommateConnections.user_id == user_id))
@@ -654,7 +652,7 @@ def replace_roommates(db: Session, user_id: uuid.UUID, payload: RoommateStatePay
                 compatibility_score=score,
                 compatibility_reasons=reasons,
                 status=RoommateConnectionStatus.connected,
-                connected_at=_parse_dt(conn.connected_at) or datetime.now(timezone.utc),
+                connected_at=_parse_dt(conn.connected_at) or datetime.now(UTC),
             )
         )
         db.flush()
@@ -665,7 +663,7 @@ def replace_roommates(db: Session, user_id: uuid.UUID, payload: RoommateStatePay
                     sender_role=m.role,
                     sender_ref_id=None,
                     content=m.content,
-                    created_at=_parse_dt(m.time) or datetime.now(timezone.utc),
+                    created_at=_parse_dt(m.time) or datetime.now(UTC),
                 )
             )
     db.commit()

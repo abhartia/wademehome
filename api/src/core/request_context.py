@@ -9,25 +9,24 @@ from __future__ import annotations
 
 import uuid
 from contextvars import ContextVar
-from typing import Optional
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-_REQUEST_ID: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
-_USER_ID: ContextVar[Optional[str]] = ContextVar("user_id", default=None)
+_REQUEST_ID: ContextVar[str | None] = ContextVar("request_id", default=None)
+_USER_ID: ContextVar[str | None] = ContextVar("user_id", default=None)
 
 REQUEST_ID_HEADER = "x-request-id"
 
 
-def get_request_id() -> Optional[str]:
+def get_request_id() -> str | None:
     return _REQUEST_ID.get()
 
 
-def get_user_id() -> Optional[str]:
+def get_user_id() -> str | None:
     return _USER_ID.get()
 
 
-def set_user_id(user_id: Optional[str]) -> None:
+def set_user_id(user_id: str | None) -> None:
     """Bind user_id for the current async task (called by auth layer)."""
     _USER_ID.set(user_id)
 
@@ -56,9 +55,7 @@ class RequestContextMiddleware:
         async def send_with_request_id(message: Message) -> None:
             if message["type"] == "http.response.start":
                 response_headers = list(message.get("headers", []))
-                response_headers = [
-                    (k, v) for k, v in response_headers if k.lower() != REQUEST_ID_HEADER.encode()
-                ]
+                response_headers = [(k, v) for k, v in response_headers if k.lower() != REQUEST_ID_HEADER.encode()]
                 response_headers.append((REQUEST_ID_HEADER.encode(), request_id.encode()))
                 message = {**message, "headers": response_headers}
             await send(message)

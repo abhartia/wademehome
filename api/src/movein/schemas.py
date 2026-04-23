@@ -108,4 +108,3 @@ class VendorOrderListResponse(BaseModel):
 
 class ChecklistListResponse(BaseModel):
     checklist: list[ChecklistItemOut] = Field(default_factory=list)
-

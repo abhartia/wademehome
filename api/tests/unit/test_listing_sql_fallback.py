@@ -1,7 +1,7 @@
 """SQL row → PropertyDataList fallback (guest listing search sidebar)."""
 
-from workflow.property_parsing import parse_property_data_list_from_llm_content
 from listings.nearby_mapper import property_list_from_sql_rows
+from workflow.property_parsing import parse_property_data_list_from_llm_content
 
 
 def test_parse_property_data_list_from_llm_content_accepts_dict() -> None:

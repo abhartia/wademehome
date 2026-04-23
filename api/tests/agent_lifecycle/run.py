@@ -23,6 +23,7 @@ DOES NOT exercise: the UI's annotation rendering — that's covered by
 Output: prints a human-readable report to stdout and writes a JSON report
 to `tests/agent_lifecycle/last_run.json`.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -42,7 +43,7 @@ for p in (str(SRC), str(API_ROOT)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from llama_index.core.agent.workflow import (  # noqa: E402
+from llama_index.core.agent.workflow import (
     AgentInput,
     AgentOutput,
     AgentSetup,
@@ -50,12 +51,12 @@ from llama_index.core.agent.workflow import (  # noqa: E402
     ToolCall,
     ToolCallResult,
 )
-from llama_index.core.workflow import StopEvent  # noqa: E402
-from llama_index.server.models.ui import UIEvent  # noqa: E402
-from sqlalchemy import select  # noqa: E402
-from sqlalchemy.orm import Session  # noqa: E402
+from llama_index.core.workflow import StopEvent
+from llama_index.server.models.ui import UIEvent
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from tests.agent_lifecycle.spec import ALL_CASES, PromptCase, by_id  # noqa: E402
+from tests.agent_lifecycle.spec import ALL_CASES, PromptCase, by_id
 
 
 @dataclass
@@ -80,9 +81,7 @@ class CaseResult:
     failures: list[str] = field(default_factory=list)
 
 
-async def _run_turn(
-    workflow, prompt: str, chat_history: list
-) -> TurnObservation:
+async def _run_turn(workflow, prompt: str, chat_history: list) -> TurnObservation:
     obs = TurnObservation(prompt=prompt)
     t0 = time.perf_counter()
     try:
@@ -102,8 +101,7 @@ async def _run_turn(
                 pass
             elif isinstance(event, UIEvent):
                 t = getattr(event, "type", "")
-                if t and t not in {"agent_step", "agent_tool_call",
-                                   "agent_tool_result", "agent_error"}:
+                if t and t not in {"agent_step", "agent_tool_call", "agent_tool_result", "agent_error"}:
                     obs.card_types.append(t)
             elif isinstance(event, AgentStream):
                 if event.delta:
@@ -112,11 +110,7 @@ async def _run_turn(
                 # Only flush AgentOutput if we've streamed NOTHING — mirrors the
                 # router's behavior of preferring deltas over the final content
                 # blob (which would otherwise double the text in the transcript).
-                if (
-                    not final_text_parts
-                    and event.response
-                    and event.response.content
-                ):
+                if not final_text_parts and event.response and event.response.content:
                     final_text_parts.append(event.response.content)
             elif isinstance(event, StopEvent):
                 break
@@ -149,10 +143,7 @@ def _assert_case(case: PromptCase, final_turn: TurnObservation) -> list[str]:
     # so cases like movein_checklist (either list_movein_tasks OR view_movein_plan
     # is acceptable) don't false-fail.
     if case.expected_tools and not (case.expected_tools & tools):
-        fails.append(
-            f"expected at least one of tool(s) {sorted(case.expected_tools)}; "
-            f"got {sorted(tools)}"
-        )
+        fails.append(f"expected at least one of tool(s) {sorted(case.expected_tools)}; " f"got {sorted(tools)}")
 
     bad_tools = case.forbidden_tools & tools
     if bad_tools:
@@ -168,8 +159,7 @@ def _assert_case(case: PromptCase, final_turn: TurnObservation) -> list[str]:
     return fails
 
 
-def _build_context_history(runner_results: dict[str, CaseResult],
-                            from_ids: list[str]) -> list:
+def _build_context_history(runner_results: dict[str, CaseResult], from_ids: list[str]) -> list:
     """Stitch prior turn(s) into an assistant/user chat history so a follow-up
     case can reference them. Uses the assistant text recorded on a prior case
     run. If a prior case hasn't been run yet, raises so the runner can play
@@ -180,17 +170,14 @@ def _build_context_history(runner_results: dict[str, CaseResult],
     for fid in from_ids:
         prior = runner_results.get(fid)
         if not prior:
-            raise RuntimeError(
-                f"Follow-up case depends on prior case '{fid}' which hasn't run."
-            )
+            raise RuntimeError(f"Follow-up case depends on prior case '{fid}' which hasn't run.")
         # Use the last turn of the prior case.
         last = prior.turns[-1]
         history.append(ChatMessage(role="user", content=last.prompt))
         # Fall back to a terse stub if the prior turn produced no text (it
         # may have produced only cards). The orchestrator still sees that
         # the prior user turn happened.
-        history.append(ChatMessage(role="assistant",
-                                   content=last.text or "[card-only reply]"))
+        history.append(ChatMessage(role="assistant", content=last.text or "[card-only reply]"))
     return history
 
 
@@ -205,11 +192,11 @@ async def _run_case(
 ) -> CaseResult:
     from agent.workflow import build_home_agent_workflow
 
-    result = CaseResult(id=case.id, stage=case.stage, prompt=case.prompt,
-                        notes=case.notes)
+    result = CaseResult(id=case.id, stage=case.stage, prompt=case.prompt, notes=case.notes)
     history = _build_context_history(prior, case.context_from) if case.context_from else []
     workflow = build_home_agent_workflow(
-        user=user, db=db,
+        user=user,
+        db=db,
         orchestrator_llm=orchestrator_llm,
         specialist_llm=specialist_llm,
         timeout=120.0,
@@ -228,8 +215,7 @@ def _filter_cases(args) -> list[PromptCase]:
         return [by_id(i) for i in args.id]
     if args.stage:
         wanted = set(args.stage)
-        return [c for c in ALL_CASES
-                if c.stage in wanted and not c.skip_runner]
+        return [c for c in ALL_CASES if c.stage in wanted and not c.skip_runner]
     if args.all:
         return [c for c in ALL_CASES if not c.skip_runner]
     raise SystemExit("Pass --all, --stage NAME, or --id CASE_ID")
@@ -239,8 +225,7 @@ def _print_case(idx: int, total: int, result: CaseResult) -> None:
     marker = "PASS" if result.passed else "FAIL"
     color = "\033[92m" if result.passed else "\033[91m"
     reset = "\033[0m"
-    print(f"{color}[{marker}]{reset} {idx+1}/{total} "
-          f"{result.stage}/{result.id}: {result.prompt!r}")
+    print(f"{color}[{marker}]{reset} {idx+1}/{total} " f"{result.stage}/{result.id}: {result.prompt!r}")
     for turn in result.turns:
         print(f"    agents:  {turn.agents_seen}")
         print(f"    tools:   {turn.tools_called}")
@@ -257,7 +242,7 @@ def _summary(results: list[CaseResult]) -> None:
     total = len(results)
     passed = sum(1 for r in results if r.passed)
     print()
-    print(f"═══════════════════════════════════════════════════════════════")
+    print("═══════════════════════════════════════════════════════════════")
     print(f"  {passed}/{total} passed ({100 * passed / max(total, 1):.0f}%)")
     by_stage: dict[str, tuple[int, int]] = {}
     for r in results:
@@ -266,7 +251,7 @@ def _summary(results: list[CaseResult]) -> None:
     for stage, (p, t) in sorted(by_stage.items()):
         marker = "✓" if p == t else "✗"
         print(f"  {marker} {stage:14s} {p}/{t}")
-    print(f"═══════════════════════════════════════════════════════════════")
+    print("═══════════════════════════════════════════════════════════════")
 
 
 def main() -> None:
@@ -278,8 +263,7 @@ def main() -> None:
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--stage", action="append", default=[])
     parser.add_argument("--id", action="append", default=[])
-    parser.add_argument("--user-email", default=os.getenv(
-        "TEST_USER_EMAIL", "bhartta@gmail.com"))
+    parser.add_argument("--user-email", default=os.getenv("TEST_USER_EMAIL", "bhartta@gmail.com"))
     args = parser.parse_args()
 
     cases = _filter_cases(args)
@@ -291,9 +275,7 @@ def main() -> None:
 
     db: Session = get_session_local()()
     try:
-        user = db.execute(
-            select(Users).where(Users.email == args.user_email)
-        ).scalar_one_or_none()
+        user = db.execute(select(Users).where(Users.email == args.user_email)).scalar_one_or_none()
         if not user:
             raise SystemExit(f"Test user {args.user_email!r} not found in DB")
         orchestrator_llm = get_llm_nano()
@@ -303,24 +285,32 @@ def main() -> None:
         prior: dict[str, CaseResult] = {}
         for idx, case in enumerate(cases):
             try:
-                r = asyncio.run(_run_case(
-                    case, user=user, db=db,
-                    orchestrator_llm=orchestrator_llm,
-                    specialist_llm=specialist_llm,
-                    prior=prior,
-                ))
+                r = asyncio.run(
+                    _run_case(
+                        case,
+                        user=user,
+                        db=db,
+                        orchestrator_llm=orchestrator_llm,
+                        specialist_llm=specialist_llm,
+                        prior=prior,
+                    )
+                )
             except Exception as exc:
-                r = CaseResult(id=case.id, stage=case.stage, prompt=case.prompt,
-                               notes=case.notes, passed=False,
-                               failures=[f"runner exception: {exc!r}"])
+                r = CaseResult(
+                    id=case.id,
+                    stage=case.stage,
+                    prompt=case.prompt,
+                    notes=case.notes,
+                    passed=False,
+                    failures=[f"runner exception: {exc!r}"],
+                )
             results.append(r)
             prior[case.id] = r
             _print_case(idx, len(cases), r)
 
         _summary(results)
         report_path = HERE / "last_run.json"
-        report_path.write_text(json.dumps([asdict(r) for r in results],
-                                          indent=2, default=str))
+        report_path.write_text(json.dumps([asdict(r) for r in results], indent=2, default=str))
         print(f"\nFull JSON report: {report_path}")
         sys.exit(0 if all(r.passed for r in results) else 1)
     finally:

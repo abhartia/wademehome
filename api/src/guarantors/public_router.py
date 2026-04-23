@@ -39,17 +39,13 @@ def open_guarantor_invite(token: str, request: Request, db: Session = Depends(ge
 def consent_guarantor_invite(
     token: str, body: GuarantorInviteConsentIn, request: Request, db: Session = Depends(get_db)
 ):
-    submit_consent(
-        db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent")
-    )
+    submit_consent(db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent"))
     return None
 
 
 @router.post("/{token}/sign", status_code=204)
 def sign_guarantor_invite(token: str, body: GuarantorInviteSignIn, request: Request, db: Session = Depends(get_db)):
-    submit_signature(
-        db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent")
-    )
+    submit_signature(db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent"))
     return None
 
 
@@ -76,7 +72,5 @@ def upload_guarantor_invite_documents(
 def decline_guarantor_invite(
     token: str, body: GuarantorInviteDeclineIn, request: Request, db: Session = Depends(get_db)
 ):
-    decline_invite(
-        db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent")
-    )
+    decline_invite(db, token, body, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent"))
     return None

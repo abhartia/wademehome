@@ -49,10 +49,7 @@ def test_securecafe_amenities_url():
 
 
 def test_entrata_amenities_url():
-    assert (
-        lap.entrata_amenities_url("https://entrawestend.com/floorplans/")
-        == "https://entrawestend.com/amenities/"
-    )
+    assert lap.entrata_amenities_url("https://entrawestend.com/floorplans/") == "https://entrawestend.com/amenities/"
 
 
 def test_parse_rentcafe_missing_returns_none():

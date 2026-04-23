@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from auth.router import get_current_admin_user, get_db
-from db.models import LandlordEntities, Users
+from db.models import Users
 from reviews_admin.schemas import (
     EmptyResponse,
     LandlordEntityClaimApproveRequest,
@@ -29,7 +29,8 @@ from reviews_admin.service import (
 )
 
 router = APIRouter(
-    prefix="/admin/reviews", tags=["admin-reviews"],
+    prefix="/admin/reviews",
+    tags=["admin-reviews"],
     dependencies=[Depends(get_current_admin_user)],
 )
 

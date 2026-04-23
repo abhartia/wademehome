@@ -22,7 +22,9 @@ def forward_geocode(address: str, token: str, *, timeout: float = 12.0) -> tuple
     path = urllib.parse.quote(q, safe="")
     url = f"{_GEOCODE_BASE}/{path}.json?{urllib.parse.urlencode({'access_token': token, 'limit': 1})}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(
+            url, timeout=timeout
+        ) as resp:  # nosec B310 — url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
@@ -38,9 +40,7 @@ def forward_geocode(address: str, token: str, *, timeout: float = 12.0) -> tuple
     return lat, lng
 
 
-def forward_geocode_detailed(
-    address: str, token: str, *, timeout: float = 12.0
-) -> dict[str, Any] | None:
+def forward_geocode_detailed(address: str, token: str, *, timeout: float = 12.0) -> dict[str, Any] | None:
     """Return {place_name, lat, lng, city, state, zipcode} for best Mapbox feature, or None.
 
     Used by the listing paste flow so one parse call returns everything needed to save
@@ -52,7 +52,9 @@ def forward_geocode_detailed(
     path = urllib.parse.quote(q, safe="")
     url = f"{_GEOCODE_BASE}/{path}.json?{urllib.parse.urlencode({'access_token': token, 'limit': 1, 'country': 'us'})}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(
+            url, timeout=timeout
+        ) as resp:  # nosec B310 — url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
@@ -79,9 +81,7 @@ def forward_geocode_detailed(
             if not isinstance(iid, str):
                 continue
             text_val = item.get("text") if isinstance(item.get("text"), str) else None
-            if iid.startswith("place."):
-                city = text_val
-            elif iid.startswith("locality.") and not city:
+            if iid.startswith("place.") or (iid.startswith("locality.") and not city):
                 city = text_val
             elif iid.startswith("region."):
                 short = item.get("short_code")
@@ -145,7 +145,9 @@ def forward_geocode_us_state(address: str, token: str, *, timeout: float = 12.0)
     path = urllib.parse.quote(q, safe="")
     url = f"{_GEOCODE_BASE}/{path}.json?{urllib.parse.urlencode({'access_token': token, 'limit': 1})}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(
+            url, timeout=timeout
+        ) as resp:  # nosec B310 — url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
@@ -173,7 +175,7 @@ def driving_durations_minutes(
     for dlat, dlng in dest_latlng:
         coords.append(f"{dlng},{dlat}")
     coord_path = ";".join(coords)
-    n = len(coords) - 1
+    len(coords) - 1
     dest_idx = ";".join(str(i) for i in range(1, len(coords)))
     qs = urllib.parse.urlencode(
         {
@@ -185,7 +187,9 @@ def driving_durations_minutes(
     )
     url = f"{_MATRIX_BASE}/{coord_path}?{qs}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(
+            url, timeout=timeout
+        ) as resp:  # nosec B310 — url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError, ValueError):
         return [None] * len(dest_latlng)
@@ -252,7 +256,9 @@ def search_category_nearby(
     path = urllib.parse.quote(cid, safe="")
     url = f"{_SEARCH_BOX_BASE}/category/{path}?{qs}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(
+            url, timeout=timeout
+        ) as resp:  # nosec B310 — url built from constant https mapbox base
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, json.JSONDecodeError, OSError, ValueError):
         return []

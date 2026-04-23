@@ -14,13 +14,17 @@ from auth.router import get_current_user_or_none
 from core.config import Config
 from core.logger import get_logger
 from db.models import Users
-from listings.mapbox_client import driving_durations_minutes, forward_geocode, search_category_nearby
 from listings.listing_amenities_concessions import merge_concession_snippets_from_listing_amenities
 from listings.listings_table_cache import cached_execute_all, cached_execute_first
-from listings.market_snapshot import build_market_snapshot_sql, extract_zip_from_address, normalize_us_zip_query
-from listings.market_snapshot import _rent_sql_expr
-from listings.price_histogram import BUCKET_COUNT, build_price_histogram_sql
+from listings.mapbox_client import driving_durations_minutes, forward_geocode, search_category_nearby
+from listings.market_snapshot import (
+    _rent_sql_expr,
+    build_market_snapshot_sql,
+    extract_zip_from_address,
+    normalize_us_zip_query,
+)
 from listings.nearby_mapper import row_to_property_data_item
+from listings.price_histogram import BUCKET_COUNT, build_price_histogram_sql
 from listings.property_key import item_matches_property_key, parse_property_key, property_key_from_item
 from listings.schemas import (
     CommuteLegResult,
@@ -109,12 +113,10 @@ def _qualified_table() -> str:
 
 def _table_columns_lower(conn, schema: str, tname: str) -> set[str]:
     rows = conn.execute(
-        text(
-            """
+        text("""
             SELECT column_name FROM information_schema.columns
             WHERE table_schema = :schema AND table_name = :tname
-            """
-        ),
+            """),
         {"schema": schema, "tname": tname},
     ).fetchall()
     return {str(r[0]).lower() for r in rows}
@@ -310,8 +312,7 @@ def _run_nearby_radius_query(
     vis = _visibility_where(cols, "t_inner")
     if "geog" in cols:
         total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
-        select_sql = text(
-            f"""
+        select_sql = text(f"""
             SELECT
               {select_cols},
               {total_value_expr} AS total_in_scope,
@@ -329,12 +330,10 @@ def _run_nearby_radius_query(
               AND {vis}{rent_clause}
             ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
             LIMIT :prefetch_limit
-            """
-        )
+            """)
     else:
         total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
-        select_sql = text(
-            f"""
+        select_sql = text(f"""
             SELECT
               {select_cols},
               {total_value_expr} AS total_in_scope,
@@ -346,8 +345,7 @@ def _run_nearby_radius_query(
               AND {vis}{rent_clause}
             ORDER BY ({hav_inner}) ASC
             LIMIT :prefetch_limit
-            """
-        )
+            """)
     rows = cached_execute_all(conn, select_sql, params)
     if rows:
         total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
@@ -361,8 +359,7 @@ def _run_nearby_radius_query(
         q_lng,
         limit,
     )
-    fallback_sql = text(
-        f"""
+    fallback_sql = text(f"""
         SELECT
           {select_cols},
           ({hav_inner}) AS d_mi
@@ -372,8 +369,7 @@ def _run_nearby_radius_query(
           AND {vis}{rent_clause}
         ORDER BY ({hav_inner}) ASC
         LIMIT :prefetch_limit
-        """
-    )
+        """)
     rows = cached_execute_all(conn, fallback_sql, params)
     return rows, 0, bool(rows)
 
@@ -489,11 +485,15 @@ def get_nearby_listings(
     east: float | None = Query(default=None, ge=-180, le=180),
     north: float | None = Query(default=None, ge=-90, le=90),
     min_rent: float | None = Query(
-        default=None, ge=0, le=1_000_000,
+        default=None,
+        ge=0,
+        le=1_000_000,
         description="Minimum monthly rent (USD). Rows with no rent data are kept.",
     ),
     max_rent: float | None = Query(
-        default=None, ge=0, le=1_000_000,
+        default=None,
+        ge=0,
+        le=1_000_000,
         description="Maximum monthly rent (USD). Rows with no rent data are kept.",
     ),
     limit: int = Query(50, ge=1, le=100),
@@ -558,9 +558,7 @@ def get_nearby_listings(
 
             cols = _table_columns_lower(conn, schema_for_info, tname)
             select_cols = _nearby_projection(cols)
-            rent_clause, rent_params = _rent_filter_clause(
-                cols, min_rent=min_rent, max_rent=max_rent
-            )
+            rent_clause, rent_params = _rent_filter_clause(cols, min_rent=min_rent, max_rent=max_rent)
             params: dict[str, Any] = {
                 "lat": q_lat,
                 "lng": q_lng,
@@ -574,12 +572,6 @@ def get_nearby_listings(
             if bbox_mode:
                 assert west is not None and south is not None and east is not None and north is not None
                 params.update({"west": west, "south": south, "east": east, "north": north})
-                bbox_where = """
-                latitude IS NOT NULL
-                  AND longitude IS NOT NULL
-                  AND latitude BETWEEN :south AND :north
-                  AND longitude BETWEEN :west AND :east
-                """
                 _vis_inner = _visibility_where(cols, "t_inner")
                 bbox_where_inner = f"""
                 t_inner.latitude IS NOT NULL
@@ -589,14 +581,17 @@ def get_nearby_listings(
                   AND {_vis_inner}{rent_clause}
                 """
                 # Circle that fully covers the requested bbox for indexed prefiltering.
-                params["bbox_radius_m"] = (
-                    float(math.hypot((north - south) * 110_574.0, (east - west) * 111_320.0 * max(0.25, math.cos(math.radians(q_lat)))) / 2.0)
+                params["bbox_radius_m"] = float(
+                    math.hypot(
+                        (north - south) * 110_574.0,
+                        (east - west) * 111_320.0 * max(0.25, math.cos(math.radians(q_lat))),
+                    )
+                    / 2.0
                 )
                 # Use geog+GiST path when available; fall back to haversine for portability.
                 if "geog" in cols:
                     total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
-                    select_sql = text(
-                        f"""
+                    select_sql = text(f"""
                         SELECT
                           {select_cols},
                           {total_value_expr} AS total_in_scope,
@@ -616,13 +611,11 @@ def get_nearby_listings(
                           AND {_vis_inner}{rent_clause}
                         ORDER BY t_inner.geog <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
                         LIMIT :prefetch_limit
-                        """
-                    )
+                        """)
                 else:
                     # Single-pass scoped query: nearest rows + in-scope total count.
                     total_value_expr = "COUNT(*) OVER ()::bigint" if include_total else "NULL::bigint"
-                    select_sql = text(
-                        f"""
+                    select_sql = text(f"""
                         SELECT
                           {select_cols},
                           {total_value_expr} AS total_in_scope,
@@ -631,8 +624,7 @@ def get_nearby_listings(
                         WHERE {bbox_where_inner}
                         ORDER BY ({hav_inner}) ASC
                         LIMIT :prefetch_limit
-                        """
-                    )
+                        """)
                 rows = cached_execute_all(conn, select_sql, params)
                 if rows:
                     total = int(rows[0].get("total_in_scope") or 0) if include_total else 0
@@ -642,8 +634,7 @@ def get_nearby_listings(
                         "listings/nearby: 0 within bbox; returning %s nearest buildings",
                         limit,
                     )
-                    fallback_sql = text(
-                        f"""
+                    fallback_sql = text(f"""
                         SELECT
                           {select_cols},
                           ({hav_inner}) AS d_mi
@@ -653,8 +644,7 @@ def get_nearby_listings(
                           AND {_vis_inner}{rent_clause}
                         ORDER BY ({hav_inner}) ASC
                         LIMIT :prefetch_limit
-                        """
-                    )
+                        """)
                     rows = cached_execute_all(conn, fallback_sql, params)
                     total = 0
                     used_fallback = bool(rows)
@@ -726,9 +716,7 @@ def get_nearby_listings(
         return _empty_response(response_radius, limit, used_bbox=bbox_mode)
 
 
-def _resolve_property_by_key(
-    key: str, *, current_user_id: str | None = None
-) -> PropertyDataItem | None:
+def _resolve_property_by_key(key: str, *, current_user_id: str | None = None) -> PropertyDataItem | None:
     """Resolve a property_key to a listing. Private user-contributed rows are
     only returned to their contributor — public (or legacy NULL-visibility)
     rows are readable by anyone, same as /listings/nearby."""
@@ -771,8 +759,7 @@ def _resolve_property_by_key(
                     "lng1": lng_k + eps,
                     "limit": 250,
                 }
-                sql = text(
-                    f"""
+                sql = text(f"""
                     SELECT * FROM (
                       SELECT DISTINCT ON ({distinct_on})
                         t_inner.*
@@ -784,14 +771,12 @@ def _resolve_property_by_key(
                       ORDER BY {order_building}
                     ) sub
                     LIMIT :limit
-                    """
-                )
+                    """)
                 rows = cached_execute_all(conn, sql, params)
             else:
                 params = {"limit": 1800}
                 if "property_id" in cols:
-                    sql = text(
-                        f"""
+                    sql = text(f"""
                         SELECT * FROM (
                           SELECT DISTINCT ON (t_inner.property_id)
                             t_inner.*
@@ -799,11 +784,9 @@ def _resolve_property_by_key(
                           ORDER BY t_inner.property_id
                         ) sub
                         LIMIT :limit
-                        """
-                    )
+                        """)
                 else:
-                    sql = text(
-                        f"""
+                    sql = text(f"""
                         SELECT * FROM (
                           SELECT DISTINCT ON ({distinct_on})
                             t_inner.*
@@ -813,8 +796,7 @@ def _resolve_property_by_key(
                           ORDER BY {order_building}
                         ) sub
                         LIMIT :limit
-                        """
-                    )
+                        """)
                 rows = cached_execute_all(conn, sql, params)
 
         matches: list[PropertyDataItem] = []
@@ -865,8 +847,7 @@ def get_sitemap_keys() -> SitemapKeysResponse:
             cols = _table_columns_lower(conn, schema_for_info, tname)
             distinct_on, order_building = _distinct_on_building(cols)
 
-            sql = text(
-                f"""
+            sql = text(f"""
                 SELECT * FROM (
                   SELECT DISTINCT ON ({distinct_on})
                     t_inner.*
@@ -875,8 +856,7 @@ def get_sitemap_keys() -> SitemapKeysResponse:
                     AND t_inner.longitude IS NOT NULL
                   ORDER BY {order_building}
                 ) sub
-                """
-            )
+                """)
             rows = cached_execute_all(conn, sql, {})
 
         keys: list[str] = []
@@ -962,10 +942,14 @@ def fetch_market_snapshot(
     qtable = _qualified_table()
     db_url = (Config.get("DATABASE_URL") or "").strip()
     if not db_url or not qtable:
-        return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+        return MarketSnapshotResponse(
+            scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={}
+        )
 
     if engine.dialect.name != "postgresql":
-        return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+        return MarketSnapshotResponse(
+            scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={}
+        )
 
     schema_kw = (listing_table_schema or "").strip() or None
     schema_for_info = schema_kw if schema_kw else "public"
@@ -975,7 +959,9 @@ def fetch_market_snapshot(
         with engine.connect() as conn:
             insp = inspect(conn)
             if not insp.has_table(tname, schema=schema_kw):
-                return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+                return MarketSnapshotResponse(
+                    scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={}
+                )
 
             cols = _table_columns_lower(conn, schema_for_info, tname)
             built = build_market_snapshot_sql(
@@ -986,11 +972,15 @@ def fetch_market_snapshot(
                 state=state_t if not zip_t else None,
             )
             if built is None:
-                return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+                return MarketSnapshotResponse(
+                    scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={}
+                )
             sql, params = built
             row = cached_execute_first(conn, sql, params)
             if row is None:
-                return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+                return MarketSnapshotResponse(
+                    scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={}
+                )
 
             sample = int(row["sample_size"] or 0)
             mix_raw = row["bedroom_mix"]
@@ -1008,13 +998,21 @@ def fetch_market_snapshot(
                     return None
 
             return MarketSnapshotResponse(
-                scope=scope, zip=zip_out, city=city_out, state=state_out,
-                sample_size=sample, median_rent=_f("p50"), p25_rent=_f("p25"), p75_rent=_f("p75"),
+                scope=scope,
+                zip=zip_out,
+                city=city_out,
+                state=state_out,
+                sample_size=sample,
+                median_rent=_f("p50"),
+                p25_rent=_f("p25"),
+                p75_rent=_f("p75"),
                 bedroom_mix=bedroom_mix,
             )
     except Exception:
         logger.exception("fetch_market_snapshot failed")
-        return MarketSnapshotResponse(scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={})
+        return MarketSnapshotResponse(
+            scope=scope, zip=zip_out, city=city_out, state=state_out, sample_size=0, bedroom_mix={}
+        )
 
 
 @router.get("/market-snapshot", response_model=MarketSnapshotResponse)
@@ -1096,9 +1094,7 @@ def get_price_histogram(
     if not db_url or not qtable:
         return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
     if engine.dialect.name != "postgresql":
-        logger.warning(
-            "listings/price-histogram: unsupported dialect %s", engine.dialect.name
-        )
+        logger.warning("listings/price-histogram: unsupported dialect %s", engine.dialect.name)
         return PriceHistogramResponse(sample_size=0, bucket_count=BUCKET_COUNT)
 
     schema_kw = (listing_table_schema or "").strip() or None
@@ -1180,9 +1176,7 @@ def get_price_histogram(
         if count == 0 and i != 0 and i != BUCKET_COUNT + 1:
             # Emit the bar anyway (with 0 count) so the UI can draw a continuous axis.
             pass
-        buckets_out.append(
-            PriceHistogramBucket(index=i, count=count, min_rent=lo, max_rent=hi)
-        )
+        buckets_out.append(PriceHistogramBucket(index=i, count=count, min_rent=lo, max_rent=hi))
 
     return PriceHistogramResponse(
         sample_size=sample_size,
@@ -1243,9 +1237,7 @@ def fetch_poi_nearby(latitude: float, longitude: float) -> PoiNearbyResponse:
     items: list[PoiHit] = []
     for cat, mapbox_category_id in _POI_CATEGORIES:
         try:
-            hits = search_category_nearby(
-                latitude, longitude, mapbox_category_id, token, limit=6
-            )
+            hits = search_category_nearby(latitude, longitude, mapbox_category_id, token, limit=6)
         except Exception:
             logger.warning("POI search failed for %s", cat)
             hits = []
@@ -1257,11 +1249,7 @@ def fetch_poi_nearby(latitude: float, longitude: float) -> PoiNearbyResponse:
             nlat = nearest.get("latitude")
             nlng = nearest.get("longitude")
             raw_dm = nearest.get("distance_meters")
-            if (
-                isinstance(raw_dm, (int, float))
-                and math.isfinite(float(raw_dm))
-                and float(raw_dm) >= 0
-            ):
+            if isinstance(raw_dm, (int, float)) and math.isfinite(float(raw_dm)) and float(raw_dm) >= 0:
                 ndm = round(float(raw_dm), 1)
         items.append(
             PoiHit(
@@ -1306,10 +1294,7 @@ def _haversine_miles(lat1: float, lng1: float, lat2: float, lng2: float) -> floa
     phi2 = math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlambda = math.radians(lng2 - lng1)
-    a = (
-        math.sin(dphi / 2) ** 2
-        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    )
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return r_mi * c
 
@@ -1321,8 +1306,7 @@ def nearest_transit(
     systems: str | None = Query(
         default=None,
         description=(
-            "Comma-separated list of transit systems to consider "
-            "(e.g. 'path,hblr,ferry'). Omit for all systems."
+            "Comma-separated list of transit systems to consider " "(e.g. 'path,hblr,ferry'). Omit for all systems."
         ),
     ),
     limit: int = Query(default=5, ge=1, le=25),
@@ -1351,10 +1335,8 @@ def nearest_transit(
 
     scored: list[NearestTransitStation] = []
     for r in rows:
-        d_mi = _haversine_miles(
-            latitude, longitude, float(r["latitude"]), float(r["longitude"])
-        )
-        walk_min = int(round((d_mi / _WALK_SPEED_MPH) * 60 * _WALK_DETOUR))
+        d_mi = _haversine_miles(latitude, longitude, float(r["latitude"]), float(r["longitude"]))
+        walk_min = round((d_mi / _WALK_SPEED_MPH) * 60 * _WALK_DETOUR)
         if max_walk_minutes is not None and walk_min > max_walk_minutes:
             continue
         scored.append(
@@ -1382,8 +1364,7 @@ def list_transit_stations(
     systems: str | None = Query(
         default=None,
         description=(
-            "Comma-separated systems to include (e.g. 'path,hblr,ferry,nyc_subway'). "
-            "Omit for all systems."
+            "Comma-separated systems to include (e.g. 'path,hblr,ferry,nyc_subway'). " "Omit for all systems."
         ),
     ),
     west: float | None = Query(default=None, ge=-180, le=180),
@@ -1417,9 +1398,7 @@ def list_transit_stations(
         conditions.append("system::text = ANY(:systems)")
         params["systems"] = allowed_systems
     if has_bbox_all:
-        conditions.append(
-            "longitude BETWEEN :west AND :east AND latitude BETWEEN :south AND :north"
-        )
+        conditions.append("longitude BETWEEN :west AND :east AND latitude BETWEEN :south AND :north")
         params.update({"west": west, "east": east, "south": south, "north": north})
     if conditions:
         sql += " WHERE " + " AND ".join(conditions)

@@ -1,8 +1,8 @@
-from core.logger import get_logger
 from core.env_utils import env_manager
-
+from core.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 class Config:
     """Central configuration class for Ask-Markerr.
@@ -38,16 +38,16 @@ class Config:
     # Text-to-SQL LLM cache (process-local; reuse SQL across users when prompts match)
     LLM_TEXT2SQL_CACHE_ENABLED: str = env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
     LLM_TEXT2SQL_CACHE_MAX_ENTRIES: str = env_manager.get("LLM_TEXT2SQL_CACHE_MAX_ENTRIES", "256") or "256"
-    LLM_TEXT2SQL_CACHE_TTL_SECONDS: str = (
-        env_manager.get("LLM_TEXT2SQL_CACHE_TTL_SECONDS", "3600") or "3600"
-    )
+    LLM_TEXT2SQL_CACHE_TTL_SECONDS: str = env_manager.get("LLM_TEXT2SQL_CACHE_TTL_SECONDS", "3600") or "3600"
 
     # Application settings
     LOG_LEVEL: str = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
     LISTINGS_TABLE_NAME: str = env_manager.get("LISTINGS_TABLE_NAME", None)
     LISTINGS_TABLE_SCHEMA: str = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
     LISTING_AMENITIES_TABLE_NAME: str = env_manager.get("LISTING_AMENITIES_TABLE_NAME", "listing_amenities")
-    OPENAI_EMBEDDING_MODEL: str = env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
+    OPENAI_EMBEDDING_MODEL: str = (
+        env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
+    )
     OPENAI_EMBEDDING_DIMENSIONS: str = env_manager.get("OPENAI_EMBEDDING_DIMENSIONS", "1536") or "1536"
     LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT: str = (
         env_manager.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false"
@@ -56,33 +56,15 @@ class Config:
     # Listings table read query cache (process-local TTL+LRU for SELECTs against LISTINGS_TABLE_*)
     LISTINGS_TABLE_CACHE_ENABLED: str = env_manager.get("LISTINGS_TABLE_CACHE_ENABLED", "true") or "true"
     LISTINGS_TABLE_CACHE_MAX_ENTRIES: str = env_manager.get("LISTINGS_TABLE_CACHE_MAX_ENTRIES", "512") or "512"
-    LISTINGS_TABLE_CACHE_TTL_SECONDS: str = (
-        env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
-    )
-    LISTINGS_VALIDATION_CONCURRENCY: str = (
-        env_manager.get("LISTINGS_VALIDATION_CONCURRENCY", "12") or "12"
-    )
-    LISTINGS_VALIDATION_MAX_SECONDS: str = (
-        env_manager.get("LISTINGS_VALIDATION_MAX_SECONDS", "25") or "25"
-    )
-    LISTINGS_SEARCH_PLANNER_MAX_MS: str = (
-        env_manager.get("LISTINGS_SEARCH_PLANNER_MAX_MS", "2500") or "2500"
-    )
-    LISTINGS_SEARCH_DB_MAX_MS: str = (
-        env_manager.get("LISTINGS_SEARCH_DB_MAX_MS", "5000") or "5000"
-    )
-    LISTINGS_SEARCH_AMENITY_MAX_MS: str = (
-        env_manager.get("LISTINGS_SEARCH_AMENITY_MAX_MS", "2000") or "2000"
-    )
-    LISTINGS_SEARCH_BREAKDOWN_MAX_MS: str = (
-        env_manager.get("LISTINGS_SEARCH_BREAKDOWN_MAX_MS", "2000") or "2000"
-    )
-    LISTINGS_SEARCH_CANDIDATE_LIMIT: str = (
-        env_manager.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120") or "120"
-    )
-    LISTINGS_SEARCH_AMENITY_TOPK: str = (
-        env_manager.get("LISTINGS_SEARCH_AMENITY_TOPK", "80") or "80"
-    )
+    LISTINGS_TABLE_CACHE_TTL_SECONDS: str = env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
+    LISTINGS_VALIDATION_CONCURRENCY: str = env_manager.get("LISTINGS_VALIDATION_CONCURRENCY", "12") or "12"
+    LISTINGS_VALIDATION_MAX_SECONDS: str = env_manager.get("LISTINGS_VALIDATION_MAX_SECONDS", "25") or "25"
+    LISTINGS_SEARCH_PLANNER_MAX_MS: str = env_manager.get("LISTINGS_SEARCH_PLANNER_MAX_MS", "2500") or "2500"
+    LISTINGS_SEARCH_DB_MAX_MS: str = env_manager.get("LISTINGS_SEARCH_DB_MAX_MS", "5000") or "5000"
+    LISTINGS_SEARCH_AMENITY_MAX_MS: str = env_manager.get("LISTINGS_SEARCH_AMENITY_MAX_MS", "2000") or "2000"
+    LISTINGS_SEARCH_BREAKDOWN_MAX_MS: str = env_manager.get("LISTINGS_SEARCH_BREAKDOWN_MAX_MS", "2000") or "2000"
+    LISTINGS_SEARCH_CANDIDATE_LIMIT: str = env_manager.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120") or "120"
+    LISTINGS_SEARCH_AMENITY_TOPK: str = env_manager.get("LISTINGS_SEARCH_AMENITY_TOPK", "80") or "80"
     LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER: str = (
         env_manager.get("LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER", "false") or "false"
     )
@@ -111,9 +93,7 @@ class Config:
     # Azure Blob Storage (shared connection string, per-feature containers)
     AZURE_BLOB_CONNECTION_STRING: str = env_manager.get("AZURE_BLOB_CONNECTION_STRING", "") or ""
     AZURE_BLOB_MOVEIN_CONTAINER: str = env_manager.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or ""
-    AZURE_BLOB_TOUR_MEDIA_CONTAINER: str = (
-        env_manager.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or ""
-    )
+    AZURE_BLOB_TOUR_MEDIA_CONTAINER: str = env_manager.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or ""
 
     @classmethod
     def _refresh_values(cls) -> None:
@@ -121,9 +101,7 @@ class Config:
         cls.DATABASE_URL = env_manager.get("DATABASE_URL", "") or ""
         cls.OPENAI_API_KEY = env_manager.get("OPENAI_API_KEY", "") or ""
         cls.OPENAI_MODEL = env_manager.get("OPENAI_MODEL", "gpt-4.1") or "gpt-4.1"
-        cls.OPENAI_SEARCH_PLANNER_MODEL = (
-            env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
-        )
+        cls.OPENAI_SEARCH_PLANNER_MODEL = env_manager.get("OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
         cls.AZURE_OPENAI_ENDPOINT = env_manager.get("AZURE_OPENAI_ENDPOINT", "") or ""
         cls.AZURE_OPENAI_API_KEY = env_manager.get("AZURE_OPENAI_API_KEY", "") or ""
         cls.AZURE_OPENAI_DEPLOYMENT = env_manager.get("AZURE_OPENAI_DEPLOYMENT", "") or ""
@@ -131,24 +109,14 @@ class Config:
         cls.AZURE_OPENAI_API_VERSION = (
             env_manager.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview") or "2024-12-01-preview"
         )
-        cls.AZURE_OPENAI_EMBEDDING_DEPLOYMENT = (
-            env_manager.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "") or ""
-        )
-        cls.AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT = (
-            env_manager.get("AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT", "") or ""
-        )
+        cls.AZURE_OPENAI_EMBEDDING_DEPLOYMENT = env_manager.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "") or ""
+        cls.AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT = env_manager.get("AZURE_OPENAI_SEARCH_PLANNER_DEPLOYMENT", "") or ""
         cls.AZURE_OPENAI_SEARCH_PLANNER_MODEL = (
             env_manager.get("AZURE_OPENAI_SEARCH_PLANNER_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
         )
-        cls.LLM_TEXT2SQL_CACHE_ENABLED = (
-            env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
-        )
-        cls.LLM_TEXT2SQL_CACHE_MAX_ENTRIES = (
-            env_manager.get("LLM_TEXT2SQL_CACHE_MAX_ENTRIES", "256") or "256"
-        )
-        cls.LLM_TEXT2SQL_CACHE_TTL_SECONDS = (
-            env_manager.get("LLM_TEXT2SQL_CACHE_TTL_SECONDS", "3600") or "3600"
-        )
+        cls.LLM_TEXT2SQL_CACHE_ENABLED = env_manager.get("LLM_TEXT2SQL_CACHE_ENABLED", "false") or "false"
+        cls.LLM_TEXT2SQL_CACHE_MAX_ENTRIES = env_manager.get("LLM_TEXT2SQL_CACHE_MAX_ENTRIES", "256") or "256"
+        cls.LLM_TEXT2SQL_CACHE_TTL_SECONDS = env_manager.get("LLM_TEXT2SQL_CACHE_TTL_SECONDS", "3600") or "3600"
         cls.LOG_LEVEL = env_manager.get("LOG_LEVEL", "INFO") or "INFO"
         cls.LISTINGS_TABLE_NAME = env_manager.get("LISTINGS_TABLE_NAME", None)
         cls.LISTINGS_TABLE_SCHEMA = env_manager.get("LISTINGS_TABLE_SCHEMA", None)
@@ -158,45 +126,21 @@ class Config:
         cls.OPENAI_EMBEDDING_MODEL = (
             env_manager.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small") or "text-embedding-3-small"
         )
-        cls.OPENAI_EMBEDDING_DIMENSIONS = (
-            env_manager.get("OPENAI_EMBEDDING_DIMENSIONS", "1536") or "1536"
-        )
+        cls.OPENAI_EMBEDDING_DIMENSIONS = env_manager.get("OPENAI_EMBEDDING_DIMENSIONS", "1536") or "1536"
         cls.LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT = (
             env_manager.get("LISTINGS_NEARBY_INCLUDE_TOTAL_COUNT", "false") or "false"
         )
-        cls.LISTINGS_TABLE_CACHE_ENABLED = (
-            env_manager.get("LISTINGS_TABLE_CACHE_ENABLED", "true") or "true"
-        )
-        cls.LISTINGS_TABLE_CACHE_MAX_ENTRIES = (
-            env_manager.get("LISTINGS_TABLE_CACHE_MAX_ENTRIES", "512") or "512"
-        )
-        cls.LISTINGS_TABLE_CACHE_TTL_SECONDS = (
-            env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
-        )
-        cls.LISTINGS_VALIDATION_CONCURRENCY = (
-            env_manager.get("LISTINGS_VALIDATION_CONCURRENCY", "12") or "12"
-        )
-        cls.LISTINGS_VALIDATION_MAX_SECONDS = (
-            env_manager.get("LISTINGS_VALIDATION_MAX_SECONDS", "25") or "25"
-        )
-        cls.LISTINGS_SEARCH_PLANNER_MAX_MS = (
-            env_manager.get("LISTINGS_SEARCH_PLANNER_MAX_MS", "2500") or "2500"
-        )
-        cls.LISTINGS_SEARCH_DB_MAX_MS = (
-            env_manager.get("LISTINGS_SEARCH_DB_MAX_MS", "5000") or "5000"
-        )
-        cls.LISTINGS_SEARCH_AMENITY_MAX_MS = (
-            env_manager.get("LISTINGS_SEARCH_AMENITY_MAX_MS", "2000") or "2000"
-        )
-        cls.LISTINGS_SEARCH_BREAKDOWN_MAX_MS = (
-            env_manager.get("LISTINGS_SEARCH_BREAKDOWN_MAX_MS", "2000") or "2000"
-        )
-        cls.LISTINGS_SEARCH_CANDIDATE_LIMIT = (
-            env_manager.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120") or "120"
-        )
-        cls.LISTINGS_SEARCH_AMENITY_TOPK = (
-            env_manager.get("LISTINGS_SEARCH_AMENITY_TOPK", "80") or "80"
-        )
+        cls.LISTINGS_TABLE_CACHE_ENABLED = env_manager.get("LISTINGS_TABLE_CACHE_ENABLED", "true") or "true"
+        cls.LISTINGS_TABLE_CACHE_MAX_ENTRIES = env_manager.get("LISTINGS_TABLE_CACHE_MAX_ENTRIES", "512") or "512"
+        cls.LISTINGS_TABLE_CACHE_TTL_SECONDS = env_manager.get("LISTINGS_TABLE_CACHE_TTL_SECONDS", "3600") or "3600"
+        cls.LISTINGS_VALIDATION_CONCURRENCY = env_manager.get("LISTINGS_VALIDATION_CONCURRENCY", "12") or "12"
+        cls.LISTINGS_VALIDATION_MAX_SECONDS = env_manager.get("LISTINGS_VALIDATION_MAX_SECONDS", "25") or "25"
+        cls.LISTINGS_SEARCH_PLANNER_MAX_MS = env_manager.get("LISTINGS_SEARCH_PLANNER_MAX_MS", "2500") or "2500"
+        cls.LISTINGS_SEARCH_DB_MAX_MS = env_manager.get("LISTINGS_SEARCH_DB_MAX_MS", "5000") or "5000"
+        cls.LISTINGS_SEARCH_AMENITY_MAX_MS = env_manager.get("LISTINGS_SEARCH_AMENITY_MAX_MS", "2000") or "2000"
+        cls.LISTINGS_SEARCH_BREAKDOWN_MAX_MS = env_manager.get("LISTINGS_SEARCH_BREAKDOWN_MAX_MS", "2000") or "2000"
+        cls.LISTINGS_SEARCH_CANDIDATE_LIMIT = env_manager.get("LISTINGS_SEARCH_CANDIDATE_LIMIT", "120") or "120"
+        cls.LISTINGS_SEARCH_AMENITY_TOPK = env_manager.get("LISTINGS_SEARCH_AMENITY_TOPK", "80") or "80"
         cls.LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER = (
             env_manager.get("LISTINGS_SEARCH_ENABLE_DB_VECTOR_ORDER", "false") or "false"
         )
@@ -205,9 +149,7 @@ class Config:
         cls.RESEND_API_KEY = env_manager.get("RESEND_API_KEY", "") or ""
         cls.RESEND_FROM_EMAIL = env_manager.get("RESEND_FROM_EMAIL", "") or ""
         cls.TOUR_REQUEST_OPS_EMAIL = env_manager.get("TOUR_REQUEST_OPS_EMAIL", "") or ""
-        cls.AUTH_UI_BASE_URL = (
-            env_manager.get("AUTH_UI_BASE_URL", "http://localhost:3000") or "http://localhost:3000"
-        )
+        cls.AUTH_UI_BASE_URL = env_manager.get("AUTH_UI_BASE_URL", "http://localhost:3000") or "http://localhost:3000"
         cls.AUTH_COOKIE_NAME = env_manager.get("AUTH_COOKIE_NAME", "wmh_session") or "wmh_session"
         cls.AUTH_COOKIE_SECURE = env_manager.get("AUTH_COOKIE_SECURE", "false") or "false"
         cls.AUTH_COOKIE_SAMESITE = env_manager.get("AUTH_COOKIE_SAMESITE", "lax") or "lax"
@@ -217,9 +159,7 @@ class Config:
         cls.AUTH_VERIFY_EMAIL_HOURS = env_manager.get("AUTH_VERIFY_EMAIL_HOURS", "48") or "48"
         cls.AZURE_BLOB_CONNECTION_STRING = env_manager.get("AZURE_BLOB_CONNECTION_STRING", "") or ""
         cls.AZURE_BLOB_MOVEIN_CONTAINER = env_manager.get("AZURE_BLOB_MOVEIN_CONTAINER", "") or ""
-        cls.AZURE_BLOB_TOUR_MEDIA_CONTAINER = (
-            env_manager.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or ""
-        )
+        cls.AZURE_BLOB_TOUR_MEDIA_CONTAINER = env_manager.get("AZURE_BLOB_TOUR_MEDIA_CONTAINER", "") or ""
 
     @classmethod
     def get(cls, key: str, default: str | None = None) -> str | None:
@@ -243,4 +183,3 @@ class Config:
             logger.info("Environment reloaded due to .env file change")
 
         return getattr(cls, key, default)
-

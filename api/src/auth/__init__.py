@@ -1,3 +1,3 @@
-from auth.router import router, get_current_user
+from auth.router import get_current_user, router
 
-__all__ = ["router", "get_current_user"]
+__all__ = ["get_current_user", "router"]

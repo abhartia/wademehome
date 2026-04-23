@@ -3,11 +3,9 @@ from __future__ import annotations
 import secrets
 from datetime import timedelta
 
+from applicants.schemas import ApplicantResponse
 from db.models import GroupApplicants
 from groups.service import app_base_url, utc_now
-
-from applicants.schemas import ApplicantResponse
-
 
 SELF_REG_TTL_DAYS = 30
 
@@ -43,12 +41,8 @@ def applicant_to_response(applicant: GroupApplicants) -> ApplicantResponse:
         move_in_date=applicant.move_in_date,
         source=applicant.source,
         has_pending_self_reg=has_pending,
-        self_reg_url=(
-            self_reg_url(applicant.self_reg_token) if has_pending else None
-        ),
-        self_reg_expires_at=(
-            applicant.self_reg_token_expires_at if has_pending else None
-        ),
+        self_reg_url=(self_reg_url(applicant.self_reg_token) if has_pending else None),
+        self_reg_expires_at=(applicant.self_reg_token_expires_at if has_pending else None),
         created_at=applicant.created_at,
         updated_at=applicant.updated_at,
     )

@@ -1,5 +1,3 @@
-from workflow.events import PropertyDataItem
-
 from listings.property_key import (
     build_property_key,
     item_matches_property_key,
@@ -7,6 +5,7 @@ from listings.property_key import (
     property_key_from_item,
     slugify,
 )
+from workflow.events import PropertyDataItem
 
 
 def test_slugify_matches_ts_conventions() -> None:

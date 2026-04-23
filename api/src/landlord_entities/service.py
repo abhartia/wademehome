@@ -1,26 +1,25 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
 from decimal import Decimal
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from buildings.service import _to_building_payload, list_building_reviews
+from buildings.schemas import ReviewSummaryPayload
+from buildings.service import _to_building_payload
 from db.models import (
     BuildingOwnershipPeriods,
     Buildings,
     LandlordEntities,
     LandlordEntityAliases,
-    LandlordEntityKind,
     LandlordProfiles,
     OwnershipRole,
     ReviewResponses,
+    Reviews,
     ReviewStatus,
     ReviewSubratings,
-    Reviews,
     UserProfiles,
     UserRole,
     Users,
@@ -33,7 +32,6 @@ from landlord_entities.schemas import (
     LandlordPortfolioBuilding,
     LandlordPortfolioResponse,
 )
-from buildings.schemas import ReviewSummaryPayload
 
 
 def _parse_uuid(raw: str, label: str = "id") -> uuid.UUID:
@@ -49,9 +47,7 @@ def get_entity_detail(db: Session, entity_id: str) -> LandlordEntityDetail:
     if entity is None:
         raise HTTPException(status_code=404, detail="Landlord entity not found")
 
-    aliases = db.execute(
-        select(LandlordEntityAliases).where(LandlordEntityAliases.entity_id == eid)
-    ).scalars().all()
+    aliases = db.execute(select(LandlordEntityAliases).where(LandlordEntityAliases.entity_id == eid)).scalars().all()
 
     review_count = db.execute(
         select(func.count(Reviews.id)).where(
@@ -77,9 +73,7 @@ def get_entity_detail(db: Session, entity_id: str) -> LandlordEntityDetail:
         .group_by(ReviewSubratings.dimension)
     ).all()
     dimension_averages = {
-        dim.value: Decimal(score).quantize(Decimal("0.01"))
-        for dim, score in dim_rows
-        if score is not None
+        dim.value: Decimal(score).quantize(Decimal("0.01")) for dim, score in dim_rows if score is not None
     }
 
     portfolio_size = db.execute(
@@ -120,11 +114,15 @@ def list_portfolio(db: Session, entity_id: str) -> LandlordPortfolioResponse:
     if db.get(LandlordEntities, eid) is None:
         raise HTTPException(status_code=404, detail="Landlord entity not found")
 
-    periods = db.execute(
-        select(BuildingOwnershipPeriods)
-        .where(BuildingOwnershipPeriods.landlord_entity_id == eid)
-        .order_by(BuildingOwnershipPeriods.start_date.desc())
-    ).scalars().all()
+    periods = (
+        db.execute(
+            select(BuildingOwnershipPeriods)
+            .where(BuildingOwnershipPeriods.landlord_entity_id == eid)
+            .order_by(BuildingOwnershipPeriods.start_date.desc())
+        )
+        .scalars()
+        .all()
+    )
 
     buildings_by_id: dict[uuid.UUID, Buildings] = {}
     for p in periods:
@@ -170,9 +168,7 @@ def list_portfolio(db: Session, entity_id: str) -> LandlordPortfolioResponse:
             LandlordPortfolioBuilding(
                 building=_to_building_payload(building),
                 review_count=int(review_counts.get(p.building_id) or 0),
-                avg_rating=(
-                    Decimal(avg).quantize(Decimal("0.01")) if avg is not None else None
-                ),
+                avg_rating=(Decimal(avg).quantize(Decimal("0.01")) if avg is not None else None),
                 role=p.role.value,
                 start_date=p.start_date,
                 end_date=p.end_date,
@@ -196,28 +192,21 @@ def list_entity_reviews(
         base = base.where(Reviews.verified_tenant.is_(True))
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = db.execute(
-        base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset)
-    ).scalars().all()
+    rows = db.execute(base.order_by(Reviews.created_at.desc()).limit(limit).offset(offset)).scalars().all()
 
     if not rows:
-        return LandlordEntityReviewsResponse(
-            reviews=[], total=int(total or 0), limit=limit, offset=offset
-        )
+        return LandlordEntityReviewsResponse(reviews=[], total=int(total or 0), limit=limit, offset=offset)
 
     author_ids = {r.author_user_id for r in rows}
     name_by_user = dict(
-        db.execute(
-            select(UserProfiles.user_id, UserProfiles.name).where(
-                UserProfiles.user_id.in_(author_ids)
-            )
-        ).all()
+        db.execute(select(UserProfiles.user_id, UserProfiles.name).where(UserProfiles.user_id.in_(author_ids))).all()
     )
 
     review_ids = [r.id for r in rows]
     sub_rows = db.execute(
-        select(ReviewSubratings.review_id, ReviewSubratings.dimension, ReviewSubratings.score)
-        .where(ReviewSubratings.review_id.in_(review_ids))
+        select(ReviewSubratings.review_id, ReviewSubratings.dimension, ReviewSubratings.score).where(
+            ReviewSubratings.review_id.in_(review_ids)
+        )
     ).all()
     subs_by_review: dict[uuid.UUID, dict[str, int]] = {}
     for rid, dim, score in sub_rows:
@@ -225,9 +214,7 @@ def list_entity_reviews(
 
     response_by_review = dict(
         db.execute(
-            select(ReviewResponses.review_id, ReviewResponses.body).where(
-                ReviewResponses.review_id.in_(review_ids)
-            )
+            select(ReviewResponses.review_id, ReviewResponses.body).where(ReviewResponses.review_id.in_(review_ids))
         ).all()
     )
 
@@ -253,14 +240,10 @@ def list_entity_reviews(
         )
         for r in rows
     ]
-    return LandlordEntityReviewsResponse(
-        reviews=payloads, total=int(total or 0), limit=limit, offset=offset
-    )
+    return LandlordEntityReviewsResponse(reviews=payloads, total=int(total or 0), limit=limit, offset=offset)
 
 
-def request_claim(
-    db: Session, user: Users, entity_id: str, payload: LandlordClaimRequest
-) -> LandlordEntityDetail:
+def request_claim(db: Session, user: Users, entity_id: str, payload: LandlordClaimRequest) -> LandlordEntityDetail:
     """User asserts they represent this entity. Admin must approve.
 
     We pre-create / update the landlord_profiles row on the user but we do NOT
@@ -274,9 +257,7 @@ def request_claim(
     if entity.claimed_profile_id is not None:
         raise HTTPException(status_code=409, detail="Entity already claimed")
 
-    profile = db.execute(
-        select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)
-    ).scalar_one_or_none()
+    profile = db.execute(select(LandlordProfiles).where(LandlordProfiles.user_id == user.id)).scalar_one_or_none()
     if profile is None:
         profile = LandlordProfiles(
             user_id=user.id,

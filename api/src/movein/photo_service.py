@@ -35,9 +35,7 @@ def _blob_client():
 
 def _ensure_plan(db: Session, user_id: uuid.UUID) -> UserMoveinPlans:
     row = db.execute(
-        select(UserMoveinPlans)
-        .where(UserMoveinPlans.user_id == user_id)
-        .order_by(UserMoveinPlans.updated_at.desc())
+        select(UserMoveinPlans).where(UserMoveinPlans.user_id == user_id).order_by(UserMoveinPlans.updated_at.desc())
     ).scalar_one_or_none()
     if row:
         return row
@@ -103,9 +101,7 @@ def create_room(db: Session, user_id: uuid.UUID, body: PhotoRoomCreate) -> Photo
     return _room_out(room)
 
 
-def patch_room(
-    db: Session, user_id: uuid.UUID, room_id: uuid.UUID, body: PhotoRoomPatch
-) -> PhotoRoomOut:
+def patch_room(db: Session, user_id: uuid.UUID, room_id: uuid.UUID, body: PhotoRoomPatch) -> PhotoRoomOut:
     plan = _ensure_plan(db, user_id)
     room = db.execute(
         select(UserMoveinPhotoRooms).where(
@@ -186,7 +182,7 @@ def upload_photo(
         try:
             captured_at = datetime.fromisoformat(body.captured_at)
         except ValueError:
-            raise HTTPException(status_code=422, detail="Invalid captured_at format")
+            raise HTTPException(status_code=422, detail="Invalid captured_at format") from None
 
     # Determine file extension
     original_name = file.filename or "photo.jpg"
@@ -227,21 +223,16 @@ def upload_photo(
     return _photo_out(photo)
 
 
-def patch_photo(
-    db: Session, user_id: uuid.UUID, photo_id: uuid.UUID, body: PhotoPatch
-) -> PhotoOut:
+def patch_photo(db: Session, user_id: uuid.UUID, photo_id: uuid.UUID, body: PhotoPatch) -> PhotoOut:
     plan = _ensure_plan(db, user_id)
-    photo = (
-        db.execute(
-            select(UserMoveinPhotos)
-            .join(UserMoveinPhotoRooms, UserMoveinPhotos.room_id == UserMoveinPhotoRooms.id)
-            .where(
-                UserMoveinPhotos.id == photo_id,
-                UserMoveinPhotoRooms.movein_plan_id == plan.id,
-            )
+    photo = db.execute(
+        select(UserMoveinPhotos)
+        .join(UserMoveinPhotoRooms, UserMoveinPhotos.room_id == UserMoveinPhotoRooms.id)
+        .where(
+            UserMoveinPhotos.id == photo_id,
+            UserMoveinPhotoRooms.movein_plan_id == plan.id,
         )
-        .scalar_one_or_none()
-    )
+    ).scalar_one_or_none()
     if photo is None:
         raise HTTPException(status_code=404, detail="Photo not found")
     data = body.model_dump(exclude_unset=True)
@@ -265,7 +256,7 @@ def _delete_blob(photo_url: str) -> None:
         idx = photo_url.find(marker)
         if idx == -1:
             return
-        blob_name = photo_url[idx + len(marker):]
+        blob_name = photo_url[idx + len(marker) :]
         container_client.delete_blob(blob_name)
     except Exception:
         # Best-effort: don't fail the delete request if blob cleanup fails
@@ -274,17 +265,14 @@ def _delete_blob(photo_url: str) -> None:
 
 def delete_photo(db: Session, user_id: uuid.UUID, photo_id: uuid.UUID) -> None:
     plan = _ensure_plan(db, user_id)
-    photo = (
-        db.execute(
-            select(UserMoveinPhotos)
-            .join(UserMoveinPhotoRooms, UserMoveinPhotos.room_id == UserMoveinPhotoRooms.id)
-            .where(
-                UserMoveinPhotos.id == photo_id,
-                UserMoveinPhotoRooms.movein_plan_id == plan.id,
-            )
+    photo = db.execute(
+        select(UserMoveinPhotos)
+        .join(UserMoveinPhotoRooms, UserMoveinPhotos.room_id == UserMoveinPhotoRooms.id)
+        .where(
+            UserMoveinPhotos.id == photo_id,
+            UserMoveinPhotoRooms.movein_plan_id == plan.id,
         )
-        .scalar_one_or_none()
-    )
+    ).scalar_one_or_none()
     if photo is None:
         raise HTTPException(status_code=404, detail="Photo not found")
     _delete_blob(photo.photo_url)

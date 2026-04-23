@@ -105,10 +105,7 @@ def _serialize_params(params: Any) -> Any:
     if params is None:
         return None
     if isinstance(params, Mapping):
-        return {
-            str(k): _json_safe_value(v)
-            for k, v in sorted(params.items(), key=lambda kv: str(kv[0]))
-        }
+        return {str(k): _json_safe_value(v) for k, v in sorted(params.items(), key=lambda kv: str(kv[0]))}
     if isinstance(params, (list, tuple)):
         return [_json_safe_value(v) for v in params]
     return _json_safe_value(params)
@@ -181,9 +178,7 @@ def get_listings_table_query_cache() -> ListingsTableQueryCache | None:
     ttl = _parse_positive_float(ttl_s, 3600.0)
     with _cache_lock:
         if _cache_singleton is None or _cache_singleton_sig != sig:
-            _cache_singleton = ListingsTableQueryCache(
-                max_entries=max_entries, ttl_seconds=ttl
-            )
+            _cache_singleton = ListingsTableQueryCache(max_entries=max_entries, ttl_seconds=ttl)
             _cache_singleton_sig = sig
         return _cache_singleton
 

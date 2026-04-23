@@ -1,12 +1,14 @@
 """ASGI-level authentication middleware that works with LlamaIndexServer."""
 
-from typing import Dict
-from starlette.types import ASGIApp, Receive, Scope, Send
+import contextlib
+
 from starlette.responses import JSONResponse
-from core.token import TokenValidator
-from core.logger import get_logger
+from starlette.types import ASGIApp, Receive, Scope, Send
+
 from core.env_utils import env_manager
+from core.logger import get_logger
 from core.request_context import set_user_id
+from core.token import TokenValidator
 
 logger = get_logger(__name__)
 
@@ -18,15 +20,18 @@ class ASGIAuthMiddleware:
         self.app = app
         self.validator = TokenValidator()
         self.exclude_paths = {
-            "/docs", "/redoc", "/openapi.json", "/actuator/health", "/health",
-            "/", "/favicon.ico", "/api/components", "/api/layout"
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/actuator/health",
+            "/health",
+            "/",
+            "/favicon.ico",
+            "/api/components",
+            "/api/layout",
         }
-        self.exclude_prefixes = {
-            "/_next", "/static"
-        }
-        self.exclude_extensions = {
-            ".js", ".css", ".woff", ".woff2", ".png", ".jpg", ".ico", ".svg"
-        }
+        self.exclude_prefixes = {"/_next", "/static"}
+        self.exclude_extensions = {".js", ".css", ".woff", ".woff2", ".png", ".jpg", ".ico", ".svg"}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """ASGI callable that intercepts all requests."""
@@ -84,10 +89,8 @@ class ASGIAuthMiddleware:
 
         # Bind a stable identity for downstream logs/Sentry tagging. Token prefix
         # is a safe proxy when the validator doesn't resolve to a user record.
-        try:
+        with contextlib.suppress(Exception):
             set_user_id(f"token:{token[:10]}")
-        except Exception:
-            pass
 
         # Token is valid, check for model selection in headers
         model_header = headers.get(b"x-model", b"").decode("utf-8")
@@ -97,6 +100,7 @@ class ASGIAuthMiddleware:
 
             # Store model in thread-local storage
             import threading
+
             current_thread = threading.current_thread()
             current_thread.selected_model = model_header
             logger.info(f"✅ Stored model in thread context: {model_header}")
@@ -116,14 +120,10 @@ class ASGIAuthMiddleware:
             return True
 
         # Check extensions
-        if any(path.endswith(ext) for ext in self.exclude_extensions):
-            return True
+        return bool(any(path.endswith(ext) for ext in self.exclude_extensions))
 
-        return False
-
-    def _extract_token(self, headers: Dict[bytes, bytes], scope: Scope) -> str:
+    def _extract_token(self, headers: dict[bytes, bytes], scope: Scope) -> str:
         """Extract token from headers or query string."""
-
 
         # 1. Check Authorization header (Bearer token)
         auth_header = headers.get(b"authorization", b"").decode("utf-8")
@@ -154,19 +154,9 @@ class ASGIAuthMiddleware:
         """Send health check response."""
         import datetime
 
-        response = JSONResponse(
-            status_code=200,
-            content={
-                "status": "UP",
-                "timestamp": str(datetime.datetime.now())
-            }
-        )
+        response = JSONResponse(status_code=200, content={"status": "UP", "timestamp": str(datetime.datetime.now())})
 
-        await response(
-            scope={"type": "http", "method": "GET"},
-            receive=None,
-            send=send
-        )
+        await response(scope={"type": "http", "method": "GET"}, receive=None, send=send)
 
     async def _send_auth_error(self, send: Send) -> None:
         """Send authentication error response."""
@@ -175,13 +165,9 @@ class ASGIAuthMiddleware:
             content={
                 "detail": "Invalid or missing authentication token",
                 "error": "unauthorized",
-                "required": "Bearer token, X-API-Token header, or api_token query parameter"
+                "required": "Bearer token, X-API-Token header, or api_token query parameter",
             },
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-        await response(
-            scope={"type": "http", "method": "POST"},
-            receive=None,
-            send=send
-        )
+        await response(scope={"type": "http", "method": "POST"}, receive=None, send=send)

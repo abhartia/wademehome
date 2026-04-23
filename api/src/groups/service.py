@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import secrets
-import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -38,7 +37,7 @@ def invite_to_response(invite: GroupInvites) -> GroupInviteResponse:
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def create_email_invite(

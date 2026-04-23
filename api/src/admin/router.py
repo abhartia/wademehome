@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
-from pathlib import Path
 from collections import defaultdict
+from datetime import UTC, datetime
+from pathlib import Path
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -43,7 +43,7 @@ class ScrapeTargetRow(BaseModel):
 
 
 class ScrapeTargetsResponse(BaseModel):
-    computed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    computed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     counts_by_platform: dict[str, int]
     targets: list[ScrapeTargetRow]
 
@@ -56,7 +56,7 @@ class ListingWithoutAmenitiesRow(BaseModel):
 
 
 class ListingsWithoutAmenitiesResponse(BaseModel):
-    computed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    computed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     listings_table: str
     amenities_table: str
     total: int
@@ -113,12 +113,10 @@ def _seed_to_row(platform: str, seed_url: str) -> ScrapeTargetRow:
 
 def _listings_url_col(conn, schema_for_info: str, tname: str) -> str | None:
     rows = conn.execute(
-        text(
-            """
+        text("""
             SELECT column_name FROM information_schema.columns
             WHERE table_schema = :schema AND table_name = :tname
-            """
-        ),
+            """),
         {"schema": schema_for_info, "tname": tname},
     ).fetchall()
     cols = {str(r[0]).lower() for r in rows}
@@ -130,12 +128,10 @@ def _listings_url_col(conn, schema_for_info: str, tname: str) -> str | None:
 
 def _table_columns_lower(conn, schema: str, tname: str) -> set[str]:
     rows = conn.execute(
-        text(
-            """
+        text("""
             SELECT column_name FROM information_schema.columns
             WHERE table_schema = :schema AND table_name = :tname
-            """
-        ),
+            """),
         {"schema": schema, "tname": tname},
     ).fetchall()
     return {str(r[0]).lower() for r in rows}
@@ -175,9 +171,7 @@ def get_scrape_targets(
     rows.extend(_seed_to_row("realpage", u) for u in realpage_seeds)
     rows.extend(_seed_to_row("entrata", u) for u in entrata_seeds)
     rows.extend(_seed_to_row("rentcafe", u) for u in rentcafe_seeds)
-    rows.append(
-        _seed_to_row("greystar", "https://www.greystar.com/sitemap.xml")
-    )
+    rows.append(_seed_to_row("greystar", "https://www.greystar.com/sitemap.xml"))
 
     seen: set[str] = set()
     deduped: list[ScrapeTargetRow] = []
@@ -224,8 +218,7 @@ def get_scrape_targets(
 
             if targets_by_host:
                 hosts = sorted(targets_by_host.keys())
-                host_counts_sql = text(
-                    f"""
+                host_counts_sql = text(f"""
                     SELECT
                       LOWER(TRIM(SUBSTRING(CAST({uq} AS text) FROM '^https?://([^/]+)'))) AS host,
                       COUNT(*)::bigint AS c
@@ -233,12 +226,9 @@ def get_scrape_targets(
                     WHERE NULLIF(TRIM(CAST({uq} AS text)), '') IS NOT NULL
                       AND LOWER(TRIM(SUBSTRING(CAST({uq} AS text) FROM '^https?://([^/]+)'))) = ANY(:hosts)
                     GROUP BY 1
-                    """
-                )
+                    """)
                 host_rows = conn.execute(host_counts_sql, {"hosts": hosts}).fetchall()
-                counts_by_host: dict[str, int] = {
-                    str(r[0]): int(r[1] or 0) for r in host_rows if r and r[0]
-                }
+                counts_by_host: dict[str, int] = {str(r[0]): int(r[1] or 0) for r in host_rows if r and r[0]}
                 counts_by_idx: dict[int, int] = defaultdict(int)
                 for host, idxs in targets_by_host.items():
                     c = int(counts_by_host.get(host, 0))
@@ -246,14 +236,12 @@ def get_scrape_targets(
                         counts_by_idx[idx] = c
 
                 for idx, row in enumerate(deduped):
-                    deduped[idx] = row.model_copy(
-                        update={"listings_in_postgres": int(counts_by_idx.get(idx, 0))}
-                    )
+                    deduped[idx] = row.model_copy(update={"listings_in_postgres": int(counts_by_idx.get(idx, 0))})
     except HTTPException:
         raise
     except Exception:
         logger.exception("admin/scrape-targets postgres count failed")
-        raise HTTPException(status_code=500, detail="Failed to compute Postgres listing counts")
+        raise HTTPException(status_code=500, detail="Failed to compute Postgres listing counts") from None
 
     return ScrapeTargetsResponse(counts_by_platform=counts, targets=deduped)
 
@@ -328,8 +316,7 @@ def get_listings_without_amenities(
                 f"WHERE a.listing_id = NULLIF(TRIM(CAST(l.{liq} AS text)), ''))"
             )
             base_where = (
-                f"l.{liq} IS NOT NULL AND NULLIF(TRIM(CAST(l.{liq} AS text)), '') IS NOT NULL "
-                f"AND {not_exists}"
+                f"l.{liq} IS NOT NULL AND NULLIF(TRIM(CAST(l.{liq} AS text)), '') IS NOT NULL " f"AND {not_exists}"
             )
 
             sel_url = f"NULLIF(TRIM(CAST(l.{quote_ident(url_col)} AS text)), '')" if url_col else "NULL::text"
@@ -339,8 +326,7 @@ def get_listings_without_amenities(
             count_sql = text(f"SELECT COUNT(*)::bigint AS c FROM {qtable} l WHERE {base_where}")
             total = int(conn.execute(count_sql).scalar() or 0)
 
-            page_sql = text(
-                f"""
+            page_sql = text(f"""
                 SELECT
                   NULLIF(TRIM(CAST(l.{liq} AS text)), '') AS listing_id,
                   {sel_url} AS listing_url,
@@ -350,8 +336,7 @@ def get_listings_without_amenities(
                 WHERE {base_where}
                 ORDER BY NULLIF(TRIM(CAST(l.{liq} AS text)), '')
                 LIMIT :lim OFFSET :off
-                """
-            )
+                """)
             rows = conn.execute(page_sql, {"lim": limit, "off": offset}).mappings().all()
 
         items: list[ListingWithoutAmenitiesRow] = []
@@ -386,7 +371,7 @@ def get_listings_without_amenities(
         raise
     except Exception:
         logger.exception("admin/listings-without-amenities failed")
-        raise HTTPException(status_code=500, detail="Query failed")
+        raise HTTPException(status_code=500, detail="Query failed") from None
 
 
 @router.get("/inventory-analytics", response_model=InventoryAnalyticsResponse)
@@ -447,4 +432,4 @@ def get_inventory_analytics(
         raise
     except Exception:
         logger.exception("admin/inventory-analytics failed")
-        raise HTTPException(status_code=500, detail="Analytics query failed")
+        raise HTTPException(status_code=500, detail="Analytics query failed") from None

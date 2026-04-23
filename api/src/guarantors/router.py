@@ -21,8 +21,8 @@ from guarantors.schemas import (
 )
 from guarantors.service import (
     apply_decision,
-    create_request,
     create_invite,
+    create_request,
     create_saved_guarantor,
     delete_request,
     delete_saved_guarantor,
@@ -110,4 +110,3 @@ def delete_guarantor_request_route(
 ):
     delete_request(db, user.id, request_id)
     return None
-

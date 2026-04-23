@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
 from decimal import Decimal
 
 from fastapi import HTTPException
@@ -19,10 +18,10 @@ from db.models import (
     OwnershipSource,
     ReviewFlagStatus,
     ReviewModeration,
-    ReviewStatus,
-    ReviewVerificationStatus,
-    ReviewVerifications,
     Reviews,
+    ReviewStatus,
+    ReviewVerifications,
+    ReviewVerificationStatus,
     UserProfiles,
     Users,
 )
@@ -64,26 +63,18 @@ def list_verification_queue(
         base = base.where(ReviewVerifications.status == ReviewVerificationStatus.pending)
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = db.execute(
-        base.order_by(ReviewVerifications.created_at.asc()).limit(limit).offset(offset)
-    ).scalars().all()
+    rows = db.execute(base.order_by(ReviewVerifications.created_at.asc()).limit(limit).offset(offset)).scalars().all()
 
     if not rows:
         return VerificationQueueResponse(items=[], total=int(total or 0))
 
     review_ids = [v.review_id for v in rows]
-    review_rows = db.execute(
-        select(Reviews).where(Reviews.id.in_(review_ids))
-    ).scalars().all()
+    review_rows = db.execute(select(Reviews).where(Reviews.id.in_(review_ids))).scalars().all()
     review_by_id = {r.id: r for r in review_rows}
 
     author_ids = {r.author_user_id for r in review_rows}
     name_by_user = dict(
-        db.execute(
-            select(UserProfiles.user_id, UserProfiles.name).where(
-                UserProfiles.user_id.in_(author_ids)
-            )
-        ).all()
+        db.execute(select(UserProfiles.user_id, UserProfiles.name).where(UserProfiles.user_id.in_(author_ids))).all()
     )
 
     items = []
@@ -94,9 +85,7 @@ def list_verification_queue(
                 id=str(v.id),
                 review_id=str(v.review_id),
                 user_id=str(v.user_id),
-                author_display_name=(
-                    name_by_user.get(review.author_user_id) if review else None
-                ),
+                author_display_name=(name_by_user.get(review.author_user_id) if review else None),
                 proof_type=v.proof_type.value,
                 status=v.status.value,
                 storage_key=v.storage_key,
@@ -154,9 +143,7 @@ def decide_verification(
 # ── Moderation queue ────────────────────────────────────────────────────
 
 
-def list_moderation_queue(
-    db: Session, status_filter: str | None, limit: int, offset: int
-) -> ModerationQueueResponse:
+def list_moderation_queue(db: Session, status_filter: str | None, limit: int, offset: int) -> ModerationQueueResponse:
     base = select(ReviewModeration)
     if status_filter:
         base = base.where(ReviewModeration.status == ReviewFlagStatus(status_filter))
@@ -164,18 +151,13 @@ def list_moderation_queue(
         base = base.where(ReviewModeration.status == ReviewFlagStatus.open)
 
     total = db.execute(select(func.count()).select_from(base.subquery())).scalar_one()
-    rows = db.execute(
-        base.order_by(ReviewModeration.created_at.asc()).limit(limit).offset(offset)
-    ).scalars().all()
+    rows = db.execute(base.order_by(ReviewModeration.created_at.asc()).limit(limit).offset(offset)).scalars().all()
 
     if not rows:
         return ModerationQueueResponse(items=[], total=int(total or 0))
 
     review_ids = [f.review_id for f in rows]
-    review_by_id = {
-        r.id: r
-        for r in db.execute(select(Reviews).where(Reviews.id.in_(review_ids))).scalars().all()
-    }
+    review_by_id = {r.id: r for r in db.execute(select(Reviews).where(Reviews.id.in_(review_ids))).scalars().all()}
 
     items = [
         ModerationQueueItem(
@@ -183,19 +165,13 @@ def list_moderation_queue(
             review_id=str(f.review_id),
             flag_type=f.flag_type.value,
             submitted_by_role=f.submitted_by_role.value,
-            submitted_by_user_id=(
-                str(f.submitted_by_user_id) if f.submitted_by_user_id else None
-            ),
+            submitted_by_user_id=(str(f.submitted_by_user_id) if f.submitted_by_user_id else None),
             details=f.details,
             status=f.status.value,
             created_at=f.created_at,
             review_title=(review_by_id.get(f.review_id).title if f.review_id in review_by_id else None),
-            review_body_preview=_body_preview(
-                review_by_id[f.review_id].body if f.review_id in review_by_id else ""
-            ),
-            review_status=(
-                review_by_id[f.review_id].status.value if f.review_id in review_by_id else ""
-            ),
+            review_body_preview=_body_preview(review_by_id[f.review_id].body if f.review_id in review_by_id else ""),
+            review_status=(review_by_id[f.review_id].status.value if f.review_id in review_by_id else ""),
         )
         for f in rows
     ]
@@ -236,9 +212,7 @@ def decide_moderation(
         review_id=str(flag.review_id),
         flag_type=flag.flag_type.value,
         submitted_by_role=flag.submitted_by_role.value,
-        submitted_by_user_id=(
-            str(flag.submitted_by_user_id) if flag.submitted_by_user_id else None
-        ),
+        submitted_by_user_id=(str(flag.submitted_by_user_id) if flag.submitted_by_user_id else None),
         details=flag.details,
         status=flag.status.value,
         created_at=flag.created_at,
@@ -251,9 +225,7 @@ def decide_moderation(
 # ── Ownership correction ────────────────────────────────────────────────
 
 
-def upsert_ownership_period(
-    db: Session, payload: OwnershipPeriodUpsert
-) -> BuildingOwnershipPeriods:
+def upsert_ownership_period(db: Session, payload: OwnershipPeriodUpsert) -> BuildingOwnershipPeriods:
     building_id = _parse_uuid(payload.building_id, "building_id")
     entity_id = _parse_uuid(payload.landlord_entity_id, "landlord_entity_id")
     if db.get(Buildings, building_id) is None:
@@ -312,21 +284,9 @@ def merge_landlord_entities(db: Session, payload: LandlordMergeRequest) -> None:
         .where(BuildingOwnershipPeriods.landlord_entity_id == src_id)
         .values(landlord_entity_id=tgt_id)
     )
-    db.execute(
-        update(Reviews)
-        .where(Reviews.landlord_entity_id == src_id)
-        .values(landlord_entity_id=tgt_id)
-    )
-    db.execute(
-        update(LandlordEntityAliases)
-        .where(LandlordEntityAliases.entity_id == src_id)
-        .values(entity_id=tgt_id)
-    )
-    db.execute(
-        update(LandlordEntities)
-        .where(LandlordEntities.head_entity_id == src_id)
-        .values(head_entity_id=tgt_id)
-    )
+    db.execute(update(Reviews).where(Reviews.landlord_entity_id == src_id).values(landlord_entity_id=tgt_id))
+    db.execute(update(LandlordEntityAliases).where(LandlordEntityAliases.entity_id == src_id).values(entity_id=tgt_id))
+    db.execute(update(LandlordEntities).where(LandlordEntities.head_entity_id == src_id).values(head_entity_id=tgt_id))
 
     # Preserve the source entity's canonical name as an alias on the target.
     already = db.execute(
@@ -400,8 +360,6 @@ def refresh_portfolio_cache(db: Session) -> int:
             )
         ).scalar_one()
         entity.portfolio_size_cached = int(portfolio_size or 0)
-        entity.avg_rating_cached = (
-            Decimal(avg_rating).quantize(Decimal("0.01")) if avg_rating is not None else None
-        )
+        entity.avg_rating_cached = Decimal(avg_rating).quantize(Decimal("0.01")) if avg_rating is not None else None
     db.commit()
     return len(entities)

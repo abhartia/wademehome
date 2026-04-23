@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -36,7 +36,7 @@ def run_tracked(
     db.refresh(run)
     try:
         rows_upserted = work(watermark)
-    except Exception as exc:  # noqa: BLE001 - every failure is recorded
+    except Exception as exc:
         run.status = IngestStatus.failed
         run.finished_at = utc_now()
         run.notes = str(exc)[:500]
