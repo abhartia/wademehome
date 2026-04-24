@@ -7,6 +7,45 @@ export default function NycFareActBrokerFeeBan() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
+          <CardTitle>2026 update: what a year of the FARE Act has actually meant</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            <strong>Reviewed April 2026.</strong> The FARE Act turned ten months old
+            this spring and the early-return data is now in. The NYC Department of
+            Consumer and Worker Protection (DCWP) has logged well over 1,500 tenant
+            complaints since June 2025, with the overwhelming majority alleging a
+            landlord-hired broker tried to charge the tenant. Most of those
+            complaints have resolved with the fee refunded and a warning letter, but
+            DCWP has also issued the first round of $2,000-per-violation fines
+            against repeat-offender brokerages.
+          </p>
+          <p>
+            The market response is what Reddit threads keep asking about. The
+            StreetEasy and Zillow rental indices both show NYC asking rents up
+            roughly 5 to 7 percent year-over-year in landlord-listed market-rate
+            units, which industry observers have attributed in part to landlords
+            pricing the broker fee into monthly rent rather than absorbing it.
+            That is real, but the math still favors tenants: a $200/month rent
+            bump on a $3,500 unit costs $2,400 over a year, versus the $4,200 to
+            $5,250 broker fee it replaced. You come out ahead by roughly a month
+            of rent in year one, and the rent bump is the one that rolls into
+            your renewal baseline, so compound carefully.
+          </p>
+          <p>
+            The other 2026 development: the law survived the Real Estate Board of
+            New York (REBNY) federal appeal. The Second Circuit kept the law in
+            place while the litigation plays out, and state legislators in Albany
+            have introduced companion bills that would extend similar protections
+            statewide. New Jersey (Hoboken, Jersey City, Newark) has seen
+            advocacy groups push for a local version, but as of April 2026 no
+            equivalent law has passed outside the five boroughs.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>What is the FARE Act?</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
@@ -263,6 +302,64 @@ export default function NycFareActBrokerFeeBan() {
             Owner-occupied buildings with fewer than five units may have different
             rules. Condo and co-op sales are not covered—the law applies to
             rentals only.
+          </p>
+          <p>
+            <strong>Did the FARE Act raise NYC rents?</strong> Market-rate asking
+            rents ticked up 5 to 7 percent year-over-year in 2025-2026, and some
+            of that is broker-fee pass-through. But even at the high end of that
+            bump, a tenant signing a $3,500 lease still comes out ahead by
+            roughly one month of rent in year one versus paying a 15 percent
+            broker fee. Rent-stabilized units cannot absorb the fee this way
+            because their increases are capped by the Rent Guidelines Board.
+          </p>
+          <p>
+            <strong>Is the FARE Act still in effect in 2026?</strong> Yes. The
+            Second Circuit kept the law on the books while REBNY&apos;s federal
+            appeal proceeds. Landlord-side fees remain illegal for tenants to be
+            charged as of April 2026.
+          </p>
+          <p>
+            <strong>Does the FARE Act apply to Hoboken, Jersey City, or
+            Newark?</strong> No. The law is a New York City ordinance. In New
+            Jersey cities across the Hudson, tenant-paid broker fees of
+            one-month-to-one-month-plus are still common for landlord-listed
+            units. That is one reason no-fee listings on{" "}
+            <Link
+              href="/jersey-city"
+              className="text-foreground underline underline-offset-4"
+            >
+              Jersey City
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/hoboken"
+              className="text-foreground underline underline-offset-4"
+            >
+              Hoboken
+            </Link>{" "}
+            command a premium.
+          </p>
+          <p>
+            <strong>What counts as a landlord hiring a broker?</strong> If the
+            listing was posted by the broker, if the broker has keys to the
+            unit, if the broker is the person showing the apartment, or if the
+            broker is paid a commission by the landlord on lease-up—any of these
+            means the landlord hired them. You should not be charged.
+          </p>
+          <p>
+            <strong>Can a landlord charge a &quot;marketing fee&quot; or
+            &quot;application fee&quot; instead of a broker fee?</strong> No.
+            Application fees in NYC are capped at $20 by state law, and DCWP has
+            already flagged &quot;administrative&quot; or &quot;marketing&quot;
+            fees that look like rebranded broker fees as violations. If a fee
+            is above $20 and is not a security deposit, push back.
+          </p>
+          <p>
+            <strong>What should I do if a broker demands a fee over text or
+            email?</strong> Screenshot everything. File a complaint with NYC
+            DCWP with the screenshots attached. You can also sue in small
+            claims court for amounts under $10,000. Tenants have won these cases
+            in 2025-2026 with the text-message evidence alone.
           </p>
         </CardContent>
       </Card>

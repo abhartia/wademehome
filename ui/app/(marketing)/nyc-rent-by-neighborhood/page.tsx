@@ -747,6 +747,46 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/upper-west-side/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Upper West Side Rent Prices: Block-by-Block &amp; Building Type
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/park-slope/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Park Slope Rent Prices: PS 321 School Zone &amp; Brownstones
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Jersey City Rent Prices: Zip-Code &amp; PATH Commute Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/newport/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Newport Jersey City Rent Prices: Tower-by-Tower
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/journal-square/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Journal Square Rent Prices: Deepest Concession Market
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/upper-west-side"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
@@ -791,6 +831,38 @@ export default function NYCRentByNeighborhoodPage() {
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
                     Newport: LeFrak Waterfront &amp; Direct Midtown PATH
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/harlem"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Harlem: Brownstones, 2/3-Train Access &amp; Sub-Area Rent
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/chelsea"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Chelsea: High Line, Hudson Yards &amp; Pre-War Walkups
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/hoboken"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Hoboken: One-Square-Mile Waterfront, PATH to WTC &amp; 33rd
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/hoboken/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Hoboken Rent Prices: Tower-by-Tower &amp; Sub-Area Breakdown
                   </Link>
                 </li>
                 <li>

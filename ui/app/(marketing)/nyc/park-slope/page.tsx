@@ -1158,6 +1158,30 @@ export default function ParkSlopeGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/nyc/park-slope/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Park Slope Rent Prices: School-Zone &amp; Brownstone Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/park-slope/apartments-under-3500"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Park Slope Apartments Under $3,500
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/park-slope/apartments-under-4000"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Park Slope Apartments Under $4,000
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/williamsburg"
                     className="text-primary underline underline-offset-2"
                   >

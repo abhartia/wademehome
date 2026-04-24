@@ -479,10 +479,34 @@ export default function DowntownJerseyCityGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/jersey-city/downtown/apartments-under-3500"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Downtown Jersey City Apartments Under $3,500
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/downtown/apartments-under-4000"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Downtown Jersey City Apartments Under $4,000
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/jersey-city"
                     className="text-primary underline underline-offset-2"
                   >
                     Jersey City Main Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Jersey City Rent Prices: Zip-Code Breakdown
                   </Link>
                 </li>
                 <li>

@@ -454,10 +454,42 @@ export default function JournalSquareGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/jersey-city/journal-square/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Journal Square Rent Prices: Tower-by-Tower Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/journal-square/apartments-under-2500"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Journal Square Apartments Under $2,500
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/journal-square/apartments-under-3000"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Journal Square Apartments Under $3,000
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/jersey-city"
                     className="text-primary underline underline-offset-2"
                   >
                     Jersey City Main Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Jersey City Rent Prices: Zip-Code Breakdown
                   </Link>
                 </li>
                 <li>

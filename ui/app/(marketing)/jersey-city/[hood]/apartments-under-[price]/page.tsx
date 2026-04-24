@@ -14,11 +14,11 @@ import { Separator } from "@/components/ui/separator";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 import {
-  NYC_NEIGHBORHOODS,
+  JC_NEIGHBORHOODS,
   UNDER_PRICE_TIERS,
-  getNeighborhoodBySlug,
-  isValidUnderPriceTier,
-} from "@/lib/neighborhoods/nycNeighborhoods";
+  getJcNeighborhoodBySlug,
+} from "@/lib/neighborhoods/jerseyCityNeighborhoods";
+import { isValidUnderPriceTier } from "@/lib/neighborhoods/nycNeighborhoods";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -28,7 +28,7 @@ type Params = { hood: string; price: string };
 
 export function generateStaticParams(): Params[] {
   const params: Params[] = [];
-  for (const hood of NYC_NEIGHBORHOODS) {
+  for (const hood of JC_NEIGHBORHOODS) {
     for (const price of UNDER_PRICE_TIERS) {
       params.push({ hood: hood.slug, price: String(price) });
     }
@@ -48,13 +48,13 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { hood, price } = await params;
-  const hoodMeta = getNeighborhoodBySlug(hood);
+  const hoodMeta = getJcNeighborhoodBySlug(hood);
   const priceNum = parsePrice(price);
   if (!hoodMeta || priceNum === null) return {};
 
   const priceDollar = `$${priceNum.toLocaleString()}`;
   const title = `${hoodMeta.name} Apartments Under ${priceDollar} (2026): Live Listings & Rent Guide | Wade Me Home`;
-  const description = `Find ${hoodMeta.name}, ${hoodMeta.borough} apartments for rent under ${priceDollar}/month. Live listings matching your rent cap, sub-neighborhood breakdown, what you can expect at this price tier, and how to search ${hoodMeta.name} inventory efficiently.`;
+  const description = `Find ${hoodMeta.name}, Jersey City apartments for rent under ${priceDollar}/month. Live listings matching your rent cap, PATH commute context, what you can expect at this price tier vs Manhattan, and how to search ${hoodMeta.name} inventory efficiently.`;
 
   return {
     title,
@@ -62,23 +62,23 @@ export async function generateMetadata({
     keywords: [
       `${hoodMeta.name.toLowerCase()} apartments under ${priceNum}`,
       `${hoodMeta.name.toLowerCase()} apartments under $${priceNum}`,
-      `cheap ${hoodMeta.name.toLowerCase()} apartments`,
-      `affordable ${hoodMeta.name.toLowerCase()} rent`,
+      `jersey city apartments under ${priceNum}`,
+      `cheap jersey city apartments`,
+      `affordable jersey city rent`,
       `${hoodMeta.name.toLowerCase()} 1 bedroom under ${priceNum}`,
       `${hoodMeta.name.toLowerCase()} studio under ${priceNum}`,
-      `${hoodMeta.name.toLowerCase()} rentals under ${priceNum}`,
-      `${hoodMeta.name.toLowerCase()} apartment rent cap`,
-      `apartments for rent ${hoodMeta.name.toLowerCase()} under ${priceNum}`,
-      `${hoodMeta.borough.toLowerCase()} apartments under ${priceNum}`,
+      `jersey city rentals under ${priceNum}`,
+      `apartments for rent jersey city under ${priceNum}`,
+      `jersey city under ${priceNum}`,
     ],
     openGraph: {
       title: `${hoodMeta.name} Apartments Under ${priceDollar} (2026)`,
       description,
-      url: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+      url: `${baseUrl}/jersey-city/${hood}/apartments-under-${price}`,
       type: "article",
     },
     alternates: {
-      canonical: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+      canonical: `${baseUrl}/jersey-city/${hood}/apartments-under-${price}`,
     },
   };
 }
@@ -86,24 +86,34 @@ export async function generateMetadata({
 function tierCommentary(hood: string, tier: number, median1BR: number): string {
   const gap = tier - median1BR;
   if (gap >= 400) {
-    return `At this rent cap you have strong selection across ${hood}. The neighborhood median 1-bedroom is $${median1BR.toLocaleString()}, so $${tier.toLocaleString()} covers roughly 70–80% of all listed 1-bedroom stock — including new-construction mid-rise with partial amenities.`;
+    return `At this rent cap you have strong selection across ${hood}. The neighborhood median 1-bedroom is $${median1BR.toLocaleString()}, so $${tier.toLocaleString()} covers roughly 70–80% of all listed 1-bedroom stock — including newer mid-rise with partial amenities.`;
   }
   if (gap >= 0) {
-    return `This rent cap is around the ${hood} neighborhood median. Expect a solid mix of pre-war walkups, older mid-rise stock, and the value end of new-construction listings. The $${median1BR.toLocaleString()} median 1-bedroom is within reach.`;
+    return `This rent cap is around the ${hood} neighborhood median. Expect a mix of older mid-rise, PATH-adjacent walkups, and the value end of new-construction high-rise concessions. The $${median1BR.toLocaleString()} median 1-bedroom is within reach.`;
   }
   if (gap >= -400) {
-    return `This rent cap is slightly below the ${hood} 1-bedroom median ($${median1BR.toLocaleString()}). You'll see mostly pre-war walkups and smaller studios/1-bedrooms on interior blocks. Expect limited amenities but more character and space in older stock.`;
+    return `This rent cap is slightly below the ${hood} 1-bedroom median ($${median1BR.toLocaleString()}). You'll see mostly older mid-rise, 2-family conversions, and smaller studios/1-bedrooms. Expect limited amenities but bigger layouts than comparable-price Manhattan units.`;
   }
-  return `This is a value-tier rent cap for ${hood} — well below the $${median1BR.toLocaleString()} 1-bedroom median. Inventory will concentrate in studios and shared spaces in older walkups. If you want more selection, consider raising your budget by $300–$500 or looking at nearby neighborhoods with lower medians.`;
+  return `This is a value-tier rent cap for ${hood} — well below the $${median1BR.toLocaleString()} 1-bedroom median. Inventory will concentrate in studios and smaller 1-bedrooms in older walkup or 2-family stock. If you want more selection, consider raising your budget by $300–$500 or expanding to Journal Square / Bergen-Lafayette.`;
 }
 
-export default async function ApartmentsUnderPricePage({
+function pathContext(hood: string): string {
+  if (hood === "downtown")
+    return "Grove Street PATH runs under 3 minutes to World Trade Center / Exchange Place — the single fastest waterfront-to-Manhattan commute in the metro.";
+  if (hood === "newport")
+    return "Newport PATH is ~6 minutes to World Trade Center, ~12 minutes to 33rd Street (Herald Square) with a transfer — direct access to Midtown without crossing Manhattan twice.";
+  if (hood === "journal-square")
+    return "Journal Square PATH is the system's only direct Manhattan express — ~14 minutes to 33rd Street on the JSQ-33 line, ~20 minutes to WTC. Deepest PATH stop inland but best price-per-minute to Midtown.";
+  return "";
+}
+
+export default async function JcApartmentsUnderPricePage({
   params,
 }: {
   params: Promise<Params>;
 }) {
   const { hood, price } = await params;
-  const hoodMeta = getNeighborhoodBySlug(hood);
+  const hoodMeta = getJcNeighborhoodBySlug(hood);
   const priceNum = parsePrice(price);
   if (!hoodMeta || priceNum === null) notFound();
 
@@ -113,15 +123,16 @@ export default async function ApartmentsUnderPricePage({
     priceNum,
     hoodMeta.medianRent1BR
   );
+  const pathNote = pathContext(hood);
 
   const jsonLd = [
     {
       "@context": "https://schema.org",
       "@type": "Article",
       headline: `${hoodMeta.name} Apartments Under ${priceDollar} (2026): Live Listings & Rent Guide`,
-      description: `Live ${hoodMeta.name}, ${hoodMeta.borough} listings under ${priceDollar}/month, with rent-tier context and sub-neighborhood guidance.`,
-      datePublished: "2026-04-22",
-      dateModified: "2026-04-22",
+      description: `Live ${hoodMeta.name}, Jersey City listings under ${priceDollar}/month with PATH commute context and rent-tier guidance.`,
+      datePublished: "2026-04-23",
+      dateModified: "2026-04-23",
       publisher: {
         "@type": "Organization",
         name: "Wade Me Home",
@@ -132,7 +143,7 @@ export default async function ApartmentsUnderPricePage({
         name: "Wade Me Home",
         url: baseUrl,
       },
-      mainEntityOfPage: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+      mainEntityOfPage: `${baseUrl}/jersey-city/${hood}/apartments-under-${price}`,
     },
     {
       "@context": "https://schema.org",
@@ -142,36 +153,26 @@ export default async function ApartmentsUnderPricePage({
         {
           "@type": "ListItem",
           position: 2,
-          name: "NYC Neighborhoods",
-          item: `${baseUrl}/nyc-rent-by-neighborhood`,
+          name: "Jersey City",
+          item: `${baseUrl}/jersey-city`,
         },
         {
           "@type": "ListItem",
           position: 3,
           name: hoodMeta.name,
-          item: `${baseUrl}/nyc/${hood}`,
+          item: `${baseUrl}/jersey-city/${hood}`,
         },
         {
           "@type": "ListItem",
           position: 4,
           name: `Apartments Under ${priceDollar}`,
-          item: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+          item: `${baseUrl}/jersey-city/${hood}/apartments-under-${price}`,
         },
       ],
     },
   ];
 
   const otherTiers = UNDER_PRICE_TIERS.filter((t) => t !== priceNum);
-  const hasRentPricesSpoke = [
-    "williamsburg",
-    "greenpoint",
-    "east-village",
-    "bushwick",
-    "astoria",
-    "long-island-city",
-    "park-slope",
-    "upper-west-side",
-  ].includes(hood);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -187,18 +188,19 @@ export default async function ApartmentsUnderPricePage({
             <div className="flex items-center gap-2">
               <Badge variant="outline">{hoodMeta.name}</Badge>
               <Badge variant="secondary">Under {priceDollar}</Badge>
+              <Badge variant="outline">Jersey City</Badge>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
               {hoodMeta.name} Apartments Under {priceDollar} (2026)
             </h1>
             <p className="text-sm text-muted-foreground">
-              Live {hoodMeta.name}, {hoodMeta.borough} apartment listings
-              for rent under {priceDollar}/month, pulled from real
-              inventory. {commentary}
+              Live {hoodMeta.name}, Jersey City apartment listings for rent
+              under {priceDollar}/month, pulled from real inventory.{" "}
+              {commentary}
             </p>
             <p className="text-xs text-muted-foreground">
-              Last updated April 2026 &middot; Results refresh continuously
-              as landlords post and remove listings
+              Last updated April 2026 &middot; Results refresh continuously as
+              landlords post and remove listings
             </p>
           </header>
 
@@ -210,7 +212,7 @@ export default async function ApartmentsUnderPricePage({
             radiusMiles={hoodMeta.radiusMiles}
             limit={9}
             maxRent={priceNum}
-            searchQuery={`${hoodMeta.name} apartments`}
+            searchQuery={`${hoodMeta.name} Jersey City apartments`}
           />
 
           {/* ── Price Tier Context ────────────────────── */}
@@ -220,8 +222,8 @@ export default async function ApartmentsUnderPricePage({
                 What {priceDollar}/month Gets You in {hoodMeta.name}
               </CardTitle>
               <CardDescription>
-                How your rent cap compares to the {hoodMeta.name}{" "}
-                neighborhood median
+                How your rent cap compares to the {hoodMeta.name} neighborhood
+                median
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -257,6 +259,36 @@ export default async function ApartmentsUnderPricePage({
             </CardContent>
           </Card>
 
+          {/* ── PATH Context ──────────────────────────── */}
+          {pathNote && (
+            <Card>
+              <CardHeader>
+                <CardTitle>PATH Commute from {hoodMeta.name}</CardTitle>
+                <CardDescription>
+                  Why at {priceDollar}/month, {hoodMeta.name} beats equivalent
+                  Manhattan options on all-in cost
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>{pathNote}</p>
+                <p>
+                  A Manhattan 1-bedroom at {hoodMeta.name}&apos;s $
+                  {priceNum.toLocaleString()} cap mostly clears in the East
+                  Village, East Harlem, or Inwood — all further from Midtown
+                  or FiDi by transit minutes than {hoodMeta.name}. For a
+                  commuter working in Lower Manhattan or Midtown, {priceDollar}
+                  /month here buys faster Manhattan access than the same rent
+                  in Manhattan itself.
+                </p>
+                <p>
+                  PATH fare is $2.75 one-way (matches NYC subway). A 30-day
+                  Unlimited PATH card is $109. Budget about $240/month for
+                  transit including PATH + occasional MTA transfers.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* ── Tips ─────────────────────────────────── */}
           <Card>
             <CardHeader>
@@ -267,43 +299,44 @@ export default async function ApartmentsUnderPricePage({
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <ol className="list-decimal space-y-2 pl-6">
                 <li>
-                  <strong>Sort by price-per-square-foot, not by rent.</strong>{" "}
+                  <strong>
+                    Ask about net effective rent — JC has the deepest
+                    concessions in the metro.
+                  </strong>{" "}
                   A $
-                  {(priceNum - 100).toLocaleString()}
-                  /month 1-bedroom at 450 sq ft costs more per square foot
-                  than a $
-                  {priceNum.toLocaleString()} 1-bedroom at 650 sq ft. Value
-                  is about $/sq ft, not headline rent.
+                  {(priceNum + 400).toLocaleString()}/month gross rent with 2
+                  months free on a 13-month lease has a net effective rent of ~$
+                  {Math.round(
+                    ((priceNum + 400) * 11) / 13
+                  ).toLocaleString()}
+                  /month — which may fit under your {priceDollar} cap on a
+                  true-cost basis. New high-rises at Newport and Journal Square
+                  routinely offer 1–2 months free.
                 </li>
                 <li>
-                  <strong>Filter out fees.</strong> Under the{" "}
-                  <Link
-                    href="/blog/nyc-fare-act-broker-fee-ban"
-                    className="text-primary underline underline-offset-2"
-                  >
-                    FARE Act
-                  </Link>
-                  , tenants no longer pay broker fees when the landlord
-                  hired the broker. Confirm this on any listing at your
-                  price cap — fees can add 10–15% to first-year cost.
+                  <strong>Sort by price-per-square-foot, not rent.</strong> JC
+                  units are typically 15–25% larger than Manhattan equivalents
+                  at the same rent — factor that into value comparison.
+                </li>
+                <li>
+                  <strong>Price the commute, not just the rent.</strong> PATH
+                  + occasional MTA is roughly $240/month. If you work in Lower
+                  Manhattan, {hoodMeta.name} adds 0–15 minutes over a
+                  comparable Manhattan unit — often at $500–$1,000/month less
+                  in rent.
                 </li>
                 <li>
                   <strong>
-                    Ask about net effective rent and concessions.
+                    Filter out broker fees — NJ doesn&apos;t have the NYC
+                    FARE Act, but most JC landlords list no-fee anyway.
                   </strong>{" "}
-                  A $
-                  {(priceNum + 300).toLocaleString()}
-                  /month gross rent with 1 month free on a 12-month lease
-                  has a net effective rent of ~$
-                  {Math.round(((priceNum + 300) * 11) / 12).toLocaleString()}
-                  /month — which may actually fit under your{" "}
-                  {priceDollar} cap on a true-cost basis.
+                  Confirm on every listing. A fee-paying Manhattan unit at a
+                  similar rent can cost 8–15% more in year one.
                 </li>
                 <li>
-                  <strong>Expand your radius.</strong> {hoodMeta.name}
-                  &apos;s border blocks (listed above) often have the
-                  cheapest rent — a 5-minute walk can mean $200–$400/month
-                  savings.
+                  <strong>Check building year.</strong> Pre-2010 JC stock is
+                  often comparable to NYC pre-war in price and layout. Post-
+                  2017 new-construction is where the concessions show up.
                 </li>
                 <li>
                   <strong>Time your search.</strong> See our{" "}
@@ -311,9 +344,9 @@ export default async function ApartmentsUnderPricePage({
                     href="/best-time-to-rent-nyc"
                     className="text-primary underline underline-offset-2"
                   >
-                    best time to rent NYC guide
+                    best time to rent guide
                   </Link>
-                  . November–February listings often come with bigger
+                  . December–February listings often come with bigger
                   concessions, which effectively lowers your cap.
                 </li>
               </ol>
@@ -328,13 +361,15 @@ export default async function ApartmentsUnderPricePage({
               </h2>
               <p className="max-w-md text-sm text-muted-foreground">
                 Describe what you&apos;re looking for — budget, unit size,
-                must-have amenities, move-in timing — and our AI assistant
-                will search {hoodMeta.name} inventory and surface only the
-                listings that actually match.
+                PATH station preference, must-have amenities, move-in timing —
+                and our AI assistant will search {hoodMeta.name} inventory and
+                surface only the listings that actually match.
               </p>
               <Button asChild size="lg">
                 <Link
-                  href={`/search?q=${encodeURIComponent(`${hoodMeta.name} apartments under $${priceNum}`)}`}
+                  href={`/search?q=${encodeURIComponent(
+                    `${hoodMeta.name} Jersey City apartments under $${priceNum}`
+                  )}`}
                 >
                   Search {hoodMeta.name} Apartments
                 </Link>
@@ -354,7 +389,7 @@ export default async function ApartmentsUnderPricePage({
                 {otherTiers.map((t) => (
                   <li key={t}>
                     <Link
-                      href={`/nyc/${hood}/apartments-under-${t}`}
+                      href={`/jersey-city/${hood}/apartments-under-${t}`}
                       className="text-primary underline underline-offset-2"
                     >
                       {hoodMeta.name} apartments under ${t.toLocaleString()}
@@ -369,23 +404,23 @@ export default async function ApartmentsUnderPricePage({
           <Card>
             <CardHeader>
               <CardTitle>
-                Related {hoodMeta.name} &amp; NYC Rent Guides
+                Related {hoodMeta.name} &amp; Jersey City Rent Guides
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
-                    href={`/nyc/${hood}`}
+                    href={`/jersey-city/${hood}`}
                     className="text-primary underline underline-offset-2"
                   >
                     {hoodMeta.name} Apartments: Full Neighborhood Guide
                   </Link>
                 </li>
-                {hasRentPricesSpoke && (
+                {(hood === "newport" || hood === "journal-square") && (
                   <li>
                     <Link
-                      href={`/nyc/${hood}/rent-prices`}
+                      href={`/jersey-city/${hood}/rent-prices`}
                       className="text-primary underline underline-offset-2"
                     >
                       {hoodMeta.name} Rent Prices Breakdown
@@ -394,10 +429,18 @@ export default async function ApartmentsUnderPricePage({
                 )}
                 <li>
                   <Link
-                    href="/nyc-rent-by-neighborhood"
+                    href="/jersey-city"
                     className="text-primary underline underline-offset-2"
                   >
-                    NYC Rent by Neighborhood
+                    Jersey City Apartments: Full City Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Jersey City Rent Prices: Zip-Code Breakdown
                   </Link>
                 </li>
                 <li>
@@ -405,23 +448,15 @@ export default async function ApartmentsUnderPricePage({
                     href="/best-time-to-rent-nyc"
                     className="text-primary underline underline-offset-2"
                   >
-                    Best Time to Rent an Apartment in NYC
+                    Best Time to Rent an Apartment
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/blog/nyc-fare-act-broker-fee-ban"
+                    href="/bad-landlord-nj-ny"
                     className="text-primary underline underline-offset-2"
                   >
-                    NYC FARE Act: Broker Fee Ban Explained
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/blog/nyc-rent-stabilization-guide"
-                    className="text-primary underline underline-offset-2"
-                  >
-                    NYC Rent Stabilization Explained
+                    How to Check a New Jersey / NYC Landlord Before Signing
                   </Link>
                 </li>
               </ul>

@@ -1275,6 +1275,14 @@ export default function JerseyCityGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/jersey-city/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Jersey City Rent Prices: Zip-Code Breakdown &amp; Trend
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/jersey-city/downtown"
                     className="text-primary underline underline-offset-2"
                   >
@@ -1291,11 +1299,43 @@ export default function JerseyCityGuidePage() {
                 </li>
                 <li>
                   <Link
+                    href="/jersey-city/journal-square/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Journal Square Rent Prices: Tower-by-Tower Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/jersey-city/newport"
                     className="text-primary underline underline-offset-2"
                   >
                     Newport Jersey City: Waterfront Towers &amp; Family
                     Amenities
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/newport/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Newport Rent Prices: Tower-by-Tower Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/downtown/apartments-under-3500"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Downtown Jersey City Apartments Under $3,500
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/journal-square/apartments-under-3000"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Journal Square Apartments Under $3,000
                   </Link>
                 </li>
                 <li>
@@ -1320,6 +1360,22 @@ export default function JerseyCityGuidePage() {
                     className="text-primary underline underline-offset-2"
                   >
                     Long Island City: Midtown-Adjacent Alternative
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/hoboken"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Hoboken: One-Mile Waterfront Alternative Across the Hudson
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/hoboken/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Hoboken Rent Prices: Tower &amp; Sub-Area Breakdown
                   </Link>
                 </li>
                 <li>

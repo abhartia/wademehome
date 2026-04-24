@@ -1,33 +1,21 @@
 {
   "traffic_summary_30d": {
-    "activeUsers": "16",
-    "sessions": "105",
-    "screenPageViews": "849",
-    "averageSessionDuration": "1133.2960066476189",
-    "bounceRate": "0.26666666666666666",
-    "newUsers": "16"
+    "activeUsers": "14",
+    "sessions": "97",
+    "screenPageViews": "771",
+    "averageSessionDuration": "889.34238857731953",
+    "bounceRate": "0.24742268041237114",
+    "newUsers": "12"
   },
   "traffic_summary_prev_30d": {
-    "activeUsers": "0",
-    "sessions": "0",
-    "screenPageViews": "0",
-    "averageSessionDuration": "0",
-    "bounceRate": "0",
-    "newUsers": "0"
+    "activeUsers": "4",
+    "sessions": "13",
+    "screenPageViews": "116",
+    "averageSessionDuration": "1813.9078564615386",
+    "bounceRate": "0.15384615384615385",
+    "newUsers": "4"
   },
   "daily_trend": [
-    {
-      "date": "20260323",
-      "activeUsers": "2",
-      "sessions": "6",
-      "screenPageViews": "90"
-    },
-    {
-      "date": "20260324",
-      "activeUsers": "3",
-      "sessions": "7",
-      "screenPageViews": "26"
-    },
     {
       "date": "20260325",
       "activeUsers": "2",
@@ -122,50 +110,56 @@
       "date": "20260421",
       "activeUsers": "3",
       "sessions": "4",
-      "screenPageViews": "192"
+      "screenPageViews": "196"
     },
     {
       "date": "20260422",
       "activeUsers": "3",
+      "sessions": "5",
+      "screenPageViews": "29"
+    },
+    {
+      "date": "20260423",
+      "activeUsers": "1",
       "sessions": "3",
-      "screenPageViews": "23"
+      "screenPageViews": "28"
     }
   ],
   "top_pages": [
     {
       "pagePath": "/",
-      "screenPageViews": "245",
+      "screenPageViews": "249",
       "activeUsers": "11",
-      "averageSessionDuration": "492.49042664444448",
-      "bounceRate": "0.15555555555555556"
-    },
-    {
-      "pagePath": "/search",
-      "screenPageViews": "112",
-      "activeUsers": "5",
-      "averageSessionDuration": "757.80394396774193",
-      "bounceRate": "0.25806451612903225"
+      "averageSessionDuration": "418.47798079545458",
+      "bounceRate": "0.13636363636363635"
     },
     {
       "pagePath": "/login",
-      "screenPageViews": "80",
-      "activeUsers": "11",
-      "averageSessionDuration": "394.05888113333339",
-      "bounceRate": "0.13333333333333333"
-    },
-    {
-      "pagePath": "/app",
       "screenPageViews": "72",
-      "activeUsers": "5",
-      "averageSessionDuration": "336.15538239285712",
-      "bounceRate": "0.14285714285714285"
+      "activeUsers": "9",
+      "averageSessionDuration": "401.80780076",
+      "bounceRate": "0.04"
     },
     {
       "pagePath": "/groups",
-      "screenPageViews": "64",
+      "screenPageViews": "67",
       "activeUsers": "3",
-      "averageSessionDuration": "1123.3263365",
-      "bounceRate": "0.5"
+      "averageSessionDuration": "410.6407245",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/app",
+      "screenPageViews": "66",
+      "activeUsers": "5",
+      "averageSessionDuration": "275.41484171999997",
+      "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/search",
+      "screenPageViews": "66",
+      "activeUsers": "3",
+      "averageSessionDuration": "484.97163109523814",
+      "bounceRate": "0.19047619047619047"
     },
     {
       "pagePath": "/admin/inventory",
@@ -189,18 +183,11 @@
       "bounceRate": "0.25"
     },
     {
-      "pagePath": "/guarantor",
-      "screenPageViews": "12",
+      "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
+      "screenPageViews": "11",
       "activeUsers": "2",
-      "averageSessionDuration": "1898.6466675",
-      "bounceRate": "0"
-    },
-    {
-      "pagePath": "/profile",
-      "screenPageViews": "12",
-      "activeUsers": "2",
-      "averageSessionDuration": "104.83899925",
-      "bounceRate": "0"
+      "averageSessionDuration": "323.61865533333338",
+      "bounceRate": "0.5"
     },
     {
       "pagePath": "/saved",
@@ -210,38 +197,38 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/tours",
-      "screenPageViews": "10",
-      "activeUsers": "2",
-      "averageSessionDuration": "780.7909575",
-      "bounceRate": "0"
-    },
-    {
       "pagePath": "/groups/91f85010-ccd0-45ad-9b1e-bd28aa61806f",
       "screenPageViews": "7",
       "activeUsers": "2",
-      "averageSessionDuration": "33.299654666666669",
-      "bounceRate": "1"
+      "averageSessionDuration": "66.121416666666661",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/listing--31-16-21st-queens-ny-11106--40.7670---73.9305",
       "screenPageViews": "7",
       "activeUsers": "1",
-      "averageSessionDuration": "499.117245",
-      "bounceRate": "1"
+      "averageSessionDuration": "1579.566362",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/91f85010-ccd0-45ad-9b1e-bd28aa61806f/applicants",
       "screenPageViews": "6",
       "activeUsers": "2",
-      "averageSessionDuration": "29.350446666666667",
-      "bounceRate": "1"
+      "averageSessionDuration": "58.750078333333335",
+      "bounceRate": "0"
     },
     {
-      "pagePath": "/roommates",
+      "pagePath": "/tours",
       "screenPageViews": "6",
       "activeUsers": "1",
-      "averageSessionDuration": "341.5733305",
+      "averageSessionDuration": "570.363765",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/39305cb0-9f33-4ada-b7e7-bddd2c6fbd16/applicants",
+      "screenPageViews": "5",
+      "activeUsers": "1",
+      "averageSessionDuration": "795.4773755",
       "bounceRate": "0"
     },
     {
@@ -252,25 +239,18 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
-      "screenPageViews": "5",
-      "activeUsers": "1",
-      "averageSessionDuration": "1361.961256",
-      "bounceRate": "1"
-    },
-    {
       "pagePath": "/groups/3a011ab7-4d9d-4336-8009-5e057fedbab9",
       "screenPageViews": "4",
       "activeUsers": "2",
-      "averageSessionDuration": "361.9620595",
-      "bounceRate": "1"
+      "averageSessionDuration": "181.94242",
+      "bounceRate": "0"
     },
     {
-      "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
+      "pagePath": "/jersey-city/newport/apartments-under-3500",
       "screenPageViews": "4",
       "activeUsers": "1",
-      "averageSessionDuration": "1731.831128",
-      "bounceRate": "0"
+      "averageSessionDuration": "2703.323245",
+      "bounceRate": "1"
     },
     {
       "pagePath": "/admin/listings-without-amenities",
@@ -290,15 +270,8 @@
       "pagePath": "/groups/31d47f9f-d8f1-4dd4-b655-b6c0a13948e4",
       "screenPageViews": "3",
       "activeUsers": "1",
-      "averageSessionDuration": "19.778214",
-      "bounceRate": "1"
-    },
-    {
-      "pagePath": "/groups/39305cb0-9f33-4ada-b7e7-bddd2c6fbd16/applicants",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "averageSessionDuration": "1206.321825",
-      "bounceRate": "1"
+      "averageSessionDuration": "49.479549",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
@@ -306,23 +279,44 @@
       "activeUsers": "1",
       "averageSessionDuration": "627.631788",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/19-belmont-avenue--19-belmont-avenue-jersey-city-nj-07304--40.7188---74.0686",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "1041.147084",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
+      "screenPageViews": "3",
+      "activeUsers": "1",
+      "averageSessionDuration": "105.344856",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/account/reviews",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "211.006493",
+      "bounceRate": "0"
     }
   ],
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "104",
-      "activeUsers": "16",
-      "screenPageViews": "825",
-      "avgDuration": "1089.77556125",
-      "bounceRate": "0.25961538461538464"
+      "sessions": "96",
+      "activeUsers": "14",
+      "screenPageViews": "754",
+      "avgDuration": "876.60693333333336",
+      "bounceRate": "0.23958333333333334"
     },
     {
       "channel": "Unassigned",
-      "sessions": "7",
-      "activeUsers": "4",
-      "screenPageViews": "24",
-      "avgDuration": "808.48890399999993",
+      "sessions": "3",
+      "activeUsers": "2",
+      "screenPageViews": "17",
+      "avgDuration": "703.98203066666667",
       "bounceRate": "1"
     }
   ],
@@ -330,16 +324,16 @@
   "devices": [
     {
       "device": "desktop",
-      "sessions": "105",
-      "activeUsers": "16",
-      "bounceRate": "0.26666666666666666"
+      "sessions": "97",
+      "activeUsers": "14",
+      "bounceRate": "0.24742268041237114"
     }
   ],
   "countries": [
     {
       "country": "United States",
-      "sessions": "83",
-      "activeUsers": "15"
+      "sessions": "75",
+      "activeUsers": "13"
     },
     {
       "country": "Australia",
@@ -350,23 +344,23 @@
   "events": [
     {
       "event": "page_view",
-      "eventCount": "849",
-      "totalUsers": "16"
+      "eventCount": "771",
+      "totalUsers": "14"
     },
     {
       "event": "scroll",
-      "eventCount": "338",
-      "totalUsers": "16"
+      "eventCount": "299",
+      "totalUsers": "14"
     },
     {
       "event": "user_engagement",
-      "eventCount": "211",
-      "totalUsers": "13"
+      "eventCount": "176",
+      "totalUsers": "11"
     },
     {
       "event": "session_start",
-      "eventCount": "104",
-      "totalUsers": "16"
+      "eventCount": "96",
+      "totalUsers": "14"
     },
     {
       "event": "view_search_results",
@@ -380,13 +374,13 @@
     },
     {
       "event": "form_start",
-      "eventCount": "23",
-      "totalUsers": "9"
+      "eventCount": "18",
+      "totalUsers": "6"
     },
     {
       "event": "first_visit",
-      "eventCount": "16",
-      "totalUsers": "16"
+      "eventCount": "12",
+      "totalUsers": "12"
     }
   ],
   "weekly_trend_90d": [
@@ -417,50 +411,50 @@
     {
       "week": "202617",
       "activeUsers": "5",
-      "sessions": "8",
-      "screenPageViews": "226"
+      "sessions": "13",
+      "screenPageViews": "264"
     }
   ],
   "all_pages_with_titles": [
     {
       "pagePath": "/",
       "pageTitle": "Wade Me Home: Rental search & renter tools",
-      "screenPageViews": "223",
+      "screenPageViews": "227",
       "activeUsers": "11",
-      "avgDuration": "491.12365691111108",
-      "bounceRate": "0.15555555555555556"
-    },
-    {
-      "pagePath": "/search",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "111",
-      "activeUsers": "5",
-      "avgDuration": "724.75129174193557",
-      "bounceRate": "0.25806451612903225"
+      "avgDuration": "417.08014811363643",
+      "bounceRate": "0.13636363636363635"
     },
     {
       "pagePath": "/login",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "79",
-      "activeUsers": "11",
-      "avgDuration": "393.71320610000004",
-      "bounceRate": "0.13333333333333333"
+      "screenPageViews": "71",
+      "activeUsers": "9",
+      "avgDuration": "401.39299072",
+      "bounceRate": "0.04"
     },
     {
       "pagePath": "/app",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "72",
+      "screenPageViews": "66",
       "activeUsers": "5",
-      "avgDuration": "336.15538239285712",
-      "bounceRate": "0.14285714285714285"
+      "avgDuration": "275.41484171999997",
+      "bounceRate": "0.2"
+    },
+    {
+      "pagePath": "/search",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "65",
+      "activeUsers": "3",
+      "avgDuration": "454.44998328571427",
+      "bounceRate": "0.19047619047619047"
     },
     {
       "pagePath": "/groups",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "55",
+      "screenPageViews": "58",
       "activeUsers": "3",
-      "avgDuration": "1024.411764",
-      "bounceRate": "0.5"
+      "avgDuration": "405.55153725",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/admin/inventory",
@@ -495,20 +489,12 @@
       "bounceRate": "0.25"
     },
     {
-      "pagePath": "/guarantor",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "12",
-      "activeUsers": "2",
-      "avgDuration": "1898.6466675",
-      "bounceRate": "0"
-    },
-    {
-      "pagePath": "/profile",
-      "pageTitle": "Wade Me Home",
+      "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
+      "pageTitle": "Listing | Wade Me Home",
       "screenPageViews": "11",
       "activeUsers": "2",
-      "avgDuration": "55.26515025",
-      "bounceRate": "0"
+      "avgDuration": "323.61865533333338",
+      "bounceRate": "0.5"
     },
     {
       "pagePath": "/saved",
@@ -519,19 +505,11 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/tours",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "10",
-      "activeUsers": "2",
-      "avgDuration": "780.7909575",
-      "bounceRate": "0"
-    },
-    {
       "pagePath": "/groups",
-      "pageTitle": "",
+      "pageTitle": "(not set)",
       "screenPageViews": "9",
       "activeUsers": "1",
-      "avgDuration": "395.65829",
+      "avgDuration": "20.356749",
       "bounceRate": "0"
     },
     {
@@ -539,31 +517,39 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "7",
       "activeUsers": "2",
-      "avgDuration": "33.299654666666669",
-      "bounceRate": "1"
+      "avgDuration": "66.121416666666661",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/listing--31-16-21st-queens-ny-11106--40.7670---73.9305",
       "pageTitle": "Listing | Wade Me Home",
       "screenPageViews": "7",
       "activeUsers": "1",
-      "avgDuration": "499.117245",
-      "bounceRate": "1"
+      "avgDuration": "1579.566362",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/91f85010-ccd0-45ad-9b1e-bd28aa61806f/applicants",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "6",
       "activeUsers": "2",
-      "avgDuration": "29.350446666666667",
-      "bounceRate": "1"
+      "avgDuration": "58.750078333333335",
+      "bounceRate": "0"
     },
     {
-      "pagePath": "/roommates",
+      "pagePath": "/tours",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "6",
       "activeUsers": "1",
-      "avgDuration": "341.5733305",
+      "avgDuration": "570.363765",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/39305cb0-9f33-4ada-b7e7-bddd2c6fbd16/applicants",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "5",
+      "activeUsers": "1",
+      "avgDuration": "795.4773755",
       "bounceRate": "0"
     },
     {
@@ -575,28 +561,20 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
-      "pageTitle": "Listing | Wade Me Home",
-      "screenPageViews": "5",
-      "activeUsers": "1",
-      "avgDuration": "1361.961256",
-      "bounceRate": "1"
-    },
-    {
       "pagePath": "/groups/3a011ab7-4d9d-4336-8009-5e057fedbab9",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "4",
       "activeUsers": "2",
-      "avgDuration": "361.9620595",
-      "bounceRate": "1"
+      "avgDuration": "181.94242",
+      "bounceRate": "0"
     },
     {
-      "pagePath": "/guarantor-invite/D578M0lk1d6gRtkdEheAWyYfRDDi0B6Rq7pUjkEucMk",
+      "pagePath": "/jersey-city/newport/apartments-under-3500",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "4",
       "activeUsers": "1",
-      "avgDuration": "1731.831128",
-      "bounceRate": "0"
+      "avgDuration": "2703.323245",
+      "bounceRate": "1"
     },
     {
       "pagePath": "/admin/listings-without-amenities",
@@ -619,16 +597,8 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "3",
       "activeUsers": "1",
-      "avgDuration": "19.778214",
-      "bounceRate": "1"
-    },
-    {
-      "pagePath": "/groups/39305cb0-9f33-4ada-b7e7-bddd2c6fbd16/applicants",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "avgDuration": "1206.321825",
-      "bounceRate": "1"
+      "avgDuration": "49.479549",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
@@ -667,71 +637,79 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "178.204283",
-      "bounceRate": "1"
+      "avgDuration": "25.864821",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/2547f64f-28a9-4086-8032-e04bfc497bea",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "71.971266",
-      "bounceRate": "1"
+      "avgDuration": "5.420459",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/2ad257e8-90d4-44a9-b990-89bbf4d05b63",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "5.293457",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/369f5298-b308-4847-9eb0-3b0ccc810fbd",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "0",
-      "bounceRate": "1"
+      "avgDuration": "3.888866",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/39305cb0-9f33-4ada-b7e7-bddd2c6fbd16",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "0",
-      "bounceRate": "1"
+      "avgDuration": "3.426897",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/472b5f62-53a6-409f-a405-cf5569de1077",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "132.638485",
-      "bounceRate": "1"
+      "avgDuration": "4.051509",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/4a1e2518-ba6a-455f-a6f8-d1eb18bf230d",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "63.351979",
-      "bounceRate": "1"
+      "avgDuration": "4.012717",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/4bfd83a5-0796-40e3-8324-6d63fac23d42",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "0",
-      "bounceRate": "1"
+      "avgDuration": "7.915693",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/4c8c21ab-a7a1-4885-a207-39e6cd02a56f",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "520.027416",
-      "bounceRate": "1"
+      "avgDuration": "4.358234",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/5037e817-b100-4388-b8aa-d6cba1220010",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "196.476961",
+      "avgDuration": "2.942038",
       "bounceRate": "0"
     },
     {
@@ -739,15 +717,15 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "163.525261",
-      "bounceRate": "1"
+      "avgDuration": "3.795023",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/53db27a7-972e-4946-94db-844503b25faa",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "36.203035",
+      "avgDuration": "2.555706",
       "bounceRate": "0"
     },
     {
@@ -755,23 +733,23 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "28.738592",
-      "bounceRate": "1"
+      "avgDuration": "3.859661",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/7525ff67-a201-4c39-8c6f-750dc4f93063",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "122.801806",
-      "bounceRate": "1"
+      "avgDuration": "8.053049",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/7b15aaf3-086b-4af5-b488-446808c466ab",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "9.832107",
+      "avgDuration": "2.661026",
       "bounceRate": "0"
     },
     {
@@ -779,39 +757,39 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "0",
-      "bounceRate": "1"
+      "avgDuration": "8.194306",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/91f85010-ccd0-45ad-9b1e-bd28aa61806f/search",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "2.565158",
-      "bounceRate": "1"
+      "avgDuration": "42.625724",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/d57ab591-ebf0-4560-ab47-0908425ce866",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "47.936553",
-      "bounceRate": "1"
+      "avgDuration": "4.530947",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/d8859f0b-987c-494b-8e83-d48b0ecabe0d",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "93.790266",
-      "bounceRate": "1"
+      "avgDuration": "4.498023",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/groups/dde4b2f7-da9d-40a9-9799-da85ed9332f4",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "162.33999",
+      "avgDuration": "2.549889",
       "bounceRate": "0"
     },
     {
@@ -819,20 +797,36 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "avgDuration": "0",
-      "bounceRate": "1"
+      "avgDuration": "4.097634",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/f557153a-a91a-451c-a5df-a91ef2665883",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "3.698414",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/fdf19953-b163-4fc7-8f3b-4b49c6622e6a",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "5.087998",
+      "bounceRate": "0"
     }
   ],
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "104",
-      "activeUsers": "16"
+      "sessions": "96",
+      "activeUsers": "14"
     },
     {
       "source": "(not set)",
-      "sessions": "7",
-      "activeUsers": "4"
+      "sessions": "3",
+      "activeUsers": "2"
     }
   ]
 }

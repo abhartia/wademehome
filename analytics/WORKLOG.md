@@ -6,6 +6,196 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-24 -- Session 18 (Harlem + Chelsea + Hoboken hubs closing biggest Trends gaps + FARE Act 2026 refresh for Reddit breakout)
+
+### Context
+- Eighteenth growth agent run. **Three hoods rising in Trends with ZERO existing page**: Harlem +38.6% YoY, Chelsea +38.6% YoY, Hoboken +4.7% YoY (peak 4 days ago; was already on S17 queue). Shipped all three today.
+- **Rising-related breakout on FARE Act**: "fare act nyc reddit" +560,250 breakout, "nyc broker fee law 2025" +97,600 rising. Refreshed the existing FARE Act blog with a 2026 update section and 7 Reddit-style FAQ Qs targeting these queries directly.
+- GSC 2026-04-22 spike: 702 impressions, 2 clicks (homepage + property page — first time property pages converted).
+- Hoboken shipped as a **single-area registry** (one mile-square city, one PATH terminal, treated holistically) rather than sliced into sub-hoods like JC. This is a new pattern: Hudson County cities that are too small for hood-slicing get a single-area registry with a hub + rent-prices spoke + programmatic under-price tier pages.
+
+### Key Numbers
+- Trends YoY: Harlem +38.6%, Chelsea +38.6%, Hoboken +4.7% (peak 2026-04-20).
+- Rising-related breakout: "fare act nyc reddit" +560,250 (query-as-a-breakout).
+- GSC 30d still dominated by long-tail property-address queries (700+ daily imp on 04-22).
+
+### Completed
+
+**New hub pages (3):**
+- `/nyc/harlem` — sub-areas (South Harlem/SoHa $3,400 1BR, Central $2,500, East/El Barrio $2,400, West/Morningside $2,800, Hamilton Hts/Sugar Hill $2,500), brownstone typology (garden/parlor/top-floor/duplex), transit 2/3, A/B/C/D, 4/5/6, 1, Metro-North, 24 keywords, 8 hunting tips.
+- `/nyc/chelsea` — sub-areas (West Chelsea/Hudson Yards $5,400 1BR, Core $4,100, North $3,800, South/Meatpacking $4,800, Penn South ltd-equity $2,800), luxury new-con vs. pre-war walkups, transit 1, C/E, F/M, L, 7, PATH, 20 keywords, 9 hunting tips.
+- `/hoboken` — single-area hub, rent-by-unit-size ($2,700 studio / $3,500 1BR / $4,700 2BR / $6,200 3BR), sub-areas (Waterfront/Downtown/Central/Uptown/Western Edge), Hoboken vs. Manhattan vs. JC comparison table, 6 FAQ Qs, 20 keywords.
+
+**New rent-prices spoke (1):**
+- `/hoboken/rent-prices` — 5 tables (rent by unit size, rent by sub-area, waterfront tower rent tier with Maxwell Place/W Residences/Hudson Tea/1100 Maxwell/1300 Adams/Vine/Nine on the Hudson, 6-year trend 2020-2026, $/sq ft by building type, net-effective rent math).
+
+**New programmatic under-price pages (5):**
+- `/hoboken/apartments-under-{2000,2500,3000,3500,4000}` — each with live listings widget, rent-tier commentary vs. city median, PATH commute math, 6 hunting tips, tier-switcher, related guides. Shipped as 5 static folders sharing one `_apartments-under-page.tsx` content module (see Problems — Next.js 15 dynamic-segment bug at this folder depth).
+
+**Registry-driven expansion (10 URLs auto-generated):**
+- Added Harlem (lat 40.8116, lng -73.9465, r=1.2mi) + Chelsea (lat 40.7465, lng -74.0014, r=0.7mi) to `nycNeighborhoods.ts` → `/nyc/harlem/apartments-under-*` + `/nyc/chelsea/apartments-under-*` × 5 tiers ship via existing dynamic route.
+
+**Blog refresh (product-facing):**
+- `/blog/nyc-fare-act-broker-fee-ban` — new "2026 update: what a year of the FARE Act has actually meant" Card at the top (1,500+ DCWP complaints, first $2k fines, 5-7% rent-bump math vs. 15% fee avoided, REBNY Second Circuit appeal status, NJ non-coverage clarification). Expanded FAQ from 5 → 12 Qs targeting Reddit-style questions ("Did the FARE Act raise NYC rents?", "Is it still in effect in 2026?", "Does it apply to Hoboken/JC/Newark?", "What counts as a landlord hiring a broker?", "Can a landlord charge a 'marketing fee' instead?", "What to do if a broker demands a fee over text?"). Keywords expanded 8 → 17 including "fare act nyc reddit", "nyc broker fee law 2025", "fare act 2026 update". `reviewedAt: "2026-04-24"`.
+
+**Cross-linking:**
+- `/nyc-rent-by-neighborhood` — +4 outbound links (harlem, chelsea, hoboken, hoboken rent-prices).
+- `/jersey-city` — +2 outbound links (hoboken, hoboken rent-prices) — positions Hoboken as the cross-river alternative.
+
+**Sitemap:**
+- +4 static URLs + 5 Hoboken-tier URLs + 10 auto-generated Harlem/Chelsea-tier URLs = **+19 new URLs** in sitemap.
+
+### Problems / Root Causes
+
+1. **Next.js 15 dynamic-segment 404 at `/hoboken/apartments-under-[price]`**. Structure `{staticSegment}/{[dynamic]}/page.tsx` where the parent is static ("hoboken") and has a sibling `page.tsx` + sibling static folder `rent-prices` fails route resolution in dev, even though `npm run build` registers it in `app-paths-manifest.json` and emits compiled JS. JC's `/jersey-city/[hood]/apartments-under-[price]` works (dynamic parent); NYC's `/nyc/[hood]/apartments-under-[price]` works (dynamic parent). Hoboken fails with static parent. Reduced to a minimal `page.tsx` with only `generateStaticParams` + a `div` — still 404. Clean `rm -rf .next && npm run build && restart dev` — still 404.
+   - **Fix**: 5 explicit static folders sharing one `_apartments-under-page.tsx` content module (underscore prefix = non-routable per Next.js convention). Net: 5 extra files, same URLs, same SEO.
+   - **Queued**: file a Next.js bug reproducer next session.
+
+2. **Backend not running during verify**. `localhost:8000` FastAPI wasn't up during preview, so `NeighborhoodLiveListings` widget couldn't fetch. Static content (JSON-LD, tables, commentary, link graph) — which is what matters for indexing — renders server-side and was verified. Issue #1 was confirmed independent of this (404 returned before API proxy was even attempted).
+
+### Queue for next session
+- **Flatbush / Prospect-Lefferts Gardens** — rising Brooklyn YoY, no page (carried from S17).
+- **`/jersey-city/downtown/rent-prices`** — only JC hood without rent-prices spoke (carried from S17).
+- **Long-tail property-address impressions** — 700+ imp/day with 0 clicks. Separate from SEO-content work: better property detail pages + snippet optimization.
+- **Harlem + Chelsea rent-prices spokes** — once GSC shows lift from today's hubs.
+- **Next.js dynamic-segment bug repro + upstream file**.
+
+---
+
+## 2026-04-23 -- Session 17 (Jersey City cluster at peak demand: 3 JC rent-prices + Park Slope + UWS spokes + JC programmatic under-price)
+
+### Context
+- Seventeenth growth agent run. **Today's standout signal was in
+  Trends, not GSC: "jersey city apartments" +34.3% YoY, recent IoT
+  57.8, peak IoT 86 on 2026-04-19 (4 days ago — peak demand right
+  now)**. Rising related: "hudson house jersey city apartments"
+  (+400 breakout). Hoboken +25% YoY.
+- GSC 2026-04-21 spike to 109 impressions (vs ~25 typical) + first
+  homepage click at pos 4.9 — the Trends demand is showing up in
+  search share now.
+- Pivoted from continuing NYC-hood queue to shipping the full JC
+  cluster. Hub pages for `/jersey-city`, `/jersey-city/downtown`,
+  `/jersey-city/newport`, `/jersey-city/journal-square` existed but
+  had **zero rent-prices spokes** and **zero programmatic JC
+  under-price pages** — exactly the gap Trends was pointing at.
+- Also shipped the two NYC hubs missing rent-prices coverage:
+  Park Slope (family AOV) and UWS (Manhattan's highest-AOV hub
+  without one).
+
+### Key Numbers
+- Trends JC IoT: recent 57.8, peak 86 on 2026-04-19, +34.3% YoY.
+- Hoboken IoT +25.0% YoY (metro-wide Hudson County strength).
+- GSC 30d: ~135-150 impressions, 1-2 clicks (homepage + rent-stab
+  blog post-reindex).
+- 2026-04-21 single-day spike: 109 impressions.
+
+### Completed
+
+**New spoke pages (5 — biggest content-day of any session):**
+- `/jersey-city/rent-prices` — Studio $3,030 / 1BR $3,500 / 2BR
+  $4,790 / 3BR $6,200. Zip-code breakdown
+  (07302/07310/07306/07307/07304/07305), PATH commute penalty,
+  vs-Manhattan savings, 2020-2026 trend (**+35% peak-to-peak —
+  highest in metro**), $/sq ft by building type, 22 keywords incl.
+  zip-level "07302 rent" + rising-related "hudson house jersey
+  city".
+- `/jersey-city/newport/rent-prices` — Studio $3,300 / 1BR $3,750 /
+  2BR $5,100 / 3BR $7,000. **Tower-by-tower rent table** (Newport
+  Tower 1986, 70 Greene 2004, Portofino 2003, James Monroe 2004,
+  Crystal Point 2010, Aquablu 2017) + PATH rent-for-time math vs
+  FiDi/MTE/UES.
+- `/jersey-city/journal-square/rent-prices` — Studio $2,700 / 1BR
+  $3,200 / 2BR $4,400 / 3BR $5,800. **Tower-by-tower** (Journal
+  Squared I/II/III 2017/2021/2024, 90 Columbus, 25 Senate Place,
+  Hudson Exchange, Bristol) + "deepest concession market in metro"
+  angle + discount-vs-Newport math ($575/mo for 7 extra commute min
+  = commute priced at $135/hr).
+- `/nyc/park-slope/rent-prices` — Studio $2,400 / 1BR $3,200 / 2BR
+  $4,300 / 3BR $5,800 / 4BR $7,800. **PS 321 school-zone premium
+  table** (+$400 1BR, +$600 2BR, +$900 3BR, +$1,300 4BR in-zone vs
+  out) + brownstone floor-through market (parlor/garden/top-floor/
+  duplex) + North/Center/South/Gowanus/PPW breakdown.
+- `/nyc/upper-west-side/rent-prices` — Studio $2,400 / 1BR $3,500 /
+  2BR $4,800 / 3BR $6,700 / 4BR $9,500. Block-segment table
+  (Lincoln Sq / Core 72-86 / Upper 86-96 / Manhattan Valley /
+  Morningside Heights), building-type breakdown (pre-war doorman
+  vs walkup vs post-war vs new-con vs brownstone conv), **Central
+  Park West view premium table** ($5k direct / $4.4k peek / $3.8k
+  no-view), rent-stab stock discussion, UWS vs UES.
+
+**Programmatic product feature (Jersey City extension):**
+- `/jersey-city/[hood]/apartments-under-[price]` dynamic route
+  generating **15 static pages** (3 hoods × 5 tiers).
+- Registry: `ui/lib/neighborhoods/jerseyCityNeighborhoods.ts` (new)
+  — Downtown (40.7178, -74.0431, 0.7mi), Newport (40.7269,
+  -74.0345, 0.5mi), Journal Square (40.7334, -74.0627, 0.6mi) with
+  medians.
+- Each page renders real JC inventory via
+  `<NeighborhoodLiveListings maxRent={price}>` + hood-specific PATH
+  copy (Grove/Newport/JSQ) + JC concessions angle in tips section.
+- Total programmatic footprint: **55 under-price pages** (40 NYC +
+  15 JC).
+
+**Cross-linking (9 hub edits):**
+- `/jersey-city` — added 5 JC spoke + under-price links to Related.
+- `/jersey-city/newport` — added Newport rent-prices + Newport
+  under-$3,500/$4,000 + JC rent-prices to Related.
+- `/jersey-city/journal-square` — added JSQ rent-prices + JSQ
+  under-$2,500/$3,000 + JC rent-prices to Related.
+- `/jersey-city/downtown` — added Downtown under-$3,500/$4,000 +
+  JC rent-prices to Related.
+- `/nyc/park-slope` — added PS rent-prices + PS
+  under-$3,500/$4,000 to Related.
+- `/nyc/upper-west-side` — added UWS rent-prices + UWS
+  under-$3,500/$4,000 to Related.
+- `/nyc-rent-by-neighborhood` — added UWS, Park Slope, JC, JC
+  Newport, JC Journal Square rent-prices links.
+- `/nyc/[hood]/apartments-under-[price]` — extended
+  `hasRentPricesSpoke` whitelist to include `park-slope` and
+  `upper-west-side` (now each of those 10 tier pages links to its
+  own rent-prices spoke).
+
+**Sitemap:**
+- 5 new rent-prices spokes at priority 0.75.
+- **15 new** JC `apartments-under-{price}` URLs at priority 0.7
+  weekly (flatMap over new JC registry — auto-updates as we add JC
+  hoods/tiers).
+
+### Not Yet Done / Queue
+- Flatbush / PLG rent-prices spoke (Brooklyn value-tier gap).
+- Hoboken hub + rent-prices spoke (Trends +25% YoY — second-biggest
+  signal today but no product presence yet).
+- `/jersey-city/downtown/rent-prices` — the one JC sub-hood still
+  without a spoke (defer till Newport/JSQ reindex for CTR compare).
+- Borough-level `apartments-under-{price}` rollups (Bklyn / Queens
+  / Manhattan / JC rollups) — only after hood×tier combos show GSC
+  traction.
+- `AggregateOffer` JSON-LD on all 55 under-price pages (once ≥5
+  listings per tier reliably).
+- Live-listings widget on Greenpoint hub (deferred from S14).
+- Evaluate dedicated `/nyc-rent-guidelines-board` spoke post-reindex
+  of the rent-stabilization refresh.
+
+### SEO Changes Pending Reindex
+- `/jersey-city/rent-prices` — new URL.
+- `/jersey-city/newport/rent-prices` — new URL.
+- `/jersey-city/journal-square/rent-prices` — new URL.
+- `/nyc/park-slope/rent-prices` — new URL.
+- `/nyc/upper-west-side/rent-prices` — new URL.
+- `/jersey-city/[hood]/apartments-under-[price]` — **15 new URLs**.
+- Sitemap reflects all 20 new URLs.
+
+### Build / Verify
+- `cd ui && npm run build` — **passed**. Build output confirms 15
+  JC under-price pages as `●` (SSG) and all 5 new rent-prices
+  spokes (JC, JC Newport, JC JSQ, Park Slope, UWS) as `○` (static).
+- Dev preview screenshot confirmed `/jersey-city/rent-prices`
+  (+34.3% YoY Demand badge) and `/jersey-city/newport/rent-prices`
+  (07310 badge, "Tower" H1) render correctly.
+- `/sitemap.xml` curl confirmed all 20 new URLs present.
+
+---
+
 ## 2026-04-22 -- Session 16 (Rent-stabilization refresh + Greenpoint/Bushwick spokes + Programmatic under-price pages)
 
 ### Context

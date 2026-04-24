@@ -5,6 +5,7 @@ import {
   NYC_NEIGHBORHOODS,
   UNDER_PRICE_TIERS,
 } from "@/lib/neighborhoods/nycNeighborhoods";
+import { JC_NEIGHBORHOODS } from "@/lib/neighborhoods/jerseyCityNeighborhoods";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
@@ -170,7 +171,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/nyc/upper-west-side/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
       url: `${baseUrl}/nyc/park-slope`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/nyc/park-slope/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/nyc/harlem`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/nyc/chelsea`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
@@ -180,6 +205,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/jersey-city/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
     },
     {
       url: `${baseUrl}/jersey-city/downtown`,
@@ -194,10 +225,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/jersey-city/journal-square/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
       url: `${baseUrl}/jersey-city/newport`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/jersey-city/newport/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/hoboken`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/hoboken/rent-prices`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
     },
     {
       url: `${baseUrl}/cost-of-moving-to-nyc`,
@@ -236,6 +291,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
     );
 
+  const jcApartmentsUnderEntries: MetadataRoute.Sitemap =
+    JC_NEIGHBORHOODS.flatMap((hood) =>
+      UNDER_PRICE_TIERS.map((tier) => ({
+        url: `${baseUrl}/jersey-city/${hood.slug}/apartments-under-${tier}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      }))
+    );
+
+  const hobokenApartmentsUnderEntries: MetadataRoute.Sitemap =
+    UNDER_PRICE_TIERS.map((tier) => ({
+      url: `${baseUrl}/hoboken/apartments-under-${tier}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
+
   const propertyKeys = await fetchPropertyKeys();
   const propertyEntries: MetadataRoute.Sitemap = propertyKeys.map((key) => ({
     url: `${baseUrl}/properties/${encodeURIComponent(key)}`,
@@ -247,6 +320,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPages,
     ...blogEntries,
     ...apartmentsUnderEntries,
+    ...jcApartmentsUnderEntries,
+    ...hobokenApartmentsUnderEntries,
     ...propertyEntries,
   ];
 }

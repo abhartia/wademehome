@@ -116,6 +116,32 @@ export const NYC_NEIGHBORHOODS: NycNeighborhoodMeta[] = [
     medianRent1BR: 3200,
     medianRent2BR: 4300,
   },
+  {
+    slug: "harlem",
+    name: "Harlem",
+    borough: "Manhattan",
+    latitude: 40.8116,
+    longitude: -73.9465,
+    radiusMiles: 1.2,
+    summary:
+      "Manhattan's biggest value tier — 2/3/A/B/C/D trains, Central Park North, brownstones, Columbia and City College anchors, fastest-improving rental demand in uptown Manhattan.",
+    medianStudio: 1900,
+    medianRent1BR: 2600,
+    medianRent2BR: 3500,
+  },
+  {
+    slug: "chelsea",
+    name: "Chelsea",
+    borough: "Manhattan",
+    latitude: 40.7465,
+    longitude: -74.0014,
+    radiusMiles: 0.7,
+    summary:
+      "Manhattan's walk-everywhere core — 1/C/E/F/M trains, High Line, Hudson Yards edge, Chelsea Market, luxury new-construction towers mixed with pre-war walkups.",
+    medianStudio: 3100,
+    medianRent1BR: 4300,
+    medianRent2BR: 5800,
+  },
 ];
 
 export function getNeighborhoodBySlug(

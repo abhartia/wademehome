@@ -1077,6 +1077,30 @@ export default function UpperWestSideGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/nyc/upper-west-side/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Upper West Side Rent Prices: Block-by-Block &amp; Building Type
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/upper-west-side/apartments-under-3500"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Upper West Side Apartments Under $3,500
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/upper-west-side/apartments-under-4000"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Upper West Side Apartments Under $4,000
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/east-village"
                     className="text-primary underline underline-offset-2"
                   >
