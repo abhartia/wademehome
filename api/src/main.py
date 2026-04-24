@@ -13,7 +13,6 @@ apply_llama_cloud_server_compat()
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
-from starlette.concurrency import run_in_threadpool
 from langfuse import Langfuse
 from llama_index.core.workflow import StopEvent
 from llama_index.core.workflow.handler import WorkflowHandler
@@ -21,6 +20,7 @@ from llama_index.server.models.chat import ChatRequest
 from llama_index.server.models.ui import UIEvent
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from slowapi.errors import RateLimitExceeded
+from starlette.concurrency import run_in_threadpool
 
 from admin.router import router as admin_router
 from agent.router import router as agent_router
