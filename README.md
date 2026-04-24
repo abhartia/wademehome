@@ -391,10 +391,11 @@ Azure runs an HTTP check against the **staging** slot before it will swap. If th
 
 **If pulls are unauthorized (above), staging will never answer HTTP** until ACR access is fixed.
 
-The GitHub workflow waits for staging to return HTTP 200 (backend: `/health` or `/`, frontend: `/`) before calling `az webapp deployment slot swap`. The job log prints **`http_code=`** each attempt (`000` = connection/TLS failure or no listener; `502`/`503` = platform or app not ready). If it times out, check in Azure Portal (or CLI):
+The GitHub workflow waits for staging to return HTTP 200 on **`/ready`** (readiness — hits the DB) before calling `az webapp deployment slot swap`. `/health` remains as a liveness fallback for rollbacks to images that predate `/ready`. The job log prints **`http_code=`** each attempt (`000` = connection/TLS failure or no listener; `502`/`503` = platform or app not ready — on `/ready`, a `503` specifically means the process is up but a downstream probe failed; inspect the response body for which `checks` entry is `ok: false`). If it times out, check in Azure Portal (or CLI):
 
 1. **Staging slot URL responds** (replace names if yours differ):
-   - API: `curl -fsS https://wademehome-backend-staging.azurewebsites.net/health`
+   - API liveness: `curl -fsS https://wademehome-backend-staging.azurewebsites.net/health`
+   - API readiness: `curl -fsS https://wademehome-backend-staging.azurewebsites.net/ready`
    - UI: `curl -fsSL https://wademehome-staging.azurewebsites.net/`
 2. **“Application Error” with an empty Log stream** often means the **app container never ran** (e.g. image pull failed) or it exited immediately. Check **platform / container logs** for `ImagePullUnauthorizedFailure` first; then enable **App Service logs** → **Application Logging (Filesystem)** and **Docker Container logging**, and **Log stream** on the **staging** slot.
 3. **Port**: staging must use the same `WEBSITES_PORT` as production (**`8000`** API, **`3000`** UI). The UI container runs **Next.js standalone** (`node server.js`), which listens on Azure’s **`PORT`** env var; `WEBSITES_PORT` must match that (typically **`3000`** unless you override `PORT` in app settings).

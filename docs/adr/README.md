@@ -10,6 +10,7 @@ Format: Context → Decision → Alternatives → Consequences. One page max.
 | 0002 | [slowapi for rate limiting](0002-slowapi-rate-limiting.md) | Accepted |
 | 0003 | [`/v1` API prefix with legacy mirror](0003-api-v1-prefix.md) | Accepted |
 | 0004 | [Self-hosted feature flags](0004-self-hosted-feature-flags.md) | Accepted |
+| 0005 | [Liveness / readiness probe split](0005-liveness-readiness-split.md) | Accepted |
 
 ## Adding a new ADR
 

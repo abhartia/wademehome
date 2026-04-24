@@ -187,31 +187,40 @@ jobs:
           images: ${{ env.ACR_LOGIN_SERVER }}/${{ env.BACKEND_IMAGE_NAME }}:${{ needs.build-backend.outputs.IMAGE_TAG }}
 
       # Slot swap pings staging over HTTP; cold container pulls can exceed Azure's default patience.
+      # /ready is the real gate — it verifies DB connectivity, not just process liveness.
+      # /health (liveness) is kept as a fallback so a rollback to an older image still swaps.
       - name: Wait for backend staging HTTP (before swap)
         if: needs.build-backend.result == 'success'
         run: |
           set -euo pipefail
           BASE="https://${AZURE_WEBAPP_BACKEND}-${AZURE_WEBAPP_BACKEND_SLOT}.azurewebsites.net"
-          echo "Waiting for HTTP 200 from backend staging: $BASE (/health or /)"
+          echo "Waiting for HTTP 200 from backend staging: $BASE (/ready preferred, /health legacy fallback)"
           MAX_ATTEMPTS=60
           SLEEP_SECS=10
           for i in $(seq 1 "$MAX_ATTEMPTS"); do
-            ok=""
-            for path in /health /; do
-              code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${BASE}${path}" 2>/dev/null || echo "000")"
-              if [ "$code" = "200" ]; then
-                echo "Backend staging OK (attempt $i/$MAX_ATTEMPTS) path=${path} http_code=${code}"
+            ready_code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${BASE}/ready" 2>/dev/null || echo "000")"
+            if [ "$ready_code" = "200" ]; then
+              echo "Backend staging READY (attempt $i/$MAX_ATTEMPTS) /ready http_code=200"
+              exit 0
+            fi
+            if [ "$ready_code" = "404" ]; then
+              # Image predates /ready — fall back to liveness so rollbacks still swap.
+              health_code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${BASE}/health" 2>/dev/null || echo "000")"
+              if [ "$health_code" = "200" ]; then
+                echo "Backend staging OK via legacy /health (attempt $i/$MAX_ATTEMPTS) — image predates /ready"
                 exit 0
               fi
-              ok="${ok} ${path}=${code}"
-            done
-            echo "Backend staging not ready (attempt $i/$MAX_ATTEMPTS):${ok} — sleeping ${SLEEP_SECS}s"
+              echo "Backend staging not ready (attempt $i/$MAX_ATTEMPTS): /ready=404 /health=${health_code} — sleeping ${SLEEP_SECS}s"
+            else
+              echo "Backend staging not ready (attempt $i/$MAX_ATTEMPTS): /ready=${ready_code} — sleeping ${SLEEP_SECS}s"
+            fi
             sleep "$SLEEP_SECS"
           done
-          echo "Timeout. Typical causes: ImagePullUnauthorizedFailure on staging slot, WEBSITES_PORT!=8000, or container crash (check staging platform + container logs)."
-          echo "Last probe:"
+          echo "Timeout. Typical causes: ImagePullUnauthorizedFailure, WEBSITES_PORT!=8000, container crash, or /ready 503 (DB unreachable from staging slot — check DATABASE_URL App Setting)."
+          echo "Last probes:"
+          curl -sS --max-time 30 "${BASE}/ready" | head -c 2000 || true
+          echo
           curl -sS -o /dev/null -w 'GET /health -> %{http_code}\n' --max-time 30 "${BASE}/health" || true
-          curl -sS -o /dev/null -w 'GET / -> %{http_code}\n' --max-time 30 "${BASE}/" || true
           exit 1
 
       - name: Swap backend staging into production
