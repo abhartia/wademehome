@@ -5,9 +5,9 @@ from llama_index.core.prompts.base import PromptTemplate
 from llama_index.core.prompts.prompt_type import PromptType
 from llama_index.core.retrievers import SQLRetriever
 from llama_index.server.models.chat import ChatAPIMessage
-from sqlalchemy import create_engine
 
 from core.config import Config
+from db.engine import make_engine
 from prompts.loader import load_app_prompt
 from workflow.langchain_output_parser import LangchainOutputParser
 
@@ -87,14 +87,7 @@ def get_engine():
         database_url = (Config.get("DATABASE_URL") or "").strip()
         if not database_url:
             raise ValueError("DATABASE_URL is empty or unset; configure it in App Service application settings.")
-        connect_args: dict = {}
-        if "postgresql" in database_url:
-            connect_args["connect_timeout"] = 5
-        _workflow_engine = create_engine(
-            database_url,
-            future=True,
-            connect_args=connect_args,
-        )
+        _workflow_engine = make_engine(database_url)
     return _workflow_engine
 
 

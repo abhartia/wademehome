@@ -95,3 +95,4 @@ Significant decisions are captured as one-page [Architecture Decision Records](d
 - [ADR-0003 — `/v1` API prefix with legacy mirror](docs/adr/0003-api-v1-prefix.md)
 - [ADR-0004 — Self-hosted feature flags](docs/adr/0004-self-hosted-feature-flags.md)
 - [ADR-0005 — Liveness / readiness probe split](docs/adr/0005-liveness-readiness-split.md)
+- [ADR-0006 — Database connection pool hardening](docs/adr/0006-db-connection-hardening.md)
