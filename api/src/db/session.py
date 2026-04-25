@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from core.config import Config
+from db.engine import make_engine
 
 _engine = None
 _session_factory: sessionmaker[Session] | None = None
@@ -14,14 +14,7 @@ def get_engine():
         database_url = (Config.get("DATABASE_URL") or "").strip()
         if not database_url:
             raise ValueError("DATABASE_URL is not configured")
-        connect_args: dict = {}
-        if "postgresql" in database_url:
-            connect_args["connect_timeout"] = 5
-        _engine = create_engine(
-            database_url,
-            future=True,
-            connect_args=connect_args,
-        )
+        _engine = make_engine(database_url)
     return _engine
 
 

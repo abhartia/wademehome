@@ -50,6 +50,7 @@ src/core/sse.py
 src/core/token.py
 src/db/__init__.py
 src/db/base.py
+src/db/engine.py
 src/db/models.py
 src/db/session.py
 src/flags/__init__.py
@@ -155,6 +156,7 @@ src/workflow/utils.py
 src/workflow/workflow.py
 tests/test_app_smoke.py
 tests/test_body_size.py
+tests/test_db_engine.py
 tests/test_errors.py
 tests/test_flags.py
 tests/test_observability.py
