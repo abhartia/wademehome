@@ -24,12 +24,20 @@ What to do when the site is on fire. Keep it short; add new sections when you le
 **First minute — triage:**
 
 ```bash
-# Is the production slot actually serving?
+# Is the process alive? (cheap, no downstreams)
 curl -i https://api.wademehome.com/health
+
+# Is it ready to serve? (hits the DB; 503 means a downstream is broken)
+curl -i https://api.wademehome.com/ready
 
 # What does the response request_id correlate with in logs?
 # (search Azure App Service logs for that request_id)
 ```
+
+If `/health` is 200 but `/ready` is 503, the process is up but a dependency
+(currently just the DB) is failing the check. Inspect the `checks` map in
+the `/ready` response to see which probe failed; the exception detail is in
+the app logs under `readiness_probe_failed`.
 
 **First five minutes — decide:**
 

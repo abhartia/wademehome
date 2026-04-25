@@ -43,6 +43,7 @@ src/core/logger.py
 src/core/observability.py
 src/core/pagination.py
 src/core/rate_limit.py
+src/core/readiness.py
 src/core/request_context.py
 src/core/security_headers.py
 src/core/sse.py
@@ -159,5 +160,6 @@ tests/test_flags.py
 tests/test_observability.py
 tests/test_pagination.py
 tests/test_rate_limit.py
+tests/test_readiness.py
 tests/test_request_context.py
 tests/test_security_headers.py

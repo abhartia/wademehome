@@ -12,7 +12,7 @@ apply_llama_cloud_server_compat()
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langfuse import Langfuse
 from llama_index.core.workflow import StopEvent
 from llama_index.core.workflow.handler import WorkflowHandler
@@ -20,6 +20,7 @@ from llama_index.server.models.chat import ChatRequest
 from llama_index.server.models.ui import UIEvent
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from slowapi.errors import RateLimitExceeded
+from starlette.concurrency import run_in_threadpool
 
 from admin.router import router as admin_router
 from agent.router import router as agent_router
@@ -34,6 +35,7 @@ from core.llm_factory import get_llm
 from core.logger import get_logger
 from core.observability import init_all as init_observability
 from core.rate_limit import limiter, rate_limit_exceeded_handler
+from core.readiness import check_readiness
 from core.request_context import RequestContextMiddleware
 from core.security_headers import SecurityHeadersMiddleware
 from core.sse import stop_event_result_to_sse_chunk
@@ -300,6 +302,20 @@ async def health():
         "git_sha": _os.getenv("GIT_SHA", "unknown"),
         "env": _os.getenv("APP_ENV", "dev"),
     }
+
+
+@app.get("/ready")
+async def ready():
+    # Probes hit the DB, which is sync — offload so the event loop stays free
+    # under concurrent load (K8s / App Service hit /ready frequently).
+    ok, checks = await run_in_threadpool(check_readiness)
+    return JSONResponse(
+        status_code=200 if ok else 503,
+        content={
+            "status": "ready" if ok else "not_ready",
+            "checks": checks,
+        },
+    )
 
 
 # Preserve FastAPI instance for OpenAPI export / tooling (ASGI stack has no .openapi()).
