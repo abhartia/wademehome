@@ -479,6 +479,14 @@ export default function DowntownJerseyCityGuidePage() {
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
+                    href="/jersey-city/downtown/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Downtown JC Rent Prices: 07302 by Sub-Area
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/jersey-city/downtown/apartments-under-3500"
                     className="text-primary underline underline-offset-2"
                   >

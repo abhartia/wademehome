@@ -6,6 +6,6 @@ import {
 
 export const metadata: Metadata = buildMetadata(3000);
 
-export default function Page() {
-  return <HobokenApartmentsUnderPriceContent priceNum={3000} />;
+export default async function Page() {
+  return await HobokenApartmentsUnderPriceContent({ priceNum: 3000 });
 }

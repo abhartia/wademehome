@@ -14,6 +14,9 @@ import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHe
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 import { HOBOKEN_AREA } from "@/lib/neighborhoods/hobokenNeighborhoods";
 import { UNDER_PRICE_TIERS } from "@/lib/neighborhoods/nycNeighborhoods";
+import { fetchNearbyListingsServer } from "@/lib/listings/serverNearbyListings";
+import { parseRentRangeMidpoint } from "@/lib/properties/parseRentRange";
+import { buildPropertyKey } from "@/lib/properties/propertyKey";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -65,7 +68,7 @@ function tierCommentary(tier: number, median1BR: number): string {
   return `This is a value-tier rent cap for Hoboken — well below the $${median1BR.toLocaleString()} 1-bedroom median. Inventory concentrates in studios, railroad 1-bedrooms, and older walkup stock on the uptown and western edges (farther from Hoboken Terminal). If you want more selection, consider raising the budget by $300–$500 or broadening to Journal Square and Jersey City Heights.`;
 }
 
-export function HobokenApartmentsUnderPriceContent({
+export async function HobokenApartmentsUnderPriceContent({
   priceNum,
 }: {
   priceNum: number;
@@ -73,14 +76,38 @@ export function HobokenApartmentsUnderPriceContent({
   const priceDollar = `$${priceNum.toLocaleString()}`;
   const commentary = tierCommentary(priceNum, HOBOKEN_AREA.medianRent1BR);
 
-  const jsonLd = [
+  const nearby = await fetchNearbyListingsServer({
+    latitude: HOBOKEN_AREA.latitude,
+    longitude: HOBOKEN_AREA.longitude,
+    radiusMiles: HOBOKEN_AREA.radiusMiles,
+    maxRent: priceNum,
+    limit: 30,
+  });
+
+  const offerStats = (() => {
+    if (!nearby || !Array.isArray(nearby.properties) || nearby.properties.length === 0) {
+      return null;
+    }
+    const rents = nearby.properties
+      .map((p) => parseRentRangeMidpoint(p.rent_range || ""))
+      .filter((n): n is number => typeof n === "number" && Number.isFinite(n) && n > 0);
+    if (rents.length === 0) return null;
+    return {
+      lowPrice: Math.min(...rents),
+      highPrice: Math.max(...rents),
+      offerCount: nearby.total_in_radius || rents.length,
+      properties: nearby.properties,
+    };
+  })();
+
+  const jsonLd: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "Article",
       headline: `Hoboken Apartments Under ${priceDollar} (2026): Live Listings & Rent Guide`,
       description: `Live Hoboken, NJ listings under ${priceDollar}/month with PATH commute context and rent-tier guidance.`,
       datePublished: "2026-04-24",
-      dateModified: "2026-04-24",
+      dateModified: "2026-04-25",
       publisher: {
         "@type": "Organization",
         name: "Wade Me Home",
@@ -113,6 +140,66 @@ export function HobokenApartmentsUnderPriceContent({
       ],
     },
   ];
+
+  if (offerStats) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: `Hoboken Apartments Under ${priceDollar}`,
+      description: `Live rental listings in Hoboken, NJ priced at or below ${priceDollar}/month.`,
+      url: `${baseUrl}/hoboken/apartments-under-${priceNum}`,
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "USD",
+        lowPrice: Math.round(offerStats.lowPrice),
+        highPrice: Math.round(offerStats.highPrice),
+        offerCount: offerStats.offerCount,
+        availability: "https://schema.org/InStock",
+      },
+    });
+
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: `Hoboken Apartments Under ${priceDollar}`,
+      itemListOrder: "https://schema.org/ItemListOrderAscending",
+      numberOfItems: offerStats.properties.length,
+      itemListElement: offerStats.properties.slice(0, 12).map((p, i) => {
+        const rent = parseRentRangeMidpoint(p.rent_range || "");
+        const propertyKey = buildPropertyKey({
+          name: p.name,
+          address: p.address,
+          latitude: p.latitude ?? undefined,
+          longitude: p.longitude ?? undefined,
+          rent_range: p.rent_range || "",
+          bedroom_range: p.bedroom_range || "",
+          amenities: [],
+          main_amenities: [],
+          images_urls: [],
+        });
+        return {
+          "@type": "ListItem",
+          position: i + 1,
+          item: {
+            "@type": "Apartment",
+            name: p.name,
+            url: `${baseUrl}/properties/${encodeURIComponent(propertyKey)}`,
+            address: p.address,
+            ...(typeof rent === "number" && Number.isFinite(rent)
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    price: Math.round(rent),
+                    priceCurrency: "USD",
+                    availability: "https://schema.org/InStock",
+                  },
+                }
+              : {}),
+          },
+        };
+      }),
+    });
+  }
 
   const otherTiers = UNDER_PRICE_TIERS.filter((t) => t !== priceNum);
 

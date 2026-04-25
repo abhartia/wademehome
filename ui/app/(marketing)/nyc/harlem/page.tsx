@@ -533,6 +533,14 @@ export default function HarlemPage() {
               <ul className="grid gap-2 text-sm sm:grid-cols-2">
                 <li>
                   <Link
+                    href="/nyc/harlem/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Harlem Rent Prices: Sub-Area &amp; Brownstone-Tier
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/harlem/apartments-under-2500"
                     className="text-primary underline underline-offset-2"
                   >

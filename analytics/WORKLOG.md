@@ -6,6 +6,74 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-25 -- Session 19 (LES + Bed-Stuy + Flatbush hubs + Harlem/Chelsea/JC-Downtown rent-prices spokes + AggregateOffer JSON-LD + critical fix to under-price 404 bug from S16)
+
+### Context
+- Nineteenth growth agent run. Three new hubs shipped covering Trends rising-demand neighborhoods with no existing page: **Lower East Side** (peak demand 2026-04-19, six days before today), **Bedford-Stuyvesant** (Brooklyn brownstone capital), and **Flatbush** (Brooklyn value tier — closes the S17/S18 carryover queue item).
+- Three new rent-prices spokes shipped without deferral: **Harlem rent-prices** (S18 hub spoke), **Chelsea rent-prices** (S18 hub spoke), and **Jersey City Downtown rent-prices** (the only JC sub-hood without a spoke — closes the S17/S18 carryover queue item).
+- **CRITICAL FIX**: discovered while verifying that all 50+ NYC + 15 JC under-price URLs prerendered since S16 had been silently serving 404 due to a Next.js 15 routing bug (`apartments-under-[price]` folder pattern with bracket placeholder after a static prefix doesn't work). Build reported success; URLs returned 24KB 404 fallback. Fixed by renaming both folders to `[underPriceSlug]` (single dynamic segment) with a `parseUnderPriceSlug` helper. **Public URLs unchanged** — no SEO history lost. This single fix recovers ~3 weeks of SEO investment.
+- Product feature: **AggregateOffer + ItemList JSON-LD** on all 75 under-price pages (NYC + JC + Hoboken). Server-side fetch of `/listings/nearby` at SSG time, parsed into Schema.org `Product`/`AggregateOffer` (lowPrice/highPrice/offerCount) plus `ItemList` of up to 12 individual `Apartment`/`Offer` listings. Renders only when backend is up (no-op otherwise). Unlocks Google rich-result eligibility for "{hood} apartments under ${X}" queries.
+
+### Key Numbers
+- GSC 30d: 4 clicks (vs 2 last session) — first property-page conversions sustained.
+- GSC top hood: `/nyc/astoria` at pos 19.1, 14 imp — closest to page 1.
+- Trends LES peak: 2026-04-19 (6 days ago). Bed-Stuy + Flatbush rising YoY (no breakout).
+- Trends Chelsea rising-related breakout: "ruby chelsea apartments" +134,200 (covered in new spoke).
+- Under-price routing fix: 70 URLs went from 24KB 404 → 44–48KB full content.
+
+### Completed
+
+**New hub pages (3):**
+- `/nyc/lower-east-side` — F/J/M/Z/B/D, sub-areas (Tenement Core, Essex Crossing, East Broadway/Chinatown overlap, Two Bridges), tenement-walkup market, Essex Crossing tower context, 23 keywords, 6 FAQ Qs, 8 hunting tips. (40.7186, -73.9879, r=0.7mi).
+- `/nyc/bed-stuy` — A/C/G/J/M/Z, sub-areas (Stuyvesant Heights, Bedford-Nostrand, Tompkins/Throop, Crown Heights border, Ocean Hill border), brownstone floor-through tier, rent-stabilization stock, 24 keywords, 6 FAQ Qs, 8 hunting tips. (40.6872, -73.9418, r=1.2mi).
+- `/nyc/flatbush` — B/Q/2/5/F, sub-areas (PLG, Ditmas Park, Flatbush Core, Kensington, East Flatbush), Ditmas Park Victorian-house market, 24 keywords, 6 FAQ Qs, 8 hunting tips. (40.6429, -73.9618, r=1.4mi).
+
+**New rent-prices spokes (3):**
+- `/nyc/harlem/rent-prices` — Studio $1,900 / 1BR $2,600 / 2BR $3,500 / 3BR $4,500. 5 tables (unit size, sub-area, building type, brownstone floor-through, 6-yr trend +18%). 22 keywords.
+- `/nyc/chelsea/rent-prices` — Studio $3,100 / 1BR $4,300 / 2BR $5,800 / 3BR $7,800. 6 tables incl. **Hudson Yards tower-by-tower 1BR rent tier** (Lantern House, 555TEN, Eugene, 35 Hudson Yards, One Manhattan West, the Henry). 6-yr trend +26%. 22 keywords.
+- `/jersey-city/downtown/rent-prices` — Studio $3,100 / 1BR $3,700 / 2BR $5,200 / 3BR $7,000. 5 tables incl. 07302 vs FiDi savings table. 6-yr trend +37% (steepest in metro). 22 keywords. NJ rent-control vs NY rent-stab context.
+
+**Critical infrastructure fix:**
+- Renamed `app/(marketing)/nyc/[hood]/apartments-under-[price]/` → `[underPriceSlug]/` and updated `generateStaticParams` to emit `underPriceSlug: "apartments-under-${tier}"`. Same for JC. Added `parseUnderPriceSlug` regex helper.
+- Public URLs unchanged. All 70 prerendered under-price URLs now serve full content (verified at 44–48KB).
+
+**Product feature (AggregateOffer + ItemList JSON-LD):**
+- New helper `ui/lib/listings/serverNearbyListings.ts` (server-side fetch wrapper, no-ops without configured API base).
+- All under-price pages (NYC dynamic, JC dynamic, Hoboken per-tier static) now fetch nearby listings server-side and emit Schema.org `Product`/`AggregateOffer` (lowPrice/highPrice/offerCount/availability) + `ItemList` of top-12 `Apartment`/`Offer` listings.
+- Pricing parsed via existing `parseRentRangeMidpoint`. Listing URLs built via existing `buildPropertyKey`.
+
+**Registry-driven expansion (15 new auto-generated under-price URLs):**
+- Added LES (40.7186, -73.9879, r=0.7mi), Bed-Stuy (40.6872, -73.9418, r=1.2mi), Flatbush (40.6429, -73.9618, r=1.4mi) to `nycNeighborhoods.ts` → `/nyc/{lower-east-side,bed-stuy,flatbush}/apartments-under-*` × 5 tiers each.
+- Total under-price footprint: **75 URLs** (55 NYC + 15 JC + 5 Hoboken).
+
+**Cross-linking (5 hub edits):**
+- `/nyc-rent-by-neighborhood` — +7 outbound links (Harlem rent-prices, Chelsea rent-prices, LES, Bed-Stuy, Flatbush, JC Downtown rent-prices).
+- `/nyc/harlem` — added rent-prices spoke as first Related Guide entry.
+- `/nyc/chelsea` — added rent-prices spoke as first Related Guide entry.
+- `/jersey-city/downtown` — added rent-prices spoke as first Related Guide entry.
+- `hasRentPricesSpoke` whitelist extended in NYC under-price page (added harlem, chelsea) and JC under-price page (added downtown).
+
+**Sitemap:**
+- +7 new static URLs (3 hub pages + 3 rent-prices spokes + the cross-linked Harlem/Chelsea rent-prices entries).
+- 15 new auto-generated under-price URLs via the registry flatMap.
+
+### Problems / Root Causes
+
+1. **Pre-existing Next.js 15 routing bug (root cause discovered today)**: folder name `apartments-under-[price]` (static prefix + dynamic placeholder) doesn't work in Next.js 15. Build accepts `generateStaticParams` and prerenders 24KB of 404 fallback HTML for every URL; runtime returns this same 404. Affected 70 URLs since S16. Fixed by renaming to `[underPriceSlug]` (full dynamic segment) and parsing the price out of the slug — keeps URL structure unchanged, no SEO history lost.
+
+2. **Backend down during AggregateOffer verify**: `localhost:8000` FastAPI wasn't running, so server-side `fetchNearbyListingsServer` returned null (correct fallback). Pages render correctly without AggregateOffer in this case. Will need to verify AggregateOffer markup end-to-end in a build with backend up.
+
+### Queue for next session
+- **Astoria push to top 10** — pos 19.1, 14 imp, closest hood to page 1. Consider depth refresh.
+- **Williamsburg push** — pos 62.5 with 37 imp (biggest hood by impressions, stuck on page 6). Hub may need depth refresh.
+- **Backend-up AggregateOffer verify** — today's structured data only emits when API responds. Run a build with FastAPI up.
+- **Long-tail property-address impressions** — 700+ imp/day with 0 clicks. Separate opportunity (per-property JSON-LD, snippet optimization).
+- **Borough-level rollups** — `/brooklyn/apartments-under-X` etc. Only after hood × tier traction confirmed (now that under-price routing actually works).
+- **Greenpoint hub live-listings widget** — deferred from S14.
+- **Park Slope rent-prices reindex check** — shipped S17.
+
+---
+
 ## 2026-04-24 -- Session 18 (Harlem + Chelsea + Hoboken hubs closing biggest Trends gaps + FARE Act 2026 refresh for Reddit breakout)
 
 ### Context

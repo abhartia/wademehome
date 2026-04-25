@@ -142,6 +142,45 @@ export const NYC_NEIGHBORHOODS: NycNeighborhoodMeta[] = [
     medianRent1BR: 4300,
     medianRent2BR: 5800,
   },
+  {
+    slug: "lower-east-side",
+    name: "Lower East Side",
+    borough: "Manhattan",
+    latitude: 40.7186,
+    longitude: -73.9879,
+    radiusMiles: 0.7,
+    summary:
+      "Manhattan's tenement-core south of Houston — F/J/M/Z trains, Essex Crossing new luxury, Orchard/Ludlow nightlife, Two Bridges waterfront, the largest pre-war walkup district below 14th.",
+    medianStudio: 2500,
+    medianRent1BR: 3400,
+    medianRent2BR: 4700,
+  },
+  {
+    slug: "bed-stuy",
+    name: "Bedford-Stuyvesant",
+    borough: "Brooklyn",
+    latitude: 40.6872,
+    longitude: -73.9418,
+    radiusMiles: 1.2,
+    summary:
+      "Brooklyn's biggest brownstone neighborhood — A/C/G/J/M/Z trains, Stuyvesant Heights landmark district, hundreds of pre-1900 brownstone blocks, the largest concentration of rent-stabilized 2-4 unit walkups in the borough.",
+    medianStudio: 1950,
+    medianRent1BR: 2700,
+    medianRent2BR: 3500,
+  },
+  {
+    slug: "flatbush",
+    name: "Flatbush",
+    borough: "Brooklyn",
+    latitude: 40.6429,
+    longitude: -73.9618,
+    radiusMiles: 1.4,
+    summary:
+      "Brooklyn's deepest value tier south of Prospect Park — B/Q/2/5 trains, Prospect-Lefferts Gardens, Ditmas Park Victorian district, the lowest 1BR median of any Brooklyn neighborhood with direct Manhattan subway access.",
+    medianStudio: 1800,
+    medianRent1BR: 2300,
+    medianRent2BR: 3100,
+  },
 ];
 
 export function getNeighborhoodBySlug(

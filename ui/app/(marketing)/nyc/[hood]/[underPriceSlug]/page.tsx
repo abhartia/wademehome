@@ -19,25 +19,33 @@ import {
   getNeighborhoodBySlug,
   isValidUnderPriceTier,
 } from "@/lib/neighborhoods/nycNeighborhoods";
+import { fetchNearbyListingsServer } from "@/lib/listings/serverNearbyListings";
+import { parseRentRangeMidpoint } from "@/lib/properties/parseRentRange";
+import { buildPropertyKey } from "@/lib/properties/propertyKey";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
   "https://wademehome.com";
 
-type Params = { hood: string; price: string };
+type Params = { hood: string; underPriceSlug: string };
 
 export function generateStaticParams(): Params[] {
   const params: Params[] = [];
   for (const hood of NYC_NEIGHBORHOODS) {
     for (const price of UNDER_PRICE_TIERS) {
-      params.push({ hood: hood.slug, price: String(price) });
+      params.push({
+        hood: hood.slug,
+        underPriceSlug: `apartments-under-${price}`,
+      });
     }
   }
   return params;
 }
 
-function parsePrice(price: string): number | null {
-  const n = Number.parseInt(price, 10);
+function parseUnderPriceSlug(slug: string): number | null {
+  const m = slug.match(/^apartments-under-(\d+)$/);
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 10);
   if (!Number.isFinite(n)) return null;
   return isValidUnderPriceTier(n) ? n : null;
 }
@@ -47,9 +55,9 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { hood, price } = await params;
+  const { hood, underPriceSlug } = await params;
   const hoodMeta = getNeighborhoodBySlug(hood);
-  const priceNum = parsePrice(price);
+  const priceNum = parseUnderPriceSlug(underPriceSlug);
   if (!hoodMeta || priceNum === null) return {};
 
   const priceDollar = `$${priceNum.toLocaleString()}`;
@@ -74,11 +82,11 @@ export async function generateMetadata({
     openGraph: {
       title: `${hoodMeta.name} Apartments Under ${priceDollar} (2026)`,
       description,
-      url: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+      url: `${baseUrl}/nyc/${hood}/apartments-under-${priceNum}`,
       type: "article",
     },
     alternates: {
-      canonical: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+      canonical: `${baseUrl}/nyc/${hood}/apartments-under-${priceNum}`,
     },
   };
 }
@@ -102,9 +110,9 @@ export default async function ApartmentsUnderPricePage({
 }: {
   params: Promise<Params>;
 }) {
-  const { hood, price } = await params;
+  const { hood, underPriceSlug } = await params;
   const hoodMeta = getNeighborhoodBySlug(hood);
-  const priceNum = parsePrice(price);
+  const priceNum = parseUnderPriceSlug(underPriceSlug);
   if (!hoodMeta || priceNum === null) notFound();
 
   const priceDollar = `$${priceNum.toLocaleString()}`;
@@ -114,14 +122,41 @@ export default async function ApartmentsUnderPricePage({
     hoodMeta.medianRent1BR
   );
 
-  const jsonLd = [
+  // Server-side fetch of nearby listings under the price cap so we can emit
+  // AggregateOffer + ItemList structured data. Returns null when the API base
+  // isn't configured for server-side calls (e.g. `next build` without backend).
+  const nearby = await fetchNearbyListingsServer({
+    latitude: hoodMeta.latitude,
+    longitude: hoodMeta.longitude,
+    radiusMiles: hoodMeta.radiusMiles,
+    maxRent: priceNum,
+    limit: 30,
+  });
+
+  const offerStats = (() => {
+    if (!nearby || !Array.isArray(nearby.properties) || nearby.properties.length === 0) {
+      return null;
+    }
+    const rents = nearby.properties
+      .map((p) => parseRentRangeMidpoint(p.rent_range || ""))
+      .filter((n): n is number => typeof n === "number" && Number.isFinite(n) && n > 0);
+    if (rents.length === 0) return null;
+    return {
+      lowPrice: Math.min(...rents),
+      highPrice: Math.max(...rents),
+      offerCount: nearby.total_in_radius || rents.length,
+      properties: nearby.properties,
+    };
+  })();
+
+  const jsonLd: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "Article",
       headline: `${hoodMeta.name} Apartments Under ${priceDollar} (2026): Live Listings & Rent Guide`,
       description: `Live ${hoodMeta.name}, ${hoodMeta.borough} listings under ${priceDollar}/month, with rent-tier context and sub-neighborhood guidance.`,
       datePublished: "2026-04-22",
-      dateModified: "2026-04-22",
+      dateModified: "2026-04-25",
       publisher: {
         "@type": "Organization",
         name: "Wade Me Home",
@@ -132,7 +167,7 @@ export default async function ApartmentsUnderPricePage({
         name: "Wade Me Home",
         url: baseUrl,
       },
-      mainEntityOfPage: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+      mainEntityOfPage: `${baseUrl}/nyc/${hood}/apartments-under-${priceNum}`,
     },
     {
       "@context": "https://schema.org",
@@ -155,11 +190,73 @@ export default async function ApartmentsUnderPricePage({
           "@type": "ListItem",
           position: 4,
           name: `Apartments Under ${priceDollar}`,
-          item: `${baseUrl}/nyc/${hood}/apartments-under-${price}`,
+          item: `${baseUrl}/nyc/${hood}/apartments-under-${priceNum}`,
         },
       ],
     },
   ];
+
+  if (offerStats) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: `${hoodMeta.name} Apartments Under ${priceDollar}`,
+      description: `Live rental listings in ${hoodMeta.name}, ${hoodMeta.borough} priced at or below ${priceDollar}/month.`,
+      url: `${baseUrl}/nyc/${hood}/apartments-under-${priceNum}`,
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "USD",
+        lowPrice: Math.round(offerStats.lowPrice),
+        highPrice: Math.round(offerStats.highPrice),
+        offerCount: offerStats.offerCount,
+        availability: "https://schema.org/InStock",
+      },
+    });
+
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: `${hoodMeta.name} Apartments Under ${priceDollar}`,
+      itemListOrder: "https://schema.org/ItemListOrderAscending",
+      numberOfItems: offerStats.properties.length,
+      itemListElement: offerStats.properties.slice(0, 12).map((p, i) => {
+        const rent = parseRentRangeMidpoint(p.rent_range || "");
+        const propertyKey = buildPropertyKey({
+          name: p.name,
+          address: p.address,
+          latitude: p.latitude ?? undefined,
+          longitude: p.longitude ?? undefined,
+          // The remaining required fields aren't used by buildPropertyKey,
+          // but we satisfy the type with safe defaults.
+          rent_range: p.rent_range || "",
+          bedroom_range: p.bedroom_range || "",
+          amenities: [],
+          main_amenities: [],
+          images_urls: [],
+        });
+        return {
+          "@type": "ListItem",
+          position: i + 1,
+          item: {
+            "@type": "Apartment",
+            name: p.name,
+            url: `${baseUrl}/properties/${encodeURIComponent(propertyKey)}`,
+            address: p.address,
+            ...(typeof rent === "number" && Number.isFinite(rent)
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    price: Math.round(rent),
+                    priceCurrency: "USD",
+                    availability: "https://schema.org/InStock",
+                  },
+                }
+              : {}),
+          },
+        };
+      }),
+    });
+  }
 
   const otherTiers = UNDER_PRICE_TIERS.filter((t) => t !== priceNum);
   const hasRentPricesSpoke = [
@@ -171,6 +268,8 @@ export default async function ApartmentsUnderPricePage({
     "long-island-city",
     "park-slope",
     "upper-west-side",
+    "harlem",
+    "chelsea",
   ].includes(hood);
 
   return (

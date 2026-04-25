@@ -563,6 +563,14 @@ export default function ChelseaPage() {
               <ul className="grid gap-2 text-sm sm:grid-cols-2">
                 <li>
                   <Link
+                    href="/nyc/chelsea/rent-prices"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Chelsea Rent Prices: Sub-Area &amp; Tower Tier
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/chelsea/apartments-under-4000"
                     className="text-primary underline underline-offset-2"
                   >

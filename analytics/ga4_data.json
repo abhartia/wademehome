@@ -1,27 +1,21 @@
 {
   "traffic_summary_30d": {
-    "activeUsers": "14",
-    "sessions": "97",
-    "screenPageViews": "771",
-    "averageSessionDuration": "889.34238857731953",
-    "bounceRate": "0.24742268041237114",
-    "newUsers": "12"
+    "activeUsers": "15",
+    "sessions": "88",
+    "screenPageViews": "729",
+    "averageSessionDuration": "884.84226828409078",
+    "bounceRate": "0.23863636363636365",
+    "newUsers": "13"
   },
   "traffic_summary_prev_30d": {
     "activeUsers": "4",
-    "sessions": "13",
-    "screenPageViews": "116",
-    "averageSessionDuration": "1813.9078564615386",
-    "bounceRate": "0.15384615384615385",
+    "sessions": "25",
+    "screenPageViews": "176",
+    "averageSessionDuration": "1426.4383255599998",
+    "bounceRate": "0.24",
     "newUsers": "4"
   },
   "daily_trend": [
-    {
-      "date": "20260325",
-      "activeUsers": "2",
-      "sessions": "12",
-      "screenPageViews": "60"
-    },
     {
       "date": "20260326",
       "activeUsers": "1",
@@ -123,22 +117,21 @@
       "activeUsers": "1",
       "sessions": "3",
       "screenPageViews": "28"
+    },
+    {
+      "date": "20260424",
+      "activeUsers": "2",
+      "sessions": "3",
+      "screenPageViews": "18"
     }
   ],
   "top_pages": [
     {
       "pagePath": "/",
-      "screenPageViews": "249",
-      "activeUsers": "11",
-      "averageSessionDuration": "418.47798079545458",
-      "bounceRate": "0.13636363636363635"
-    },
-    {
-      "pagePath": "/login",
-      "screenPageViews": "72",
-      "activeUsers": "9",
-      "averageSessionDuration": "401.80780076",
-      "bounceRate": "0.04"
+      "screenPageViews": "263",
+      "activeUsers": "12",
+      "averageSessionDuration": "544.33458126086953",
+      "bounceRate": "0.15217391304347827"
     },
     {
       "pagePath": "/groups",
@@ -148,25 +141,25 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/login",
+      "screenPageViews": "64",
+      "activeUsers": "9",
+      "averageSessionDuration": "425.15051986363636",
+      "bounceRate": "0.045454545454545456"
+    },
+    {
       "pagePath": "/app",
-      "screenPageViews": "66",
+      "screenPageViews": "55",
       "activeUsers": "5",
-      "averageSessionDuration": "275.41484171999997",
-      "bounceRate": "0.2"
+      "averageSessionDuration": "263.99088057894738",
+      "bounceRate": "0.15789473684210525"
     },
     {
       "pagePath": "/search",
-      "screenPageViews": "66",
+      "screenPageViews": "52",
       "activeUsers": "3",
-      "averageSessionDuration": "484.97163109523814",
-      "bounceRate": "0.19047619047619047"
-    },
-    {
-      "pagePath": "/admin/inventory",
-      "screenPageViews": "31",
-      "activeUsers": "1",
-      "averageSessionDuration": "855.70366699999988",
-      "bounceRate": "0.16666666666666666"
+      "averageSessionDuration": "537.0180244",
+      "bounceRate": "0.13333333333333333"
     },
     {
       "pagePath": "/property-manager/analysis",
@@ -183,11 +176,18 @@
       "bounceRate": "0.25"
     },
     {
+      "pagePath": "/admin/inventory",
+      "screenPageViews": "13",
+      "activeUsers": "1",
+      "averageSessionDuration": "405.8684299",
+      "bounceRate": "0.2"
+    },
+    {
       "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
       "screenPageViews": "11",
       "activeUsers": "2",
-      "averageSessionDuration": "323.61865533333338",
-      "bounceRate": "0.5"
+      "averageSessionDuration": "314.7985755",
+      "bounceRate": "0.16666666666666666"
     },
     {
       "pagePath": "/saved",
@@ -249,8 +249,8 @@
       "pagePath": "/jersey-city/newport/apartments-under-3500",
       "screenPageViews": "4",
       "activeUsers": "1",
-      "averageSessionDuration": "2703.323245",
-      "bounceRate": "1"
+      "averageSessionDuration": "32.925101",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/admin/listings-without-amenities",
@@ -274,24 +274,10 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "averageSessionDuration": "627.631788",
-      "bounceRate": "0"
-    },
-    {
       "pagePath": "/properties/19-belmont-avenue--19-belmont-avenue-jersey-city-nj-07304--40.7188---74.0686",
       "screenPageViews": "3",
       "activeUsers": "1",
       "averageSessionDuration": "1041.147084",
-      "bounceRate": "0"
-    },
-    {
-      "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "averageSessionDuration": "105.344856",
       "bounceRate": "0"
     },
     {
@@ -300,23 +286,37 @@
       "activeUsers": "1",
       "averageSessionDuration": "211.006493",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/applicants/register/1Ayu5iSXCJwhii8FxqZrC8sEV2Yp5uHlI_qh4W7xsD0",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "25.864821",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/021b3838-a8ce-400a-9938-b0ad1e6551ea",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "2.864005",
+      "bounceRate": "0"
     }
   ],
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "96",
-      "activeUsers": "14",
-      "screenPageViews": "754",
-      "avgDuration": "876.60693333333336",
-      "bounceRate": "0.23958333333333334"
+      "sessions": "87",
+      "activeUsers": "15",
+      "screenPageViews": "723",
+      "avgDuration": "871.74257889655166",
+      "bounceRate": "0.22988505747126436"
     },
     {
       "channel": "Unassigned",
       "sessions": "3",
       "activeUsers": "2",
-      "screenPageViews": "17",
-      "avgDuration": "703.98203066666667",
+      "screenPageViews": "6",
+      "avgDuration": "674.838415",
       "bounceRate": "1"
     }
   ],
@@ -324,16 +324,16 @@
   "devices": [
     {
       "device": "desktop",
-      "sessions": "97",
-      "activeUsers": "14",
-      "bounceRate": "0.24742268041237114"
+      "sessions": "88",
+      "activeUsers": "15",
+      "bounceRate": "0.23863636363636365"
     }
   ],
   "countries": [
     {
       "country": "United States",
-      "sessions": "75",
-      "activeUsers": "13"
+      "sessions": "66",
+      "activeUsers": "14"
     },
     {
       "country": "Australia",
@@ -344,23 +344,23 @@
   "events": [
     {
       "event": "page_view",
-      "eventCount": "771",
-      "totalUsers": "14"
+      "eventCount": "729",
+      "totalUsers": "15"
     },
     {
       "event": "scroll",
-      "eventCount": "299",
-      "totalUsers": "14"
+      "eventCount": "288",
+      "totalUsers": "15"
     },
     {
       "event": "user_engagement",
-      "eventCount": "176",
+      "eventCount": "158",
       "totalUsers": "11"
     },
     {
       "event": "session_start",
-      "eventCount": "96",
-      "totalUsers": "14"
+      "eventCount": "87",
+      "totalUsers": "15"
     },
     {
       "event": "view_search_results",
@@ -369,18 +369,18 @@
     },
     {
       "event": "click",
-      "eventCount": "27",
+      "eventCount": "26",
       "totalUsers": "4"
     },
     {
       "event": "form_start",
-      "eventCount": "18",
+      "eventCount": "16",
       "totalUsers": "6"
     },
     {
       "event": "first_visit",
-      "eventCount": "12",
-      "totalUsers": "12"
+      "eventCount": "13",
+      "totalUsers": "13"
     }
   ],
   "weekly_trend_90d": [
@@ -410,43 +410,27 @@
     },
     {
       "week": "202617",
-      "activeUsers": "5",
-      "sessions": "13",
-      "screenPageViews": "264"
+      "activeUsers": "6",
+      "sessions": "16",
+      "screenPageViews": "282"
     }
   ],
   "all_pages_with_titles": [
     {
       "pagePath": "/",
       "pageTitle": "Wade Me Home: Rental search & renter tools",
-      "screenPageViews": "227",
-      "activeUsers": "11",
-      "avgDuration": "417.08014811363643",
-      "bounceRate": "0.13636363636363635"
+      "screenPageViews": "241",
+      "activeUsers": "12",
+      "avgDuration": "542.99752391304355",
+      "bounceRate": "0.15217391304347827"
     },
     {
       "pagePath": "/login",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "71",
+      "screenPageViews": "63",
       "activeUsers": "9",
-      "avgDuration": "401.39299072",
-      "bounceRate": "0.04"
-    },
-    {
-      "pagePath": "/app",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "66",
-      "activeUsers": "5",
-      "avgDuration": "275.41484171999997",
-      "bounceRate": "0.2"
-    },
-    {
-      "pagePath": "/search",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "65",
-      "activeUsers": "3",
-      "avgDuration": "454.44998328571427",
-      "bounceRate": "0.19047619047619047"
+      "avgDuration": "424.67914481818184",
+      "bounceRate": "0.045454545454545456"
     },
     {
       "pagePath": "/groups",
@@ -457,12 +441,20 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/admin/inventory",
+      "pagePath": "/app",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "31",
-      "activeUsers": "1",
-      "avgDuration": "794.86695241666666",
-      "bounceRate": "0.16666666666666666"
+      "screenPageViews": "55",
+      "activeUsers": "5",
+      "avgDuration": "263.99088057894738",
+      "bounceRate": "0.15789473684210525"
+    },
+    {
+      "pagePath": "/search",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "52",
+      "activeUsers": "3",
+      "avgDuration": "537.0180244",
+      "bounceRate": "0.13333333333333333"
     },
     {
       "pagePath": "/property-manager/analysis",
@@ -489,12 +481,20 @@
       "bounceRate": "0.25"
     },
     {
+      "pagePath": "/admin/inventory",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "13",
+      "activeUsers": "1",
+      "avgDuration": "405.8684299",
+      "bounceRate": "0.2"
+    },
+    {
       "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
       "pageTitle": "Listing | Wade Me Home",
       "screenPageViews": "11",
       "activeUsers": "2",
-      "avgDuration": "323.61865533333338",
-      "bounceRate": "0.5"
+      "avgDuration": "314.7985755",
+      "bounceRate": "0.16666666666666666"
     },
     {
       "pagePath": "/saved",
@@ -573,8 +573,8 @@
       "pageTitle": "Wade Me Home",
       "screenPageViews": "4",
       "activeUsers": "1",
-      "avgDuration": "2703.323245",
-      "bounceRate": "1"
+      "avgDuration": "32.925101",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/admin/listings-without-amenities",
@@ -601,27 +601,11 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/properties/101-bedford-avenue--101-bedford-avenue--40.7197---73.9546",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "avgDuration": "627.631788",
-      "bounceRate": "0"
-    },
-    {
       "pagePath": "/properties/19-belmont-avenue--19-belmont-avenue-jersey-city-nj-07304--40.7188---74.0686",
       "pageTitle": "19 Belmont Avenue | Wade Me Home",
       "screenPageViews": "3",
       "activeUsers": "1",
       "avgDuration": "1041.147084",
-      "bounceRate": "0"
-    },
-    {
-      "pagePath": "/properties/574-manhattan-avenue--574-manhattan-avenue--40.7227---73.9499",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "avgDuration": "105.344856",
       "bounceRate": "0"
     },
     {
@@ -815,13 +799,29 @@
       "activeUsers": "1",
       "avgDuration": "5.087998",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/hoboken/apartments-under-3000",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "104.475495",
+      "bounceRate": "1"
+    },
+    {
+      "pagePath": "/invites/accept",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "2",
+      "avgDuration": "17.0158255",
+      "bounceRate": "0"
     }
   ],
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "96",
-      "activeUsers": "14"
+      "sessions": "87",
+      "activeUsers": "15"
     },
     {
       "source": "(not set)",

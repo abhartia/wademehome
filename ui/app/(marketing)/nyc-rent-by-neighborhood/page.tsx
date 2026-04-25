@@ -851,6 +851,57 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/harlem/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Harlem Rent Prices: Sub-Area &amp; Brownstone-Tier Breakdown
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/chelsea/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Chelsea Rent Prices: Hudson Yards Tower Tier &amp; Sub-Area
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/lower-east-side"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Lower East Side: F/J/M/Z, Essex Crossing &amp; Tenement
+                    Walkup Stock
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/bed-stuy"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Bedford-Stuyvesant: Brooklyn&apos;s Largest Brownstone
+                    District &amp; A/C/G Subway
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/flatbush"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Flatbush: Brooklyn&apos;s Cheapest B/Q Subway Tier &amp;
+                    Ditmas Park Victorian Houses
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/jersey-city/downtown/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Downtown Jersey City Rent Prices: 07302 by Sub-Area
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/hoboken"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
