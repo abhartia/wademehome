@@ -1,0 +1,31 @@
+# Config for actions/dependency-review-action.
+# Docs: https://github.com/actions/dependency-review-action#configuration-options
+
+# Fail the PR on any new dependency with a high or critical advisory.
+# Moderate/low surface as warnings (Dependabot handles the non-urgent fix-up).
+fail-on-severity: high
+
+# Deny copyleft licenses that would force the product OSS if linked in.
+# MIT / Apache-2.0 / BSD / ISC / Python-2.0 are the practical allowlist and
+# cover ~all current transitive deps in api/ and ui/.
+deny-licenses:
+  - GPL-2.0
+  - GPL-2.0-only
+  - GPL-2.0-or-later
+  - GPL-3.0
+  - GPL-3.0-only
+  - GPL-3.0-or-later
+  - AGPL-1.0
+  - AGPL-1.0-only
+  - AGPL-1.0-or-later
+  - AGPL-3.0
+  - AGPL-3.0-only
+  - AGPL-3.0-or-later
+
+# Post a short summary comment on the PR so reviewers don't have to open
+# the Checks tab to see what, if anything, was flagged.
+comment-summary-in-pr: on-failure
+
+# Any advisory we've explicitly accepted goes here with a dated rationale.
+# Empty today — add entries as `- GHSA-xxxx-xxxx-xxxx # <reason>, <date>`.
+allow-ghsas: []

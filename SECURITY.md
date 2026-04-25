@@ -67,6 +67,7 @@ Nation-state actors, side-channel attacks, and physical attacks on Azure are exp
 - [Dependabot](.github/dependabot.yml) opens weekly PRs for pip / npm / GitHub Actions / Docker.
 - CI runs `bandit -r src`, `pip-audit`, and `npm audit`.
 - GitHub CodeQL runs on every PR (Python + JavaScript).
+- [`actions/dependency-review-action`](.github/workflows/dependency-review.yml) **blocks** PRs that introduce a new dependency with a high/critical advisory or a copyleft (GPL/AGPL) license. Policy lives in [.github/dependency-review-config.yml](.github/dependency-review-config.yml).
 - [gitleaks](https://github.com/gitleaks/gitleaks) runs as a pre-commit hook to catch committed secrets before push.
 
 ### Secrets

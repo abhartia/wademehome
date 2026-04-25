@@ -1,0 +1,26 @@
+name: Dependency Review
+
+# Blocks any PR that introduces a dependency with a known high-severity
+# advisory or a copyleft (GPL/AGPL/LGPL) license, before merge. Complements
+# Dependabot (which is reactive) and pip-audit (warning-only in ci.yml).
+# Runs on pull_request only — the action compares head vs. base refs.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: dep-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/dependency-review-action@v4
+        with:
+          config-file: .github/dependency-review-config.yml
