@@ -17,6 +17,7 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend || steps.manual.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend || steps.manual.outputs.frontend }}
+      openapi: ${{ steps.filter.outputs.openapi || steps.manual.outputs.openapi }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -29,6 +30,7 @@ jobs:
         run: |
           echo "backend=true" >> "$GITHUB_OUTPUT"
           echo "frontend=true" >> "$GITHUB_OUTPUT"
+          echo "openapi=true" >> "$GITHUB_OUTPUT"
 
       - name: Detect changed paths
         id: filter
@@ -41,6 +43,10 @@ jobs:
               - '.github/workflows/ci.yml'
             frontend:
               - 'ui/**'
+              - '.github/workflows/ci.yml'
+            openapi:
+              - 'api/**'
+              - 'ui/openapi.json'
               - '.github/workflows/ci.yml'
 
   backend-lint:
@@ -103,6 +109,40 @@ jobs:
         with:
           name: backend-coverage
           path: api/coverage.xml
+
+  openapi-spec-drift:
+    # Re-export FastAPI's OpenAPI spec and fail if the committed ui/openapi.json
+    # is stale. The frontend client (lib/api/generated/) is generated from this
+    # file via `npm run openapi:refresh`; if the spec rots, generated types
+    # silently miss new endpoints and request shapes.
+    #
+    # Uses uv (matching api/.python-version + uv.lock) so the spec emitted in CI
+    # is byte-identical to what `npm run openapi:refresh` produces locally.
+    # Mixing Python versions or unlocked deps changes pydantic/fastapi schema
+    # output and produces false-positive drift.
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.openapi == 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install backend (locked)
+        working-directory: api
+        run: uv sync --frozen
+      - name: Re-export OpenAPI spec
+        working-directory: api
+        run: uv run python scripts/export_openapi_to_ui.py
+      - name: Fail if ui/openapi.json drifted
+        run: |
+          if ! git diff --quiet -- ui/openapi.json; then
+            echo "::error file=ui/openapi.json::ui/openapi.json is out of sync with api/. Run 'cd ui && npm run openapi:refresh' and commit the result."
+            git --no-pager diff --stat -- ui/openapi.json
+            git --no-pager diff -- ui/openapi.json | head -200
+            exit 1
+          fi
+          echo "OpenAPI spec in sync with backend."
 
   backend-security:
     runs-on: ubuntu-latest
