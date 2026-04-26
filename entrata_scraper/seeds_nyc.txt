@@ -1,3 +1,4 @@
 # Auto-discovered Entrata sites in NYC metro
 https://www.elanredmond.com/interactivepropertymap
 https://www.entrawestend.com/floorplans/
+https://www.theaden.com/floorplans/

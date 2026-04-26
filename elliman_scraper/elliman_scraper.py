@@ -120,20 +120,17 @@ def _gcs_client():
 
 
 def save_raw_gz(env: str, data: dict | str, listing_id: str, scraped_at: str) -> None:
+    if env == "local":
+        return  # Local mode skips raw cache (parquet + DB are sufficient).
     text = data if isinstance(data, str) else json.dumps(data, ensure_ascii=False)
     path = (
         f"env={env}/source={SOURCE}/stage=raw/entity=property/"
         f"property_id={listing_id}/scraped_at={scraped_at}/listing.json.gz"
     )
-    if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            f.write(text)
-    else:
-        client = _gcs_client()
-        client.bucket(GCS_BUCKET).blob(path).upload_from_string(
-            gzip.compress(text.encode("utf-8")), content_type="application/gzip"
-        )
+    client = _gcs_client()
+    client.bucket(GCS_BUCKET).blob(path).upload_from_string(
+        gzip.compress(text.encode("utf-8")), content_type="application/gzip"
+    )
 
 
 def load_raw_files(env: str, scrape_date: str) -> list[dict]:

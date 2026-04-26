@@ -6,6 +6,130 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-26 -- Session 20-b (Queue cleanup pass: 3 luxury sub-hubs + Astoria/Williamsburg depth refresh + property-page snippet optimization)
+
+### Context
+- Second pass on 2026-04-26 to clear the actionable carry-over queue so the next session can act on fresh data without inherited debt. All meaningful queued items shipped. Greenpoint live-listings widget queue item from S14 was confirmed already shipped (stale entry).
+
+### Key Numbers
+- 3 new luxury sub-hubs (Tribeca / SoHo / West Village) — completes the luxury cluster around today's `/nyc/luxury-apartments` parent.
+- 2 hub depth refreshes (Astoria pos 19.1 closest to page 1, Williamsburg pos 62.5 stuck on page 6).
+- 1 product feature shipped: property-page `generateMetadata` rewrite affects **every** `/properties/[propertyKey]` URL in the catalog.
+
+### Completed
+
+**New luxury sub-hub pages (3):**
+- `/nyc/tribeca` — 6 FAQ Qs, 23 keywords, rent prices table (Studio $4,800 / 1BR $11,500 / 2BR $18,500 / 3BR $26,000 / Loft $45,000), 6-building trophy table (56 Leonard, 70 Vestry, 443 Greenwich, 108 Leonard, Sterling Mason, 25 N Moore), 5-area sub-area table, 8 hunting tips. Live listings widget at Tribeca center radius 0.5mi.
+- `/nyc/soho` — 6 FAQ Qs, 23 keywords, rent prices table (Studio $4,400 / 1BR $10,200 / 2BR $16,500 / 3BR $24,000 / Loft $38,000), Cast-Iron Historic District essay, 5-area sub-area table (Greene/Mercer Core, Spring/Prince Spine, West Broadway, South SoHo, East SoHo), Cast-Iron Loft Stock essay, 8 hunting tips.
+- `/nyc/west-village` — 6 FAQ Qs, 23 keywords, rent prices table (Studio $4,200 / 1BR $10,800 / 2BR $17,000 / 3BR $25,500 / Townhouse $75,000), 5-area sub-area table (Bleecker/Bedford, Christopher/Hudson, Far West, Charles/Perry/11th, Meatpacking border), 4-floor brownstone tier table (garden / parlor / middle / top), West Village vs Tribeca vs SoHo comparison, 8 hunting tips.
+
+**Hub depth refreshes (2):**
+- `/nyc/astoria` — dateModified 2026-04-26, expanded keywords from 12 → 28, new H1 with "+16.6% YoY search demand" badge, 2026 Concession Watch table (Hallets Point + The Albany + Astoria Cove + 30 Front + walkup baseline), Astoria & FARE Act 2026 essay, 4 new FAQ Qs (no-fee / FARE Act / why demand rising in 2026 / current concessions). All targeting the rising long-tail queries.
+- `/nyc/williamsburg` — dateModified 2026-04-26, new title with tower tier + concession watch language, Williamsburg Waterfront Tower-by-Tower Tier table (One Domino Square, 325 Kent, 260 Kent, William Vale, 184 Kent, the Edge, Northside Piers, Williamsburg Greenwich), 2026 Concession Watch + FARE Act note essay with active concession patterns by building tier.
+
+**Product feature (property-page snippet optimization):**
+- Rewrote `generateMetadata` in `ui/app/(marketing)/properties/[propertyKey]/page.tsx`:
+  - **Title**: pipe-separated form leading with property name + bedroom + rent + city + state — the four fields high-CTR queries match on.
+  - **Description**: structured 4-part — (1) lead with rent + bedroom + full address (the ranking-query fields), (2) concession line if present (the strongest snippet element), (3) amenities up to 5, (4) action close ("View photos, floor plans and tour..."). Capped at 300 chars for full Google rendering.
+- This applies to every property URL in the catalog (multi-thousand URLs).
+
+**Cross-linking + sitemap:**
+- 3 new sitemap entries at priority 0.85, monthly changefreq.
+- 3 new outbound links from `/nyc-rent-by-neighborhood` (pos 9.6, our strongest hub) at the top of Related Guides.
+- 3 new outbound links from `/nyc/luxury-apartments` Related Guides (parent hub for the cluster).
+
+### Build / Verify
+- `cd ui && npm run build` — passed. All 3 new luxury sub-hubs static (○) at 948 B page-side bundle.
+- Preview server confirmed all 5 affected hood pages render with new content (H1, tables, body text). Astoria Concession Watch + Williamsburg Tower Tier sections both verified present.
+
+### Skipped (with reason)
+- Adding Tribeca/SoHo/West Village to `nycNeighborhoods.ts` registry — auto-generated under-price tiers ($2K–$4K) don't fit luxury hoods. Hub pages stand alone.
+- Greenpoint live-listings widget — already shipped, stale queue item.
+- Backend-up rich-result verification — requires production backend; not actionable from local preview.
+
+### Queue for next session (cleared)
+The carry-over queue is largely resolved. Remaining items all blocked on production-backend reachability or premature:
+- Verify FAQPage + property-snippet rich-results in production (Google rich-results test).
+- Borough-level cheap/luxury rollups — still gated on today's citywide pages proving ranking (3–5 days minimum).
+- Backend-up AggregateOffer verify — same blocker.
+
+The next session should start from fresh GSC + GA4 + Trends data without carrying open content/feature debt.
+
+### SEO Changes Pending Reindex (20-b)
+- `/nyc/tribeca` — new URL.
+- `/nyc/soho` — new URL.
+- `/nyc/west-village` — new URL.
+- `/nyc/astoria` — depth refresh + new sections + new dateModified.
+- `/nyc/williamsburg` — depth refresh + new sections + new dateModified.
+- `/properties/[propertyKey]` — generateMetadata rewritten across all property URLs.
+- 3 new sitemap entries; 6 new cross-link entries from authority pages.
+
+---
+
+## 2026-04-26 -- Session 20 (3 cross-NYC commercial-intent hubs: cheap + luxury + no-fee + per-property FAQPage JSON-LD)
+
+### Context
+- Twentieth growth agent run. **Today's standout signal was Trends, not GSC**: three cross-NYC commercial-intent keywords with no existing dedicated page — **luxury apartments nyc +76.0% YoY** (biggest YoY mover of any seed we track), **cheap apartments nyc +37.1% YoY peaking today (2026-04-26)** with rising-related "cheap apartments nyc under $1,000" (+950), and **no fee apartments nyc** (in seed list, post-FARE-Act). Shipped all three.
+- **Property pages confirmed as the dominant impression source**: `query_page_30d` join is 100/100 property URLs. 700+ daily impressions, only 4 clicks last 7d. The 4 clicks came from properties at pos 2.0–11.0 — meaning **CTR is the bottleneck, not ranking**. Added per-property FAQPage JSON-LD as the conversion lever.
+- Did not get to Williamsburg push (carried forward).
+
+### Key Numbers
+- Trends YoY: luxury apartments nyc +76.0% (steepest), cheap apartments nyc +37.1% (peak today), east village apartments +65.0%, jersey city apartments +56.0%, hoboken apartments +30.3%, williamsburg apartments +27.7%, harlem apartments +13.0%.
+- GSC 30d: 4 clicks last 7d (flat vs S19), 700+ impressions/day on property pages.
+- New page sizes: cheap-apartments 122 KB, luxury-apartments 137 KB, no-fee-apartments 118 KB.
+
+### Completed
+
+**New cross-NYC hub pages (3):**
+- `/nyc/cheap-apartments` — 12-row tier table, 10-row subway-line table, "Under $1,000 question" essay, FARE Act math, 8 hunting tips. 23 keywords, 6 FAQ Qs. Live listings widget at NYC center radius 8mi `maxRent: $2,000`.
+- `/nyc/luxury-apartments` — 12-row tier map, 6-band price-band table, 7-building Hudson Yards tower table cross-linking the existing `/buildings/*` spokes, Billionaires' Row + Tribeca essays. 24 keywords, 6 FAQ Qs. Live listings widget at Manhattan core radius 3mi `minRent: $6,000`.
+- `/nyc/no-fee-apartments` — 9-row legitimate move-in costs table (the legal complete list of allowed fees post-FARE-Act), 6-row landlord-type yield table, "Spotting a Disguised Fee" essay (6 patterns), DCWP complaint process. 20 keywords, 7 FAQ Qs.
+
+**Product feature (per-property FAQPage JSON-LD):**
+- Extended `ui/components/property/PropertySchema.tsx` with `buildFaqPage(property)` helper that emits up to 9 Q/A pairs derived from existing fields:
+  - rent + bedroom from `rent_range`/`bedroom_range`
+  - location from address fields
+  - pet/parking/laundry/doorman/gym from amenity-list pattern matching (no-op when no match)
+  - concession from `concessions` field (no-op when null)
+- Requires ≥2 Q/A pairs to emit anything (Google FAQPage threshold).
+- No invented data — every Q/A only emits when the source field is present.
+
+**Cross-linking (2 hub edits):**
+- `/nyc-rent-by-neighborhood` — added 3 new outbound links to top of Related Guides (this is our strongest hub at pos 9.6, 35 imp).
+- `/blog/nyc-fare-act-broker-fee-ban` — extended hunting tips section to cross-link the no-fee + cheap + luxury hubs.
+
+**Sitemap:**
+- +3 new static URLs at `priority: 0.85, weekly` (higher than hood pages because commercial-intent + freshness-sensitive).
+
+### Build / Verify
+- `cd ui && npm run build` — **passed**. 198+ static pages.
+- All 3 new pages compile as `○` (Static), 935 B page-side bundle each.
+- Preview server confirmed all 3 return HTTP 200 with 117–137 KB content + FAQPage + BreadcrumbList + Article JSON-LD blocks.
+- PropertySchema FAQPage extension passes type checking. Backend-up validation deferred (FastAPI not running locally; in production the FAQPage block ships alongside the existing Apartment + Offer + Breadcrumb blocks when the listings API serves the row).
+
+### Problems / Root Causes
+- None today. Build passed, all pages render, no routing issues. The under-price routing fix from S19 continues to hold.
+
+### Queue for next session
+- **Williamsburg push** — pos 62.5 with 37 imp, biggest hood by impressions but page 6. Hub depth refresh similar to S15 LIC refresh. **Carried from S19**.
+- **Astoria push** — pos 19.1, 14 imp, closest hood to page 1. Sub-area depth refresh.
+- **Verify FAQPage rich-result eligibility in production** — Google rich-results test on `/properties/...` URL once backend is reachable from production.
+- **Borough-level cheap/luxury rollups** (`/brooklyn/cheap-apartments`, `/queens/cheap-apartments`, etc.) once today's citywide pages prove ranking traction.
+- **Luxury sub-hub spokes** — `/nyc/tribeca`, `/nyc/soho`, `/nyc/west-village` are Manhattan luxury hoods with no dedicated pages (would feed the new `/nyc/luxury-apartments` hub).
+- **Long-tail property-address snippet optimization** — beyond FAQPage, per-property meta description tuning could lift CTR further.
+- **Greenpoint hub live-listings widget** — deferred from S14.
+- **Backend-up AggregateOffer verify** — carried from S19.
+
+### SEO Changes Pending Reindex
+- `/nyc/cheap-apartments` — new URL, peak-demand timing.
+- `/nyc/luxury-apartments` — new URL, +76% YoY.
+- `/nyc/no-fee-apartments` — new URL.
+- **Per-property FAQPage JSON-LD on all property pages** — applies to multi-thousand URLs across the property catalog as they're served.
+- 3 new sitemap static URLs.
+- New cross-links from `/nyc-rent-by-neighborhood` (pos 9.6) and `/blog/nyc-fare-act-broker-fee-ban` (pos 23.3) to all 3 new hubs.
+
+---
+
 ## 2026-04-25 -- Session 19 (LES + Bed-Stuy + Flatbush hubs + Harlem/Chelsea/JC-Downtown rent-prices spokes + AggregateOffer JSON-LD + critical fix to under-price 404 bug from S16)
 
 ### Context

@@ -257,6 +257,34 @@ export default function NycFareActBrokerFeeBan() {
               concession stack in NYC (one to two months free is common), so
               the FARE Act savings compound.
             </li>
+            <li>
+              <strong>Use a no-fee-only search.</strong> Our{" "}
+              <Link
+                href="/nyc/no-fee-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                NYC no-fee apartments guide
+              </Link>{" "}
+              walks through the post-FARE-Act move-in cost sheet (rent +
+              security + $20 application fee, period), how to spot a
+              disguised &ldquo;marketing fee,&rdquo; and where the deepest
+              landlord-direct inventory sits. Pair it with our{" "}
+              <Link
+                href="/nyc/cheap-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                cheap NYC apartments
+              </Link>{" "}
+              guide if budget is the gating constraint, or our{" "}
+              <Link
+                href="/nyc/luxury-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                luxury NYC apartments
+              </Link>{" "}
+              guide for the FARE-Act savings on $20K+/month trophy stock
+              (a 12% fee on $300K annual rent is $36K).
+            </li>
           </ol>
         </CardContent>
       </Card>

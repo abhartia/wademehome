@@ -127,6 +127,36 @@ WHERE t.ctid = s.ctid
             ).rowcount
             print(f"snapshot_tombstoned={updated}")
 
+        # AppFolio scraper historically left property_id NULL (each listing got a unique listing_id
+        # but no building-level grouping key). Derive a stable property_id from
+        # `appfolio_<subdomain>_<md5(street_sans_unit + zip)[:16]>`. This mirrors the
+        # logic in appfolio_scraper.parse_listings_page and lets COUNT(DISTINCT property_id)
+        # actually count buildings.
+        appfolio_filled = conn.execute(
+            text(
+                f"""
+UPDATE {qtable}
+SET property_id =
+    'appfolio_'
+    || (regexp_match(listing_id, '^appfolio_([^_]+)_'))[1]
+    || '_'
+    || left(md5(
+        lower(regexp_replace(
+            split_part(address, ',', 1),
+            '\\s*[-,]?\\s*(unit|apt|#|ste|suite)\\s*\\S+.*$',
+            '',
+            'i'
+        )) || '|' || COALESCE(zipcode, '')
+    ), 16)
+WHERE company = 'AppFolio'
+  AND property_id IS NULL
+  AND address IS NOT NULL
+  AND listing_id ~ '^appfolio_[^_]+_'
+"""
+            )
+        ).rowcount
+        print(f"appfolio_property_id_backfilled={appfolio_filled}")
+
         # Backfill missing geo/address fields for rows that share the same (company, property_id),
         # using the best available donor row (prefer latest non-null latitude/longitude).
         # This fixes cases where a sync/upsert inserted new listing_ids without location data.

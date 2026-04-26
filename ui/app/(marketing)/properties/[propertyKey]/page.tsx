@@ -55,16 +55,79 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${property.name} | ${property.rent_range || "Rental"} | Wade Me Home`;
-  const descParts = [
-    `Rent ${property.name} at ${property.address}.`,
-    property.bedroom_range ? `${property.bedroom_range}.` : null,
-    property.rent_range ? `${property.rent_range}/mo.` : null,
-    property.main_amenities?.length
-      ? `Amenities: ${property.main_amenities.slice(0, 4).join(", ")}.`
-      : null,
-  ].filter(Boolean);
-  const description = descParts.join(" ");
+  // Title: building name + bedroom + rent + city — the four fields a renter
+  // is searching for. Keep under ~60 chars where possible so Google doesn't
+  // truncate. The pipe-separated form is what wins SERP click attention on
+  // address-style long-tail queries.
+  const titleParts: string[] = [property.name];
+  if (property.bedroom_range) titleParts.push(property.bedroom_range);
+  if (property.rent_range) titleParts.push(`${property.rent_range}/mo`);
+  if (property.city) {
+    const cityState = property.state
+      ? `${property.city}, ${property.state}`
+      : property.city;
+    titleParts.push(cityState);
+  }
+  titleParts.push("Wade Me Home");
+  const title = titleParts.join(" | ");
+
+  // Description: lead with rent + bedroom + address (the ranking-query fields),
+  // then top amenities (which often contain the click-driving differentiators
+  // — "in-unit washer/dryer", "doorman", "pet friendly"), then concession if
+  // present (the highest-CTR snippet element when available — "1 month free"
+  // dramatically lifts SERP CTR vs a plain blue link).
+  const descSentences: string[] = [];
+
+  // Lead sentence: rent + bedroom + address — answers the searcher's
+  // immediate question on the SERP without requiring a click.
+  const leadParts: string[] = [];
+  if (property.rent_range && property.bedroom_range) {
+    leadParts.push(
+      `${property.bedroom_range} from ${property.rent_range}/mo at ${property.name}`,
+    );
+  } else if (property.rent_range) {
+    leadParts.push(`${property.name} from ${property.rent_range}/mo`);
+  } else {
+    leadParts.push(`Rent ${property.name}`);
+  }
+  if (property.address) {
+    const fullAddr = property.city
+      ? `${property.address}, ${property.city}${
+          property.state ? `, ${property.state}` : ""
+        }${property.zip_code ? ` ${property.zip_code}` : ""}`
+      : property.address;
+    leadParts.push(`located at ${fullAddr}`);
+  }
+  descSentences.push(`${leadParts.join(", ")}.`);
+
+  // Concession line — when available, this is the strongest CTR element.
+  if (property.concessions) {
+    descSentences.push(`Current concession: ${property.concessions}.`);
+  }
+
+  // Amenity line — surface up to 5 main amenities.
+  if (property.main_amenities?.length) {
+    descSentences.push(
+      `Amenities include ${property.main_amenities.slice(0, 5).join(", ")}.`,
+    );
+  }
+
+  // Action close — gives the searcher a reason to click ("see photos",
+  // "tour", "available").
+  if (property.available_date) {
+    descSentences.push(`Available ${property.available_date}.`);
+  }
+  descSentences.push(
+    `View photos, floor plans and tour ${property.name} on Wade Me Home.`,
+  );
+
+  // Cap description at ~300 chars (Google typically truncates around 160–200,
+  // but allows up to ~320 for long-tail queries — full text helps rich
+  // snippet generation).
+  let description = descSentences.join(" ");
+  if (description.length > 300) {
+    description = description.slice(0, 297) + "...";
+  }
 
   const images = property.images_urls?.length
     ? [{ url: property.images_urls[0], width: 1200, height: 630, alt: property.name }]

@@ -587,6 +587,55 @@ export default function NYCRentByNeighborhoodPage() {
               <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
                 <li>
                   <Link
+                    href="/nyc/tribeca"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Tribeca: Loft Conversions, Trophy Buildings &amp; Rent Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/soho"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    SoHo: Cast-Iron Lofts &amp; Rent Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/west-village"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    West Village: Townhouses, Brownstones &amp; Rent Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/cheap-apartments"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Cheap NYC Apartments: Where Rent Still Goes Under $2,000
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/luxury-apartments"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Luxury NYC Apartments: Tribeca, SoHo, Hudson Yards &amp;
+                    Billionaires&apos; Row
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/no-fee-apartments"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    No Fee NYC Apartments: Post-FARE Act Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc-apartment-search-guide"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

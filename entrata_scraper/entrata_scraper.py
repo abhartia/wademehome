@@ -749,19 +749,16 @@ def rows_from_seed_page(
 
 
 def save_raw_gz(env: str, folder_id: str, scraped_at: str, text: str):
+    if env == "local":
+        return  # Local mode skips raw cache (parquet + DB are sufficient).
     path = (
         f"env={env}/source=entrata/stage=raw/entity=property/"
         f"property_id={folder_id}/scraped_at={scraped_at}/page.html.gz"
     )
-    if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            f.write(text)
-    else:
-        client = _gcs_client()
-        client.bucket(GCS_BUCKET).blob(path).upload_from_string(
-            gzip.compress(text.encode("utf-8")), content_type="application/gzip"
-        )
+    client = _gcs_client()
+    client.bucket(GCS_BUCKET).blob(path).upload_from_string(
+        gzip.compress(text.encode("utf-8")), content_type="application/gzip"
+    )
 
 
 def empty_typed_units_dataframe() -> pd.DataFrame:

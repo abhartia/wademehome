@@ -27,9 +27,9 @@ const baseUrl =
 
 export const metadata: Metadata = {
   title:
-    "Apartments for Rent in Williamsburg, Brooklyn (2026): Rent Prices, Transit & Tips | Wade Me Home",
+    "Williamsburg Apartments NYC (2026): Rent by Unit Size, L Train Tower Tier & North/South/East Block Guide | Wade Me Home",
   description:
-    "Complete guide to renting in Williamsburg, Brooklyn NY. Average rent by unit size, North vs. South vs. East Williamsburg prices, L/G/J/M/Z subway access, best streets, and tactics for finding Williamsburg apartments — updated April 2026.",
+    "2026 Williamsburg, Brooklyn rental guide. Median studio $2,400, 1BR $3,000–$3,800, 2BR $3,800–$5,000. L/G/J/M/Z subway, North vs South vs East block guide, waterfront tower-by-tower asking rent (Domino, the William Vale corridor), Bedford Ave restaurant spine, and the FARE Act + concession watch. Search demand +27.7% YoY.",
   keywords: [
     "apartments for rent williamsburg",
     "apartments in williamsburg",
@@ -76,7 +76,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Williamsburg, Brooklyn — covering average rent by unit size, North/South/East Williamsburg price differences, L/G/J/M/Z subway access, best streets, and practical tips for apartment hunters.",
     datePublished: "2026-04-14",
-    dateModified: "2026-04-20",
+    dateModified: "2026-04-26",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -461,6 +461,177 @@ export default function WilliamsburgGuidePage() {
                 29% — for only a 10–15 minute commute difference. Renters on
                 a budget who still want the Williamsburg ZIP should focus
                 their search east of Bedford Avenue or south of Grand Street.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Williamsburg Waterfront Tower Tier (refresh added 2026-04-26) ── */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Williamsburg Waterfront Tower-by-Tower Tier (2026)</CardTitle>
+              <CardDescription>
+                The post-2015 luxury new-construction towers along the East
+                River — defining the upper tier of Williamsburg rental
+                pricing
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Building</TableHead>
+                    <TableHead>Year</TableHead>
+                    <TableHead>1BR Asking</TableHead>
+                    <TableHead>Defining Feature</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      One Domino Square
+                    </TableCell>
+                    <TableCell>2024</TableCell>
+                    <TableCell>$5,400</TableCell>
+                    <TableCell>SHoP, Domino Park frontage, full amenity</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">325 Kent</TableCell>
+                    <TableCell>2018</TableCell>
+                    <TableCell>$4,800</TableCell>
+                    <TableCell>SHoP, copper-clad, original Domino site</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">260 Kent</TableCell>
+                    <TableCell>2025</TableCell>
+                    <TableCell>$5,000</TableCell>
+                    <TableCell>Bjarke Ingels, river views, lease-up</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      The William Vale (residential side)
+                    </TableCell>
+                    <TableCell>2017</TableCell>
+                    <TableCell>$4,500</TableCell>
+                    <TableCell>22 stories, hotel-adjacent amenities</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">184 Kent</TableCell>
+                    <TableCell>2010 (conv.)</TableCell>
+                    <TableCell>$4,200</TableCell>
+                    <TableCell>Pre-war factory conversion, oversized lofts</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      The Edge (Towers I &amp; II)
+                    </TableCell>
+                    <TableCell>2010</TableCell>
+                    <TableCell>$3,900</TableCell>
+                    <TableCell>40-story, original waterfront luxury wave</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Northside Piers (I, II, III)
+                    </TableCell>
+                    <TableCell>2009–2014</TableCell>
+                    <TableCell>$3,800</TableCell>
+                    <TableCell>30-story, panoramic river views</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Williamsburg Greenwich (Wythe corridor)
+                    </TableCell>
+                    <TableCell>2019</TableCell>
+                    <TableCell>$4,100</TableCell>
+                    <TableCell>Wythe Hotel-adjacent boutique tower</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Waterfront new-construction routinely offers concessions
+                (1–2 months free on a 13-month lease at lease-up phase).
+                A $5,400 gross 1BR with 1 month free has a net effective
+                rent of $4,985 — the difference vs. interior Williamsburg
+                walkup stock at $3,200 reflects the doorman + amenity +
+                view premium.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── 2026 Concession Watch (refresh added 2026-04-26) ── */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Williamsburg 2026 Concession Watch &amp; FARE Act Note</CardTitle>
+              <CardDescription>
+                What broker-fee and concession activity looks like in
+                Williamsburg under the FARE Act in 2026
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <strong>FARE Act effect on Williamsburg:</strong> The
+                June 11, 2025 FARE Act made landlord-listed apartments
+                no-fee to the tenant city-wide. Williamsburg waterfront
+                towers had largely been no-fee even before the Act
+                (institutional landlords using in-house leasing); the Act
+                primarily benefited renters in the older walkup stock east
+                of Bedford and in South Williamsburg, where small-landlord
+                broker fees of 12–15% had been the norm. Practical 2026
+                upfront cost on a $3,400/mo 1BR: $3,400 first month +
+                $3,400 security + $20 application fee = $6,820. Anything
+                more is questionable.
+              </p>
+              <p>
+                <strong>Active concession patterns:</strong>
+              </p>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  <strong>Waterfront new-con (Domino, Kent, William
+                  Vale):</strong> 1–2 months free on 13-month lease,
+                  particularly for lease-up units at One Domino Square
+                  and 260 Kent. Application fees waived.
+                </li>
+                <li>
+                  <strong>The Edge / Northside Piers (mature 2010-era
+                  stock):</strong> Occasional 1 month free in slow weeks
+                  (Nov–Feb), rarely at peak rental season (Apr–Aug).
+                </li>
+                <li>
+                  <strong>Mid-rise Bedford spine new-con (post-2018):</strong>{" "}
+                  Variable — often half month to 1 month free at lease-up,
+                  rarely at peak.
+                </li>
+                <li>
+                  <strong>Walkup stock (East Williamsburg, South
+                  Williamsburg):</strong> Concessions essentially
+                  non-existent. Tight market, small landlords don&apos;t
+                  need to discount.
+                </li>
+              </ul>
+              <p>
+                <strong>Search demand context:</strong> Google Trends
+                shows &ldquo;williamsburg apartments&rdquo; up 27.7%
+                year-over-year as of April 2026 — the largest YoY climb
+                of any established Brooklyn neighborhood. Combined with
+                the FARE Act tilting walkup landlords toward landlord-paid
+                broker fees, the practical math has gotten meaningfully
+                better for renters.
+              </p>
+              <p>
+                See our full{" "}
+                <Link
+                  href="/nyc/no-fee-apartments"
+                  className="text-primary underline underline-offset-2"
+                >
+                  NYC no-fee apartments guide
+                </Link>{" "}
+                or use the{" "}
+                <Link
+                  href="/tools/net-effective-rent-calculator"
+                  className="text-primary underline underline-offset-2"
+                >
+                  net-effective-rent calculator
+                </Link>{" "}
+                to compare gross-vs-net pricing.
               </p>
             </CardContent>
           </Card>

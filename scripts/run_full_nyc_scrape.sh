@@ -30,8 +30,16 @@ load_parquet() {
         log "SKIP $label — no parquet found matching: $pattern"
         return
     fi
+    # Skip empty/header-only parquet (would break loader's upsert which requires listing_id).
+    local size
+    size=$(stat -f %z "$parquet" 2>/dev/null || stat -c %s "$parquet" 2>/dev/null || echo 0)
+    if [ "$size" -lt 1024 ]; then
+        log "SKIP $label — parquet too small (${size}B), likely empty: $parquet"
+        return
+    fi
     log "LOAD $label: $parquet"
-    "$API_VENV" "$LOAD_SCRIPT" --parquet "$parquet" --fast-postgres --if-exists upsert
+    "$API_VENV" "$LOAD_SCRIPT" --parquet "$parquet" --fast-postgres --if-exists upsert \
+        || log "WARN: $label load failed (continuing pipeline)"
 }
 
 # ── Preflight: ensure scraper-only deps are present in api venv ───────────

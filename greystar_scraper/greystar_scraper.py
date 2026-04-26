@@ -280,32 +280,25 @@ def send_slack_alert(message: str, env: str):
             print(f"Slack alert error: {e}")
 
 def save_raw_property_html(env, property_id, html, scraped_at):
-    path = f"env={env}/source=greystar/stage=raw/entity=property/property_id={property_id}/scraped_at={scraped_at}/page.html.gz"
-    
+    # Local mode skips raw cache (parquet + DB are sufficient; raw HTML accumulates ~600MB/week).
     if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            f.write(html)
-    else:
-        client = _gcs_client()
-        blob = client.bucket(GCS_BUCKET).blob(path)
-        compressed_html = gzip.compress(html.encode("utf-8"))
-        blob.upload_from_string(compressed_html, content_type="application/gzip")
-        logger.info(f"Uploaded compressed HTML: {path}")
+        return
+    path = f"env={env}/source=greystar/stage=raw/entity=property/property_id={property_id}/scraped_at={scraped_at}/page.html.gz"
+    client = _gcs_client()
+    blob = client.bucket(GCS_BUCKET).blob(path)
+    compressed_html = gzip.compress(html.encode("utf-8"))
+    blob.upload_from_string(compressed_html, content_type="application/gzip")
+    logger.info(f"Uploaded compressed HTML: {path}")
 
 def save_raw_property(env, property_id, full_data, scraped_at):
-    path = f"env={env}/source=greystar/stage=raw/entity=property/property_id={property_id}/scraped_at={scraped_at}/property.json.gz"
-    
     if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            json.dump(full_data, f)
-    else:
-        client = _gcs_client()
-        blob = client.bucket(GCS_BUCKET).blob(path)
-        compressed_json = gzip.compress(json.dumps(full_data).encode("utf-8"))
-        blob.upload_from_string(compressed_json, content_type="application/gzip")
-        logger.info(f"Uploaded compressed JSON: {path}")
+        return
+    path = f"env={env}/source=greystar/stage=raw/entity=property/property_id={property_id}/scraped_at={scraped_at}/property.json.gz"
+    client = _gcs_client()
+    blob = client.bucket(GCS_BUCKET).blob(path)
+    compressed_json = gzip.compress(json.dumps(full_data).encode("utf-8"))
+    blob.upload_from_string(compressed_json, content_type="application/gzip")
+    logger.info(f"Uploaded compressed JSON: {path}")
 
 def upload_to_gcs(env, filepath, prefix):
     client = _gcs_client()

@@ -382,7 +382,10 @@ def _load_via_execute_values_upsert(
     qtable = f'"{schema}"."{table_name}"' if schema else f'"{table_name}"'
 
     if "listing_id" not in df.columns:
-        raise SystemExit("upsert requires a listing_id column in the parquet")
+        # Empty / column-less parquet (e.g. scraper crashed before write). Skip cleanly so the
+        # pipeline continues to subsequent sources rather than aborting Phase 2.
+        log("WARN: parquet has no listing_id column (likely empty). Skipping upsert.")
+        return
 
     before = len(df)
     df = df.dropna(subset=["listing_id"])

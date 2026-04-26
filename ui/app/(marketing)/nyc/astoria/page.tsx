@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
@@ -19,27 +27,44 @@ const baseUrl =
 
 export const metadata: Metadata = {
   title:
-    "Astoria Apartments: Rent Prices, Transit & Neighborhood Guide (2026) | Wade Me Home",
+    "Astoria Apartments NYC (2026): Rent Prices, N/W Subway, Best Blocks & Concession Watch | Wade Me Home",
   description:
-    "Complete guide to renting in Astoria, Queens. Average rent prices by unit size, N/W/R/M subway access, best blocks for renters, dining scene, and tips for finding affordable apartments in one of NYC's most popular neighborhoods.",
+    "Apartments in Astoria, Queens (2026): median rent by unit size, N/W/R/M subway access, Ditmars vs Broadway vs Steinway block guide, and a 2026 concession watch as Astoria search demand climbs +16.6% YoY. Studios from $1,700, 1BRs from $2,200, the deepest Queens value tier with under-25-min Midtown commute.",
   keywords: [
-    "Astoria apartments",
-    "Astoria Queens rent",
-    "Astoria apartment hunting",
-    "moving to Astoria NYC",
-    "Astoria rent prices 2026",
-    "Astoria Queens rentals",
-    "apartments near Ditmars",
-    "Astoria studios for rent",
-    "Astoria 1 bedroom rent",
-    "affordable Astoria apartments",
-    "Astoria Broadway apartments",
-    "Astoria Ditmars apartments",
+    "astoria apartments",
+    "astoria apartments for rent",
+    "apartments in astoria",
+    "apartments in astoria queens",
+    "astoria queens apartments",
+    "astoria queens rent",
+    "astoria apartment hunting",
+    "astoria nyc apartments",
+    "moving to astoria nyc",
+    "astoria rent prices 2026",
+    "astoria queens rentals",
+    "apartments near ditmars",
+    "astoria studios for rent",
+    "astoria 1 bedroom rent",
+    "astoria 2 bedroom rent",
+    "affordable astoria apartments",
+    "astoria broadway apartments",
+    "astoria ditmars apartments",
+    "astoria steinway apartments",
+    "astoria no fee apartments",
+    "30th avenue apartments",
+    "31st street astoria apartments",
+    "n train apartments",
+    "w train apartments",
+    "apartments 11102",
+    "apartments 11103",
+    "apartments 11105",
+    "astoria vs long island city",
+    "astoria vs williamsburg",
   ],
   openGraph: {
-    title: "Astoria Apartments: Rent Prices, Transit & Neighborhood Guide (2026)",
+    title: "Astoria Apartments NYC (2026): Rent, Subway, Best Blocks & Concessions",
     description:
-      "Average rent prices, subway access, best blocks, and tips for finding an apartment in Astoria, Queens.",
+      "Median rent, N/W subway access, Ditmars vs Broadway vs Steinway block guide, and 2026 concession watch for Astoria, Queens.",
     url: `${baseUrl}/nyc/astoria`,
     type: "article",
   },
@@ -55,7 +80,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Astoria, Queens — covering average rent prices, N/W subway access, neighborhood character, dining scene, and practical tips for apartment hunters.",
     datePublished: "2026-04-15",
-    dateModified: "2026-04-15",
+    dateModified: "2026-04-26",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -112,6 +137,30 @@ const jsonLd = [
           text: "Yes, Astoria is generally $500 to $1,000 per month cheaper than comparable neighborhoods in Brooklyn like Williamsburg, Park Slope, or DUMBO. A one-bedroom that costs $3,000 to $3,800 in Williamsburg would be $2,200 to $2,800 in Astoria. The savings are even more pronounced for two-bedroom apartments. Astoria also has a lower cost of living for dining and groceries compared to trendy Brooklyn neighborhoods, making it one of the best overall values in NYC for renters who want good transit access and a walkable neighborhood.",
         },
       },
+      {
+        "@type": "Question",
+        name: "Are Astoria apartments no-fee in 2026?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The vast majority of Astoria rentals are no-fee in 2026. Astoria has historically been a small-landlord, direct-list neighborhood — most of the rental stock is owned by 1–4-building landlords who advertise units directly without involving a broker. The June 11, 2025 FARE Act sealed this in: any landlord-listed apartment cannot legally charge the tenant a broker fee. Practical move-in cost on a $2,500/month Astoria 1BR: first month + 1 month security + $20 application fee = $5,020 total. Anything more (especially a 'marketing fee' or 'lease prep' fee) is a FARE Act violation worth questioning before paying.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Why is Astoria search demand rising in 2026?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Google Trends shows search demand for 'Astoria apartments' is up 16.6% year-over-year as of April 2026. Three drivers: (1) renters priced out of Williamsburg ($3,400 1BR median) and East Village ($3,600) are crossing into Astoria at a $700–$1,200/month discount for comparable transit access; (2) the N/W trains are among the most reliable subway lines in NYC, which has become a meaningful selling point as service quality on the L and 6 trains has been more variable; (3) the Astoria waterfront development pipeline (Astoria Cove, Hallets Point) is bringing new 1,000+ unit luxury rentals into a neighborhood that historically had almost no doorman buildings. The combination of value, reliability, and new inventory has pushed Astoria into one of the top-3 fastest-rising Queens search categories.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What concessions are landlords offering in Astoria in 2026?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The new-construction lease-up towers on the Astoria waterfront (Hallets Point, Astoria Cove, the Albany at Astoria) are typically offering 1 month free on a 13-month lease and waiving the application fee. Older walkup stock rarely offers concessions — the rental market in walkup Astoria is tight enough that landlords don't need to discount. The price arbitrage in 2026: a $3,200 gross 1BR at a waterfront tower with 1 month free has a net effective rent of $2,954 — competitive with a $2,800 walkup 1BR a few blocks east, in exchange for doorman + gym + package room. Use our net effective rent calculator to compare gross-vs-net before deciding.",
+        },
+      },
     ],
   },
   {
@@ -147,28 +196,31 @@ export default function AstoriaGuidePage() {
         <div className="mx-auto max-w-3xl space-y-6 p-6">
           {/* ── Header ────────────────────────────────── */}
           <header className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">NYC Neighborhoods</Badge>
               <Badge variant="secondary">Queens</Badge>
+              <Badge className="bg-emerald-600">+16.6% YoY search demand</Badge>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Astoria Apartments: Rent Prices, Transit &amp; Neighborhood Guide
-              for 2026
+              Astoria Apartments NYC (2026): Rent Prices, N/W Subway, Best
+              Blocks &amp; Concession Watch
             </h1>
             <p className="text-sm text-muted-foreground">
-              Astoria has become one of the most sought-after neighborhoods in
-              Queens for renters priced out of Manhattan and Brooklyn. With
-              N/W train access to Midtown in 20 minutes, one of the best dining
-              scenes in the city, and rents that are $500 to $1,000 less than
-              comparable Brooklyn neighborhoods, it consistently ranks among
-              NYC&apos;s top value neighborhoods for young professionals and
-              families. This guide covers average rents, transit options,
-              the best blocks to search, and practical tips for landing an
-              apartment here.
+              Astoria is the most-rented neighborhood in Queens — N/W train
+              access to Midtown in 20 minutes, one of the best dining scenes
+              in the city, and rents $500–$1,000 below comparable Brooklyn
+              neighborhoods. Search demand for &ldquo;Astoria apartments&rdquo;
+              is up <strong>16.6% year-over-year</strong> as of April 2026
+              (Google Trends). This guide covers median rents, transit, the
+              best blocks (Ditmars, Broadway, Steinway, the Hallets Point
+              waterfront), 2026 concession activity on the new-construction
+              towers, and the FARE Act implications for Astoria&apos;s
+              direct-from-landlord market.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated April 2026 &middot; Prices reflect median asking rents for
-              market-rate apartments
+              Last reviewed April 26, 2026 &middot; Written by the Wade Me
+              Home research team &middot; Prices reflect median asking rents
+              for market-rate apartments
             </p>
           </header>
 
@@ -239,6 +291,135 @@ export default function AstoriaGuidePage() {
                   Astoria Rent Prices (2026): Full Breakdown →
                 </Link>
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* ── 2026 Concession Watch (refresh added 2026-04-26) ─ */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Astoria 2026 Concession Watch</CardTitle>
+              <CardDescription>
+                Active concessions on the Astoria waterfront new-construction
+                towers as of April 2026
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Building</TableHead>
+                    <TableHead>Sub-Area</TableHead>
+                    <TableHead>1BR Asking</TableHead>
+                    <TableHead>Concession</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Hallets Point (Towers 1–3)
+                    </TableCell>
+                    <TableCell>Waterfront</TableCell>
+                    <TableCell>$3,200</TableCell>
+                    <TableCell>1 month free + waived app fee</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      The Albany at Astoria
+                    </TableCell>
+                    <TableCell>Astoria Heights</TableCell>
+                    <TableCell>$2,800</TableCell>
+                    <TableCell>1 month free on 13-month lease</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Astoria Cove (Phase 1)
+                    </TableCell>
+                    <TableCell>Waterfront</TableCell>
+                    <TableCell>$3,400</TableCell>
+                    <TableCell>1.5 months free on lease-up units</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      30 Front (Hunters Point border)
+                    </TableCell>
+                    <TableCell>South Astoria</TableCell>
+                    <TableCell>$3,000</TableCell>
+                    <TableCell>1 month free + parking included Y1</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Walkup stock (Ditmars / Broadway / Steinway)
+                    </TableCell>
+                    <TableCell>Pre-war, scattered</TableCell>
+                    <TableCell>$2,200 – $2,800</TableCell>
+                    <TableCell>
+                      Rare — tight market, landlords don&apos;t need to
+                      discount
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="mt-4 text-xs text-muted-foreground">
+                The price arbitrage of 2026: a $3,200 waterfront tower 1BR
+                with 1 month free has a net effective rent of $2,954 —
+                competitive with a $2,800 walkup 1BR a few blocks east, in
+                exchange for doorman + gym + package room. Use our{" "}
+                <Link
+                  href="/tools/net-effective-rent-calculator"
+                  className="text-primary underline underline-offset-2"
+                >
+                  net effective rent calculator
+                </Link>{" "}
+                to compare gross-vs-net before deciding.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Astoria FARE Act Note ─────────────────── */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Astoria &amp; the FARE Act in 2026</CardTitle>
+              <CardDescription>
+                Why Astoria has been one of the biggest beneficiaries of the
+                NYC broker-fee ban
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Astoria has been a small-landlord, direct-list neighborhood
+                for decades — most rental stock is owned by 1–4-building
+                landlords who advertise units directly without involving a
+                broker. The June 11, 2025 FARE Act made the legal default
+                match what was already common practice in the neighborhood:
+                if a landlord hires the broker, the tenant cannot legally be
+                charged a fee.
+              </p>
+              <p>
+                <strong>Practical move-in cost on a $2,500/mo Astoria 1BR
+                in 2026:</strong> first month + 1 month security + $20
+                application fee = $5,020 total. Anything beyond that —
+                particularly anything called a &ldquo;marketing fee,&rdquo;
+                &ldquo;lease prep fee,&rdquo; or &ldquo;broker
+                commission&rdquo; — is a FARE Act violation. File a DCWP
+                complaint at on.nyc.gov/fareact before paying.
+              </p>
+              <p>
+                See our full{" "}
+                <Link
+                  href="/nyc/no-fee-apartments"
+                  className="text-primary underline underline-offset-2"
+                >
+                  NYC no-fee apartments guide
+                </Link>{" "}
+                or the{" "}
+                <Link
+                  href="/blog/nyc-fare-act-broker-fee-ban"
+                  className="text-primary underline underline-offset-2"
+                >
+                  full FARE Act explainer
+                </Link>{" "}
+                for the legal mechanics and the DCWP enforcement process.
+              </p>
             </CardContent>
           </Card>
 

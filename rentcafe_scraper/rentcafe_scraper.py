@@ -527,34 +527,29 @@ def extract_floorplan_rows(
 
 
 def save_raw_property_html(env: str, property_id: str, html: str, scraped_at: str):
+    # Local mode skips raw cache (parquet + DB are sufficient).
+    if env == "local":
+        return
     path = (
         f"env={env}/source=rentcafe/stage=raw/entity=property/"
         f"property_id={property_id}/scraped_at={scraped_at}/page.html.gz"
     )
-    if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            f.write(html)
-    else:
-        client = _gcs_client()
-        blob = client.bucket(GCS_BUCKET).blob(path)
-        blob.upload_from_string(gzip.compress(html.encode("utf-8")), content_type="application/gzip")
+    client = _gcs_client()
+    blob = client.bucket(GCS_BUCKET).blob(path)
+    blob.upload_from_string(gzip.compress(html.encode("utf-8")), content_type="application/gzip")
 
 
 def save_raw_property_json(env: str, property_id: str, data: dict, scraped_at: str):
+    if env == "local":
+        return
     path = (
         f"env={env}/source=rentcafe/stage=raw/entity=property/"
         f"property_id={property_id}/scraped_at={scraped_at}/property.json.gz"
     )
-    if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            json.dump(data, f)
-    else:
-        client = _gcs_client()
-        blob = client.bucket(GCS_BUCKET).blob(path)
-        payload = gzip.compress(json.dumps(data).encode("utf-8"))
-        blob.upload_from_string(payload, content_type="application/gzip")
+    client = _gcs_client()
+    blob = client.bucket(GCS_BUCKET).blob(path)
+    payload = gzip.compress(json.dumps(data).encode("utf-8"))
+    blob.upload_from_string(payload, content_type="application/gzip")
 
 
 def enforce_unit_types(df: pd.DataFrame) -> pd.DataFrame:

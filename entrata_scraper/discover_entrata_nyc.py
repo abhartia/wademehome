@@ -1,10 +1,14 @@
 """
-Discover Entrata-powered property sites in the NYC metro area.
+Discover Entrata-powered property sites across major NYC + adjacent metros.
 
-Strategy: Check a curated list of known large NYC apartment building websites
+Strategy: Check a curated list of known large apartment building websites
 for Entrata tech stack markers (__NEXT_DATA__ with inventory, Jonah Digital,
 entrata references). Also uses Bing search as a fallback (less aggressive
 bot detection than Google).
+
+Coverage: NYC + NJ + Boston + DC + Philly + Westchester / Hudson Valley.
+The filename retains the `_nyc` suffix because `scripts/run_full_nyc_scrape.sh`
+invokes it by name; the actual scope is multi-metro Northeast.
 
 Usage:
   python discover_entrata_nyc.py --output seeds_nyc.txt
@@ -84,6 +88,35 @@ CANDIDATE_SITES = [
     "https://www.maxwellplace.com/floorplans/",
     "https://www.1000maxwell.com/floorplans/",
     "https://www.1400hudson.com/floorplans/",
+    # Boston / Cambridge / Somerville
+    "https://www.theviolanorthend.com/floorplans/",
+    "https://www.troybostonapts.com/floorplans/",
+    "https://www.thelumieresomerville.com/floorplans/",
+    "https://www.avalonatassemblyrow.com/floorplans/",
+    "https://www.theovationboston.com/floorplans/",
+    "https://www.theroguecambridge.com/floorplans/",
+    "https://www.225binneystreet.com/floorplans/",
+    "https://www.mezzobeacon.com/floorplans/",
+    "https://www.brookevaapartments.com/floorplans/",
+    "https://www.troyboston.com/floorplans/",
+    # Washington DC / NoVA / MD
+    "https://www.unionwharfdc.com/floorplans/",
+    "https://www.220twentydc.com/floorplans/",
+    "https://www.thewren.com/floorplans/",
+    "https://www.eliotonadams.com/floorplans/",
+    "https://www.thelaurelreston.com/floorplans/",
+    "https://www.theclaridgehouse.com/floorplans/",
+    "https://www.theauspicious.com/floorplans/",
+    "https://www.washingtonsquareapts.com/floorplans/",
+    "https://www.bartonhousedc.com/floorplans/",
+    # Philadelphia / Wilmington
+    "https://www.theaden.com/floorplans/",
+    "https://www.murano-philly.com/floorplans/",
+    "https://www.dalianatcityview.com/floorplans/",
+    "https://www.theroyalsquare.com/floorplans/",
+    "https://www.parkviewphilly.com/floorplans/",
+    "https://www.thearcheronwalnut.com/floorplans/",
+    "https://www.thedupontresidences.com/floorplans/",
     # General patterns to try
     "https://www.entrawestend.com/floorplans/",
     "https://www.elanredmond.com/interactivepropertymap",
@@ -120,6 +153,7 @@ def bing_search_urls(query: str, count: int = 30) -> list[str]:
 
 
 BING_QUERIES = [
+    # NYC + tri-state
     '"entrata" apartments floor plans New York',
     '"entrata" apartments floor plans Jersey City',
     '"entrata" apartments floor plans Brooklyn',
@@ -136,6 +170,23 @@ BING_QUERIES = [
     '"entrata" apartments Newark NJ',
     'site:entrata.com new york',
     '"data-entrata" apartments NYC',
+    # Boston metro
+    '"entrata" apartments floor plans Boston',
+    '"entrata" apartments floor plans Cambridge MA',
+    '"entrata" apartments floor plans Somerville MA',
+    '"jonahdigital" apartments Boston',
+    'apartments "powered by entrata" Boston',
+    # DC metro
+    '"entrata" apartments floor plans Washington DC',
+    '"entrata" apartments floor plans Arlington VA',
+    '"entrata" apartments floor plans Bethesda MD',
+    '"jonahdigital" apartments DC',
+    'apartments "powered by entrata" Washington DC',
+    # Philly metro
+    '"entrata" apartments floor plans Philadelphia',
+    '"entrata" apartments floor plans Center City',
+    'apartments "powered by entrata" Philadelphia',
+    '"jonahdigital" apartments Philadelphia',
 ]
 
 

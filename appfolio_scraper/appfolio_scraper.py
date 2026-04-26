@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import logging
 import os
@@ -163,6 +164,24 @@ def is_nyc_metro_listing(address_text: str) -> bool:
     return state_match is not None
 
 
+def _load_known_seeds_subdomains(path: str = "seeds_known.txt") -> list[str]:
+    """Read checked-in fallback subdomain list (one URL per line, # comments allowed)."""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+    if not os.path.exists(p):
+        return []
+    subs: list[str] = []
+    with open(p, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            # Lines look like https://<sub>.appfolio.com/listings/listings
+            host = urlparse(line).hostname or ""
+            if host.endswith(".appfolio.com"):
+                subs.append(host.split(".")[0])
+    return subs
+
+
 def run_discovery(
     *,
     max_subs: int = 5000,
@@ -170,10 +189,25 @@ def run_discovery(
     nyc_only: bool = True,
     probe_output: str = "seeds_discovered.txt",
 ) -> list[str]:
-    """Full discovery: crt.sh → probe → optional geo-filter → seed file."""
+    """Full discovery: crt.sh → probe → optional geo-filter → seed file.
+
+    Falls back to a checked-in known-subdomain list when crt.sh is unavailable
+    (recurring 502s/503s). The fallback ensures the AppFolio scrape phase doesn't
+    silently skip every week the certificate-transparency log is down.
+    """
     logger.info("Fetching crt.sh subdomains for appfolio.com...")
-    subs = fetch_crt_appfolio_subdomains()
-    logger.info("Found %d unique subdomains", len(subs))
+    try:
+        subs = fetch_crt_appfolio_subdomains()
+        logger.info("Found %d unique subdomains via crt.sh", len(subs))
+    except Exception as e:
+        logger.warning("crt.sh failed (%s); falling back to seeds_known.txt", str(e)[:120])
+        subs = _load_known_seeds_subdomains()
+        logger.info("Fallback: loaded %d known subdomains from seeds_known.txt", len(subs))
+        if not subs:
+            raise RuntimeError(
+                "crt.sh failed and no known-seeds fallback present. "
+                "Populate appfolio_scraper/seeds_known.txt before running discovery."
+            ) from e
     subs = subs[:max_subs]
 
     logger.info("Probing %d subdomains for valid listing pages...", len(subs))
@@ -295,6 +329,19 @@ def parse_listings_page(html: str, base_url: str, scraped_ts: str) -> tuple[list
                 elif len(parts) >= 3:
                     row["city"] = parts[1].strip()
 
+                # property_id groups units within the same building (street sans unit + zip).
+                street_clean = re.sub(
+                    r"\s*[-,]?\s*(?:unit|apt|#|ste|suite)\b\s*\S+.*$",
+                    "",
+                    parts[0],
+                    flags=re.IGNORECASE,
+                ).strip()
+                if street_clean:
+                    bld_hash = hashlib.md5(
+                        f"{street_clean.lower()}|{row.get('zipcode', '') or ''}".encode("utf-8")
+                    ).hexdigest()[:16]
+                    row["property_id"] = f"appfolio_{subdomain}_{bld_hash}"
+
         rent_el = card.select_one(".listing-item__price, .js-listing-price, .listing__price")
         if rent_el:
             rent_text = re.sub(r"[^\d.]", "", rent_el.get_text())
@@ -354,11 +401,13 @@ def scrape_appfolio_url(url: str, env: str, scraped_at: str) -> tuple[list[dict]
 
     parsed = urlparse(url)
     subdomain = parsed.hostname.split(".")[0] if parsed.hostname else "unknown"
-    raw_dir = f"env={env}/source=appfolio/stage=raw/entity={subdomain}/load_date={scraped_at}"
-    Path(raw_dir).mkdir(parents=True, exist_ok=True)
-    gz_path = os.path.join(raw_dir, "page.html.gz")
-    with gzip.open(gz_path, "wt", encoding="utf-8") as f:
-        f.write(html)
+    if env != "local":
+        # Skip raw HTML cache in local mode (parquet + DB are sufficient).
+        raw_dir = f"env={env}/source=appfolio/stage=raw/entity={subdomain}/load_date={scraped_at}"
+        Path(raw_dir).mkdir(parents=True, exist_ok=True)
+        gz_path = os.path.join(raw_dir, "page.html.gz")
+        with gzip.open(gz_path, "wt", encoding="utf-8") as f:
+            f.write(html)
 
     scraped_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     return parse_listings_page(html, url, scraped_ts)

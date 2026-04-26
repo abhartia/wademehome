@@ -141,6 +141,13 @@
       "position": 11
     },
     {
+      "query": "10 lafayette ave morristown nj",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 36
+    },
+    {
       "query": "100 n santa rosa st",
       "clicks": 0,
       "impressions": 1,
@@ -153,6 +160,13 @@
       "impressions": 1,
       "ctr": 0,
       "position": 75
+    },
+    {
+      "query": "10000 s maryland pkwy",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 28
     },
     {
       "query": "101 south apartments",
@@ -195,6 +209,13 @@
       "impressions": 1,
       "ctr": 0,
       "position": 25
+    },
+    {
+      "query": "109 gold street",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 30.5
     },
     {
       "query": "10x iona lakes",
@@ -328,27 +349,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 53
-    },
-    {
-      "query": "1301 wall st w lyndhurst nj 07071",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 36
-    },
-    {
-      "query": "132 yale ave jersey city nj",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 59
-    },
-    {
-      "query": "13401 metric blvd austin tx 78727",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 29
     }
   ],
   "top_pages_30d": [
@@ -404,9 +404,9 @@
     {
       "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
       "clicks": 0,
-      "impressions": 46,
+      "impressions": 47,
       "ctr": 0,
-      "position": 31.0
+      "position": 30.7
     },
     {
       "page": "https://wademehome.com/blog/security-deposits-move-in-fees",
@@ -432,9 +432,9 @@
     {
       "page": "https://wademehome.com/nyc-rent-by-neighborhood",
       "clicks": 0,
-      "impressions": 32,
+      "impressions": 35,
       "ctr": 0,
-      "position": 9.7
+      "position": 9.6
     },
     {
       "page": "https://wademehome.com/nyc/astoria",
@@ -528,11 +528,25 @@
       "position": 10
     },
     {
+      "page": "https://wademehome.com/properties/109-gold-street-brooklyn-ny--109-gold-street-brooklyn-ny-11201--40.7017---73.9825",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 30.5
+    },
+    {
       "page": "https://wademehome.com/properties/10x-iona-lakes--15000-iona-lakes-dr-fort-myers-fl-33908--26.5178---81.9623",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
       "position": 32
+    },
+    {
+      "page": "https://wademehome.com/properties/11-13-5th-court-south--11-13-5th-court-south-birmingham-al-35205--33.5328---86.7557",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
     },
     {
       "page": "https://wademehome.com/properties/11-2-50th-ave-unit-806w--11-2-50th-ave-queens-county-ny-11101--40.7420---73.9514",
@@ -579,9 +593,9 @@
     {
       "page": "https://wademehome.com/properties/12-tompkins-rd-unit-1--12-tompkins-rd-east-brunswick-nj-08816--40.4589---74.4147",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 10.5
+      "position": 10
     },
     {
       "page": "https://wademehome.com/properties/120-packard--120-packard-ann-arbor-mi-48108--42.2762---83.7481",
@@ -600,9 +614,9 @@
     {
       "page": "https://wademehome.com/properties/1278-union-avenue-bronx-ny--1278-union-avenue-bronx-ny-10459--40.8306---73.8983",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 10.5
+      "position": 10
     },
     {
       "page": "https://wademehome.com/properties/1322-morris-ave--1322-morris-ave-bronx-ny-10456--40.8361---73.9121",
@@ -654,6 +668,27 @@
       "position": 8
     },
     {
+      "page": "https://wademehome.com/properties/14fiftyone-student-living--1451-centre-place-dr-denton-tx-76205--33.1981---97.1279",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18
+    },
+    {
+      "page": "https://wademehome.com/properties/14th-avenue-lofts--1196-14th-avenue-tuscaloosa-al-35401--33.2040---87.5553",
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 5.3
+    },
+    {
+      "page": "https://wademehome.com/properties/1517-stamps-st-unit-1517--1517-stamps-st-jacksonville-ar-72076--34.8535---92.1183",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
       "page": "https://wademehome.com/properties/152-norman-avenue-brooklyn-ny--152-norman-avenue-brooklyn-ny-11222--40.7264---73.9484",
       "clicks": 0,
       "impressions": 1,
@@ -664,41 +699,6 @@
       "page": "https://wademehome.com/properties/153-10-41st-avenue-unit-1st-floor--153-10-41st-avenue-queens-county-ny-11354--40.7629---73.8122",
       "clicks": 0,
       "impressions": 4,
-      "ctr": 0,
-      "position": 8
-    },
-    {
-      "page": "https://wademehome.com/properties/156-parrigin-cv-unit-1--156-parrigin-cv-san-marcos-tx-78666--29.8147---97.9311",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 9
-    },
-    {
-      "page": "https://wademehome.com/properties/1612-e-38th-ave--1612-e-38th-ave-spokane-wa-99203--47.6198---117.3867",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 7
-    },
-    {
-      "page": "https://wademehome.com/properties/1617-e-apache-blvd-unit-29--1617-e-apache-blvd-tempe-az-85281--33.4143---111.9112",
-      "clicks": 0,
-      "impressions": 2,
-      "ctr": 0,
-      "position": 57
-    },
-    {
-      "page": "https://wademehome.com/properties/1683-third-avenue-residential-llc--1683-third-avenue-residential-llc-new-york-ny-10128--40.8082---73.9308",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 5
-    },
-    {
-      "page": "https://wademehome.com/properties/172-washington-ave-unit-7a--172-washington-ave-little-ferry-nj-07643--40.8463---74.0400",
-      "clicks": 0,
-      "impressions": 1,
       "ctr": 0,
       "position": 8
     }
@@ -905,6 +905,14 @@
       "position": 11
     },
     {
+      "query": "10 lafayette ave morristown nj",
+      "page": "https://wademehome.com/properties/sofi-at-morristown-station--10-lafayette-ave-morristown-nj-07960--40.7977---74.4760",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 36
+    },
+    {
       "query": "100 n santa rosa st",
       "page": "https://wademehome.com/properties/inspire-downtown--100-north-santa-rosa-street-san-antonio-tx-78207--29.4259---98.4977",
       "clicks": 0,
@@ -919,6 +927,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 75
+    },
+    {
+      "query": "10000 s maryland pkwy",
+      "page": "https://wademehome.com/properties/the-belmont-by-picerne--10000-s-maryland-parkway-las-vegas-nv-89183--36.0088---115.1365",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 28
     },
     {
       "query": "101 south apartments",
@@ -967,6 +983,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 25
+    },
+    {
+      "query": "109 gold street",
+      "page": "https://wademehome.com/properties/109-gold-street-brooklyn-ny--109-gold-street-brooklyn-ny-11201--40.7017---73.9825",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 30.5
     },
     {
       "query": "10x iona lakes",
@@ -1201,6 +1225,14 @@
       "position": 54
     },
     {
+      "query": "1451 centre place dr",
+      "page": "https://wademehome.com/properties/14fiftyone-student-living--1451-centre-place-dr-denton-tx-76205--33.1981---97.1279",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 18
+    },
+    {
       "query": "149 s budding ave, virginia beach, va 23452",
       "page": "https://wademehome.com/properties/woodshire-apartments--149-s-budding-ave-virginia-beach-va-23452--36.8373---76.1204",
       "clicks": 0,
@@ -1257,6 +1289,14 @@
       "position": 37
     },
     {
+      "query": "1606 abbey place charlotte nc",
+      "page": "https://wademehome.com/properties/link-apartments-montford-i--1606-abbey-place-charlotte-nc-28209--35.1692---80.8485",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 27
+    },
+    {
       "query": "16220 phoebe road",
       "page": "https://wademehome.com/properties/the-jade-at-frisco--16220-phoebe-rd-frisco-tx-75035--33.1482---96.7339",
       "clicks": 0,
@@ -1273,6 +1313,14 @@
       "position": 71
     },
     {
+      "query": "1666 s extension rd",
+      "page": "https://wademehome.com/properties/verona-park--1666-s-extension-road-mesa-az-85210--33.3847---111.8506",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25
+    },
+    {
       "query": "1777 peachtree st ne",
       "page": "https://wademehome.com/properties/arya-peachtree--1777-peachtree-street-ne-atlanta-ga-30309--33.7988---84.3915",
       "clicks": 0,
@@ -1287,6 +1335,14 @@
       "impressions": 1,
       "ctr": 0,
       "position": 31
+    },
+    {
+      "query": "1817 n dobson rd",
+      "page": "https://wademehome.com/properties/dobson-towne-centre--1817-north-dobson-road-chandler-az-85224--33.3334---111.8756",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 26
     },
     {
       "query": "1844 market street san francisco",
@@ -1377,6 +1433,14 @@
       "position": 10
     },
     {
+      "query": "202 e wedgewood ave spokane 99208",
+      "page": "https://wademehome.com/properties/serrano-apartments--121-east-wedgewood-avenue-spokane-wa-99208--47.7204---117.4068",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 72
+    },
+    {
       "query": "2021 n lemans blvd",
       "page": "https://wademehome.com/properties/visconti-at-westshore--2021-n-lemans-blvd-tampa-fl-33607--27.9613---82.5117",
       "clicks": 0,
@@ -1433,76 +1497,12 @@
       "position": 29
     },
     {
-      "query": "21455 merchants way katy tx 77449",
-      "page": "https://wademehome.com/properties/enclave-at-mason-creek--21455-merchants-way-103-katy-tx-77449--29.7882---95.7459",
+      "query": "2111 brandywine rd",
+      "page": "https://wademehome.com/properties/village-place-apartment-homes--2111-brandywine-rd-west-palm-beach-fl-33409--26.7292---80.0944",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
-      "position": 22
-    },
-    {
-      "query": "215 passaic ave passaic nj",
-      "page": "https://wademehome.com/properties/the-towers-at-passaic-park--215-passaic-avenue--40.8530---74.1315",
-      "clicks": 0,
-      "impressions": 2,
-      "ctr": 0,
-      "position": 33
-    },
-    {
-      "query": "2150 apartments",
-      "page": "https://wademehome.com/properties/2150-apartments--2150-south-arizona-avenue-chandler-az-85286--33.2738---111.8426",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 35
-    },
-    {
-      "query": "2150 s arizona ave chandler az 85286",
-      "page": "https://wademehome.com/properties/2150-apartments--2150-south-arizona-avenue-chandler-az-85286--33.2738---111.8426",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 51
-    },
-    {
-      "query": "2154 noisette blvd",
-      "page": "https://wademehome.com/properties/storehouse-nine--2154-noisette-blvd-north-charleston-sc-29405--32.8644---79.9699",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 37
-    },
-    {
-      "query": "2155 e liberty ln phoenix az 85048",
-      "page": "https://wademehome.com/properties/san-riva-at-the-foothills--2155-e-liberty-lane-phoenix-az-85048--33.2938---112.0337",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 44
-    },
-    {
-      "query": "2202 n lois ave tampa fl 33607",
-      "page": "https://wademehome.com/properties/society-westshore-apartments--2202-n-lois-ave-tampa-fl-33607--27.9613---82.5148",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 29
-    },
-    {
-      "query": "222 chancellor ave newark nj",
-      "page": "https://wademehome.com/properties/chancellor-arms-two--222-chancellor-avenue-newark-nj-07102--40.7073---74.2179",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 10
-    },
-    {
-      "query": "2222 w beardsley rd phoenix az 85027",
-      "page": "https://wademehome.com/properties/the-mod-apartments--2222-w-beardsley-rd-phoenix-az-85027--33.6701---112.1076",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 37
+      "position": 27
     }
   ],
   "daily_trend_90d": [
@@ -1729,22 +1729,29 @@
       "impressions": 627,
       "ctr": 0.32,
       "position": 29.9
+    },
+    {
+      "date": "2026-04-24",
+      "clicks": 0,
+      "impressions": 130,
+      "ctr": 0,
+      "position": 24.2
     }
   ],
   "devices_30d": [
     {
       "device": "DESKTOP",
       "clicks": 2,
-      "impressions": 1305,
-      "ctr": 0.15,
-      "position": 32.0
+      "impressions": 1420,
+      "ctr": 0.14,
+      "position": 31.4
     },
     {
       "device": "MOBILE",
       "clicks": 2,
-      "impressions": 387,
-      "ctr": 0.52,
-      "position": 27.8
+      "impressions": 402,
+      "ctr": 0.5,
+      "position": 27.7
     },
     {
       "device": "TABLET",
@@ -1758,9 +1765,9 @@
     {
       "country": "usa",
       "clicks": 4,
-      "impressions": 1597,
-      "ctr": 0.25,
-      "position": 31.7
+      "impressions": 1715,
+      "ctr": 0.23,
+      "position": 31.3
     },
     {
       "country": "arg",
@@ -1786,23 +1793,23 @@
     {
       "country": "bra",
       "clicks": 0,
-      "impressions": 9,
+      "impressions": 11,
       "ctr": 0,
-      "position": 24.7
+      "position": 21.2
     },
     {
       "country": "can",
       "clicks": 0,
-      "impressions": 12,
+      "impressions": 13,
       "ctr": 0,
-      "position": 12.2
+      "position": 11.8
     },
     {
       "country": "chn",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 13
+      "position": 15
     },
     {
       "country": "col",
@@ -1870,9 +1877,9 @@
     {
       "country": "gbr",
       "clicks": 0,
-      "impressions": 8,
+      "impressions": 9,
       "ctr": 0,
-      "position": 14.9
+      "position": 13.8
     },
     {
       "country": "gin",
@@ -1891,9 +1898,9 @@
     {
       "country": "ind",
       "clicks": 0,
-      "impressions": 7,
+      "impressions": 9,
       "ctr": 0,
-      "position": 8.7
+      "position": 12.9
     }
   ]
 }

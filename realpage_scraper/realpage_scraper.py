@@ -519,35 +519,29 @@ def parse_available_units_html(
 
 
 def save_raw_gz(env: str, folder_id: str, scraped_at: str, name: str, text: str):
+    if env == "local":
+        return  # Local mode skips raw cache (parquet + DB are sufficient).
     path = (
         f"env={env}/source=realpage/stage=raw/entity=property/"
         f"property_id={folder_id}/scraped_at={scraped_at}/{name}.gz"
     )
-    if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            f.write(text)
-    else:
-        client = _gcs_client()
-        blob = client.bucket(GCS_BUCKET).blob(path)
-        blob.upload_from_string(gzip.compress(text.encode("utf-8")), content_type="application/gzip")
+    client = _gcs_client()
+    blob = client.bucket(GCS_BUCKET).blob(path)
+    blob.upload_from_string(gzip.compress(text.encode("utf-8")), content_type="application/gzip")
 
 
 def save_raw_json_gz(env: str, folder_id: str, scraped_at: str, data: dict):
+    if env == "local":
+        return
     path = (
         f"env={env}/source=realpage/stage=raw/entity=property/"
         f"property_id={folder_id}/scraped_at={scraped_at}/meta.json.gz"
     )
     raw = json.dumps(data).encode("utf-8")
-    if env == "local":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            f.write(json.dumps(data))
-    else:
-        client = _gcs_client()
-        client.bucket(GCS_BUCKET).blob(path).upload_from_string(
-            gzip.compress(raw), content_type="application/gzip"
-        )
+    client = _gcs_client()
+    client.bucket(GCS_BUCKET).blob(path).upload_from_string(
+        gzip.compress(raw), content_type="application/gzip"
+    )
 
 
 def enforce_unit_types(df: pd.DataFrame) -> pd.DataFrame:
