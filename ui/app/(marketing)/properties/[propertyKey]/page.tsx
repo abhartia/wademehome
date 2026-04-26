@@ -5,6 +5,7 @@ import { listingsFetch } from "@/lib/listings/listingsApi";
 import { normalizePropertyDataItem } from "@/lib/properties/normalizePropertyDataItem";
 import type { PropertyDataItem as ApiPropertyRow } from "@/lib/api/generated/types.gen";
 import PropertyDetailsClient from "./PropertyDetailsClient";
+import PropertySchema from "@/components/property/PropertySchema";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
@@ -143,12 +144,19 @@ export default async function PropertyDetailsPage({ params }: Props) {
   return (
     <>
       {property ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(buildJsonLd(property, decoded)),
-          }}
-        />
+        <>
+          <PropertySchema
+            property={property}
+            propertyKey={decoded}
+            baseUrl={baseUrl}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(buildJsonLd(property, decoded)),
+            }}
+          />
+        </>
       ) : null}
       <PropertyDetailsClient propertyKey={decoded} initialProperty={property} />
     </>

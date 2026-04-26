@@ -19,10 +19,10 @@ Requires-Dist: llama-index-server>=0.1.27
 Requires-Dist: openinference-instrumentation-llama-index>=4.3.5
 Requires-Dist: psycopg2-binary>=2.9.10
 Requires-Dist: resend>=2.25.0
-Requires-Dist: pytest>=8.0.0
+Requires-Dist: pytest>=9.0.3
 Requires-Dist: pytest-asyncio>=0.24.0
-Requires-Dist: pypdf>=5.0.0
-Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: pypdf>=6.10.2
+Requires-Dist: python-multipart>=0.0.26
 Requires-Dist: sqlalchemy>=2.0.43
 Requires-Dist: uvicorn>=0.35.0
 Requires-Dist: pyodbc>=5.3.0
@@ -30,6 +30,18 @@ Requires-Dist: azure-storage-blob>=12.28.0
 Requires-Dist: apscheduler<4,>=3.10
 Requires-Dist: structlog>=24.4.0
 Requires-Dist: slowapi>=0.1.9
+Provides-Extra: scrapers
+Requires-Dist: cloudscraper>=1.2.71; extra == "scrapers"
+Requires-Dist: playwright>=1.50.0; extra == "scrapers"
+Requires-Dist: lxml>=5.0.0; extra == "scrapers"
+Requires-Dist: pyarrow>=18.0.0; extra == "scrapers"
+Requires-Dist: pandas>=2.2.0; extra == "scrapers"
+Requires-Dist: google-cloud-storage>=3.0.0; extra == "scrapers"
+Requires-Dist: rapidfuzz>=3.0.0; extra == "scrapers"
+Requires-Dist: fake-useragent>=2.0.0; extra == "scrapers"
+Requires-Dist: beautifulsoup4>=4.13.0; extra == "scrapers"
+Requires-Dist: requests>=2.32.0; extra == "scrapers"
+Requires-Dist: tqdm>=4.67.0; extra == "scrapers"
 Provides-Extra: dev
 Requires-Dist: ruff>=0.6.0; extra == "dev"
 Requires-Dist: black>=24.0.0; extra == "dev"

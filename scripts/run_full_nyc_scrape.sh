@@ -34,6 +34,15 @@ load_parquet() {
     "$API_VENV" "$LOAD_SCRIPT" --parquet "$parquet" --fast-postgres --if-exists upsert
 }
 
+# ── Preflight: ensure scraper-only deps are present in api venv ───────────
+# (uv sync from api/pyproject.toml prunes deps not declared there; the
+# `scrapers` optional-dependencies group in api/pyproject.toml lists them.)
+if ! "$API_VENV" -c "import cloudscraper, playwright, lxml, pyarrow, rapidfuzz, fake_useragent" 2>/dev/null; then
+    log "Preflight: scraper deps missing, reinstalling from api/pyproject.toml [scrapers]..."
+    "$API_VENV" -m pip install -q cloudscraper playwright lxml pyarrow pandas google-cloud-storage rapidfuzz fake-useragent beautifulsoup4 requests tqdm
+    "$API_VENV" -m playwright install chromium >/dev/null 2>&1 || true
+fi
+
 # ── Phase 1: Scrape ───────────────────────────────────────────────────────
 
 hr
@@ -83,7 +92,7 @@ cd "$REPO_ROOT/corcoran_scraper"
 # Elliman (Playwright browser scrape)
 log "Starting Elliman scrape..."
 cd "$REPO_ROOT/elliman_scraper"
-"$API_VENV" elliman_scraper.py --env local --mode scrape --max_pages 20 || log "WARN: Elliman scraper exited non-zero"
+"$API_VENV" elliman_scraper.py --env local --mode scrape --max_listings 2000 || log "WARN: Elliman scraper exited non-zero"
 
 # Greystar (sitemap-driven nationwide crawl — full US, ~20-30 min)
 log "Starting Greystar scrape..."

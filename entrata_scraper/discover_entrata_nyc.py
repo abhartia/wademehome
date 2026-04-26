@@ -128,6 +128,14 @@ BING_QUERIES = [
     '"listing-chunks" apartments New York',
     'apartments "powered by entrata" NYC',
     'apartments "entrata_platform" New York NJ',
+    '"entrata" apartments floor plans Queens',
+    '"entrata" apartments floor plans Long Island City',
+    '"entrata" apartments floor plans Bronx',
+    '"entrata" apartments Westchester NY',
+    '"entrata" apartments Yonkers NY',
+    '"entrata" apartments Newark NJ',
+    'site:entrata.com new york',
+    '"data-entrata" apartments NYC',
 ]
 
 

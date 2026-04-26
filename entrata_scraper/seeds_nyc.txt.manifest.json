@@ -3,21 +3,20 @@
   "verified": 2,
   "reasons": {
     "HTTPSConnectionPool(host='www.elliot-chelsea.com', port=443)": 1,
+    "http_403": 1,
+    "HTTPSConnectionPool(host='www.brooklynapartments.com', port=": 1,
+    "http_404": 10,
+    "no_markers": 7,
+    "HTTPSConnectionPool(host='www.pierhoboken.com', port=443): M": 1,
+    "HTTPSConnectionPool(host='www.535west43rd.com', port=443): M": 1,
+    "HTTPSConnectionPool(host='www.themax.nyc', port=443): Max re": 1,
+    "marker:jonahdigital": 2,
+    "HTTPSConnectionPool(host='www.1shortstreet.com', port=443): ": 1,
     "HTTPSConnectionPool(host='www.viajerseycity.com', port=443):": 1,
     "HTTPSConnectionPool(host='www.1000maxwell.com', port=443): M": 1,
-    "http_404": 8,
-    "no_markers": 8,
-    "HTTPSConnectionPool(host='www.1shortstreet.com', port=443): ": 1,
-    "HTTPSConnectionPool(host='www.thedenizen.com', port=443): Ma": 1,
-    "HTTPSConnectionPool(host='www.theashlandnyc.com', port=443):": 1,
     "HTTPSConnectionPool(host='www.thecloverjc.com', port=443): M": 1,
-    "marker:jonahdigital": 2,
-    "HTTPSConnectionPool(host='www.theoverjc.com', port=443): Max": 1,
-    "HTTPSConnectionPool(host='www.535west43rd.com', port=443): M": 1,
     "HTTPSConnectionPool(host='www.thegalleriapts.com', port=443)": 1,
-    "HTTPSConnectionPool(host='www.themax.nyc', port=443): Max re": 1,
-    "HTTPSConnectionPool(host='www.pierhoboken.com', port=443): M": 1,
-    "HTTPSConnectionPool(host='www.brooklynapartments.com', port=": 1,
-    "HTTPSConnectionPool(host='www.thelandmark.com', port=443): M": 1
+    "HTTPSConnectionPool(host='www.theoverjc.com', port=443): Max": 1,
+    "HTTPSConnectionPool(host='www.theashlandnyc.com', port=443):": 1
   }
 }

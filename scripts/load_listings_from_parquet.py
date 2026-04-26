@@ -523,6 +523,9 @@ def main() -> int:
     df = pd.read_parquet(str(parquet_path))
     log(f"Loaded rows: {len(df):,}")
     log(f"Columns: {len(df.columns)}")
+    if len(df) == 0:
+        log("Parquet is empty; nothing to load. Exiting 0 (treated as no-op).")
+        return 0
 
     if "images" in df.columns:
         df["image_url"] = df["images"].apply(first_image_url)
