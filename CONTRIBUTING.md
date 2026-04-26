@@ -42,6 +42,19 @@ npm run build
 npm run test:e2e
 ```
 
+## Keeping the OpenAPI client in sync
+
+The frontend's typed API client (`ui/lib/api/generated/`) is generated from
+`ui/openapi.json`, which mirrors FastAPI's `/openapi.json`. After any backend
+change that adds, removes, or renames an endpoint or schema, refresh both:
+
+```bash
+cd ui && npm run openapi:refresh
+```
+
+CI fails if the committed `ui/openapi.json` drifts from what the running
+backend produces (job `openapi-spec-drift`).
+
 ## Style
 
 - Python: `ruff check` + `black` — both run in pre-commit and in CI.
