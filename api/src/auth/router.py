@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -26,10 +28,22 @@ from auth.security import (
     verify_password,
 )
 from core.config import Config
+from core.rate_limit import limiter
 from db.models import MagicLinkTokens, UserProfiles, UserRole, Users, UserSessions
 from db.session import get_session_local
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Per-endpoint budgets for unauthenticated abuse paths. Keyed by user_id when present
+# (post-login traffic) and by IP otherwise; see core/rate_limit.py. Values are
+# intentionally tight — bcrypt hashes and magic-link mailers are expensive, and the
+# unauthenticated bucket is the only thing standing between a script and our SMTP/CPU.
+_RL_LOGIN = os.getenv("RATE_LIMIT_AUTH_LOGIN", "5/minute")
+_RL_SIGNUP = os.getenv("RATE_LIMIT_AUTH_SIGNUP", "5/minute")
+_RL_MAGIC_LINK_REQUEST = os.getenv("RATE_LIMIT_AUTH_MAGIC_LINK_REQUEST", "5/minute")
+_RL_VERIFY_EMAIL_RESEND = os.getenv("RATE_LIMIT_AUTH_VERIFY_RESEND", "5/minute")
+_RL_MAGIC_LINK_VERIFY = os.getenv("RATE_LIMIT_AUTH_MAGIC_LINK_VERIFY", "20/minute")
+_RL_VERIFY_EMAIL = os.getenv("RATE_LIMIT_AUTH_VERIFY_EMAIL", "20/minute")
 
 
 def get_db():
@@ -156,7 +170,8 @@ def get_current_property_manager_or_admin(user: Users = Depends(get_current_user
 
 
 @router.post("/signup", response_model=SignupResponse)
-def signup(payload: SignupRequest, db: Session = Depends(get_db)):
+@limiter.limit(_RL_SIGNUP)
+def signup(request: Request, payload: SignupRequest, db: Session = Depends(get_db)):
     email = payload.email.lower().strip()
     existing = db.execute(select(Users).where(Users.email == email)).scalar_one_or_none()
     if existing:
@@ -181,7 +196,13 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/verify-email", response_model=AuthResponse)
-def verify_email_route(payload: VerifyEmailRequest, response: Response, db: Session = Depends(get_db)):
+@limiter.limit(_RL_VERIFY_EMAIL)
+def verify_email_route(
+    request: Request,
+    payload: VerifyEmailRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     token_hash = hash_token(payload.token)
     user = db.execute(select(Users).where(Users.email_verification_token_hash == token_hash)).scalar_one_or_none()
     if not user or user.email_verification_expires_at is None or user.email_verification_expires_at <= utc_now():
@@ -198,7 +219,12 @@ def verify_email_route(payload: VerifyEmailRequest, response: Response, db: Sess
 
 
 @router.post("/verify-email/resend")
-def resend_verification_email(payload: ResendVerificationRequest, db: Session = Depends(get_db)):
+@limiter.limit(_RL_VERIFY_EMAIL_RESEND)
+def resend_verification_email(
+    request: Request,
+    payload: ResendVerificationRequest,
+    db: Session = Depends(get_db),
+):
     email = payload.email.lower().strip()
     user = db.execute(select(Users).where(Users.email == email)).scalar_one_or_none()
     if user and user.password_hash and user.email_verified_at is None:
@@ -213,7 +239,13 @@ def resend_verification_email(payload: ResendVerificationRequest, db: Session = 
 
 
 @router.post("/login", response_model=AuthResponse)
-def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
+@limiter.limit(_RL_LOGIN)
+def login(
+    request: Request,
+    payload: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     email = payload.email.lower().strip()
     user = db.execute(select(Users).where(Users.email == email)).scalar_one_or_none()
     if not user or not verify_password(payload.password, user.password_hash):
@@ -231,7 +263,12 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
 
 @router.post("/magic-link/request")
-def request_magic_link(payload: MagicLinkRequest, db: Session = Depends(get_db)):
+@limiter.limit(_RL_MAGIC_LINK_REQUEST)
+def request_magic_link(
+    request: Request,
+    payload: MagicLinkRequest,
+    db: Session = Depends(get_db),
+):
     email = payload.email.lower().strip()
     user = db.execute(select(Users).where(Users.email == email)).scalar_one_or_none()
 
@@ -253,7 +290,13 @@ def request_magic_link(payload: MagicLinkRequest, db: Session = Depends(get_db))
 
 
 @router.post("/magic-link/verify", response_model=AuthResponse)
-def verify_magic_link(payload: MagicLinkVerifyRequest, response: Response, db: Session = Depends(get_db)):
+@limiter.limit(_RL_MAGIC_LINK_VERIFY)
+def verify_magic_link(
+    request: Request,
+    payload: MagicLinkVerifyRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     token_hash = hash_token(payload.token)
     token_row = db.execute(select(MagicLinkTokens).where(MagicLinkTokens.token_hash == token_hash)).scalar_one_or_none()
     if not token_row or token_row.used_at is not None or token_row.expires_at <= utc_now():

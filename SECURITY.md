@@ -36,9 +36,17 @@ Nation-state actors, side-channel attacks, and physical attacks on Azure are exp
 
 ### Rate limiting
 
-- [api/src/core/rate_limit.py](api/src/core/rate_limit.py) wires slowapi. Default `120/min`; `/listings/chat` is `10/min` by default (configurable).
+- [api/src/core/rate_limit.py](api/src/core/rate_limit.py) wires slowapi. Default `120/min` for cheap endpoints; expensive or abuse-prone endpoints declare their own budget (configurable via env):
+  - `/listings/chat` — `10/min` (`RATE_LIMIT_LISTINGS_CHAT`)
+  - `/auth/login` — `5/min` (`RATE_LIMIT_AUTH_LOGIN`)
+  - `/auth/signup` — `5/min` (`RATE_LIMIT_AUTH_SIGNUP`)
+  - `/auth/magic-link/request` — `5/min` (`RATE_LIMIT_AUTH_MAGIC_LINK_REQUEST`)
+  - `/auth/verify-email/resend` — `5/min` (`RATE_LIMIT_AUTH_VERIFY_RESEND`)
+  - `/auth/magic-link/verify` — `20/min` (`RATE_LIMIT_AUTH_MAGIC_LINK_VERIFY`)
+  - `/auth/verify-email` — `20/min` (`RATE_LIMIT_AUTH_VERIFY_EMAIL`)
 - Keyed by authenticated user first, IP second.
 - Backed by Redis when `RATE_LIMIT_REDIS_URL` is set; otherwise in-process (single-replica only).
+- A regression test in [api/tests/test_rate_limit.py](api/tests/test_rate_limit.py) walks the registered routes and fails if any of the auth write endpoints loses its decorator.
 
 ### Headers
 

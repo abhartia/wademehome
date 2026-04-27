@@ -32,3 +32,11 @@ Use [slowapi](https://github.com/laurents/slowapi) — a FastAPI-flavored wrappe
 - Every expensive endpoint should opt in with `@limiter.limit(...)`. The default (120/min) catches the truly aggressive cases but won't prevent a determined abuser of cheap endpoints.
 - When we move to multi-replica Azure, we must set `RATE_LIMIT_REDIS_URL` or counters per replica will under-count.
 - 429 responses go through the same uniform error envelope (code `rate_limited`, includes `request_id`), matching the rest of the API.
+
+## 2026-04-27 update — auth endpoints
+
+The original decision left auth write endpoints on the 120/min default. That budget is too generous when paired with bcrypt (`/auth/login`) and outbound email (`/auth/signup`, `/auth/magic-link/request`, `/auth/verify-email/resend`): even an unauthenticated attacker scripted to one IP can burn meaningful CPU and SMTP per minute. SECURITY.md threat #3 already named these endpoints; this ADR now matches.
+
+- All six auth write paths declare explicit budgets via env (`RATE_LIMIT_AUTH_*`); see [SECURITY.md](../../SECURITY.md#rate-limiting) for the table.
+- A regression test (`tests/test_rate_limit.py::test_auth_endpoints_declare_explicit_limits`) walks the registered routes and asserts each is in `limiter._route_limits`, so a future copy-paste can't silently fall back to the default.
+- The end-to-end test (`test_auth_login_returns_429_after_burst`) exercises the full ASGI stack and confirms the uniform 429 envelope is produced.
