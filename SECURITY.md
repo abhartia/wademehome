@@ -36,9 +36,24 @@ Nation-state actors, side-channel attacks, and physical attacks on Azure are exp
 
 ### Rate limiting
 
-- [api/src/core/rate_limit.py](api/src/core/rate_limit.py) wires slowapi. Default `120/min`; `/listings/chat` is `10/min` by default (configurable).
+- [api/src/core/rate_limit.py](api/src/core/rate_limit.py) wires slowapi.
 - Keyed by authenticated user first, IP second.
 - Backed by Redis when `RATE_LIMIT_REDIS_URL` is set; otherwise in-process (single-replica only).
+- Per-endpoint limits (env-overridable, defaults shown):
+
+  | Endpoint                              | Default     | Override                              |
+  |---------------------------------------|-------------|---------------------------------------|
+  | `/listings/chat`                      | `10/minute` | `RATE_LIMIT_LISTINGS_CHAT`            |
+  | `/auth/login`                         | `10/minute` | `RATE_LIMIT_AUTH_LOGIN`               |
+  | `/auth/signup`                        | `5/minute`  | `RATE_LIMIT_AUTH_SIGNUP`              |
+  | `/auth/magic-link/request`            | `5/minute`  | `RATE_LIMIT_AUTH_MAGIC_LINK_REQUEST`  |
+  | `/auth/magic-link/verify`             | `20/minute` | `RATE_LIMIT_AUTH_MAGIC_LINK_VERIFY`   |
+  | `/auth/verify-email`                  | `20/minute` | `RATE_LIMIT_AUTH_VERIFY_EMAIL`        |
+  | `/auth/verify-email/resend`           | `3/minute`  | `RATE_LIMIT_AUTH_VERIFY_EMAIL_RESEND` |
+  | _everything else_                     | `120/minute`| `RATE_LIMIT_DEFAULT`                  |
+
+  Auth limits are tighter than the global default because they touch
+  credentials, send email, or leak account-existence on misuse (threat #3).
 
 ### Headers
 
