@@ -34,6 +34,16 @@ os.environ.setdefault("LANGFUSE_SECRET_KEY", "")
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 os.environ.setdefault("API_TOKENS", "")
 
+# Tight auth limits so the rate-limit test in test_auth_rate_limits.py runs
+# in a few requests. Using `setdefault` keeps CI/dev overrides untouched and
+# only this module's test exercises these endpoints.
+os.environ.setdefault("RATE_LIMIT_AUTH_LOGIN", "2/minute")
+os.environ.setdefault("RATE_LIMIT_AUTH_SIGNUP", "2/minute")
+os.environ.setdefault("RATE_LIMIT_AUTH_MAGIC_LINK_REQUEST", "2/minute")
+os.environ.setdefault("RATE_LIMIT_AUTH_MAGIC_LINK_VERIFY", "2/minute")
+os.environ.setdefault("RATE_LIMIT_AUTH_VERIFY_EMAIL", "2/minute")
+os.environ.setdefault("RATE_LIMIT_AUTH_VERIFY_EMAIL_RESEND", "2/minute")
+
 
 @pytest.fixture
 def anyio_backend() -> str:
