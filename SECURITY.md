@@ -49,7 +49,12 @@ Nation-state actors, side-channel attacks, and physical attacks on Azure are exp
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Permissions-Policy` — locked down by default
-- `Content-Security-Policy` — `self` + Mapbox origins only
+- `Content-Security-Policy` — strict default for JSON responses
+  (`default-src 'none'; frame-ancestors 'none'; base-uri 'none';
+  form-action 'none'`); `/docs` and `/redoc` get a relaxed policy that
+  permits the Swagger UI / ReDoc bundle from `cdn.jsdelivr.net`. Override
+  via the `CONTENT_SECURITY_POLICY` env var. See
+  [ADR-0007](docs/adr/0007-default-content-security-policy.md).
 - `Strict-Transport-Security` — on when `HSTS_ENABLED=1` (default)
 
 ### SQL
