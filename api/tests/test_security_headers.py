@@ -3,6 +3,19 @@ import asyncio
 from core.security_headers import SecurityHeadersMiddleware
 
 
+def _csp_sources(csp: str) -> set[str]:
+    """Return the union of every source token across every directive in
+    the CSP. Used so tests can check origin allowance without fuzzy
+    substring matching against the raw header string."""
+    tokens: set[str] = set()
+    for directive in csp.split(";"):
+        parts = directive.strip().split()
+        if len(parts) <= 1:
+            continue
+        tokens.update(parts[1:])
+    return tokens
+
+
 def _collect(middleware, scope):
     sent = []
 
@@ -41,17 +54,18 @@ def test_default_csp_is_strict_for_json_api():
     assert "frame-ancestors 'none'" in csp
     assert "base-uri 'none'" in csp
     assert "form-action 'none'" in csp
-    # Match the full source expression including scheme so a bare-hostname
-    # appearing in some other context can't satisfy the assertion.
-    assert "https://cdn.jsdelivr.net" not in csp
+    # The JSON-API default must not silently allow any third-party origins.
+    sources = _csp_sources(csp)
+    assert not any(s.startswith("https://") for s in sources)
 
 
 def test_docs_paths_get_relaxed_csp():
+    cdn = "https://cdn.jsdelivr.net"
     for path in ("/docs", "/redoc", "/docs/oauth2-redirect"):
         csp = _headers_for(path).get(b"content-security-policy", b"").decode()
-        # Swagger UI / ReDoc bundle is served from jsDelivr; without this the
-        # interactive docs would be blank.
-        assert "https://cdn.jsdelivr.net" in csp, f"missing CDN allowance on {path}"
+        # Swagger UI / ReDoc bundle is served from jsDelivr; without this
+        # source allowance the interactive docs would be blank.
+        assert cdn in _csp_sources(csp), f"missing CDN allowance on {path}"
         assert "frame-ancestors 'none'" in csp
 
 
