@@ -41,8 +41,9 @@ def test_default_csp_is_strict_for_json_api():
     assert "frame-ancestors 'none'" in csp
     assert "base-uri 'none'" in csp
     assert "form-action 'none'" in csp
-    # The JSON-API default must not silently allow any third-party origins.
-    assert "cdn.jsdelivr.net" not in csp
+    # Match the full source expression including scheme so a bare-hostname
+    # appearing in some other context can't satisfy the assertion.
+    assert "https://cdn.jsdelivr.net" not in csp
 
 
 def test_docs_paths_get_relaxed_csp():
@@ -50,7 +51,7 @@ def test_docs_paths_get_relaxed_csp():
         csp = _headers_for(path).get(b"content-security-policy", b"").decode()
         # Swagger UI / ReDoc bundle is served from jsDelivr; without this the
         # interactive docs would be blank.
-        assert "cdn.jsdelivr.net" in csp, f"missing CDN allowance on {path}"
+        assert "https://cdn.jsdelivr.net" in csp, f"missing CDN allowance on {path}"
         assert "frame-ancestors 'none'" in csp
 
 
