@@ -96,3 +96,4 @@ Significant decisions are captured as one-page [Architecture Decision Records](d
 - [ADR-0004 — Self-hosted feature flags](docs/adr/0004-self-hosted-feature-flags.md)
 - [ADR-0005 — Liveness / readiness probe split](docs/adr/0005-liveness-readiness-split.md)
 - [ADR-0006 — Database connection pool hardening](docs/adr/0006-db-connection-hardening.md)
+- [ADR-0007 — Default Content-Security-Policy on the API](docs/adr/0007-default-content-security-policy.md)

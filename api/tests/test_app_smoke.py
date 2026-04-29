@@ -27,8 +27,10 @@ def test_security_headers_present(client):
     assert r.headers.get("x-frame-options") == "DENY"
     assert "referrer-policy" in {k.lower() for k in r.headers}
     assert "permissions-policy" in {k.lower() for k in r.headers}
-    # CSP is opt-in (set CONTENT_SECURITY_POLICY env to enable).
-    assert "content-security-policy" not in {k.lower() for k in r.headers}
+    # JSON API path: strict default CSP. See ADR-0007.
+    csp = r.headers.get("content-security-policy", "")
+    assert "default-src 'none'" in csp
+    assert "frame-ancestors 'none'" in csp
 
 
 def test_v1_mirror_mounted(fastapi_client):
