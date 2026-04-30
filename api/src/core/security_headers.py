@@ -25,6 +25,12 @@ _DEFAULT_PERMISSIONS_POLICY = (
     "screen-wake-lock=(), sync-xhr=(), usb=(), xr-spatial-tracking=()"
 )
 
+# Default to ``no-store`` so JSON responses are not cached by browsers, shared
+# proxies, or CDNs. Handlers that want to be cacheable (e.g. /sitemap-keys, the
+# OpenAPI spec) set their own Cache-Control and the middleware leaves it alone.
+# An empty value disables the default entirely.
+_DEFAULT_CACHE_CONTROL = "no-store"
+
 
 class SecurityHeadersMiddleware:
     def __init__(self, app: ASGIApp) -> None:
@@ -32,6 +38,7 @@ class SecurityHeadersMiddleware:
         self.csp = os.getenv("CONTENT_SECURITY_POLICY", _DEFAULT_CSP)
         self.permissions_policy = os.getenv("PERMISSIONS_POLICY", _DEFAULT_PERMISSIONS_POLICY)
         self.hsts_enabled = os.getenv("HSTS_ENABLED", "1") not in {"0", "false", "no"}
+        self.default_cache_control = os.getenv("DEFAULT_CACHE_CONTROL", _DEFAULT_CACHE_CONTROL)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -57,6 +64,8 @@ class SecurityHeadersMiddleware:
                     add("Content-Security-Policy", self.csp)
                 if self.hsts_enabled:
                     add("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+                if self.default_cache_control:
+                    add("Cache-Control", self.default_cache_control)
 
                 message = {**message, "headers": headers}
             await send(message)

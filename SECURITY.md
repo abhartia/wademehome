@@ -49,8 +49,9 @@ Nation-state actors, side-channel attacks, and physical attacks on Azure are exp
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Permissions-Policy` — locked down by default
-- `Content-Security-Policy` — `self` + Mapbox origins only
+- `Content-Security-Policy` — opt-in via `CONTENT_SECURITY_POLICY` env (a too-strict default silently breaks third-party embeds; see [ADR-0007](docs/adr/0007-default-cache-control.md) for the cache-control sibling decision)
 - `Strict-Transport-Security` — on when `HSTS_ENABLED=1` (default)
+- `Cache-Control: no-store` — applied to every response unless the handler sets its own `Cache-Control`. Prevents shared proxies, CDNs, and browser HTTP caches from retaining authenticated JSON. Override per-handler when caching is intentional (sitemap-keys, OpenAPI spec). Disable globally with `DEFAULT_CACHE_CONTROL=` (empty).
 
 ### SQL
 
