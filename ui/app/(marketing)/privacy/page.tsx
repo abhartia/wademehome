@@ -88,6 +88,15 @@ export default function PrivacyPolicyPage() {
                 browser-level analytics metadata provided by analytics tools when
                 consent is granted.
               </li>
+              <li>
+                <span className="font-medium text-foreground">
+                  Account identifiers:
+                </span>{" "}
+                if you sign in or create an account, your email address may be
+                associated with product analytics events (such as sign-up, log
+                in, search, tour, and group activity) when analytics consent is
+                granted.
+              </li>
             </ul>
           </CardContent>
         </Card>
@@ -117,9 +126,14 @@ export default function PrivacyPolicyPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
               Wade Me Home uses Google Analytics (GA4) with Google Consent
-              Mode v2 to understand product usage. Because the service is
-              offered only in the United States, analytics are allowed by
-              default. You can opt out at any time using the{" "}
+              Mode v2 and PostHog product analytics to understand product
+              usage, capture client-side exceptions, and improve reliability.
+              PostHog is configured to capture only when analytics consent is
+              granted, and event traffic is routed through a same-origin
+              reverse proxy at <code className="rounded bg-muted px-1 py-0.5 text-xs">/ingest</code>.
+              Because the service is offered only in the United States,
+              analytics are allowed by default. You can opt out at any time
+              using the{" "}
               <span className="font-medium text-foreground">
                 Your Privacy Choices
               </span>{" "}
@@ -138,10 +152,11 @@ export default function PrivacyPolicyPage() {
                 Global Privacy Control (GPC)
               </span>{" "}
               signal, analytics are automatically disabled unless you have
-              previously chosen to allow them. Advertising identifiers
-              (ad_storage, ad_user_data, ad_personalization) are denied by
-              default for all visitors. You can also manage cookies in your
-              browser settings at any time.
+              previously chosen to allow them. Your analytics choice applies
+              to both GA4 and PostHog. Advertising identifiers (ad_storage,
+              ad_user_data, ad_personalization) are denied by default for all
+              visitors. You can also manage cookies in your browser settings at
+              any time.
             </p>
           </CardContent>
         </Card>
@@ -157,8 +172,9 @@ export default function PrivacyPolicyPage() {
                 <span className="font-medium text-foreground">
                   Service providers:
                 </span>{" "}
-                with vendors that support hosting, analytics, and infrastructure
-                operations.
+                with vendors that support hosting, analytics (Google Analytics
+                / GA4 and PostHog), and infrastructure operations. PostHog
+                processes data on U.S. infrastructure (us.i.posthog.com).
               </li>
               <li>
                 <span className="font-medium text-foreground">

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AlertCircle, Check, Loader2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import posthog from "posthog-js";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
 import { useAcceptInvite, useInvitePreview } from "@/lib/groups/api";
@@ -79,6 +80,7 @@ function InviteAcceptInner() {
     accept
       .mutateAsync(token)
       .then((res) => {
+        posthog.capture("group_invite_accepted", { group_id: res.group_id, group_name: res.group_name });
         consumePendingInviteToken();
         setActiveGroupId(res.group_id);
         toast.success(`Joined "${res.group_name}"`);

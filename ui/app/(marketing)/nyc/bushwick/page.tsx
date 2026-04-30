@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   title:
     "Bushwick Apartments: Rent Prices, Transit & Neighborhood Guide (2026) | Wade Me Home",
   description:
-    "Complete guide to renting in Bushwick, Brooklyn. Average rent prices by unit size, L train access, sub-neighborhood breakdown, arts scene, and how to find affordable apartments in one of Brooklyn's most creative neighborhoods.",
+    "Bushwick rent prices, 2026 Concession Watch (+84% YoY search demand), L/M/J/Z transit, Morgan Ave / Wyckoff / Halsey-Wilson / Ridgewood-border breakdown, FARE Act negotiation playbook, and how to find affordable Brooklyn loft apartments.",
   keywords: [
     "Bushwick apartments",
     "Bushwick Brooklyn rent",
@@ -43,6 +43,25 @@ export const metadata: Metadata = {
     "affordable Bushwick apartments",
     "East Williamsburg apartments",
     "Bushwick loft apartments",
+    "Bushwick concessions 2026",
+    "Bushwick free month rent",
+    "Bushwick FARE Act",
+    "Bushwick no broker fee",
+    "Bushwick rent stabilized walkup",
+    "Bushwick L train apartments",
+    "DeKalb Ave apartments",
+    "Wilson Ave apartments",
+    "Halsey Bushwick apartments",
+    "Knickerbocker Ave apartments",
+    "Myrtle Wyckoff apartments",
+    "Ridgewood border apartments",
+    "Bushwick warehouse loft",
+    "Bushwick converted warehouse",
+    "Bushwick artist apartments",
+    "Bushwick summer 2026",
+    "Bushwick renter negotiation",
+    "Bushwick lease concessions",
+    "Bushwick net effective rent",
   ],
   openGraph: {
     title: "Bushwick Apartments: Rent Prices, Transit & Neighborhood Guide (2026)",
@@ -63,7 +82,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Bushwick, Brooklyn — covering average rent prices, L train and M train access, sub-neighborhood breakdown, arts scene, and practical tips for apartment hunters.",
     datePublished: "2026-04-18",
-    dateModified: "2026-04-18",
+    dateModified: "2026-04-29",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -178,7 +197,7 @@ export default function BushwickPage() {
               for renting in Brooklyn&apos;s most creative neighborhood.
             </p>
             <p className="text-sm text-muted-foreground">
-              Updated April 2026 · Based on active NYC rental market data
+              Updated April 29, 2026 · +84% YoY search demand · Concession Watch live
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Button asChild>
@@ -517,6 +536,208 @@ export default function BushwickPage() {
                   restaurants in the area.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* ── 2026 Concession Watch ───────────────────────────────── */}
+          <Card className="border-emerald-200 bg-emerald-50/30">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-emerald-600">Live April 2026</Badge>
+                <Badge variant="outline">+84% YoY search demand</Badge>
+                <Badge variant="outline">Peak Aug 2026</Badge>
+              </div>
+              <CardTitle>Bushwick Concession Watch (April 2026)</CardTitle>
+              <CardDescription>
+                Bushwick search demand is up 84% YoY (Google Trends, NY-geo) —
+                peaks in early August, with concessions compressing fast as
+                summer approaches. Below is the active concession structure
+                across the four main Bushwick sub-zones, plus 2026-specific
+                negotiation points to bring to your tour.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sub-Zone / Tier</TableHead>
+                    <TableHead>Active concession</TableHead>
+                    <TableHead className="text-right">1BR net-effective</TableHead>
+                    <TableHead>Window</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Morgan Ave warehouse-loft new-con
+                    </TableCell>
+                    <TableCell>
+                      1 mo free + waived application fee on 13-mo lease;
+                      broker fee waived (FARE Act)
+                    </TableCell>
+                    <TableCell className="text-right">~$3,100</TableCell>
+                    <TableCell>Strong through Memorial Day</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Wyckoff / DeKalb mid-rise (post-2019)
+                    </TableCell>
+                    <TableCell>
+                      0.5–1 mo free; reduced security on 12-mo lease
+                    </TableCell>
+                    <TableCell className="text-right">~$2,950</TableCell>
+                    <TableCell>Compresses by mid-June</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Wilson Ave / Halsey pre-war walkup
+                    </TableCell>
+                    <TableCell>
+                      Stabilized stock common; concessions rare. Broker fee
+                      waived under FARE Act.
+                    </TableCell>
+                    <TableCell className="text-right">~$2,650</TableCell>
+                    <TableCell>Year-round (low turnover)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Knickerbocker / Myrtle-Wyckoff converted-warehouse
+                    </TableCell>
+                    <TableCell>
+                      0.5 mo free + lease-flexibility (13- or 14-mo) on
+                      1–2BR loft conversions
+                    </TableCell>
+                    <TableCell className="text-right">~$2,800</TableCell>
+                    <TableCell>Tight after July 4</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Ridgewood-border / J-Z corridor
+                    </TableCell>
+                    <TableCell>
+                      Mostly small-landlord stock; 1 mo free occasional on
+                      gut-renovated walkups
+                    </TableCell>
+                    <TableCell className="text-right">~$2,400</TableCell>
+                    <TableCell>Year-round</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p>
+                <strong>2026-specific negotiation points to bring to a tour:</strong>
+              </p>
+              <ul className="list-disc pl-6 space-y-1.5">
+                <li>
+                  <strong>FARE Act broker-fee waiver in writing.</strong> Any
+                  Bushwick listing on StreetEasy / Zillow defaults to a
+                  landlord-paid broker fee. Get the waiver written into the
+                  lease — verbal promises don&apos;t survive renewal.
+                </li>
+                <li>
+                  <strong>14-month lease structure to avoid August
+                  renewal.</strong> Mid-rises and lease-up towers prefer
+                  14-month leases to align renewals with the August/September
+                  peak — bad for the renter at renewal time. If you sign in
+                  Apr–May 2026, push for 13 or 18 months instead so your first
+                  renewal lands in a softer month.
+                </li>
+                <li>
+                  <strong>Rent-stabilized eligibility on pre-war walkups.</strong>{" "}
+                  Any Wilson Ave, Halsey St, Knickerbocker Ave, or Bushwick Ave
+                  walkup built before 1974 with 6+ units is likely
+                  rent-stabilized. RGB caps 2025–2026 renewals at 3.0% (1-year)
+                  / 4.5% (2-year). Run the building through our{" "}
+                  <Link
+                    href="/tools/rent-stabilization-checker"
+                    className="text-primary underline"
+                  >
+                    rent stabilization checker
+                  </Link>{" "}
+                  before signing.
+                </li>
+                <li>
+                  <strong>Reduced security deposit on income-strong
+                  applicants.</strong> Tower lease-ups along Morgan Ave and the
+                  newer Bogart Street stock are accepting half-month or
+                  zero-deposit with proof of 80×-rent income or a
+                  qualified guarantor — ask explicitly during application.
+                </li>
+                <li>
+                  <strong>Concession compression as June approaches.</strong>{" "}
+                  The 1-month-free offers at Morgan Ave and Bogart shrink to
+                  0.5 month by Memorial Day and to 0–0.25 month by July 4.
+                  Tour Apr–early May to lock the best terms; touring in July
+                  costs the renter ~$1,800–$2,400 in lost concession on a
+                  $3,000/mo 1BR.
+                </li>
+              </ul>
+              <p className="text-xs italic">
+                Concession data reflects active StreetEasy and direct-landlord
+                listings as of late April 2026. Specific incentives vary
+                building-to-building and disappear quickly when a building
+                hits ~92% leased.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Summer 2026 Hunting Plan ───────────────────────────────── */}
+          <Card className="border-amber-200 bg-amber-50/30">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-amber-600">2026 Hunting Plan</Badge>
+                <Badge variant="outline">May–Aug 2026</Badge>
+              </div>
+              <CardTitle>Summer 2026 Bushwick Hunting Plan</CardTitle>
+              <CardDescription>
+                Move-in window × concession outlook × inventory depth. The
+                difference between starting a search in early May vs. mid-July
+                is roughly 1 month&apos;s rent in lost negotiating power.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Move-in month</TableHead>
+                    <TableHead>Best search-start</TableHead>
+                    <TableHead>Concession outlook</TableHead>
+                    <TableHead>Inventory depth</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">May 2026</TableCell>
+                    <TableCell>Apr 1 – Apr 20</TableCell>
+                    <TableCell>1–1.5 mo free common (loft new-con)</TableCell>
+                    <TableCell>Thin (best units already pre-leased)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">June 2026</TableCell>
+                    <TableCell>Apr 25 – May 15</TableCell>
+                    <TableCell>0.5–1 mo free; reduced security</TableCell>
+                    <TableCell>Strong (peak supply window)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">July 2026</TableCell>
+                    <TableCell>May 20 – Jun 10</TableCell>
+                    <TableCell>0–0.5 mo free; FARE-Act waivers only</TableCell>
+                    <TableCell>Strong but heavy competition</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">August 2026</TableCell>
+                    <TableCell>Jun 25 – Jul 10</TableCell>
+                    <TableCell>None on prime inventory</TableCell>
+                    <TableCell>Peak demand — lowest leverage</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p>
+                Bushwick inventory is mostly small-landlord walk-up plus a
+                growing pocket of post-2019 mid-rise along Morgan Ave / Bogart /
+                Knickerbocker. The walk-up pool turns over slowly and rarely
+                offers concessions; the mid-rise pool offers the best
+                leverage May–early June and almost none after July 4.
+              </p>
             </CardContent>
           </Card>
 

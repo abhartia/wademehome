@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -730,11 +731,15 @@ export default function UpperWestSideGuidePage() {
                   >
                     rent stabilization guide
                   </Link>{" "}
-                  for how to verify status.
+                  for how to verify status — or run a specific UWS address
+                  through the eligibility checker below.
                 </p>
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Embedded Rent Stabilization Checker ─────────────────── */}
+          <RentStabilizationChecker />
 
           {/* ── Renter Tips ───────────────────────────── */}
           <Card>

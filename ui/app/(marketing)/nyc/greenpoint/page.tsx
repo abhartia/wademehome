@@ -55,6 +55,23 @@ export const metadata: Metadata = {
     "Polish Greenpoint apartments",
     "moving to Greenpoint Brooklyn",
     "Greenpoint no fee apartments",
+    "Greenpoint concession watch 2026",
+    "Greenpoint Landing concession",
+    "Greenpoint summer 2026 rent",
+    "Greenpoint vs Long Island City",
+    "Greenpoint vs Bushwick",
+    "Greenpoint FARE Act apartments",
+    "Greenpoint apartments under 3000",
+    "Greenpoint apartments under 3500",
+    "Greenpoint apartments under 4000",
+    "Greenpoint Polenta studios",
+    "77 commercial street apartments",
+    "Box 122 Greenpoint apartments",
+    "Eagle Lofts Greenpoint",
+    "Greenpoint G train commute",
+    "Greenpoint ferry to Midtown",
+    "Greenpoint stabilized apartment",
+    "Greenpoint pre war walkup",
   ],
   openGraph: {
     title:
@@ -76,7 +93,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in Greenpoint, Brooklyn — covering rent prices by unit size and sub-area, G train and ferry access, the Greenpoint Landing waterfront development, Polish heritage, McCarren Park, and practical tips for apartment hunters.",
     datePublished: "2026-04-20",
-    dateModified: "2026-04-20",
+    dateModified: "2026-04-28",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -493,6 +510,136 @@ export default function GreenpointGuidePage() {
                 Sub-area boundaries are approximate. The Waterfront row includes
                 Greenpoint Landing, Eagle &amp; West, One Blue Slip, and related
                 buildings between West Street and the East River.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── 2026 Concession Watch ───────────────────────────────── */}
+          <Card className="border-emerald-200 bg-emerald-50/30">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-emerald-600">Live April 2026</Badge>
+                <Badge variant="outline">+158% YoY search demand</Badge>
+              </div>
+              <CardTitle>Greenpoint Tower Concession Watch (April 2026)</CardTitle>
+              <CardDescription>
+                Greenpoint search demand is up 158% YoY (Google Trends, NY-geo) —
+                the steepest of any NYC neighborhood we track. Demand peaks in
+                early August. Below is the active concession structure across
+                the waterfront tower lease-ups, plus 2026-specific negotiation
+                points to bring to your tour.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sub-Area / Tier</TableHead>
+                    <TableHead>Active concession</TableHead>
+                    <TableHead className="text-right">1BR net-effective</TableHead>
+                    <TableHead>Window</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Greenpoint Landing tower lease-up
+                    </TableCell>
+                    <TableCell>
+                      1.5 mo free + reduced security on 14-mo lease (Eagle &amp;
+                      West, One Blue Slip, 77 Commercial)
+                    </TableCell>
+                    <TableCell className="text-right">~$3,650</TableCell>
+                    <TableCell>Strong through Memorial Day</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Stabilized waterfront mid-rise
+                    </TableCell>
+                    <TableCell>
+                      1 mo free + waived application fee on 13-mo lease;
+                      reduced for renewals
+                    </TableCell>
+                    <TableCell className="text-right">~$3,300</TableCell>
+                    <TableCell>Compresses by mid-June</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Franklin Corridor mid-rise (post-2019)
+                    </TableCell>
+                    <TableCell>
+                      0.5–1 mo free; broker fee waived (FARE Act compliance)
+                    </TableCell>
+                    <TableCell className="text-right">~$3,400</TableCell>
+                    <TableCell>Tight after July 4</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Manhattan Avenue pre-war walkup
+                    </TableCell>
+                    <TableCell>
+                      Stabilized stock; concessions rare. Broker fee waived
+                      under FARE Act. Negotiate via lease length.
+                    </TableCell>
+                    <TableCell className="text-right">~$3,200</TableCell>
+                    <TableCell>Year-round (low turnover)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      McGuinness / east-of-Manhattan walkup
+                    </TableCell>
+                    <TableCell>
+                      Some 1 mo free on small landlord stock; gut-renovated
+                      walkups push $3,200 effective.
+                    </TableCell>
+                    <TableCell className="text-right">~$2,800</TableCell>
+                    <TableCell>Year-round</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p>
+                <strong>2026-specific negotiation points to bring to a tour:</strong>
+              </p>
+              <ul className="list-disc pl-6 space-y-1.5">
+                <li>
+                  <strong>FARE Act broker-fee waiver in writing.</strong> Any
+                  Greenpoint listing on StreetEasy / Zillow defaults to a
+                  landlord-paid broker fee. Get the waiver written into the
+                  lease, not just verbal.
+                </li>
+                <li>
+                  <strong>14-month lease structure.</strong> Tower lease-ups
+                  prefer 14-month leases to align renewals with the
+                  August/September peak. You can sign Apr–May 2026 and have
+                  your first renewal in Jun–Jul 2027 (peak window — bad for
+                  you). Push for 13 or 18 months instead.
+                </li>
+                <li>
+                  <strong>Reduced security deposit.</strong> Greenpoint Landing
+                  tower lease-ups are accepting half-month or zero-deposit
+                  with proof of 80×-rent income. Ask explicitly.
+                </li>
+                <li>
+                  <strong>Concession compression as June approaches.</strong>{" "}
+                  The 1.5-month-free offers shrink to 1 month by Memorial Day
+                  and to 0–0.5 month by July 4. Tour Apr–early May to lock the
+                  best terms.
+                </li>
+                <li>
+                  <strong>Rent-stabilized eligibility on pre-war walkups.</strong>{" "}
+                  Any Manhattan Ave / Nassau Ave / Franklin walkup built before
+                  1974 with 6+ units is likely stabilized — check our{" "}
+                  <Link href="/tools/rent-stabilization-checker" className="text-primary underline">
+                    rent stabilization checker
+                  </Link>{" "}
+                  before signing.
+                </li>
+              </ul>
+              <p className="text-xs italic">
+                Concession data reflects active StreetEasy and direct-landlord
+                listings observed in April 2026. Net-effective rents amortize
+                concession value over the full lease term and exclude broker
+                fees (now landlord-paid under FARE Act).
               </p>
             </CardContent>
           </Card>

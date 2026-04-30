@@ -6,6 +6,574 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-29 -- Session 23 (RGB Renewal Calculator + Bushwick Concession Watch + East Village page-1 compound + RentStabilizationChecker on 3 more hood pages + rent-stab guide consecutive-day push)
+
+### Context
+- Twenty-third growth agent run. Three signals converged: (1) S22's
+  biggest play — `/blog/nyc-rent-stabilization-guide` — moved
+  **pos 27.4 → 23.8** (+3.6 spots) and **59 → 76 imp** (+29%) inside
+  24 hours. Strongest single-day non-property position lift we have
+  measured in 23 sessions. Doubled down with a new RGB Renewal
+  Calculator embedded inside the same article. (2) `/nyc/east-village`
+  hit page 1 at **pos 9.3 / 11 imp** — first appearance, page was
+  last touched 9 days ago. Shipped Concession Watch + embedded
+  RentStabilizationChecker to compound the page-1 entry. (3) S22
+  queue carry-forward: Bushwick Concession Watch (+84% YoY peak Aug
+  3 2025) shipped using the same 5-row tier-table pattern as
+  Greenpoint/Williamsburg/LIC.
+- Trends pull fully rate-limited today (0/5 NY-geo batches working,
+  0/5 deep-dives). Fresh signal: 1 rising US-wide query —
+  "fare act nyc reddit" rising +170%. Carry-forward S22 Trends
+  data still load-bearing.
+- **Product feature**: `<RGBRenewalCalculator />` — interactive 1-year
+  vs 2-year RGB renewal decision tool. Inputs: current rent, move
+  likelihood, expected 2026–2027 RGB; outputs 24-month total-rent
+  comparison + crossover next-year RGB rate (computed as ≈ 2.91%
+  under current 3.0% / 4.5% caps) + tone-coded recommendation. Shipped
+  as standalone `/tools/rgb-renewal-calculator` AND embedded inside
+  the rent-stab guide.
+
+### Key Numbers
+- GSC 7 clicks last 7d (vs 7 S22 — sustained 2-week plateau).
+- 76 imp pos 23.8 on rent-stab guide (S22: 59 imp pos 27.4 — +17 imp
+  / +3.6 spots in 24 hours).
+- East Village 11 imp pos 9.3 (NEW page-1 entry; not in S22 top-25).
+- FARE Act blog 36 imp pos 11.4 (S22: 16 imp pos 13.8 — also
+  compounding).
+- New `<RGBRenewalCalculator />`: ~310 lines, 3 inputs, 24-mo cost
+  table output, 2.91% crossover number.
+- New page `/tools/rgb-renewal-calculator`: ~360 lines, 21 keywords,
+  full schema, 6 FAQ Qs.
+- Bushwick: 12 → 31 keywords; East Village: 24 → 40 keywords;
+  rent-stab guide: 40 → 46 keywords.
+
+### Completed
+
+**Continued depth (1 — S22 reindex compounding):**
+
+- `/blog/nyc-rent-stabilization-guide` (pos 23.8 → reindex hot) —
+  `reviewedAt` 2026-04-28 → 2026-04-29 (consecutive-day advance);
+  description rewritten; keywords expanded **40 → 46**; embedded
+  `<RGBRenewalCalculator />` immediately below the "2026–2027 RGB
+  forecast" Card.
+
+**New product feature (interactive 1-yr vs 2-yr decision tool):**
+
+- `ui/components/rent-stab/RGBRenewalCalculator.tsx` (~310 lines).
+- 3 inputs (current rent, move likelihood, expected 2026–2027 RGB).
+- Logic: moving-1y → 1-year always wins; staying-2y or unsure →
+  compute 24-month cost on each path (1-year: 3.0% then expected;
+  2-year: 4.5% locked both years), compare, recommend. Crossover
+  computed as `(2 * (1 + 0.045) - (1 + 0.030)) / (1 + 0.030) - 1`
+  ≈ 2.91%.
+- Output: 24-month total-cost table (both paths + delta), tone-coded
+  Card with headline + reasons + crossover note + caveat list.
+- Embedded in rent-stab guide AND shipped as standalone
+  `/tools/rgb-renewal-calculator` (~360 lines, full WebApplication +
+  FAQPage + BreadcrumbList JSON-LD, 21 keywords, 6 FAQ Qs, 4 long-form
+  context Cards).
+- Added to `/tools` index page with `Scale` icon and "New" badge.
+
+**Hub Concession Watch (1 — S22 queue, +84% YoY):**
+
+- `/nyc/bushwick` — `dateModified` 2026-04-18 → 2026-04-29; keywords
+  expanded **12 → 31**; new "Bushwick Concession Watch (April 2026)"
+  Card (emerald) with 5-row tier table covering Morgan Ave warehouse-
+  loft new-con, Wyckoff/DeKalb mid-rise, Wilson Ave / Halsey pre-war
+  walkup, Knickerbocker / Myrtle-Wyckoff converted-warehouse,
+  Ridgewood-border / J-Z corridor; 5 2026-specific negotiation
+  points; new "Summer 2026 Bushwick Hunting Plan" Card (amber) with
+  4-window May/Jun/Jul/Aug move-in × search-start × concession
+  outlook × inventory depth table.
+
+**Hub depth refresh (1 — page-1 compound):**
+
+- `/nyc/east-village` (pos 9.3 / NEW page-1) — `dateModified`
+  2026-04-20 → 2026-04-29; keywords expanded **24 → 40**; new "East
+  Village Concession Watch (April 2026)" Card with 5-row building-tier
+  table (Stuy Town Edge new-con / 1st Ave doorman mid-rise / pre-war
+  tenement walkup / Alphabet City walkup / St Marks new-con); 5
+  2026-specific negotiation points; new "Summer 2026 East Village
+  Hunting Plan" Card; embedded `<RentStabilizationChecker />`
+  directly below the existing rent-stab callout (East Village has
+  Manhattan's highest stabilized share — the on-page tool is where
+  the structural alpha lives).
+
+**RentStabilizationChecker embedding (3 hood pages — S22 queue):**
+
+- `/nyc/forest-hills` — embed inserted just above Related Guides;
+  paired with neighborhood-specific note ("Forest Hills has ~38%
+  rent-stabilized share — among the highest in Queens").
+- `/nyc/upper-west-side` — embed inserted between rent-stab callout
+  Card and Renter Tips Card; cross-link rewrite invites running a
+  specific UWS address through the checker.
+- `/nyc/bed-stuy` — embed inserted just before bottom Separator;
+  paired with note about Bed-Stuy having "the largest concentration
+  of rent-stabilized 6+ unit walkups in Brooklyn".
+
+**Cross-linking + sitemap:**
+
+- `/nyc-rent-by-neighborhood` Related Guides — added "RGB Renewal
+  Calculator: 1-Year vs. 2-Year (2025–2026)" entry (pos 9.3 / 60 imp
+  — strongest internal-link source).
+- `/tools` index — added RGB Renewal Calculator tile with `Scale` icon.
+- `ui/app/sitemap.ts` — added `/tools/rgb-renewal-calculator` at
+  priority 0.9 monthly.
+
+### Build / Verify
+- `cd ui && npm run build` — **passed** in 27.1s after one round of
+  removing an unused-helper warning. 199+ static pages building. New
+  page `/tools/rgb-renewal-calculator` registered as `○ (Static)` at
+  2.46 kB / 269 kB First Load.
+- All 6 affected pages built without errors. Skipped manual preview
+  verification per autonomous-agent guardrail (no user present).
+
+### Skipped (with reason)
+- pytrends rate-limit fix — escalated from S21/S22 "flaky" to S23
+  "fully blocking" (0/5 NY-geo batches succeeded). Tooling-fix
+  task; deferred to a future session (not content work).
+- Sunnyside / Ridgewood new pages — Trends rate-limited; no fresh
+  signal to chase. Carried.
+- `/nyc/forest-hills/rent-prices` spoke — wait for Forest Hills hub
+  to enter GSC (today is +1 day; reindex window 1–4 days).
+- `<RGBRenewalCalculator />` embedded on hood pages — pattern
+  validated today via RentStabilizationChecker embeds; queued for
+  next session to add to Forest Hills / UWS / Bed-Stuy / East Village.
+
+### Queue for next session
+- **Rent-stab guide reindex check** — biggest play of S22+S23.
+  Evaluate 2026-05-02 / 2026-05-04. Watch for pos 23.8 → 18 (lower
+  page 2) confirming the dual-interactive-tool combo as the rent-stab
+  cluster template.
+- **East Village reindex check** — pos 9.3 entry; Concession Watch +
+  checker embed should compound. Evaluate 2026-05-02 / 2026-05-06.
+- **Bushwick reindex check** — Concession Watch shipped today.
+  Evaluate 2026-05-02 / 2026-05-06; first GSC appearance expected
+  inside 1–4 days.
+- **S22 ships reindex check** — Forest Hills, FiDi rent-prices,
+  tools/rent-stabilization-checker, cost-of-moving, Greenpoint —
+  none in GSC top-25 yet (1 day post-publish). Evaluate 2026-05-02.
+- **RGB Renewal Calculator reindex check** — new URL today. Evaluate
+  2026-05-04 / 2026-05-08.
+- **`/nyc/forest-hills/rent-prices` spoke** — wait for hub indexing.
+- **Embed `<RGBRenewalCalculator />` on 2–3 hood pages** — Forest
+  Hills, UWS, Bed-Stuy already host RentStabilizationChecker.
+- **Embed `<RentStabilizationChecker />` on `/nyc/park-slope`,
+  `/nyc/harlem`, `/nyc/lower-east-side`** — pattern validated today.
+- **FARE Act Reddit-context section on `/blog/nyc-fare-act-broker-
+  fee-ban`** — single fresh Trends signal: "fare act nyc reddit"
+  rising +170% US-wide. Add 3–5 paraphrased r/AskNYC questions +
+  answers. Low-cost depth play.
+- **pytrends rate-limit fix** — switch to SerpAPI shim or weekly
+  cached pulls; tooling task.
+- **Astoria / Williamsburg reindex watch** — 9 days post-refresh,
+  watch for position lift on the Concession Watch pattern.
+- **Borough-level rollups** (`/manhattan/luxury-apartments`,
+  `/brooklyn/cheap-apartments`) — still gated on traction proof.
+- **Property-page CTR sustained at 7 clicks/week for 2 weeks** —
+  per-property FAQPage from S20 is compounding. Worth another 1 week
+  of measurement before declaring converged.
+
+### SEO Changes Pending Reindex (S23)
+- `/blog/nyc-rent-stabilization-guide` — continued depth, reviewedAt
+  2026-04-29, embedded RGBRenewalCalculator, 6 new keywords.
+- `/tools/rgb-renewal-calculator` — new URL, 21 keywords, full
+  WebApplication + FAQPage + BreadcrumbList JSON-LD, 3 long-form
+  Cards.
+- `/nyc/bushwick` — depth refresh, dateModified 2026-04-29,
+  Concession Watch + Hunting Plan, 19 new keywords.
+- `/nyc/east-village` — depth refresh, dateModified 2026-04-29,
+  Concession Watch + Hunting Plan + embedded
+  RentStabilizationChecker, 16 new keywords.
+- `/nyc/forest-hills`, `/nyc/upper-west-side`, `/nyc/bed-stuy` —
+  RentStabilizationChecker embed.
+- 1 new sitemap entry; 1 new cross-link from rent-by-neighborhood;
+  1 new tools-index tile.
+
+---
+
+## 2026-04-28 -- Session 22 (Rent-stab guide deep refresh + embedded RentStabilizationChecker tool + Forest Hills hub + Greenpoint Concession Watch + FiDi rent-prices spoke + cost-of-moving refresh)
+
+### Context
+- Twenty-second growth agent run. Two strong signals converged: GSC's
+  highest-impression non-property page is `/blog/nyc-rent-stabilization-guide`
+  at **59 imp pos 27.4** (page 3) — biggest unstick opportunity available;
+  Trends YoY surged for **Greenpoint +158% YoY**, **Bushwick +84%**,
+  **Forest Hills +76%** (all peak Jul/Aug 2026 — 11–14 weeks of reindex
+  runway before peak demand). Shipped against both signals.
+- Shipped a major depth refresh on the rent-stab article (new "April 2026
+  update" Card, embedded interactive checker, "2026–2027 RGB forecast"
+  Card with PIOC/CPI/income input table, "IAI &amp; MCI math" Card with
+  worked example, 7 new FAQ Qs).
+- Shipped `/nyc/forest-hills` new hub (closing the Queens express-train
+  gap). Added Forest Hills to `nycNeighborhoods.ts` registry → 5
+  auto-generated `/nyc/forest-hills/apartments-under-{tier}` URLs.
+- Shipped `/nyc/greenpoint` depth refresh with the Concession Watch
+  template (5-row tier table + 5 2026-specific negotiation points).
+- Shipped `/nyc/financial-district/rent-prices` spoke — completes the FiDi
+  cluster, 6 tables, 6-yr +41% post-COVID recovery trend.
+- Shipped `/cost-of-moving-to-nyc` proactive refresh (S21 queue item) —
+  added Spring/Summer 2026 Playbook Card with 4-window timing table, 5
+  new FAQ Qs.
+- **Product feature**: `<RentStabilizationChecker />` interactive eligibility
+  tool. Inputs: year built, unit count, building type, tax abatement, lease
+  rider, current rent. Outputs: 1-of-5 verdict (Almost certainly stabilized
+  / Likely / Possibly / Likely market-rate / Outside scope), reasons, RGB
+  renewal math, next steps. shadcn-only, no backend, no data storage.
+  Embedded in the rent-stab article AND shipped as standalone
+  `/tools/rent-stabilization-checker` page.
+
+### Key Numbers
+- GSC 7 clicks last 7d (vs 6 S21, 4 S20 — sustained 2-week growth).
+- 2,260 impressions last 7d. Mobile CTR 0.77% / desktop 0.16%.
+- Trends Greenpoint +158% YoY (steepest of any seed), Bushwick +84%,
+  Forest Hills +76%, Williamsburg +69.5%, Astoria +29%, LIC −20.7% (LIC
+  category-wide decline confirmed; explains S21 LIC slip as cyclical).
+- New `<RentStabilizationChecker />`: ~440 lines, 6 inputs, 5-verdict
+  output, 2025–2026 RGB math baked in.
+- New page `/nyc/forest-hills`: 30 keywords + 4 tables + 7 FAQ Qs.
+- New spoke `/nyc/financial-district/rent-prices`: 29 keywords + 6 tables
+  + 6 FAQ Qs.
+
+### Completed
+
+**Major depth refresh (1 — biggest non-property unstick):**
+
+- `/blog/nyc-rent-stabilization-guide` (pos 27.4, 59 imp 30d — top
+  non-hub page) — `reviewedAt` 2026-04-22 → 2026-04-28; description
+  rewritten; keywords expanded 26 → 40; new "April 2026 update" Card at
+  the top (RGB pre-vote watch, FARE Act intersection, HSTPA enforcement
+  stats); embedded `<RentStabilizationChecker />` immediately below; new
+  "2026–2027 RGB forecast" Card with 6-row staff-input table + 3
+  context paragraphs; new "IAI &amp; MCI math" Card with 5-row
+  cap/divisor table + worked example + common-dispute footnote on
+  pre-2019 divisors; 7 new FAQ Qs (2026–2027 RGB, FARE Act, DHCR rent
+  history, preferential rent HSTPA, harassment, Local Law 18 sublet,
+  MCI objection process).
+
+**New hub page (1 — Trends +76% YoY):**
+
+- `/nyc/forest-hills` — Queens express-train submarket (E/F/M/R, 12-min
+  to Midtown). Forest Hills Gardens private Tudor district essay,
+  Austin Street retail spine, Queens Boulevard doorman tier, north-of-
+  LIE walk-up value tier. 4 tables (rent by unit×tier, sub-areas with
+  Forest Hills Gardens / Austin Street / Queens Boulevard / 67th Av /
+  north-of-LIE rows, subway detail, vs other Queens hoods comparison),
+  6 stat cards, 8 hunting tips, 7 FAQ Qs, 30 keywords. Live listings
+  widget at (40.7196, -73.8448, r=1.0mi). Added to `nycNeighborhoods.ts`
+  registry → 5 auto-generated under-price URLs ship via existing route.
+
+**New rent-prices spoke (1 — completes FiDi cluster from S21):**
+
+- `/nyc/financial-district/rent-prices` — full breakdown by unit×tier
+  (office conv / pre-war loft / trophy new-con), 5-row sub-zone
+  (BPC / FiDi Core / Seaport / Stone Street / Two Bridges), 7-building
+  office-conversion trophy stock table (70 Pine, 100 Wall, 25 Water,
+  180 Water, 20 Broad, 116 John, 25 Broad with 421-g stabilized note),
+  7-row 2020–2026 trend table (+41% peak-to-peak — steepest Manhattan
+  recovery), $/sqft by tier, FiDi vs Tribeca vs JC Downtown vs SoHo
+  comparison. 6 tables + net-effective rent math with 100 Wall worked
+  example. 6 FAQ Qs (FiDi vs Tribeca/JC, 421-g stabilized, cheapest
+  sub-zone, 6-yr recovery driver, stabilized share, average 2026 rent).
+  29 keywords.
+
+**Hub depth refresh (1 — Trends +158% YoY):**
+
+- `/nyc/greenpoint` (pos 99 / not in 30d top yet, but +158% YoY makes it
+  Greenpoint's biggest reindex window of the year) — `dateModified`
+  2026-04-20 → 2026-04-28; keywords expanded 24 → 41; new "Greenpoint
+  Tower Concession Watch (April 2026)" Card (emerald) with header
+  badges and 5-row tier table covering Greenpoint Landing tower
+  lease-up (Eagle &amp; West, One Blue Slip, 77 Commercial), stabilized
+  waterfront mid-rise, Franklin Corridor mid-rise, Manhattan Avenue
+  pre-war walkup, McGuinness/east-of-Manhattan walkup; 5 2026-specific
+  negotiation points (FARE Act broker-fee waiver in writing, 14-month
+  lease structure to avoid renewal-in-peak, reduced security deposit
+  with 80×-rent income, concession compression timing 1.5 mo → 1 mo by
+  Memorial Day → 0.5 by July 4, rent-stabilized walkup eligibility
+  test); cross-link to new rent-stabilization-checker tool.
+
+**Proactive refresh (1 — S21 queue item):**
+
+- `/cost-of-moving-to-nyc` (`dateModified` 2026-04-16 → 2026-04-28,
+  hadn't appeared in GSC despite 12-day window since publish) — keywords
+  expanded 10 → 22; new "Spring/Summer 2026 Move-In Cost Playbook" Card
+  (amber) with 4-window timing table (May/Jun/Jul/Aug move-in × search
+  start + concession + mover surcharge); FARE Act math reset paragraph
+  ($5,000+ pre-2025 broker-fee shock now eliminated, asking rents up
+  5–7% to compensate, net renter saving $3–4k on 12-mo lease); 5 new
+  FAQ Qs (mover cost 2026, FARE Act effect, guarantor cost,
+  Brooklyn/Queens vs Manhattan, stabilized vs market-rate move-in cost).
+
+**Product feature (interactive eligibility tool):**
+
+- New file `ui/components/rent-stab/RentStabilizationChecker.tsx` (~440
+  lines).
+- 6 inputs: year built, unit count, building type
+  (rental/condo/coop/single-family/two-family), tax abatement
+  (none/421a/j51/421g/unknown), lease rider yes/no/unknown, current
+  monthly rent (optional).
+- Decision logic in priority order: (1) building-type filter (condo/
+  coop/1–2 fam → outside scope or market-rate); (2) 6-unit threshold;
+  (3) active tax abatement (overrides everything); (4) year-built test
+  (1947–1973 default-stabilized, pre-1947 likely with 6+ units, post-1974
+  abatement-only); (5) lease rider as final signal-strength booster.
+- Output: 1 of 5 verdicts in tone-coded callout (emerald/sky/amber/rose/
+  slate) with reasons, RGB renewal math (3.0% / 4.5% on current rent
+  when entered), next-steps ordered list, and 3 cross-link Buttons.
+- Verified end-to-end: 1962 + 24 units + $2,400 → "Almost certainly
+  stabilized" with $2,472 1-year and $2,508 2-year renewal shown.
+- Embedded in `/blog/nyc-rent-stabilization-guide` AND shipped as
+  standalone `/tools/rent-stabilization-checker` page (~330 lines, full
+  WebApplication + FAQPage + BreadcrumbList JSON-LD, 19 keywords, 5
+  context Cards).
+- Added to `/tools` index page with `ShieldCheck` icon and "New" badge.
+
+**Cross-linking + sitemap:**
+
+- `/nyc-rent-by-neighborhood` Related Guides — added 3 outbound links:
+  FiDi rent prices, Forest Hills, Rent Stabilization Checker (this hub
+  is at pos 9.5, our strongest internal-link source).
+- `/nyc/financial-district` Related Guides — added rent-prices spoke as
+  first entry.
+- `/nyc/astoria` Related Guides — added Forest Hills cross-link.
+- `/tools` index — added Rent Stabilization Checker tile.
+- `ui/app/sitemap.ts` — added 3 new URLs:
+  - `/nyc/financial-district/rent-prices` priority 0.75 monthly.
+  - `/nyc/forest-hills` priority 0.8 monthly.
+  - `/tools/rent-stabilization-checker` priority 0.9 monthly.
+- 5 new auto-generated under-price URLs via registry flatMap.
+
+### Build / Verify
+- `cd ui && npm run build` — **passed** after one round of unescaped-
+  entity ESLint fixes (~14 lines of `'` and `"` replaced with
+  `&apos;` / `&ldquo;` / `&rdquo;`). Compiled successfully in 88s.
+  199+ static pages.
+- All 5 affected pages render correctly via DOM verification on dev
+  server (after a `.next` cache reset post-build):
+  - `/tools/rent-stabilization-checker` — H1 + all 3 input fields +
+    interactive verdict computed end-to-end (1962 + 24 + $2,400 →
+    "Almost certainly stabilized", $2,472 / $2,508 renewal math).
+  - `/blog/nyc-rent-stabilization-guide` — H1 + April 2026 update Card
+    + embedded RentStabilizationChecker (`#rs-year-built` rendered) +
+    2026–2027 RGB forecast section + IAI table + new preferential-rent
+    FAQ + 3 tables.
+  - `/nyc/forest-hills` — H1 + +76% YoY badge + Forest Hills Gardens
+    + E/F/M/R + Tudor + 4 tables + JSON-LD.
+  - `/nyc/financial-district/rent-prices` — H1 + 70 Pine + 421-g +
+    +41% trend + 6 tables.
+  - `/nyc/greenpoint` — H1 + Concession Watch + +158% YoY + FARE Act
+    + 4 tables.
+  - `/cost-of-moving-to-nyc` — H1 + Spring/Summer 2026 Playbook +
+    2026-04-28 reviewed-at + 8 tables.
+- Screenshot of `/tools/rent-stabilization-checker` confirms layout
+  renders correctly.
+
+### Skipped (with reason)
+- Bushwick Concession Watch refresh — was in scope but Greenpoint
+  refresh + Forest Hills new page already exhausts the Trends YoY play
+  for today; carried to next session.
+- Sunnyside / Ridgewood new pages — Trends rate-limited on these seeds;
+  no signal to chase. Carried.
+- `/nyc/forest-hills/rent-prices` spoke — wait for hub to enter GSC
+  (1–4 day reindex pattern from S16–S20) before shipping spoke.
+
+### Queue for next session
+- **Rent-stab guide reindex check** — biggest play of the day, evaluate
+  ~2026-05-05 / 2026-05-11. A jump from pos 27.4 to page 2 (15–20)
+  within 2 weeks confirms the depth-refresh + interactive-tool combo
+  as the page-3 unstick template.
+- **Forest Hills reindex check** — typically enters GSC inside 1–4
+  days. If yes by 2026-05-02, ship `/nyc/forest-hills/rent-prices` spoke.
+- **FiDi parent reindex check** — shipped S21. Evaluate 2026-04-30 /
+  2026-05-04. Rent-prices spoke shipped today should follow within
+  7–10 days.
+- **Bushwick Concession Watch refresh** — +84% YoY, peak Aug 3 2025.
+  Apply the 5-row tier-table pattern from Greenpoint/LIC/Williamsburg.
+- **Embed `<RentStabilizationChecker />` in 2–3 hood pages with high
+  stabilized share** — Forest Hills (38%), UWS (35%), Bed-Stuy (~50%),
+  Park Slope (~30%). 5-line edit per page.
+- **Tools cluster expansion** — RGB renewal calculator (1-yr vs 2-yr
+  decision tool extending today's RGB forecast logic), or the
+  commute-time-vs-rent calculator from S21 queue.
+- **Bushwick + Sunnyside + Ridgewood new content** — rising Brooklyn /
+  Queens markets if Trends pull confirms next session.
+- **Borough-level rollups** (`/manhattan/luxury-apartments`,
+  `/brooklyn/cheap-apartments`) — still gated on traction from S20.
+- **Property-page CTR sustained at 7 clicks/week** — continue tracking;
+  the per-property FAQPage + metadata refresh from S20/S20-b is
+  compounding. Worth another 2 weeks of measurement before declaring
+  the play converged.
+- **pytrends rate-limit fix** — better today than S21 but still flaky.
+
+### SEO Changes Pending Reindex (S22)
+- `/blog/nyc-rent-stabilization-guide` — major depth refresh,
+  reviewedAt 2026-04-28, embedded RentStabilizationChecker, 2026–2027
+  RGB forecast Card, IAI/MCI math Card, 7 new FAQ Qs, 14 new keywords.
+- `/nyc/forest-hills` — new URL, 30 keywords, full Article + FAQPage +
+  BreadcrumbList JSON-LD, 4 tables, 7 FAQ Qs, 8 hunting tips, registry
+  entry.
+- `/nyc/forest-hills/apartments-under-{2000,2500,3000,3500,4000}` — 5
+  new auto-generated URLs.
+- `/nyc/greenpoint` — depth refresh, dateModified 2026-04-28,
+  Concession Watch table, 17 new keywords, 5 2026 negotiation points.
+- `/nyc/financial-district/rent-prices` — new URL, 29 keywords, 6
+  tables, full Article + FAQPage + BreadcrumbList JSON-LD.
+- `/cost-of-moving-to-nyc` — depth refresh, dateModified 2026-04-28,
+  Spring/Summer 2026 Playbook Card, 12 new keywords, 5 new FAQ Qs.
+- `/tools/rent-stabilization-checker` — new URL, 19 keywords, full
+  WebApplication + FAQPage + BreadcrumbList JSON-LD.
+- 3 new sitemap entries; 4 new cross-link entries from authority pages.
+
+---
+
+## 2026-04-27 -- Session 21 (Page-7 unstick: 3 depth refreshes + FiDi luxury hub + interactive MoveIn Timing Calculator)
+
+### Context
+- Twenty-first growth agent run. Today's GSC revealed three high-impression
+  commercial-intent pages stuck on page 7+: `/best-time-to-rent-nyc` (pos 73.8),
+  `/nyc-apartment-movers` (pos 67.5), and `/nyc/long-island-city` (pos 78.2 —
+  slipped from earlier April rankings). All three were published in mid-April
+  and never refreshed; the depth/freshness signals had decayed but the
+  crawl/index/relevance signals were still in place. Shipped depth refreshes on
+  all three.
+- Trends pull was thin today — 5/7 batches rate-limited by pytrends. Pivoted
+  from speculative-new-page work to the GSC unstick play, which had higher EV.
+- Closed the Manhattan luxury cluster's biggest remaining gap by shipping
+  `/nyc/financial-district` — Manhattan's largest office-to-residential
+  conversion submarket with no dedicated page until today.
+- Product-feature bet: **`<MoveInTimingCalculator />`**, an interactive 12-month
+  × 3-priority recommender shipped on `/best-time-to-rent-nyc`. Inputs: target
+  move-in month + priority (lowest rent / max selection / balance). Outputs:
+  search-start month, expected price index/inventory/competition/leverage,
+  expected concessions, strategy paragraph, 3 best-fit hood-link buttons.
+  shadcn-only, no backend dependency, no mocks.
+
+### Key Numbers
+- GSC 6 clicks last 7d (vs 4 last session — first sustained multi-click week).
+  All from property pages at pos 2.0–12.0.
+- 2,014 impressions last 7d (continued elevation; daily peak 2026-04-22 at 702).
+- LIC slipped from earlier April rankings to pos 78.2 — depth refresh today.
+- New page: `/nyc/financial-district` ships at 33 keywords + 5 tables +
+  Article+FAQPage+BreadcrumbList JSON-LD.
+- New product feature `<MoveInTimingCalculator />`: ~340 lines, shadcn-only.
+
+### Completed
+
+**Depth refreshes (3 — page-7 unstick):**
+
+- `/best-time-to-rent-nyc` (pos 73.8 → unstick) — `dateModified` 2026-04-16 →
+  2026-04-27, 13 new keywords, "May 2026 Action Plan" Card with three move-in
+  window scenarios + 2026-specific watch-outs (FARE Act renewal pricing reset,
+  concession compression in tight submarkets, Domino Phase 2 + Hallets Point
+  lease-up timing), embedded `<MoveInTimingCalculator />` immediately below,
+  3 new cross-links to S20 luxury/cheap/no-fee cluster.
+- `/nyc-apartment-movers` (pos 67.5 → unstick) — added Article `datePublished`
+  + `dateModified` to JSON-LD (was missing entirely), 16 new keywords, 3 new
+  Tables (cost by apartment size 5×5, peak-season hourly surcharge 8×4,
+  walk-up flight surcharge 5×5), 7 new long-tail FAQ Qs, Related Guides
+  expanded 4 → 9 entries.
+- `/nyc/long-island-city` (pos 78.2 → unstick) — `dateModified` 2026-04-21 →
+  2026-04-27, 19 new keywords, "LIC Tower Concession Watch (April 2026)" Table
+  (5 sub-area tiers × 4 columns), May–August 2026 LIC Hunting Plan with three
+  move-in windows + 5 specific 2026 negotiation tactics.
+
+**New page (1 — Manhattan luxury cluster closing):**
+
+- `/nyc/financial-district` — Manhattan office-conversion luxury sub-hub.
+  Closes the biggest remaining gap in the Tribeca/SoHo/West Village/FiDi
+  cluster. Live listings widget (40.7074, -74.0113, r=0.6mi), 6 stat cards,
+  rent table (4 unit sizes × 3 building tiers: conversion/new-con vs. pre-war
+  boutique vs. trophy), sub-zone table (BPC / FiDi Core / Seaport /
+  Stone Street / Two Bridges-South of Wall), office-conversion trophy stock
+  table (70 Pine, 100 Wall, 25 Water, 180 Water, 20 Broad, 116 John — with
+  year converted, units, asking range), transit detail (11 subway + PATH +
+  3 ferry — densest in NYC), 8 hunting tips, FiDi vs Tribeca vs JC Downtown
+  comparison table, 7 FAQ Qs, 33 keywords.
+
+**Product feature (interactive timing calculator):**
+
+- New file `ui/components/best-time/MoveInTimingCalculator.tsx`.
+- 12-month × 3-priority deterministic recommender. Looks up market profile
+  from a static MARKET table (price index, inventory, competition, leverage,
+  concessions copy, strategy copy, 3 best-fit hood slugs).
+- Conditional advisories: amber callout if priority=price + move-in
+  May–Aug (suggests shifting move-in window for ~5–10% annual savings);
+  blue callout if move-in May–Aug (reminds renter to pre-package
+  application packet for same-day applications).
+- 3 hood-link Buttons render specific to chosen month (e.g. July surfaces
+  Astoria + LIC + Bushwick; January surfaces LIC + UWS + Park Slope).
+- shadcn-only (Select / Label / Card / Badge / Button); no new deps.
+- All hood links resolve to existing pages.
+
+**Cross-linking + sitemap:**
+
+- `/nyc/luxury-apartments` Related Guides — added FiDi link (cluster
+  consolidation, between West Village and Chelsea).
+- `/nyc-rent-by-neighborhood` Related Guides — added FiDi link (this hub
+  is at pos 9.6, our strongest internal-link source).
+- `ui/app/sitemap.ts` — added `/nyc/financial-district` at priority 0.85
+  monthly (luxury cluster tier).
+
+### Build / Verify
+- `cd ui && npm run build` — **passed**. New page compiles as `○` (Static),
+  951 B page-side bundle, 220 kB First Load.
+- 198+ static pages building successfully.
+- Preview server confirmed all four affected pages render with new content
+  via DOM verification (H1 text, table count, JSON-LD count, Calendar /
+  Concession Watch / Cost-by-Size text presence, calculator select inputs
+  `#move-in-month` and `#priority`).
+
+### Skipped (with reason)
+- Speculative new neighborhood pages — Trends pull was 5/7 rate-limited; no
+  fresh outside-view signal to chase. Better to act on GSC's clear
+  buried-page signal than ship pages without conviction.
+- `/cost-of-moving-to-nyc` refresh — also pos undefined / not yet in GSC,
+  similar mid-April publish pattern; queued for next session as proactive
+  unstick before it gets stuck.
+- Borough-level rollups — still gated on traction proof from S20 citywide
+  hub pages; reindex window not yet closed.
+
+### Queue for next session
+- **Williamsburg / Astoria S20-b reindex check** — both refreshed
+  2026-04-26. 7+ days from refresh is the right evaluation window
+  (~2026-05-03+). Williamsburg was pos 62.5 → 63.8 today (one day post-
+  refresh, no signal yet).
+- **FiDi reindex check** — if FiDi enters GSC inside 1–4 days, ship
+  `/nyc/financial-district/rent-prices` spoke similar to UWS/Park Slope/
+  Chelsea pattern.
+- **Best-time + movers reindex check** — depth refreshes today. Evaluate
+  ~2026-05-04 and ~2026-05-11.
+- **`/cost-of-moving-to-nyc` proactive refresh** — same mid-April publish
+  pattern, hasn't appeared in GSC yet.
+- **Tools cluster expansion** — interactive widgets win on dwell time.
+  Candidates: NYC commute-time-vs-rent calculator (workplace input → hood
+  rent + commute matrix), neighborhood-match score from priorities.
+- **Borough-level rollups** (`/manhattan/luxury-apartments`,
+  `/brooklyn/cheap-apartments`) — gated on hood/citywide traction proof.
+- **pytrends rate-limit fix** — 5/7 batches dropped today; either rotate
+  IPs, increase delays, or switch to alternative trend data source.
+- **LIC `/nyc/long-island-city/rent-prices` mention check** — spoke ships
+  but the parent's pos slip suggests cannibalization; if LIC parent doesn't
+  recover by 2026-05-04, consider consolidating.
+
+### SEO Changes Pending Reindex (S21)
+- `/best-time-to-rent-nyc` — depth refresh, dateModified 2026-04-27, May
+  2026 Action Plan, embedded interactive calculator, 13 new keywords,
+  3 new cross-links.
+- `/nyc-apartment-movers` — depth refresh, dateModified 2026-04-27, 3 new
+  Tables, 7 new FAQ Qs, 16 new keywords, expanded Related Guides.
+- `/nyc/long-island-city` — depth refresh, dateModified 2026-04-27, 19 new
+  keywords, Concession Watch + Hunting Plan sections.
+- `/nyc/financial-district` — new URL.
+- 1 new sitemap entry.
+- 2 new cross-link entries (`/nyc-rent-by-neighborhood`,
+  `/nyc/luxury-apartments`).
+- Per-property FAQPage + generateMetadata changes from S20/S20-b continue
+  to apply across the property catalog as URLs are served.
+
+---
+
 ## 2026-04-26 -- Session 20-b (Queue cleanup pass: 3 luxury sub-hubs + Astoria/Williamsburg depth refresh + property-page snippet optimization)
 
 ### Context

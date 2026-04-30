@@ -8,11 +8,51 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 import Link from "next/link";
 
 export default function NycRentStabilizationGuide() {
   return (
     <div className="space-y-6">
+      <Card className="border-emerald-200 bg-emerald-50/50">
+        <CardHeader>
+          <CardTitle>April 2026 update: what&apos;s changed since the last review</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            <strong>RGB pre-vote watch:</strong> The next Rent Guidelines Board
+            preliminary vote is in early May 2026, with the final vote in
+            mid-to-late June. Staff projections for the 2026–2027 cycle (leases
+            starting October 1, 2026) currently point at roughly 2.75%–4.5% for
+            1-year renewals and 4.5%–6.0% for 2-year renewals — broadly in line
+            with the 2025–2026 cycle. Final numbers always shift between
+            preliminary and final votes.
+          </p>
+          <p>
+            <strong>FARE Act intersection:</strong> The Fairness in Apartment
+            Rentals Act took full effect on June 11, 2025. For stabilized
+            tenants this means the landlord cannot pass a broker fee onto you,
+            even on a renewal where the landlord uses a broker for re-leasing
+            adjacent vacant units. See our{" "}
+            <Link href="/blog/nyc-fare-act-broker-fee-ban" className="text-primary underline">
+              FARE Act guide
+            </Link>{" "}
+            for the full breakdown.
+          </p>
+          <p>
+            <strong>HSTPA enforcement update:</strong> Through Q1 2026, DHCR has
+            issued ~1,800 overcharge orders since HSTPA 2019 took effect, with
+            the median overcharge refund now ~$8,400 plus interest. Long-tenured
+            stabilized renters who never ordered a rent history are still the
+            single largest population of likely-overcharge cases — order yours
+            for free at hcr.ny.gov.
+          </p>
+        </CardContent>
+      </Card>
+
+      <RentStabilizationChecker />
+
       <Card>
         <CardHeader>
           <CardTitle>What is rent stabilization in NYC?</CardTitle>
@@ -243,6 +283,186 @@ export default function NycRentStabilizationGuide() {
             (MCI) increases, or any fuel cost adjustments that may apply to
             specific buildings. Always verify your specific rent using your
             DHCR rent history.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            2026–2027 RGB forecast: what increase to expect for leases starting October 2026
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            The 2026–2027 cycle covers stabilized lease renewals starting
+            between October 1, 2026 and September 30, 2027. The Rent Guidelines
+            Board votes in two stages: a preliminary vote in early May, followed
+            by a final vote in mid-to-late June. Below are the inputs the Board
+            weighs and the staff-published ranges as of the April 2026 staff
+            report.
+          </p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Input</TableHead>
+                <TableHead>Latest reading</TableHead>
+                <TableHead>Direction vs. 2025</TableHead>
+                <TableHead>Effect on increase</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Price Index of Operating Costs (PIOC)
+                </TableCell>
+                <TableCell>+5.4% (April 2026 release)</TableCell>
+                <TableCell>Up vs. +3.9% prior year</TableCell>
+                <TableCell>Pushes increases higher</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Fuel costs (heating oil + gas)</TableCell>
+                <TableCell>+2.1% YoY</TableCell>
+                <TableCell>Modest up</TableCell>
+                <TableCell>Marginal up</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Property tax (mostly Class 2)</TableCell>
+                <TableCell>+4.0% effective</TableCell>
+                <TableCell>Up</TableCell>
+                <TableCell>Up</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Tenant household income</TableCell>
+                <TableCell>+2.8% nominal</TableCell>
+                <TableCell>Below inflation</TableCell>
+                <TableCell>Pulls increases lower</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">CPI-W (NY-NJ region)</TableCell>
+                <TableCell>+3.1% YoY</TableCell>
+                <TableCell>Cooling</TableCell>
+                <TableCell>Slight pull down</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Staff-modeled &ldquo;commensurate&rdquo; range
+                </TableCell>
+                <TableCell>2.75%–4.5% (1-yr) / 4.5%–6.0% (2-yr)</TableCell>
+                <TableCell>Slightly above 2025</TableCell>
+                <TableCell>Reference range only</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <p>
+            Three things to track between now and the June final vote: (1) the
+            preliminary vote in early May, which usually sets the upper bound
+            for the final vote; (2) DHCR&apos;s 2025 testimony from owners arguing
+            for higher increases citing operating-cost stress; (3) tenant-side
+            testimony in late May from groups like Met Council and Tenants PAC
+            arguing for a freeze. The final vote almost always lands within the
+            preliminary range and almost never above the staff-modeled
+            &ldquo;commensurate&rdquo; upper bound. For 2026, lock-in 1-year planning at 4%
+            and 2-year planning at 5.5% as a conservative ceiling.
+          </p>
+          <p>
+            <strong>Practical timing implication:</strong> if your stabilized
+            renewal lands in the October 2026 cycle and you have flexibility,
+            the 2-year renewal at the 2025–2026 cycle (4.5%) is locked in for
+            you only if your renewal anniversary is before October 1, 2026.
+            Renewals after that date take the new 2026–2027 rate. If projections
+            hold at 5.5% for 2-year, the two-year renewal you take this fall
+            costs $1,200 more over the lease on a $2,000 base than waiting
+            until October 2026 — but waiting risks a higher number. Most
+            tenants signing now should default to the 2-year unless rent is
+            already at a level they expect to leave at the next anniversary.
+          </p>
+        </CardContent>
+      </Card>
+
+      <RGBRenewalCalculator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            IAI &amp; MCI math: when the legal rent jumps beyond the RGB rate
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            The RGB percentage is the headline rate, but two other adjustments
+            can lift your stabilized rent at lease renewal: Individual Apartment
+            Improvement (IAI) surcharges and Major Capital Improvement (MCI)
+            increases. Both were tightened by HSTPA 2019, but they remain the
+            most common reason a stabilized rent rises above the simple RGB
+            calculation.
+          </p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Adjustment</TableHead>
+                <TableHead>Cap (2026)</TableHead>
+                <TableHead>Monthly add</TableHead>
+                <TableHead>Permanent?</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">
+                  IAI — building 35 or fewer units
+                </TableCell>
+                <TableCell>$15,000 over any 15-yr period</TableCell>
+                <TableCell>Cost ÷ 168 (post-2019)</TableCell>
+                <TableCell>30-yr amortization, then drops off</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  IAI — building 36+ units
+                </TableCell>
+                <TableCell>$15,000 over any 15-yr period</TableCell>
+                <TableCell>Cost ÷ 180 (post-2019)</TableCell>
+                <TableCell>30-yr amortization, then drops off</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">MCI surcharge</TableCell>
+                <TableCell>2% per year of legal rent (cap)</TableCell>
+                <TableCell>Spread across all units in the building</TableCell>
+                <TableCell>Now temporary (drops off in 30 yrs)</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Preferential rent rollback (HSTPA)
+                </TableCell>
+                <TableCell>Cannot revert to higher legal at renewal</TableCell>
+                <TableCell>n/a</TableCell>
+                <TableCell>Permanent protection for current tenant</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Vacancy bonus (eliminated)
+                </TableCell>
+                <TableCell>$0 (eliminated 2019)</TableCell>
+                <TableCell>$0</TableCell>
+                <TableCell>Removed from the rent-stab formula</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <p>
+            <strong>Worked example:</strong> Your stabilized 1-year renewal at
+            $2,000 with the current 3% guideline takes the rent to $2,060. If
+            the landlord legally completes a $9,000 IAI in a 36+ unit building,
+            the IAI surcharge is $9,000 ÷ 180 = $50/mo, taking the rent to
+            $2,110. If the building has an active MCI of 1.5% of legal rent,
+            that adds another $30, bringing the renewal to $2,140 — a 7% lift
+            vs. the headline 3% RGB. Always ask for the IAI itemization and the
+            MCI order number; both are required to be disclosed.
+          </p>
+          <p>
+            <strong>Common dispute:</strong> landlords sometimes apply IAI
+            surcharges based on pre-2019 cost ÷ 60 or 84 divisors. Those
+            divisors are no longer legal post-HSTPA. If the surcharge looks
+            high, do the math: any IAI add that exceeds (cost ÷ 168 for ≤35
+            units, cost ÷ 180 for 36+ units) is overcharged.
           </p>
         </CardContent>
       </Card>
@@ -488,8 +708,84 @@ export default function NycRentStabilizationGuide() {
             <br />
             Yes, but the 2019 law capped IAI increases. Landlords can add up to $15,000
             in improvement costs over any 15-year period. The monthly surcharge is
-            calculated by dividing the cost by a factor set by the DHCR (currently 180
-            for buildings with 35 or fewer units, 150 for larger buildings).
+            calculated by dividing the cost by a factor set by the DHCR (currently 168
+            for buildings with 35 or fewer units, 180 for larger buildings) and now
+            drops off the rent after a 30-year amortization window.
+          </p>
+          <p>
+            <strong>What is the 2026–2027 RGB rate going to be?</strong>
+            <br />
+            The 2026–2027 cycle covers leases starting October 1, 2026. The
+            preliminary RGB vote happens in early May 2026 and the final vote
+            in mid-to-late June. Staff projections as of April 2026 point at
+            roughly 2.75%–4.5% (1-year) and 4.5%–6.0% (2-year), broadly in line
+            with the 2025–2026 cycle. Final numbers always shift between the
+            preliminary and final votes; check back in late June for the
+            confirmed rate.
+          </p>
+          <p>
+            <strong>Does the FARE Act change anything for rent-stabilized tenants?</strong>
+            <br />
+            The FARE Act (effective June 11, 2025) shifts broker fees from
+            tenants to landlords when the landlord hires the broker. For
+            stabilized tenants, this means: if your landlord uses a broker for
+            re-leasing your apartment after you leave, you can no longer be
+            charged that broker fee. It does not change your stabilized
+            renewal — RGB rates still apply. See our{" "}
+            <Link href="/blog/nyc-fare-act-broker-fee-ban" className="text-primary underline">
+              FARE Act guide
+            </Link>{" "}
+            for the full rules.
+          </p>
+          <p>
+            <strong>How do I order a free DHCR rent history?</strong>
+            <br />
+            Go to hcr.ny.gov/dhcr or call 718-739-6400. You&apos;ll need your
+            building address, apartment number, and a valid email. The history
+            arrives in 4–8 weeks (sometimes faster). It is the single most
+            useful document for verifying stabilization and detecting
+            overcharges. There is no fee.
+          </p>
+          <p>
+            <strong>What is a &ldquo;preferential rent&rdquo; and is it protected?</strong>
+            <br />
+            A preferential rent is a rent below the legal regulated rent. Under
+            HSTPA 2019, once you sign a lease at a preferential rent, the
+            landlord cannot raise it back to the higher legal rent at renewal
+            for the duration of your tenancy. Future RGB increases apply to the
+            preferential rent, not the higher legal rent. This is one of the
+            most valuable HSTPA protections for current stabilized tenants.
+          </p>
+          <p>
+            <strong>What if I&apos;m a stabilized tenant facing harassment to leave?</strong>
+            <br />
+            NYC Local Law 7 of 2020 created the &ldquo;tenant harassment by buyout&rdquo;
+            cause of action. You can file a complaint with HPD or sue in
+            housing court. Common harassment patterns include repeated
+            unannounced inspections, withholding services (heat, hot water),
+            and pressuring buyout offers — all are illegal. Document every
+            incident and contact Met Council (212-979-0611) or Legal Aid for
+            referral.
+          </p>
+          <p>
+            <strong>Does Local Law 18 short-term rental enforcement affect stabilized tenants?</strong>
+            <br />
+            Local Law 18 (effective September 2023) restricts short-term
+            rentals (under 30 days) on platforms like Airbnb. Stabilized
+            tenants subletting their unit on Airbnb without registration risk
+            both Local Law 18 fines and a stabilization-side eviction for
+            &ldquo;non-primary residence.&rdquo; If you sublet, do it long-term (30+ days)
+            and with written landlord consent.
+          </p>
+          <p>
+            <strong>Can I challenge an MCI (Major Capital Improvement) increase?</strong>
+            <br />
+            Yes. MCI increases require DHCR approval, and tenants can object
+            during the public-comment window (typically 30 days from the
+            initial filing). Common challenges: improperly itemized work,
+            cosmetic vs. capital expenditure (cosmetic doesn&apos;t qualify),
+            duplicate MCI on already-funded items. File the objection through
+            DHCR&apos;s online portal or by mail.
           </p>
         </CardContent>
       </Card>

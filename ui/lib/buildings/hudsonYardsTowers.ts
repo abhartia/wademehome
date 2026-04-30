@@ -8,68 +8,53 @@
  * no mock data and no heuristic fallbacks — all numbers and amenities are
  * generally-known public facts about each tower.
  */
-export type TransitStop = {
-  /** Stop name as riders know it. */
-  station: string;
-  /** Subway lines / commuter-rail lines serving the stop. */
-  lines: string;
-  /** Walking distance from the building's main entrance, in minutes. */
-  walkMinutes: number;
-};
+import type {
+  BuildingRegion,
+  Faq,
+  Tower,
+  TransitStop,
+  UnitMixRow,
+} from "./towerTypes";
 
-export type UnitMixRow = {
-  type: "Studio" | "1 Bedroom" | "2 Bedroom" | "3 Bedroom" | "Penthouse";
-  /** Typical advertised square-foot range (e.g. "510-680"). */
-  sqftRange: string;
-  /** Typical asking rent range, in 2026 dollars (e.g. "$4,200-$5,200"). */
-  rentRange: string;
-};
+export type { Faq, TransitStop, UnitMixRow };
 
-export type Faq = {
-  question: string;
-  answer: string;
-};
-
-export type HudsonYardsTower = {
-  slug: string;
-  name: string;
-  /** Street address, no city/state — those are derived from neighborhood. */
-  address: string;
-  /** Either "Hudson Yards" or "Chelsea" — drives breadcrumb + ContainedInPlace. */
+/**
+ * Hudson Yards / Chelsea narrowing of the shared {@link Tower} type. The
+ * neighborhood field is restricted to the two valid values for this region.
+ */
+export type HudsonYardsTower = Tower & {
   neighborhood: "Hudson Yards" | "Chelsea";
-  yearCompleted: number;
-  /** Approximate residential unit count (per leasing-site fact sheets). */
-  unitCount: number;
-  /** Floor count (per leasing-site fact sheets). */
-  floors: number;
-  /** Developer / current owner-operator (publicly published). */
-  developer: string;
-  /** ~1-2 sentence positioning blurb shown above the page hero. */
-  tagline: string;
-  /** ~3-5 sentence narrative intro used in the page body. */
-  description: string;
-  /** ~5-9 publicly published amenity items. */
-  amenities: string[];
-  /** Walking-distance transit. */
-  transit: TransitStop[];
-  /** Typical unit mix + rent ranges. */
-  unitMix: UnitMixRow[];
-  /** 4-6 short tower-specific FAQs (used for both body + FAQ JSON-LD). */
-  faqs: Faq[];
-  /** Building hero / OG image (optional — pages render without if absent). */
-  heroImage?: string;
-  /**
-   * UUID of the row in the `buildings` table. Pre-bootstrapped by
-   * `api/scripts/bootstrap_hudson_yards_buildings.py` (idempotent — safe to
-   * re-run). Used by the landing page to fetch live `/buildings/{id}` aggregates
-   * (review count, avg rating, current owner) and to deep-link into the
-   * existing `/buildings/[id]` reviews tool. Latitude / longitude are
-   * stored separately so the page can call `/listings/nearby` server-side
-   * without a second DB hit.
-   */
-  buildingId: string;
-  latitude: number;
-  longitude: number;
+};
+
+/** Per-region link + copy configuration consumed by `BuildingLandingTemplate`. */
+export const HUDSON_YARDS_REGION: BuildingRegion = {
+  key: "nyc",
+  city: "New York",
+  state: "NY",
+  parentLabel: "NYC",
+  parentHref: "/nyc-rent-by-neighborhood",
+  hubLabel: "Chelsea",
+  hubHref: "/nyc/chelsea",
+  rentPricesHref: "/nyc/chelsea/rent-prices",
+  rentPricesButtonLabel: "Chelsea rent prices (2026)",
+  regionLabel: "Hudson Yards / West Chelsea",
+  browseTitle: "Browse Live Chelsea & Hudson Yards Listings",
+  browseDescription:
+    "See all currently-available rentals in the neighborhood — not just this building",
+  browseHubButtonLabel: "Browse Chelsea apartments",
+  browseAggregatorPitch:
+    "Wade Me Home aggregates Chelsea and Hudson Yards listings from multiple sources, with a chat-style AI search that filters by budget, must-haves, and neighborhood preferences in seconds.",
+  relatedRentPricesEssay:
+    "full sub-area rent breakdown including the Hudson Yards tower tier and the High Line premium",
+  relatedBestTimeArea: "Hudson Yards",
+  brokerFee: {
+    title: "No-fee under the NYC FARE Act",
+    subtitle: "Landlord-side listings cannot charge tenants a broker fee",
+    body: "{name} is leased directly by {developer} or by landlord-side brokers. Under New York City's FARE Act (effective June 2025), tenants cannot be charged a broker fee on landlord-side listings — so renting at {name} through any official channel is no-fee to the tenant.",
+    toolHref: "/tools/fare-act-broker-fee-checker",
+    toolLabel:
+      "Check whether a specific listing should be no-fee under the FARE Act →",
+  },
 };
 
 export const HUDSON_YARDS_TOWERS: HudsonYardsTower[] = [

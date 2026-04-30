@@ -10,6 +10,7 @@ import { pendingInviteRedirectPath } from "@/lib/groups/pendingInvite";
 import { authMeQueryKey } from "@/lib/api/authSessionQuery";
 import { verifyMagicLinkAuthMagicLinkVerifyPostMutation } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import posthog from "posthog-js";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -25,6 +26,10 @@ export default function AuthCallbackPage() {
   const verifyMutation = useMutation({
     ...verifyMagicLinkAuthMagicLinkVerifyPostMutation(),
     onSuccess: async (data) => {
+      if (data?.user?.email) {
+        posthog.identify(data.user.email, { email: data.user.email });
+      }
+      posthog.capture("magic_link_verified", { method: "magic_link" });
       await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
       await refresh();
       const pending = pendingInviteRedirectPath();

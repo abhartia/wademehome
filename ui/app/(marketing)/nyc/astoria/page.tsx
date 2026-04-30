@@ -1117,6 +1117,14 @@ export default function AstoriaGuidePage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/forest-hills"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Forest Hills Apartments: E/F/M/R Express &amp; Tudor Garden Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/long-island-city"
                     className="text-primary underline underline-offset-2"
                   >

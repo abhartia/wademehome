@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import posthog from "posthog-js";
 import { usePasteAndCreate } from "@/lib/userListings/useUserListings";
 import { useActiveGroupId } from "@/lib/groups/activeGroup";
 import { useMyGroups } from "@/lib/groups/api";
@@ -245,6 +246,14 @@ export function LogTourModal() {
       queryKey: readToursToursGetQueryKey({ query }),
     });
 
+    posthog.capture("tour_logged", {
+      property_key: propertyKey,
+      property_name: propertyName,
+      tour_date: tourDate,
+      has_notes: Boolean(notes.trim()),
+      media_count: files.length,
+      group_id: effectiveGroupId,
+    });
     setPhase("done");
     setPhaseDetail("");
     setSavedName(propertyName);

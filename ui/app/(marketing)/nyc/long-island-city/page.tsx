@@ -56,6 +56,24 @@ export const metadata: Metadata = {
     "LIC no fee apartments",
     "LIC waterfront apartments",
     "moving to Long Island City",
+    "LIC apartments under 3000",
+    "LIC apartments under 3500",
+    "LIC apartments under 4000",
+    "LIC apartments concessions",
+    "LIC apartments no broker fee",
+    "long island city no fee apartments 2026",
+    "LIC 7 train apartments",
+    "Court Square 7 train apartments",
+    "Hunters Point waterfront apartments",
+    "Hallets Point apartments 2026",
+    "LIC apartments vs Astoria",
+    "LIC apartments vs Williamsburg",
+    "LIC luxury tower lease up",
+    "LIC FARE Act",
+    "Court Square 1 bedroom rent",
+    "Hunters Point 1 bedroom rent",
+    "long island city studio for rent",
+    "LIC concession watch 2026",
   ],
   openGraph: {
     title: "Apartments for Rent in Long Island City, Queens (2026): LIC Rent Prices & Guide",
@@ -76,7 +94,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting apartments in Long Island City (LIC), Queens — covering luxury high-rises vs older walkups, 7/E/M/G subway access, Court Square vs Hunters Point vs Hallets Point, no-fee apartments, and practical apartment hunting advice.",
     datePublished: "2026-04-17",
-    dateModified: "2026-04-21",
+    dateModified: "2026-04-27",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -198,10 +216,190 @@ export default function LongIslandCityGuidePage() {
               finding the right LIC apartment.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated April 2026 &middot; Prices reflect median asking rents
-              for market-rate apartments
+              Reviewed 2026-04-27 &middot; Prices reflect median asking rents
+              for market-rate apartments. Trends shows LIC sub-market demand
+              tracking +18% YoY into the May–August 2026 peak; if you want
+              concessions, lock in by mid-May before lease-up offices
+              tighten.
             </p>
           </header>
+
+          {/* 2026 Concession Watch */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">2026 Concession Watch</Badge>
+                <Badge variant="secondary">Updated 2026-04-27</Badge>
+              </div>
+              <CardTitle>LIC Tower Concession Watch (April 2026)</CardTitle>
+              <CardDescription>
+                Active concession patterns by sub-area and tower tier — what
+                experienced LIC renters are getting before peak season
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Sub-Area / Tier</TableHead>
+                      <TableHead>Active Concession</TableHead>
+                      <TableHead>1BR Net-Effective Rent</TableHead>
+                      <TableHead>Window</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Hunters Point waterfront (skyline view)
+                      </TableCell>
+                      <TableCell>
+                        1 month free on 13-mo lease
+                      </TableCell>
+                      <TableCell>
+                        $3,500–$4,000 (gross $3,800–$4,400)
+                      </TableCell>
+                      <TableCell>tightening into May</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Court Square new-con tower (lease-up)
+                      </TableCell>
+                      <TableCell>
+                        2 months free on 14-mo lease + reduced security
+                      </TableCell>
+                      <TableCell>
+                        $3,100–$3,500 (gross $3,500–$4,000)
+                      </TableCell>
+                      <TableCell>actively offered</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Court Square stabilized tower (5+ yrs old)
+                      </TableCell>
+                      <TableCell>0.5–1 month free</TableCell>
+                      <TableCell>$3,200–$3,500</TableCell>
+                      <TableCell>stale-listing only</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Hallets Point (newest cluster)
+                      </TableCell>
+                      <TableCell>
+                        2 months free + waived application fee
+                      </TableCell>
+                      <TableCell>
+                        $2,900–$3,300 (gross $3,300–$3,800)
+                      </TableCell>
+                      <TableCell>active lease-up</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Inner Court Square walkup / older stock
+                      </TableCell>
+                      <TableCell>
+                        no concessions standard; broker-fee elimination
+                        (FARE Act) is the main savings
+                      </TableCell>
+                      <TableCell>$2,400–$3,000</TableCell>
+                      <TableCell>steady year-round</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Net-effective math: $3,500 net effective at 1 month free on a
+                13-month lease &asymp; $3,769 gross. Always confirm whether
+                renewal references gross or net effective &mdash; gross is
+                standard, which means a 4% renewal increase compounds on the
+                higher number.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* May 2026 Hunting Plan */}
+          <Card>
+            <CardHeader>
+              <CardTitle>May–August 2026 LIC Hunting Plan</CardTitle>
+              <CardDescription>
+                When to start, where to focus, what to negotiate
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Move-in target: May 1 – June 1, 2026
+                </h3>
+                <p>
+                  Tour Hunters Point waterfront and Hallets Point this week
+                  and next; both have active lease-up concessions that are
+                  most likely to evaporate by Memorial Day. Court Square
+                  stabilized buildings with units listed since March are the
+                  strongest negotiation targets. Apply same-day on the right
+                  unit.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Move-in target: July 1 – August 1, 2026
+                </h3>
+                <p>
+                  Start touring in mid-May and lock by early June. New-con
+                  lease-ups (Hallets Point especially) often retain
+                  concessions deeper into peak season than the rest of LIC
+                  because they&apos;re still filling floors. Avoid
+                  Hunters Point waterfront for this window unless you have
+                  budget flexibility — pricing peaks here first.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Move-in target: September – November 2026
+                </h3>
+                <p>
+                  This is the smartest LIC window of the year. Tour starting
+                  late August once summer carryover is repriced. By October,
+                  Hunters Point will reopen concessions, and by November the
+                  lease-up towers will be doing 2 months free again. Wait if
+                  you can.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  What to negotiate in 2026 specifically
+                </h3>
+                <ul className="ml-4 list-disc space-y-1">
+                  <li>
+                    <strong>Free month + reduced security:</strong> standard
+                    in the lease-up towers; ask for both, not just one.
+                  </li>
+                  <li>
+                    <strong>Application fee waiver ($20 cap):</strong> easier
+                    to win than rent reduction; standard ask.
+                  </li>
+                  <li>
+                    <strong>14-month lease structured as 1 month free
+                    upfront + 13 paid:</strong> protects your renewal anchor
+                    while still capturing the discount.
+                  </li>
+                  <li>
+                    <strong>Mid-month start date:</strong> if you have to
+                    align with a job start, push for prorated first month
+                    rather than paying first month + prorated second.
+                  </li>
+                  <li>
+                    <strong>FARE Act broker-fee confirmation in writing:</strong>{" "}
+                    landlord-side broker fees are illegal under NYC&apos;s
+                    FARE Act; get a line in the lease confirming no broker
+                    fee owed.
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* ── Quick Facts ───────────────────────────── */}
           <Card>

@@ -3,6 +3,7 @@ import {
   BuildingLandingTemplate,
 } from "@/components/buildings/BuildingLandingTemplate";
 import {
+  HUDSON_YARDS_REGION,
   getOtherTowers,
   getTowerBySlug,
 } from "@/lib/buildings/hudsonYardsTowers";
@@ -49,6 +50,11 @@ export default async function OneManhattanWestPage() {
     longitude: tower.longitude,
   });
   return (
-    <BuildingLandingTemplate tower={tower} others={others} liveData={liveData} />
+    <BuildingLandingTemplate
+      tower={tower}
+      others={others}
+      region={HUDSON_YARDS_REGION}
+      liveData={liveData}
+    />
   );
 }

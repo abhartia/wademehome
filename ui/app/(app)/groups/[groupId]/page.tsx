@@ -17,16 +17,11 @@ import {
   UserSearch,
 } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +64,7 @@ export default function GroupDetailPage(props: PageProps) {
   const myGroupsQuery = useMyGroups();
   const group = useMemo(
     () => myGroupsQuery.data?.groups.find((g) => g.id === groupId) ?? null,
-    [myGroupsQuery.data, groupId],
+    [myGroupsQuery.data, groupId]
   );
   const isOwner = group?.role === "owner";
 
@@ -129,6 +124,7 @@ export default function GroupDetailPage(props: PageProps) {
     if (!email) return;
     try {
       await createInvite.mutateAsync({ kind: "email", email });
+      posthog.capture("group_invite_sent", { group_id: groupId, kind: "email" });
       setInviteEmail("");
       toast.success(`Invite email sent to ${email}`);
     } catch (err) {
@@ -140,6 +136,7 @@ export default function GroupDetailPage(props: PageProps) {
     try {
       const invite = await createInvite.mutateAsync({ kind: "link" });
       await navigator.clipboard.writeText(invite.accept_url);
+      posthog.capture("group_share_link_created", { group_id: groupId });
       toast.success("Share link copied to clipboard");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create link");
@@ -166,8 +163,7 @@ export default function GroupDetailPage(props: PageProps) {
   }
 
   async function handleMakeOwner(userId: string, email: string) {
-    if (!confirm(`Make ${email} an owner? They'll have full control of the group.`))
-      return;
+    if (!confirm(`Make ${email} an owner? They'll have full control of the group.`)) return;
     try {
       await updateMemberRole.mutateAsync({ userId, role: "owner" });
       toast.success(`${email} is now an owner`);
@@ -221,294 +217,278 @@ export default function GroupDetailPage(props: PageProps) {
 
   const members = membersQuery.data?.members ?? [];
   const activeInvites = (invitesQuery.data?.invites ?? []).filter(
-    (inv) => !inv.revoked_at && !inv.accepted_at,
+    (inv) => !inv.revoked_at && !inv.accepted_at
   );
 
   return (
     <div className="h-full w-full overflow-y-auto">
       <div className="mx-auto w-full max-w-3xl px-4 py-8">
         <Link href="/groups" className="text-sm text-muted-foreground hover:underline">
-        <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
-        Groups
-      </Link>
+          <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
+          Groups
+        </Link>
 
-      <div className="mt-4 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{group.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {group.member_count} member{group.member_count === 1 ? "" : "s"} •{" "}
-            {isOwner ? "You are the owner" : "You are a member"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setActiveGroupId(group.id);
-              router.push("/search");
-            }}
-          >
-            Search in this group
-          </Button>
-          {isOwner && (
-            <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setNewName(group.name)}
-                >
-                  Rename
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Rename group</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-2 py-2">
-                  <Label htmlFor="rename">Name</Label>
-                  <Input
-                    id="rename"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    maxLength={120}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button variant="ghost" onClick={() => setRenameOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleRename} disabled={renameGroup.isPending}>
-                    Save
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      </div>
-
-      <Separator className="my-6" />
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Invite</CardTitle>
-          <CardDescription>
-            Email magic link or copy a shareable join link.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
-              <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="email"
-                placeholder="partner@example.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Button
-              onClick={handleInviteEmail}
-              disabled={createInvite.isPending || !inviteEmail.trim()}
-            >
-              Send email invite
-            </Button>
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">{group.name}</h1>
+            <p className="text-sm text-muted-foreground">
+              {group.member_count} member{group.member_count === 1 ? "" : "s"} •{" "}
+              {isOwner ? "You are the owner" : "You are a member"}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <Button
-              variant="outline"
               size="sm"
-              onClick={handleShareLink}
-              disabled={createInvite.isPending}
+              variant="outline"
+              onClick={() => {
+                setActiveGroupId(group.id);
+                router.push("/search");
+              }}
             >
-              <LinkIcon className="h-4 w-4" />
-              Copy share link
+              Search in this group
             </Button>
-            <span className="text-xs text-muted-foreground">
-              Anyone with the link can join after signing in.
-            </span>
+            {isOwner && (
+              <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="ghost" onClick={() => setNewName(group.name)}>
+                    Rename
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Rename group</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2 py-2">
+                    <Label htmlFor="rename">Name</Label>
+                    <Input
+                      id="rename"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      maxLength={120}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setRenameOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleRename} disabled={renameGroup.isPending}>
+                      Save
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
+        </div>
 
-          {activeInvites.length > 0 && (
-            <div className="space-y-2 pt-2">
-              <div className="text-xs font-medium uppercase text-muted-foreground">
-                Active invites
+        <Separator className="my-6" />
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Invite</CardTitle>
+            <CardDescription>Email magic link or copy a shareable join link.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative flex-1">
+                <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="partner@example.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="pl-8"
+                />
               </div>
-              {activeInvites.map((inv) => (
-                <div
-                  key={inv.id}
-                  className="flex items-center justify-between gap-2 rounded border px-3 py-2 text-sm"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px]">
-                        {inv.kind}
-                      </Badge>
-                      <span className="truncate">
-                        {inv.email ?? "Anyone with link"}
-                      </span>
+              <Button
+                onClick={handleInviteEmail}
+                disabled={createInvite.isPending || !inviteEmail.trim()}
+              >
+                Send email invite
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareLink}
+                disabled={createInvite.isPending}
+              >
+                <LinkIcon className="h-4 w-4" />
+                Copy share link
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Anyone with the link can join after signing in.
+              </span>
+            </div>
+
+            {activeInvites.length > 0 && (
+              <div className="space-y-2 pt-2">
+                <div className="text-xs font-medium uppercase text-muted-foreground">
+                  Active invites
+                </div>
+                {activeInvites.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="flex items-center justify-between gap-2 rounded border px-3 py-2 text-sm"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          {inv.kind}
+                        </Badge>
+                        <span className="truncate">{inv.email ?? "Anyone with link"}</span>
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">{inv.accept_url}</div>
                     </div>
-                    <div className="truncate text-xs text-muted-foreground">
-                      {inv.accept_url}
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => copyExistingLink(inv.accept_url)}
+                        aria-label="Copy"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRevokeInvite(inv.id)}
+                        aria-label="Revoke"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => copyExistingLink(inv.accept_url)}
-                      aria-label="Copy"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRevokeInvite(inv.id)}
-                      aria-label="Revoke"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <GroupPreferencesCard groupId={groupId} />
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Applicants</CardTitle>
+            <CardDescription>
+              Track people interested in joining this group — for example, a 3rd housemate or
+              someone taking over a room.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              {applicantsQuery.isLoading
+                ? "Loading…"
+                : `${(applicantsQuery.data?.applicants ?? []).filter((a) => a.name || a.email).length} applicant${
+                    (applicantsQuery.data?.applicants ?? []).filter((a) => a.name || a.email)
+                      .length === 1
+                      ? ""
+                      : "s"
+                  }`}
+            </div>
+            <Button onClick={() => router.push(`/groups/${group.id}/applicants`)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Manage applicants
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Find a roommate</CardTitle>
+            <CardDescription>
+              Browse compatible matches scored against everyone in this group.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => {
+                setActiveGroupId(group.id);
+                router.push(`/roommates?g=${group.id}`);
+              }}
+              className="gap-2"
+            >
+              <UserSearch className="h-4 w-4" />
+              Find a roommate
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Members</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {members.map((m) => (
+              <div key={m.user_id} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs">{initials(m.email)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="text-sm">{m.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {m.role === "owner" ? "Owner" : "Member"}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                {isOwner && (
+                  <div className="flex gap-1">
+                    {m.role === "owner" ? (
+                      members.filter((x) => x.role === "owner").length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveOwner(m.user_id, m.email)}
+                          disabled={updateMemberRole.isPending}
+                        >
+                          <ShieldOff className="h-4 w-4" />
+                          Remove owner
+                        </Button>
+                      )
+                    ) : (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMakeOwner(m.user_id, m.email)}
+                          disabled={updateMemberRole.isPending}
+                        >
+                          <ShieldCheck className="h-4 w-4" />
+                          Make owner
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveMember(m.user_id, m.email)}
+                        >
+                          <UserMinus className="h-4 w-4" />
+                          Remove
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-2">
+          {!isOwner && (
+            <Button variant="outline" onClick={handleLeave}>
+              <LogOut className="h-4 w-4" />
+              Leave group
+            </Button>
           )}
-        </CardContent>
-      </Card>
-
-      <GroupPreferencesCard groupId={groupId} />
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Applicants</CardTitle>
-          <CardDescription>
-            Track people interested in joining this group — for example, a 3rd
-            housemate or someone taking over a room.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center justify-between gap-4">
-          <div className="text-sm text-muted-foreground">
-            {applicantsQuery.isLoading
-              ? "Loading…"
-              : `${(applicantsQuery.data?.applicants ?? []).filter((a) => a.name || a.email).length} applicant${
-                  (applicantsQuery.data?.applicants ?? []).filter(
-                    (a) => a.name || a.email,
-                  ).length === 1
-                    ? ""
-                    : "s"
-                }`}
-          </div>
-          <Button
-            onClick={() => router.push(`/groups/${group.id}/applicants`)}
-            className="gap-2"
-          >
-            <UserPlus className="h-4 w-4" />
-            Manage applicants
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Find a roommate</CardTitle>
-          <CardDescription>
-            Browse compatible matches scored against everyone in this group.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={() => {
-              setActiveGroupId(group.id);
-              router.push(`/roommates?g=${group.id}`);
-            }}
-            className="gap-2"
-          >
-            <UserSearch className="h-4 w-4" />
-            Find a roommate
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Members</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {members.map((m) => (
-            <div key={m.user_id} className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-xs">
-                    {initials(m.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="text-sm">{m.email}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {m.role === "owner" ? "Owner" : "Member"}
-                  </div>
-                </div>
-              </div>
-              {isOwner && (
-                <div className="flex gap-1">
-                  {m.role === "owner" ? (
-                    members.filter((x) => x.role === "owner").length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveOwner(m.user_id, m.email)}
-                        disabled={updateMemberRole.isPending}
-                      >
-                        <ShieldOff className="h-4 w-4" />
-                        Remove owner
-                      </Button>
-                    )
-                  ) : (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleMakeOwner(m.user_id, m.email)}
-                        disabled={updateMemberRole.isPending}
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        Make owner
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveMember(m.user_id, m.email)}
-                      >
-                        <UserMinus className="h-4 w-4" />
-                        Remove
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end gap-2">
-        {!isOwner && (
-          <Button variant="outline" onClick={handleLeave}>
-            <LogOut className="h-4 w-4" />
-            Leave group
-          </Button>
-        )}
-        {isOwner && (
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="h-4 w-4" />
-            Delete group
-          </Button>
-        )}
-      </div>
+          {isOwner && (
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 className="h-4 w-4" />
+              Delete group
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

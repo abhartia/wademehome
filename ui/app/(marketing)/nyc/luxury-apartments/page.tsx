@@ -760,6 +760,14 @@ export default function LuxuryApartmentsPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/financial-district"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    Financial District (FiDi) Guide (office conversions)
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/chelsea/rent-prices"
                     className="text-primary underline underline-offset-2"
                   >

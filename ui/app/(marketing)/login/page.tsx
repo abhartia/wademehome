@@ -18,6 +18,7 @@ import {
   resendVerificationEmailAuthVerifyEmailResendPostMutation,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import posthog from "posthog-js";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,11 +34,7 @@ export default function LoginPage() {
       router.replace(pending);
       return;
     }
-    router.replace(
-      user.onboarding_completed
-        ? defaultAppLandingPath(journeyStage)
-        : "/onboarding",
-    );
+    router.replace(user.onboarding_completed ? defaultAppLandingPath(journeyStage) : "/onboarding");
   }, [loading, user, router, journeyStage]);
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
@@ -49,6 +46,10 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     ...loginAuthLoginPostMutation(),
     onSuccess: async (data) => {
+      if (data?.user?.email) {
+        posthog.identify(data.user.email, { email: data.user.email });
+      }
+      posthog.capture("user_logged_in", { method: "password" });
       await queryClient.invalidateQueries({ queryKey: authMeQueryKey() });
       await refresh();
       const pending = pendingInviteRedirectPath();
@@ -109,6 +110,7 @@ export default function LoginPage() {
       await magicMutation.mutateAsync({
         body: { email },
       });
+      posthog.capture("magic_link_requested", { email });
       setInfo("Magic link sent. Check your inbox.");
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -150,11 +152,7 @@ export default function LoginPage() {
                 Resend verification email
               </Button>
             )}
-            <Button
-              disabled={loginMutation.isPending}
-              className="w-full"
-              type="submit"
-            >
+            <Button disabled={loginMutation.isPending} className="w-full" type="submit">
               Continue
             </Button>
             <Button

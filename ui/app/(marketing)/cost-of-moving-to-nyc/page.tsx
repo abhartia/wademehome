@@ -40,6 +40,18 @@ export const metadata: Metadata = {
     "moving to New York City cost",
     "NYC apartment budget calculator",
     "first month rent NYC",
+    "NYC move in cost 2026",
+    "NYC move in cost summer 2026",
+    "post FARE Act move in cost",
+    "NYC move in cost studio",
+    "NYC move in cost 1 bedroom",
+    "NYC move in cost 2 bedroom",
+    "NYC guarantor service cost",
+    "NYC move in cost vs Brooklyn",
+    "NYC move in cost vs Queens",
+    "NYC move in checklist 2026",
+    "how much to save NYC apartment",
+    "post FARE Act security deposit NYC",
   ],
   openGraph: {
     title:
@@ -60,7 +72,7 @@ const jsonLd = [
     description:
       "A detailed breakdown of every cost involved in moving to New York City in 2026, from upfront apartment fees to furniture and utilities.",
     datePublished: "2026-04-16",
-    dateModified: "2026-04-16",
+    dateModified: "2026-04-28",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -115,6 +127,46 @@ const jsonLd = [
         acceptedAnswer: {
           "@type": "Answer",
           text: "Winter months from November through February are the cheapest time to move. Rents are typically 5 to 10 percent lower than peak summer prices, movers offer lower rates due to less demand, and landlords are more willing to negotiate concessions like a free month of rent. The most expensive time is May through September, especially around the September rush.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does a NYC mover cost in 2026?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A studio NYC-to-NYC move runs $450–$900 in 2026 (2–3 movers, 3–4 hours). A 1-bedroom runs $800–$1,500 (3 movers, 4–6 hours). A 2-bedroom runs $1,200–$2,500. NJ ↔ NYC moves add ~$300–$500 over an equivalent in-borough move. Add 25–35% for peak season (June–September) and another 10% for weekends. COIs are required by most NYC buildings — small NYC-licensed movers typically include them; out-of-state movers often charge $50–$100 to issue.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Has the FARE Act lowered NYC move-in costs?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes — substantially. Pre-FARE Act, a typical $3,500/mo 1BR carried a 12–15% broker fee, adding $5,040–$6,300 at move-in. Post-FARE Act (June 2025), landlord-side broker fees are charged to the landlord, not the tenant. The pass-through has shown up as ~5–7% rent increases on previously-broker-fee listings — but the one-time $5,000+ shock is gone. Net effect: most renters save $3,000–$4,000 in upfront cost on a 12-month lease at the cost of slightly higher monthly rent.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does a guarantor service cost in NYC?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Insurent and The Guarantors are the two main NYC guarantor services in 2026. Pricing is approximately 60–90% of one month's rent for the year, paid upfront. On a $3,500/mo apartment, that's $2,100–$3,150 for the lease. Use a guarantor if your income is below the 40× rule, you're self-employed without 2 years of stable returns, or you don't have a qualifying co-signer. Some buildings require Insurent specifically; verify before applying.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Is moving cheaper to Brooklyn or Queens than Manhattan?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes — both upfront and monthly. A 1-bedroom in Astoria ($2,500) vs. Manhattan median ($4,200) saves $1,700/mo and $1,700 in security deposit upfront. Bushwick ($2,700) and Crown Heights ($2,800) deliver similar Manhattan-vs.-outer-borough deltas. Movers typically charge slightly less for outer-borough moves (less Manhattan double-parking surcharge). Trade-off is commute: outer-borough adds 10–25 minutes vs. core Manhattan jobs.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What's the move-in cost for a stabilized vs. market-rate apartment?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Same basic structure (first + security + movers + setup) but two key differences. (1) Stabilized rent is often below-market — a $2,400 stabilized 1BR vs. $3,400 market saves $1,000/mo and lowers every percentage-of-rent fee proportionally. (2) Stabilized landlords are more conservative on income verification (40× rule strict, guarantor often required at lower thresholds). Net: stabilized apartments save you long-term but require slightly more documentation upfront. Run our rent stabilization checker before signing to test eligibility.",
         },
       },
     ],
@@ -231,6 +283,88 @@ export default function CostOfMovingToNYCPage() {
                   rent-by-neighborhood guide
                 </Link>{" "}
                 for detailed pricing.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Spring/Summer 2026 timing playbook ──────────────────── */}
+          <Card className="border-amber-200 bg-amber-50/40">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-amber-600">Reviewed 2026-04-28</Badge>
+                <Badge variant="outline">Spring/Summer 2026 timing</Badge>
+              </div>
+              <CardTitle>
+                Spring/Summer 2026 Move-In Cost Playbook
+              </CardTitle>
+              <CardDescription>
+                The post-FARE Act NYC market behaves differently than 2024 or
+                earlier. Here&apos;s how to think about timing for the next
+                4 months specifically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Move-in window</TableHead>
+                    <TableHead>Search start</TableHead>
+                    <TableHead>Concession outlook</TableHead>
+                    <TableHead>Mover surcharge</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">May 2026</TableCell>
+                    <TableCell>now (Apr 2026)</TableCell>
+                    <TableCell>1.5 mo free still common on tower lease-ups</TableCell>
+                    <TableCell>+10–15%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">June 2026</TableCell>
+                    <TableCell>mid-Apr 2026</TableCell>
+                    <TableCell>Compresses to 1 mo free; some buildings drop to 0.5</TableCell>
+                    <TableCell>+25–35%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">July 2026</TableCell>
+                    <TableCell>late-May 2026</TableCell>
+                    <TableCell>Negligible; peak demand window</TableCell>
+                    <TableCell>+30–35%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Aug 2026</TableCell>
+                    <TableCell>late-Jun 2026</TableCell>
+                    <TableCell>Negligible; absolute peak</TableCell>
+                    <TableCell>+30–35%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p>
+                <strong>Implication for total move-in budget:</strong> moving
+                in May saves ~$1,800–$2,400 vs. July on a $3,500/mo 1BR — the
+                concession (1 mo free) plus the lower mover surcharge
+                effectively cancels the first month&apos;s rent. If you have
+                schedule flexibility, lock May or early June. If you must move
+                in July or August, budget the upper-bound numbers in this
+                guide and plan to negotiate harder on lease length than on
+                rent.
+              </p>
+              <p>
+                <strong>Why the FARE Act changes the math:</strong>
+                Pre-2025, the broker fee added $5,000+ on top of the
+                first+security as a one-time shock. That shock is gone for
+                listings on StreetEasy/Zillow/Apartments.com. Asking rents are
+                ~5–7% higher to compensate, but on a 12-month lease the renter
+                still saves $3,000–$4,000 net. See our{" "}
+                <Link href="/blog/nyc-fare-act-broker-fee-ban" className="text-primary underline">
+                  FARE Act guide
+                </Link>{" "}
+                for the legal details and our{" "}
+                <Link href="/tools/move-in-cost-estimator" className="text-primary underline">
+                  move-in cost estimator
+                </Link>{" "}
+                to run your specific numbers.
               </p>
             </CardContent>
           </Card>

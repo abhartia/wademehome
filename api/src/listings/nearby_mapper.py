@@ -127,6 +127,16 @@ def _name_from_row(row: Mapping[str, Any]) -> str:
         v = _get_ci(row, key)
         if isinstance(v, str) and v.strip():
             return v.strip()
+    for key in (
+        "address",
+        "street_address",
+        "full_address",
+        "formatted_address",
+        "location",
+    ):
+        v = _get_ci(row, key)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
     return "Listing"
 
 

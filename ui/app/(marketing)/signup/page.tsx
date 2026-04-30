@@ -17,6 +17,7 @@ import {
   signupAuthSignupPostMutation,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import posthog from "posthog-js";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -30,11 +31,7 @@ export default function SignupPage() {
       router.replace(pending);
       return;
     }
-    router.replace(
-      user.onboarding_completed
-        ? defaultAppLandingPath(journeyStage)
-        : "/onboarding",
-    );
+    router.replace(user.onboarding_completed ? defaultAppLandingPath(journeyStage) : "/onboarding");
   }, [loading, user, router, journeyStage]);
 
   const [email, setEmail] = useState("");
@@ -63,6 +60,7 @@ export default function SignupPage() {
       await signupMutation.mutateAsync({
         body: { email, password },
       });
+      posthog.capture("user_signed_up", { method: "password", email });
       setSent(true);
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -76,7 +74,10 @@ export default function SignupPage() {
       await magicMutation.mutateAsync({
         body: { email },
       });
-      setInfo("Magic link sent. Check your inbox—opening it creates your account and signs you in.");
+      posthog.capture("magic_link_requested", { email, context: "signup" });
+      setInfo(
+        "Magic link sent. Check your inbox—opening it creates your account and signs you in."
+      );
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -140,11 +141,7 @@ export default function SignupPage() {
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
               {info && <p className="text-sm text-muted-foreground">{info}</p>}
-              <Button
-                disabled={signupMutation.isPending}
-                className="w-full"
-                type="submit"
-              >
+              <Button disabled={signupMutation.isPending} className="w-full" type="submit">
                 Sign up
               </Button>
               <Button

@@ -171,6 +171,8 @@ def parse_listing_from_api(item: dict, scraped_ts: str) -> tuple[dict | None, li
 
     property_name = (loc.get("buildingName") or item.get("buildingName")
                      or item.get("propertyName") or "")
+    if not property_name and address:
+        property_name = address
     description = item.get("description") or item.get("remarks") or ""
 
     # Build listing URL: construct canonical slug from address

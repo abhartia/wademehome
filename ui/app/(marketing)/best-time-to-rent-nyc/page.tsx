@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { MoveInTimingCalculator } from "@/components/best-time/MoveInTimingCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   title:
     "Best Time to Rent an Apartment in NYC (2026): Month-by-Month Guide",
   description:
-    "When should you start apartment hunting in NYC? See how rent prices, inventory, and competition shift month-by-month. Save $200-500/month by timing your move right.",
+    "When should you start apartment hunting in NYC? See how rent prices, inventory, and competition shift month-by-month. Save $200-500/month by timing your move right. Updated for the 2026 May–August peak season.",
   keywords: [
     "best time to rent apartment NYC",
     "when to start looking for apartment NYC",
@@ -42,6 +43,18 @@ export const metadata: Metadata = {
     "when do NYC leases start",
     "NYC rental market timing",
     "off-season apartment NYC",
+    "when to start apartment hunting NYC 2026",
+    "May 2026 NYC apartment market",
+    "summer 2026 NYC rent",
+    "FARE Act apartment timing",
+    "NYC peak season 2026",
+    "shoulder season NYC apartments",
+    "NYC apartment search start date",
+    "NYC rental concessions calendar",
+    "January apartment NYC",
+    "February apartment NYC",
+    "October November apartment NYC",
+    "NYC lease start date timing",
   ],
   openGraph: {
     title:
@@ -63,7 +76,7 @@ const jsonLd = [
     description:
       "A complete month-by-month breakdown of the NYC rental market — when prices peak, when inventory floods, and when smart renters lock in deals.",
     datePublished: "2026-04-16",
-    dateModified: "2026-04-16",
+    dateModified: "2026-04-27",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -185,11 +198,114 @@ export default function BestTimeToRentNycPage() {
               competing against, and what your negotiating leverage is.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated April 2026 &middot; Based on multi-year median asking
+              Reviewed 2026-04-27 &middot; Based on multi-year median asking
               rent and inventory patterns across Manhattan, Brooklyn, and
-              Queens
+              Queens. NYC&apos;s 2026 peak season starts in approximately one
+              week (early May). The mid-April reset of the FARE Act effect on
+              landlord pricing is reflected in the May–August commentary
+              below.
             </p>
           </header>
+
+          {/* May 2026 Action Plan — peak is one week away */}
+          <Card className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">Time-Sensitive</Badge>
+                <Badge variant="outline">May 2026 Plan</Badge>
+              </div>
+              <CardTitle>
+                If you&apos;re searching now, here&apos;s your May 2026 action
+                plan
+              </CardTitle>
+              <CardDescription>
+                As of late April 2026, the peak season is roughly one week out.
+                Your tactics over the next 30 days look very different
+                depending on your move-in window.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Move-in target: May 1 – June 1, 2026
+                </h3>
+                <p>
+                  You&apos;re late but not too late. Inventory is rapidly
+                  building (March/April listings remain) and a meaningful share
+                  of stale spring listings are seeing rent reductions before
+                  the peak surge prices everything up. Tour aggressively this
+                  week (5–8 tours), apply same-day on the right place, and
+                  prioritize <strong>units listed before April 15</strong>{" "}
+                  &mdash; those carry the most negotiation room left in the
+                  cycle.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Move-in target: July 1 – September 1, 2026
+                </h3>
+                <p>
+                  Start touring May 15 onward, not before. Most apartments
+                  available July 1 will not be listed until late May or early
+                  June (NYC landlords list inside the 45-day window). Use the
+                  next 4 weeks to <strong>finalize neighborhoods</strong>,
+                  pre-stage your application packet (one PDF: last 2 pay stubs,
+                  W-2 or last tax return, photo ID, 2 reference letters, last
+                  bank statement), and pre-clear with a guarantor service if
+                  you don&apos;t hit the 40x income bar.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Move-in target: October 2026 – February 2027
+                </h3>
+                <p>
+                  You&apos;re in the best window of the entire 2026 calendar.
+                  Don&apos;t accelerate &mdash; the longer you can wait the
+                  better the deal. Use the summer to{" "}
+                  <strong>browse without urgency</strong>, build a list of
+                  buildings you like, and start contacting their leasing offices
+                  in mid-September when concessions begin reappearing on
+                  carryover inventory. October–November are the highest-leverage
+                  months of the year for negotiation.
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="mb-1 font-semibold text-foreground">
+                  Common 2026-specific watch-outs
+                </h3>
+                <ul className="ml-4 list-disc space-y-1">
+                  <li>
+                    <strong>FARE Act renewal pricing:</strong> landlords on
+                    units that turned over in 2025 (the first FARE Act year)
+                    often baked the broker fee into the headline rent. Expect
+                    those gross rents to reset 4–6% on renewal even when the
+                    market itself is flat.
+                  </li>
+                  <li>
+                    <strong>Concession compression in tight submarkets:</strong>{" "}
+                    East Village (+65% YoY search demand), Jersey City
+                    waterfront (+34% YoY), and Hudson Yards luxury are all
+                    rising faster than supply &mdash; concessions in these
+                    submarkets will dry up first, even in shoulder season.
+                  </li>
+                  <li>
+                    <strong>LIC and Williamsburg tower lease-ups:</strong>{" "}
+                    Several new towers (Domino Square Phase 2 in
+                    Williamsburg, Hallets Point in LIC) deliver units in summer
+                    2026; their lease-up concessions can lag the rest of the
+                    market by 2–3 months &mdash; worth checking even at peak.
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Interactive: Move-In Timing Calculator */}
+          <MoveInTimingCalculator />
 
           {/* TL;DR */}
           <Card>
@@ -1098,6 +1214,36 @@ export default function BestTimeToRentNycPage() {
                   NYC FARE Act broker fee ban
                 </Link>{" "}
                 &mdash; understand who pays the broker fee.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/luxury-apartments"
+                  className="text-primary underline underline-offset-2"
+                >
+                  NYC luxury apartments
+                </Link>{" "}
+                &mdash; trophy buildings that hold the deepest winter
+                concessions; +76% YoY search demand for 2026.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/cheap-apartments"
+                  className="text-primary underline underline-offset-2"
+                >
+                  NYC cheap apartments
+                </Link>{" "}
+                &mdash; the actually-affordable submarkets, with subway-line
+                rent map.
+              </p>
+              <p>
+                <Link
+                  href="/nyc/no-fee-apartments"
+                  className="text-primary underline underline-offset-2"
+                >
+                  NYC no-fee apartments
+                </Link>{" "}
+                &mdash; what counts as no-fee post-FARE Act, and where the
+                deepest no-fee inventory sits.
               </p>
               <p>
                 <Link

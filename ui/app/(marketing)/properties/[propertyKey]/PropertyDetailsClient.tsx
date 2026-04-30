@@ -38,6 +38,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 function toFiniteNumber(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -81,7 +82,10 @@ export default function PropertyDetailsClient({
   const apiEnabled = Boolean(user) && !authLoading;
   const apiBaseConfigured = isApiConfigured();
 
-  const cached = useMemo(() => (propertyKey ? getCachedProperty(propertyKey) : null), [propertyKey]);
+  const cached = useMemo(
+    () => (propertyKey ? getCachedProperty(propertyKey) : null),
+    [propertyKey]
+  );
   const listingQuery = usePropertyByKey(propertyKey, {
     enabled: Boolean(propertyKey) && apiBaseConfigured,
   });
@@ -96,21 +100,17 @@ export default function PropertyDetailsClient({
 
   const hasRowCoords = Boolean(
     property &&
-      toFiniteNumber(property.latitude) != null &&
-      toFiniteNumber(property.longitude) != null,
+    toFiniteNumber(property.latitude) != null &&
+    toFiniteNumber(property.longitude) != null
   );
   const geoQuery = useListingGeocode(property?.address ?? "", {
     enabled: Boolean(property) && !hasRowCoords && apiBaseConfigured,
   });
 
   const mapLat =
-    toFiniteNumber(property?.latitude) ??
-    toFiniteNumber(geoQuery.data?.latitude) ??
-    null;
+    toFiniteNumber(property?.latitude) ?? toFiniteNumber(geoQuery.data?.latitude) ?? null;
   const mapLng =
-    toFiniteNumber(property?.longitude) ??
-    toFiniteNumber(geoQuery.data?.longitude) ??
-    null;
+    toFiniteNumber(property?.longitude) ?? toFiniteNumber(geoQuery.data?.longitude) ?? null;
 
   const nearbyQuery = useNearbyListings({
     mode: "radius",
@@ -162,7 +162,9 @@ export default function PropertyDetailsClient({
     );
   }
 
-  const showLoadingShell = !property && (listingQuery.isLoading || (apiBaseConfigured && listingQuery.fetchStatus === "fetching"));
+  const showLoadingShell =
+    !property &&
+    (listingQuery.isLoading || (apiBaseConfigured && listingQuery.fetchStatus === "fetching"));
   if (showLoadingShell) {
     return (
       <main className="mx-auto max-w-5xl space-y-4 px-4 py-6 sm:px-6 sm:py-10">
@@ -178,8 +180,8 @@ export default function PropertyDetailsClient({
       <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
         <h1 className="text-2xl font-semibold">Property unavailable</h1>
         <p className="mt-2 text-muted-foreground">
-          We could not load this listing. It may have been removed, or the link may be invalid. Try opening it again
-          from search results.
+          We could not load this listing. It may have been removed, or the link may be invalid. Try
+          opening it again from search results.
         </p>
         {!apiBaseConfigured ? (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -232,11 +234,17 @@ export default function PropertyDetailsClient({
 
           {!user && !authLoading ? (
             <p className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">
-              <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
+              <Link
+                href="/login"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
                 Log in
               </Link>{" "}
               or{" "}
-              <Link href="/signup" className="font-medium text-foreground underline underline-offset-4">
+              <Link
+                href="/signup"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
                 sign up
               </Link>{" "}
               to save this listing, add notes, and request a tour.
@@ -252,7 +260,14 @@ export default function PropertyDetailsClient({
                     propertyName: property.name,
                     propertyAddress: property.address,
                   });
-                  toast.success(response.favorited ? "Saved to favorites" : "Removed from favorites");
+                  posthog.capture("property_saved", {
+                    property_key: propertyKey,
+                    property_name: property.name,
+                    favorited: response.favorited,
+                  });
+                  toast.success(
+                    response.favorited ? "Saved to favorites" : "Removed from favorites"
+                  );
                 }}
               >
                 {isFavorited ? "Unsave" : "Save"}
@@ -275,6 +290,10 @@ export default function PropertyDetailsClient({
               variant="outline"
               onClick={async () => {
                 await shareListingUrl({ url: window.location.href, title: property.name });
+                posthog.capture("property_shared", {
+                  property_key: propertyKey,
+                  property_name: property.name,
+                });
               }}
             >
               Share
@@ -301,7 +320,9 @@ export default function PropertyDetailsClient({
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">All amenities</h2>
             {Object.keys(amenityGroups).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No detailed amenity list for this listing.</p>
+              <p className="text-sm text-muted-foreground">
+                No detailed amenity list for this listing.
+              </p>
             ) : (
               <div className="space-y-4">
                 {Object.entries(amenityGroups).map(([group, items]) => (
@@ -333,6 +354,7 @@ export default function PropertyDetailsClient({
                   size="sm"
                   onClick={async () => {
                     await upsertNote.mutateAsync(draftNote);
+                    posthog.capture("property_note_saved", { property_key: propertyKey });
                     toast.success("Note saved");
                   }}
                 >
@@ -366,13 +388,15 @@ export default function PropertyDetailsClient({
               <Card>
                 <CardContent className="py-6 text-sm text-muted-foreground">
                   Map pin needs coordinates. Configure{" "}
-                  <code className="rounded bg-muted px-1">MAPBOX_ACCESS_TOKEN</code> on the API for geocoding, or
-                  ensure listings include latitude and longitude.
+                  <code className="rounded bg-muted px-1">MAPBOX_ACCESS_TOKEN</code> on the API for
+                  geocoding, or ensure listings include latitude and longitude.
                 </CardContent>
               </Card>
             )}
             {geoQuery.isError ? (
-              <p className="mt-2 text-xs text-destructive">Could not geocode this address for the map.</p>
+              <p className="mt-2 text-xs text-destructive">
+                Could not geocode this address for the map.
+              </p>
             ) : null}
           </div>
 
@@ -441,10 +465,17 @@ export default function PropertyDetailsClient({
                     requested_time: tourRequestedTime || null,
                     request_message: tourRequestMessage.trim() || null,
                   });
+                  posthog.capture("tour_requested", {
+                    property_key: propertyKey,
+                    property_name: property.name,
+                    requested_date: tourRequestedDate || null,
+                    requested_time: tourRequestedTime || null,
+                  });
                   toast.success("Tour request sent");
                   setTourConfirmOpen(false);
                 } catch (error) {
-                  const message = error instanceof Error ? error.message : "Could not send tour request";
+                  const message =
+                    error instanceof Error ? error.message : "Could not send tour request";
                   toast.error(message);
                 }
               }}

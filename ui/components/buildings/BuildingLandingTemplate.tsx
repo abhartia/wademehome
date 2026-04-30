@@ -18,7 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
-import type { HudsonYardsTower } from "@/lib/buildings/hudsonYardsTowers";
+import type {
+  BuildingRegion,
+  Tower,
+} from "@/lib/buildings/towerTypes";
+import { fillBrokerFeeBody } from "@/lib/buildings/towerTypes";
 import type { BuildingLiveData } from "@/lib/buildings/serverBuildingData";
 import { buildPropertyKey } from "@/lib/properties/propertyKey";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
@@ -28,8 +32,9 @@ const baseUrl =
   "https://wademehome.com";
 
 type Props = {
-  tower: HudsonYardsTower;
-  others: HudsonYardsTower[];
+  tower: Tower;
+  others: Tower[];
+  region: BuildingRegion;
   /**
    * Optional server-side fetched live data: building review aggregates from
    * `/buildings/{id}` plus currently-listed nearby units from
@@ -55,9 +60,19 @@ function shortAddress(addr: string | null | undefined): string {
   return parts.slice(0, 2).join(", ") || addr;
 }
 
-export function buildJsonLd(tower: HudsonYardsTower) {
-  const neighborhood = tower.neighborhood;
+export function buildJsonLd(tower: Tower, region: BuildingRegion) {
   const url = `${baseUrl}/buildings/${tower.slug}`;
+
+  // Parse city/state from the tower's full street address ("Street, City, ST ZIP")
+  // and prefer those over the region defaults — necessary for towers like Nine
+  // on the Hudson (Port Imperial cluster, but administratively in West New York).
+  const addrParts = tower.address.split(",").map((s) => s.trim());
+  const localityFromAddr = addrParts[1] || null;
+  const stateFromAddr = (() => {
+    const cityStateZip = addrParts[2] ?? "";
+    const match = cityStateZip.match(/\b([A-Z]{2})\b/);
+    return match ? match[1] : null;
+  })();
 
   const apartmentComplex = {
     "@context": "https://schema.org",
@@ -66,9 +81,9 @@ export function buildJsonLd(tower: HudsonYardsTower) {
     url,
     address: {
       "@type": "PostalAddress",
-      streetAddress: tower.address.split(",")[0]?.trim() ?? tower.address,
-      addressLocality: "New York",
-      addressRegion: "NY",
+      streetAddress: addrParts[0] ?? tower.address,
+      addressLocality: localityFromAddr ?? region.city,
+      addressRegion: stateFromAddr ?? region.state,
       postalCode: tower.address.match(/\b\d{5}\b/)?.[0] ?? undefined,
       addressCountry: "US",
     },
@@ -82,21 +97,21 @@ export function buildJsonLd(tower: HudsonYardsTower) {
     containedInPlace: [
       {
         "@type": "Place",
-        name: neighborhood,
+        name: tower.neighborhood,
         address: {
           "@type": "PostalAddress",
-          addressLocality: "New York",
-          addressRegion: "NY",
+          addressLocality: localityFromAddr ?? region.city,
+          addressRegion: stateFromAddr ?? region.state,
           addressCountry: "US",
         },
       },
       {
         "@type": "City",
-        name: "New York",
+        name: localityFromAddr ?? region.city,
         address: {
           "@type": "PostalAddress",
-          addressLocality: "New York",
-          addressRegion: "NY",
+          addressLocality: localityFromAddr ?? region.city,
+          addressRegion: stateFromAddr ?? region.state,
           addressCountry: "US",
         },
       },
@@ -124,14 +139,14 @@ export function buildJsonLd(tower: HudsonYardsTower) {
       {
         "@type": "ListItem",
         position: 2,
-        name: "NYC",
-        item: `${baseUrl}/nyc-rent-by-neighborhood`,
+        name: region.parentLabel,
+        item: `${baseUrl}${region.parentHref}`,
       },
       {
         "@type": "ListItem",
         position: 3,
-        name: neighborhood,
-        item: `${baseUrl}/nyc/chelsea`,
+        name: tower.neighborhood,
+        item: `${baseUrl}${region.hubHref}`,
       },
       {
         "@type": "ListItem",
@@ -145,8 +160,8 @@ export function buildJsonLd(tower: HudsonYardsTower) {
   return [apartmentComplex, faqPage, breadcrumbs];
 }
 
-export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
-  const jsonLd = buildJsonLd(tower);
+export function BuildingLandingTemplate({ tower, others, region, liveData }: Props) {
+  const jsonLd = buildJsonLd(tower, region);
   const detail = liveData?.detail ?? null;
   const nearbyProperties = liveData?.nearby?.properties ?? [];
   const totalInRadius = liveData?.nearby?.total_in_radius ?? 0;
@@ -159,6 +174,7 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
   const reviewToolHref = `/buildings/${tower.buildingId}`;
   const hasAnyLiveSignal =
     Boolean(detail) || nearbyProperties.length > 0 || totalInRadius > 0;
+  const brokerFeeBody = fillBrokerFeeBody(region.brokerFee.body, tower);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -375,33 +391,28 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
             </Card>
           ) : null}
 
-          {/* No-fee callout — FARE Act */}
+          {/* Broker-fee callout — region-specific (FARE Act for NYC, direct-leased for NJ) */}
           <Card className="border-emerald-500/40 bg-emerald-500/5">
             <CardHeader>
               <CardTitle className="text-emerald-700 dark:text-emerald-400">
-                No-fee under the NYC FARE Act
+                {region.brokerFee.title}
               </CardTitle>
               <CardDescription>
-                Landlord-side listings cannot charge tenants a broker fee
+                {region.brokerFee.subtitle}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                {tower.name} is leased directly by {tower.developer} or by
-                landlord-side brokers. Under New York City&apos;s FARE Act
-                (effective June 2025), tenants cannot be charged a broker fee
-                on landlord-side listings — so renting at {tower.name} through
-                any official channel is no-fee to the tenant.
-              </p>
-              <p>
-                <Link
-                  href="/tools/fare-act-broker-fee-checker"
-                  className="text-primary underline underline-offset-2"
-                >
-                  Check whether a specific listing should be no-fee under the
-                  FARE Act →
-                </Link>
-              </p>
+              <p>{brokerFeeBody}</p>
+              {region.brokerFee.toolHref && region.brokerFee.toolLabel ? (
+                <p>
+                  <Link
+                    href={region.brokerFee.toolHref}
+                    className="text-primary underline underline-offset-2"
+                  >
+                    {region.brokerFee.toolLabel}
+                  </Link>
+                </p>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -537,7 +548,7 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
             <CardHeader>
               <CardTitle>Compare with Nearby Buildings</CardTitle>
               <CardDescription>
-                Other named rental towers in Hudson Yards / West Chelsea
+                Other named rental towers in {region.regionLabel}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -564,23 +575,22 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
             </CardContent>
           </Card>
 
-          {/* Browse Chelsea / Hudson Yards listings CTA */}
+          {/* Browse listings CTA */}
           <Card className="border-primary/40 bg-primary/5">
             <CardHeader>
-              <CardTitle>Browse Live Chelsea &amp; Hudson Yards Listings</CardTitle>
+              <CardTitle>{region.browseTitle}</CardTitle>
               <CardDescription>
-                See all currently-available rentals in the neighborhood — not
-                just {tower.name}
+                {region.browseDescription}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex flex-wrap gap-2">
                 <Button asChild>
-                  <Link href="/nyc/chelsea">Browse Chelsea apartments</Link>
+                  <Link href={region.hubHref}>{region.browseHubButtonLabel}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/nyc/chelsea/rent-prices">
-                    Chelsea rent prices (2026)
+                  <Link href={region.rentPricesHref}>
+                    {region.rentPricesButtonLabel}
                   </Link>
                 </Button>
                 <Button asChild variant="outline">
@@ -588,9 +598,7 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Wade Me Home aggregates Chelsea and Hudson Yards listings from
-                multiple sources, with a chat-style AI search that filters by
-                budget, must-haves, and neighborhood preferences in seconds.
+                {region.browseAggregatorPitch}
               </p>
             </CardContent>
           </Card>
@@ -608,9 +616,9 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
                 >
                   Net-effective rent calculator
                 </Link>{" "}
-                — convert a Hudson Yards &quot;1 month free on a 13-month
-                lease&quot; offer into the actual monthly cost you&apos;ll pay,
-                and into the gross rent that anchors your renewal.
+                — convert a &quot;1 month free on a 13-month lease&quot; offer
+                into the actual monthly cost you&apos;ll pay, and into the
+                gross rent that anchors your renewal.
               </p>
               <p>
                 <Link
@@ -620,7 +628,7 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
                   NYC affordability calculator
                 </Link>{" "}
                 — check whether your income clears the 40x-rent rule that{" "}
-                {tower.developer} (and most NYC landlords) use, or how much
+                {tower.developer} (and most landlords) use, or how much
                 guarantor income you need.
               </p>
               <p>
@@ -630,15 +638,16 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
                 >
                   FARE Act broker-fee checker
                 </Link>{" "}
-                — confirm whether a specific {tower.name} listing should be
-                no-fee under the June 2025 FARE Act.
+                — confirm whether a specific NYC listing should be no-fee
+                under the June 2025 FARE Act (NYC only — does not apply in
+                New Jersey).
               </p>
               <p>
                 <Link
                   href="/tools/move-in-cost-estimator"
                   className="text-primary underline underline-offset-2"
                 >
-                  NYC move-in cost estimator
+                  Move-in cost estimator
                 </Link>{" "}
                 — full upfront-cost breakdown (first month, security, broker
                 fee if any, movers).
@@ -654,13 +663,12 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
             <CardContent className="space-y-3 text-sm">
               <p>
                 <Link
-                  href="/nyc/chelsea/rent-prices"
+                  href={region.rentPricesHref}
                   className="text-primary underline underline-offset-2"
                 >
-                  Chelsea rent prices (2026)
+                  {region.rentPricesButtonLabel}
                 </Link>{" "}
-                — full sub-area rent breakdown including the Hudson Yards
-                tower tier and the High Line premium.
+                — {region.relatedRentPricesEssay}.
               </p>
               <p>
                 <Link
@@ -669,8 +677,8 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
                 >
                   Best time to rent in NYC
                 </Link>{" "}
-                — when {tower.developer} and other Hudson Yards landlords
-                typically offer the deepest concessions.
+                — when {tower.developer} and other {region.relatedBestTimeArea}{" "}
+                landlords typically offer the deepest concessions.
               </p>
               <p>
                 <Link
@@ -679,8 +687,8 @@ export function BuildingLandingTemplate({ tower, others, liveData }: Props) {
                 >
                   NYC FARE Act broker-fee ban explained
                 </Link>{" "}
-                — what changed in June 2025 and how it applies to
-                Hudson-Yards-tier rentals.
+                — what changed in June 2025 and how it applies to NYC rentals
+                (the law does not apply in New Jersey).
               </p>
             </CardContent>
           </Card>

@@ -611,6 +611,46 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/financial-district"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Financial District (FiDi): Office-Conversion Guide &amp; Rent
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/financial-district/rent-prices"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    FiDi Rent Prices: Office-Conversion vs. Pre-War Loft vs. Trophy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc/forest-hills"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Forest Hills, Queens: E/F/M/R Express &amp; Tudor Garden Rent Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/tools/rent-stabilization-checker"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Rent Stabilization Checker: Is Your Apartment Stabilized?
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/tools/rgb-renewal-calculator"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    RGB Renewal Calculator: 1-Year vs. 2-Year (2025–2026)
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/cheap-apartments"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

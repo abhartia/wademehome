@@ -1,5 +1,7 @@
 "use client";
 
+import posthog from "posthog-js";
+
 declare global {
   interface Window {
     dataLayer: unknown[];
@@ -34,10 +36,19 @@ export function initializeGa(measurementId: string) {
 }
 
 export function updateAnalyticsConsent(granted: boolean) {
-  if (!hasGtag()) return;
-  window.gtag("consent", "update", {
-    analytics_storage: granted ? "granted" : "denied",
-  });
+  if (hasGtag()) {
+    window.gtag("consent", "update", {
+      analytics_storage: granted ? "granted" : "denied",
+    });
+  }
+  if (typeof window !== "undefined" && posthog.__loaded) {
+    if (granted) {
+      posthog.opt_in_capturing();
+    } else {
+      posthog.opt_out_capturing();
+      posthog.reset();
+    }
+  }
 }
 
 export function trackPageView(path: string, title?: string) {

@@ -13,6 +13,7 @@ import { LogTourModal } from "@/components/tours/LogTourModal";
 import { Tour, TourProperty } from "@/lib/types/tours";
 import { CalendarPlus, Search, Bookmark, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { useUserProfile } from "@/components/providers/UserProfileProvider";
 
 const VALID_TABS = new Set(["upcoming", "completed", "saved"]);
@@ -195,9 +196,15 @@ export default function ToursPage() {
                   key={tour.id}
                   tour={tour}
                   onEditNotes={() => openNotes(tour)}
-                  onMarkComplete={() =>
-                    updateTour(tour.id, { status: "completed" })
-                  }
+                  onMarkComplete={() => {
+                    posthog.capture("tour_completed", {
+                      tour_id: tour.id,
+                      property_id: tour.property.id,
+                      property_name: tour.property.name,
+                      scheduled_date: tour.scheduledDate,
+                    });
+                    updateTour(tour.id, { status: "completed" });
+                  }}
                   onCancel={() =>
                     updateTour(tour.id, { status: "cancelled" })
                   }

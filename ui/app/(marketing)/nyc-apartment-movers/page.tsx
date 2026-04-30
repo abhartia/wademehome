@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 
 const baseUrl =
@@ -17,9 +25,9 @@ const baseUrl =
   "https://wademehome.com";
 
 export const metadata: Metadata = {
-  title: "NYC Apartment Movers: Costs, Building Rules & How to Hire | Wade Me Home",
+  title: "NYC Apartment Movers (2026): Costs, COI Rules & How to Hire | Wade Me Home",
   description:
-    "Complete guide to hiring apartment movers in NYC. Costs ($450-$2,500), COI requirements, walk-up surcharges, scam red flags, and FAQs for Manhattan, Brooklyn, and Queens moves.",
+    "2026 guide to hiring apartment movers in NYC. Studio $450–$900, 1BR $800–$1,500, 2BR $1,200–$2,500. COI requirements, walk-up flight surcharges, peak-season pricing, scam red flags, and step-by-step booking timeline for Manhattan, Brooklyn, and Queens.",
   keywords: [
     "apartment movers NYC",
     "NYC moving companies",
@@ -29,27 +37,53 @@ export const metadata: Metadata = {
     "best movers NYC",
     "NYC moving guide",
     "Brooklyn movers",
+    "NYC moving cost 2026",
+    "studio movers NYC cost",
+    "1 bedroom movers NYC cost",
+    "2 bedroom movers NYC cost",
+    "NYC walk-up moving cost",
+    "COI for NYC apartment building",
+    "moving certificate of insurance NYC",
+    "movers NYC peak season",
+    "summer movers NYC",
+    "Queens apartment movers",
+    "NJ to NYC movers",
+    "long distance NYC movers cost",
+    "NYC moving day checklist",
+    "NYC mover deposit",
+    "movers NYC tip",
+    "USDOT NYC mover",
   ],
   openGraph: {
-    title: "NYC Apartment Movers: Costs, Building Rules & How to Hire",
+    title: "NYC Apartment Movers (2026): Costs, COI Rules & How to Hire",
     description:
-      "Complete guide to hiring apartment movers in NYC. Costs, COI requirements, walk-up surcharges, scam red flags, and FAQs.",
+      "2026 guide to hiring apartment movers in NYC. Costs by apartment size, COI requirements, walk-up surcharges, peak-season pricing, scam red flags, and booking timeline.",
     url: `${baseUrl}/nyc-apartment-movers`,
+    type: "article",
   },
+  alternates: { canonical: `${baseUrl}/nyc-apartment-movers` },
 };
 
 const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: "Best Movers for NYC Apartments",
+    headline: "NYC Apartment Movers (2026): Costs, COI Rules & How to Hire",
     description:
-      "A guide to hiring movers for New York City apartment moves, covering building requirements, costs, scam prevention, and frequently asked questions.",
+      "A 2026 guide to hiring movers for New York City apartment moves, covering building requirements, costs by apartment size, peak-season pricing, scam prevention, and frequently asked questions.",
+    datePublished: "2026-04-17",
+    dateModified: "2026-04-27",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
       url: baseUrl,
     },
+    author: {
+      "@type": "Organization",
+      name: "Wade Me Home",
+      url: baseUrl,
+    },
+    mainEntityOfPage: `${baseUrl}/nyc-apartment-movers`,
   },
   {
     "@context": "https://schema.org",
@@ -95,6 +129,62 @@ const jsonLd = [
           text: "A COI is a document from the moving company's insurer naming your building as an additional insured. Many NYC buildings require this before allowing movers into the building. Ask your building management for the specific requirements and give your movers at least a week to provide it.",
         },
       },
+      {
+        "@type": "Question",
+        name: "How much does it cost to move a studio in NYC?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A studio move within the five boroughs typically runs $450 to $900 in 2026. The low end assumes a two-person crew, a 3-hour minimum at $150/hr, ground-floor pickup and delivery, and no large furniture. The high end reflects a fifth-floor walk-up move with stair surcharges, packing materials, and a longer carry from the truck. Studios usually do not need a third mover, which keeps the hourly rate lower than a one-bedroom move.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does it cost to move a 1-bedroom in NYC?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A one-bedroom move within the five boroughs typically runs $800 to $1,500 in 2026. Most companies dispatch a three-person crew at $200 to $250/hr with a 4-hour minimum. Add $50 to $75 per flight for walk-ups (both pickup and delivery), $100 to $200 for long carries beyond 75 feet from the truck, and $50 to $100 for materials. Inter-borough moves (Manhattan to Brooklyn, Queens to Manhattan, etc.) run on the higher end of the range due to traffic and bridge tolls.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does it cost to move a 2-bedroom in NYC?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A two-bedroom move within the five boroughs typically runs $1,200 to $2,500 in 2026. Plan on a three-to-four-person crew, a 5-to-7-hour job at $250 to $350/hr, plus standard surcharges for stairs, long carries, and materials. Two-bedrooms with a piano, oversized art, or a heavy sectional couch can push the total to $2,500 to $3,500 depending on the specialty handling required.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Are NYC movers more expensive in summer?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes — NYC mover hourly rates run 20% to 35% higher in May through August, and the most-reviewed companies book up 4 to 6 weeks in advance for the first and last days of each month. Off-peak (October through February) rates can drop 10% to 20% below the annual average, and you can usually book a reputable company with 1 to 2 weeks of lead time. A mid-month weekday move in winter is the cheapest combination of variables available.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do I need to reserve the elevator before my NYC move?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "In most doorman or elevator buildings, yes. Building management requires the freight elevator to be reserved in advance, and there are usually fixed move-in windows (commonly 9 AM to 5 PM weekdays, with shorter Saturday hours and no Sunday or holiday moves). Reserve as soon as your lease is signed — popular buildings on the 1st of the month can be booked out 30+ days. There may be a refundable elevator deposit ($300 to $500 is typical) plus a non-refundable move-in fee from the building.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Should I tip NYC movers in cash or by card?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Cash is preferred and more common in NYC. Plan to give the cash directly to each mover at the end of the job, not to the foreman to distribute. Standard ranges are $20 to $40 per mover for a half-day job and $40 to $60 per mover for a full-day move; tip on the higher end for fifth-floor walk-ups, oversized items, or exceptional service. Some companies allow card-based tips on the final invoice, but distribution to individual crew members is often slower or partial.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What does a moving 'long carry' fee mean in NYC?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A long carry fee is charged when the moving truck cannot park within a certain distance of the building entrance, typically 75 feet. In Manhattan especially, double-parking the truck and walking everything down a long block or through a service entrance is common, and the fee covers the extra labor time. Expect $100 to $200 per long carry; ask your mover whether the entrance situation at both ends would trigger one before signing the binding estimate.",
+        },
+      },
     ],
   },
 ];
@@ -124,19 +214,249 @@ export default function NYCApartmentMoversPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-6 p-6">
           <header className="space-y-3">
-            <Badge variant="outline">Moving</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">Moving</Badge>
+              <Badge variant="secondary">2026 Pricing</Badge>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Choosing Movers for NYC Apartments
+              NYC Apartment Movers (2026): Costs, COI Rules &amp; How to Hire
             </h1>
             <p className="text-sm text-muted-foreground">
               Hiring movers in New York City comes with a set of
               considerations you will not encounter in most other cities.
               Buildings have strict insurance requirements, elevators need to
-              be reserved, and the difference between a reputable company and
-              a scam operation can be hard to spot. This guide covers what to
-              look for, what to avoid, and what to expect to pay.
+              be reserved, peak-season hourly rates run 20–35% above winter,
+              and the difference between a reputable company and a scam
+              operation can be hard to spot. This guide covers 2026 costs by
+              apartment size, COI and elevator-reservation rules, walk-up
+              flight surcharges, scam red flags, and a step-by-step booking
+              timeline.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Reviewed 2026-04-27 &middot; Pricing reflects NYC market rates as
+              of late April 2026, before the May–August peak surcharge cycle.
             </p>
           </header>
+
+          {/* Cost by apartment size */}
+          <Card>
+            <CardHeader>
+              <CardTitle>NYC Mover Cost by Apartment Size (2026)</CardTitle>
+              <CardDescription>
+                Local move within the five boroughs, ground-floor to
+                ground-floor baseline; add surcharges for stairs, long
+                carries, and peak season
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Apartment Size</TableHead>
+                      <TableHead>Crew</TableHead>
+                      <TableHead>Hourly Rate</TableHead>
+                      <TableHead>Typical Job Length</TableHead>
+                      <TableHead>Typical Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Studio</TableCell>
+                      <TableCell>2 movers</TableCell>
+                      <TableCell>$150 – $200</TableCell>
+                      <TableCell>3 – 4 hrs</TableCell>
+                      <TableCell>$450 – $900</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">1-Bedroom</TableCell>
+                      <TableCell>3 movers</TableCell>
+                      <TableCell>$200 – $250</TableCell>
+                      <TableCell>4 – 5 hrs</TableCell>
+                      <TableCell>$800 – $1,500</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">2-Bedroom</TableCell>
+                      <TableCell>3 – 4 movers</TableCell>
+                      <TableCell>$250 – $350</TableCell>
+                      <TableCell>5 – 7 hrs</TableCell>
+                      <TableCell>$1,200 – $2,500</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">3-Bedroom</TableCell>
+                      <TableCell>4 – 5 movers</TableCell>
+                      <TableCell>$350 – $450</TableCell>
+                      <TableCell>7 – 10 hrs</TableCell>
+                      <TableCell>$2,200 – $4,000</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        NJ &harr; NYC (1BR)
+                      </TableCell>
+                      <TableCell>3 movers</TableCell>
+                      <TableCell>flat $1,200 – $2,200</TableCell>
+                      <TableCell>full-day</TableCell>
+                      <TableCell>$1,200 – $2,200</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Studios usually skip the third mover; 2BR and larger benefit
+                from a third or fourth mover to keep job length manageable.
+                Long-distance and inter-state moves are quoted as flat-rate
+                rather than hourly.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Peak-season surcharge table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Peak-Season Hourly Rate Surcharge</CardTitle>
+              <CardDescription>
+                What you actually pay each month relative to the annual
+                average — book early and ideally off-peak
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Month</TableHead>
+                      <TableHead>Hourly Rate vs. Avg</TableHead>
+                      <TableHead>Lead Time to Book</TableHead>
+                      <TableHead>Cancellation Risk</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">January</TableCell>
+                      <TableCell>-15% to -20%</TableCell>
+                      <TableCell>1 week</TableCell>
+                      <TableCell>Low</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">February</TableCell>
+                      <TableCell>-10% to -15%</TableCell>
+                      <TableCell>1 week</TableCell>
+                      <TableCell>Low</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">March / April</TableCell>
+                      <TableCell>-5% to baseline</TableCell>
+                      <TableCell>2 weeks</TableCell>
+                      <TableCell>Low</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">May</TableCell>
+                      <TableCell>+10% to +20%</TableCell>
+                      <TableCell>4 weeks</TableCell>
+                      <TableCell>Moderate</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">June</TableCell>
+                      <TableCell>+25% to +35%</TableCell>
+                      <TableCell>6 weeks</TableCell>
+                      <TableCell>High</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">July / August</TableCell>
+                      <TableCell>+20% to +30%</TableCell>
+                      <TableCell>6 – 8 weeks</TableCell>
+                      <TableCell>High</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">September</TableCell>
+                      <TableCell>+10% to +15%</TableCell>
+                      <TableCell>3 – 4 weeks</TableCell>
+                      <TableCell>Moderate</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Oct – Dec</TableCell>
+                      <TableCell>baseline to -10%</TableCell>
+                      <TableCell>2 weeks</TableCell>
+                      <TableCell>Low</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                The 1st and last days of each month book up first regardless
+                of season. Mid-month weekday moves are cheaper and more
+                reliable in every season; if your lease lets you push your
+                move-in by a week, you can save 10% or more.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Walk-up flight surcharge */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Walk-Up Flight Surcharges</CardTitle>
+              <CardDescription>
+                Per-flight fees and what they add to a typical move
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Walk-Up Floor</TableHead>
+                      <TableHead>Per-Flight Fee</TableHead>
+                      <TableHead>Studio Add</TableHead>
+                      <TableHead>1BR Add</TableHead>
+                      <TableHead>2BR Add</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">2nd floor</TableCell>
+                      <TableCell>$50 – $75</TableCell>
+                      <TableCell>$50</TableCell>
+                      <TableCell>$75</TableCell>
+                      <TableCell>$100</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">3rd floor</TableCell>
+                      <TableCell>$50 – $75 / flight</TableCell>
+                      <TableCell>$100</TableCell>
+                      <TableCell>$150</TableCell>
+                      <TableCell>$200</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">4th floor</TableCell>
+                      <TableCell>$50 – $75 / flight</TableCell>
+                      <TableCell>$150</TableCell>
+                      <TableCell>$225</TableCell>
+                      <TableCell>$300</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">5th floor</TableCell>
+                      <TableCell>$50 – $75 / flight</TableCell>
+                      <TableCell>$200</TableCell>
+                      <TableCell>$300</TableCell>
+                      <TableCell>$400</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">6th floor +</TableCell>
+                      <TableCell>$60 – $100 / flight</TableCell>
+                      <TableCell>$250+</TableCell>
+                      <TableCell>$400+</TableCell>
+                      <TableCell>$550+</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Surcharges apply at <em>both</em> the pickup and the
+                destination. A 4th-floor East Village walkup to a 4th-floor
+                Williamsburg walkup is two sets of flight surcharges, not one.
+              </p>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -378,10 +698,44 @@ export default function NYCApartmentMoversPage() {
               <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
                 <li>
                   <Link
+                    href="/best-time-to-rent-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Best Time to Rent in NYC (2026)
+                  </Link>{" "}
+                  &mdash; sync your apartment search with mover availability
+                </li>
+                <li>
+                  <Link
+                    href="/cost-of-moving-to-nyc"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Full NYC Move-In Cost Breakdown (2026)
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-moving-checklist"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Moving Checklist
+                  </Link>{" "}
+                  &mdash; week-by-week move-out and move-in tasks
+                </li>
+                <li>
+                  <Link
+                    href="/nyc-move-in-cleaning"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Move-In Cleaning Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc-rent-by-neighborhood"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
-                    NYC Rent by Neighborhood 2026
+                    NYC Rent by Neighborhood (2026)
                   </Link>
                 </li>
                 <li>
@@ -402,11 +756,23 @@ export default function NYCApartmentMoversPage() {
                 </li>
                 <li>
                   <Link
-                    href="/cost-of-moving-to-nyc"
+                    href="/blog/nyc-fare-act-broker-fee-ban"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
-                    Full NYC Move-In Cost Breakdown (2026)
-                  </Link>
+                    NYC FARE Act Broker Fee Ban
+                  </Link>{" "}
+                  &mdash; how the 2025 broker-fee law changes the move-in
+                  budget
+                </li>
+                <li>
+                  <Link
+                    href="/tools/move-in-cost-estimator"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Move-In Cost Estimator
+                  </Link>{" "}
+                  &mdash; interactive total move-in cost (rent + deposit +
+                  movers)
                 </li>
               </ul>
             </CardContent>

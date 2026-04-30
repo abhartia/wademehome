@@ -181,6 +181,19 @@ export const NYC_NEIGHBORHOODS: NycNeighborhoodMeta[] = [
     medianRent1BR: 2300,
     medianRent2BR: 3100,
   },
+  {
+    slug: "forest-hills",
+    name: "Forest Hills",
+    borough: "Queens",
+    latitude: 40.7196,
+    longitude: -73.8448,
+    radiusMiles: 1.0,
+    summary:
+      "Central Queens' commuter-luxury neighborhood — E/F/M/R express trains 12 minutes to Midtown, Forest Hills Gardens Tudor district, Austin Street retail spine, deep pre-war stabilized stock and 1930s art-deco doorman buildings.",
+    medianStudio: 1850,
+    medianRent1BR: 2400,
+    medianRent2BR: 3300,
+  },
 ];
 
 export function getNeighborhoodBySlug(

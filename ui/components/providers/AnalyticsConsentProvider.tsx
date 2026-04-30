@@ -116,8 +116,9 @@ export function AnalyticsConsentProvider({
           <Card className="pointer-events-auto mx-auto max-w-2xl border-primary/20 bg-background/95 shadow-lg backdrop-blur">
             <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                We use cookies for analytics to improve the product. You can
-                opt out anytime via Your Privacy Choices.
+                We use cookies and product analytics (Google Analytics and
+                PostHog) to improve the product. You can opt out anytime via
+                Your Privacy Choices.
               </p>
               <div className="flex shrink-0 gap-2">
                 <Button size="sm" variant="outline" onClick={openPreferences}>
@@ -136,7 +137,8 @@ export function AnalyticsConsentProvider({
           <DialogHeader>
             <DialogTitle>Your Privacy Choices</DialogTitle>
             <DialogDescription>
-              Wade Me Home uses Google Analytics to understand product usage.
+              Wade Me Home uses Google Analytics (GA4) and PostHog product
+              analytics to understand product usage and improve reliability.
               You can opt out of analytics at any time. Your choice is stored
               in this browser.
             </DialogDescription>

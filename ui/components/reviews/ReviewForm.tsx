@@ -19,6 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { postReviewReviewsPost } from "@/lib/api/generated/sdk.gen";
+import posthog from "posthog-js";
 
 import { StarRating } from "./StarRating";
 
@@ -55,9 +56,7 @@ export function ReviewForm({
   const [title, setTitle] = useState<string>("");
   const [body, setBody] = useState<string>("");
   const [subratings, setSubratings] = useState<Record<string, number>>({});
-  const [landlordHintName, setLandlordHintName] = useState<string>(
-    currentOwnerName ?? ""
-  );
+  const [landlordHintName, setLandlordHintName] = useState<string>(currentOwnerName ?? "");
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -90,6 +89,13 @@ export function ReviewForm({
       return data;
     },
     onSuccess: (data) => {
+      posthog.capture("review_submitted", {
+        building_id: buildingId,
+        overall_rating: overall,
+        has_subratings: Object.keys(subratings).length > 0,
+        landlord_relation: landlordRelation,
+        status: data?.status,
+      });
       toast.success(
         data?.status === "pending_cooldown"
           ? "Submitted. Low ratings enter a 24-hour cooldown before publishing."
@@ -103,8 +109,7 @@ export function ReviewForm({
     },
   });
 
-  const valid =
-    overall > 0 && tenancyStart && body.trim().length >= 20;
+  const valid = overall > 0 && tenancyStart && body.trim().length >= 20;
 
   return (
     <Card>
@@ -130,11 +135,7 @@ export function ReviewForm({
           </div>
           <div className="space-y-1">
             <Label>Tenancy ended (optional)</Label>
-            <Input
-              type="date"
-              value={tenancyEnd}
-              onChange={(e) => setTenancyEnd(e.target.value)}
-            />
+            <Input type="date" value={tenancyEnd} onChange={(e) => setTenancyEnd(e.target.value)} />
           </div>
         </div>
 
@@ -163,9 +164,8 @@ export function ReviewForm({
             placeholder="e.g. Smith Realty LLC"
           />
           <p className="text-xs text-muted-foreground">
-            We match this against ACRIS ownership records. If we don&apos;t find
-            a match, we&apos;ll create a crowdsourced landlord entry that admin
-            can merge later.
+            We match this against ACRIS ownership records. If we don&apos;t find a match, we&apos;ll
+            create a crowdsourced landlord entry that admin can merge later.
           </p>
         </div>
 
@@ -192,7 +192,10 @@ export function ReviewForm({
           <Label>Sub-ratings (optional)</Label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {DIMENSIONS.map((d) => (
-              <div key={d.key} className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div
+                key={d.key}
+                className="flex items-center justify-between rounded-md border px-3 py-2"
+              >
                 <div>
                   <div className="text-sm">{d.label}</div>
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -201,9 +204,7 @@ export function ReviewForm({
                 </div>
                 <StarRating
                   value={subratings[d.key] ?? 0}
-                  onChange={(v) =>
-                    setSubratings((s) => ({ ...s, [d.key]: v }))
-                  }
+                  onChange={(v) => setSubratings((s) => ({ ...s, [d.key]: v }))}
                 />
               </div>
             ))}

@@ -488,6 +488,8 @@ def parse_listing_detail(item: dict, scraped_ts: str) -> tuple[dict | None, list
         description = ""
 
     building_name = item.get("buildingName") or ""
+    if not building_name and street:
+        building_name = street
     property_type = item.get("propertyLabel") or item.get("homeType") or "apartment"
 
     agents = item.get("agents") or []

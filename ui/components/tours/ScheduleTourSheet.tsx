@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import posthog from "posthog-js";
 import { useTours } from "@/components/providers/ToursProvider";
 import { usePropertyFavorites } from "@/lib/properties/api";
 import { TourProperty } from "@/lib/types/tours";
@@ -81,6 +82,13 @@ export function ScheduleTourSheet({
       }
     }
 
+    posthog.capture("tour_scheduled", {
+      property_id: selectedProperty.id,
+      property_name: selectedProperty.name,
+      scheduled_date: date,
+      scheduled_time: time || null,
+      is_reschedule: Boolean(tourId),
+    });
     onOpenChange(false);
   };
 

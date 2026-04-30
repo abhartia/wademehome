@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import posthog from "posthog-js";
 import { useActiveGroup } from "@/lib/groups/activeGroup";
 import { useCreateGroup, useMyGroups } from "@/lib/groups/api";
 
@@ -33,6 +34,7 @@ export default function GroupsPage() {
     if (!name) return;
     try {
       const group = await createGroup.mutateAsync(name);
+      posthog.capture("group_created", { group_id: group.id, group_name: group.name });
       setActiveGroupId(group.id);
       setCreateOpen(false);
       setNewName("");

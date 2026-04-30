@@ -386,6 +386,112 @@ def enforce_unit_types(df):
   
     return df
 
+_SIGHTMAP_SLUG_RE = re.compile(r"cdn\.sightmap\.com/assets/[a-z0-9]+/[a-z0-9]+/([a-z0-9]+)/")
+_SIGHTMAP_APP_CONFIG_RE = re.compile(r"window\.__APP_CONFIG__\s*=\s*(\{.+?\})\s*\n", re.DOTALL)
+
+
+def _fetch_sightmap_units(html: str, session) -> list[dict]:
+    """Fetch unit-level availability from the Sightmap (engrain) public JSON API.
+
+    Greystar's `__NEXT_DATA__.PropertyDetailsFloorPlans.data.availableUnits` was
+    emptied around early-2026; per-unit price / availability now lives in Sightmap.
+    Discovery flow:
+      1. Find Sightmap embed slug in CDN URLs (cdn.sightmap.com/assets/.../{slug}/...).
+      2. Fetch sightmap.com/embed/{slug} → parse window.__APP_CONFIG__ for the API URL.
+      3. GET that URL → JSON-API response with {data: {units: [...], floor_plans: [...]}}.
+      4. Convert Sightmap units (with price IS NOT NULL = "available now") into the
+         legacy `availableUnits` shape expected by `flatten_units`.
+
+    Returns [] for properties without Sightmap (≈17% of Greystar inventory based on
+    sampling) or transient API failures — the caller treats both as "no available
+    units this week" (same as the old empty-array path).
+    """
+    slug_m = _SIGHTMAP_SLUG_RE.search(html)
+    if not slug_m:
+        return []
+    slug = slug_m.group(1)
+
+    try:
+        embed_resp = session.get(f"https://sightmap.com/embed/{slug}", timeout=15)
+        if embed_resp.status_code != 200:
+            return []
+        cfg_m = _SIGHTMAP_APP_CONFIG_RE.search(embed_resp.text)
+        if not cfg_m:
+            return []
+        cfg = json.loads(cfg_m.group(1))
+        sightmaps = cfg.get("sightmaps") or []
+        if not sightmaps:
+            return []
+        api_href = sightmaps[0].get("href")
+        if not api_href:
+            return []
+    except Exception as e:
+        logger.debug(f"Sightmap embed fetch failed for slug {slug}: {e}")
+        return []
+
+    try:
+        api_resp = session.get(
+            api_href,
+            headers={"Accept": "application/json"},
+            timeout=15,
+        )
+        if api_resp.status_code != 200:
+            return []
+        api_data = api_resp.json().get("data") or {}
+    except Exception as e:
+        logger.debug(f"Sightmap API fetch failed ({api_href}): {e}")
+        return []
+
+    floor_plans_by_id = {str(fp.get("id")): fp for fp in (api_data.get("floor_plans") or [])}
+    sm_units = api_data.get("units") or []
+
+    # Sightmap returns mixed unit categories on the same asset endpoint:
+    #   - rental apartments (what we want)
+    #   - condos for sale (Greystar's Overture senior brand — price is the SALE price, $50K-$3M)
+    #   - storage units / parking (bathroom_count == 0, names like "10 x 20")
+    # Greystar also occasionally embeds the wrong Sightmap on a property page (verified:
+    # `ten-wine-lofts-apartments-scottsdale` resolves to a storage-facility asset).
+    # The filters below mirror what Greystar's old `availableUnits` field always returned —
+    # only residential rental units within plausible monthly-rent bounds.
+    legacy_units: list[dict] = []
+    for u in sm_units:
+        # `price IS NOT NULL` is Sightmap's "this unit is available now" signal.
+        price = u.get("price")
+        if price is None:
+            continue
+        # Reject sale prices and ancillary-fee rows: a residential rental should fit
+        # plausible monthly bounds. Greystar's prior Greystar.com `availableUnits`
+        # data was always within this range.
+        if price < 200 or price > 30000:
+            continue
+        fp = floor_plans_by_id.get(str(u.get("floor_plan_id"))) or {}
+        # Storage / parking floor plans have no bathrooms and dimensional names ("5 x 10").
+        if not fp.get("bathroom_count"):
+            continue
+        fp_name = fp.get("name") or fp.get("filter_label") or ""
+        # Greystar's for-sale Overture inventory tags sold units with "Sold - XXX" floor_plan names.
+        if fp_name.lower().startswith("sold"):
+            continue
+        legacy_units.append({
+            "area": u.get("area"),
+            "floorplan": {
+                "bedroomCount": fp.get("bedroom_count"),
+                "bathroomCount": fp.get("bathroom_count"),
+                "label": fp_name,
+            },
+            "floorPlanLabel": fp_name,
+            "unitNumber": u.get("unit_number"),
+            "unitId": u.get("id"),
+            "buildingLabel": u.get("building"),
+            "availableOn": u.get("available_on"),
+            "minPrice": price,
+            "maxPrice": price,
+            "leaseLength": None,
+            "floorShortLabel": None,  # Sightmap exposes floor_id (a numeric pointer, not a label)
+        })
+    return legacy_units
+
+
 def scrape_property_page(url, env, scraped_at, session, max_retries=3):
     for attempt in range(max_retries):
         try:
@@ -435,6 +541,13 @@ def scrape_property_page(url, env, scraped_at, session, max_retries=3):
                 "propertyName": data.get("propertyName"),
                 **location,
             }
+            # Greystar emptied `availableUnits` around early-2026; fall back to the Sightmap
+            # public JSON API (engrain) when the legacy field is empty. Sightmap covers ~83% of
+            # Greystar inventory; the ~17% without Sightmap continue to yield 0 (no regression).
+            if not available_units:
+                available_units = _fetch_sightmap_units(response.text, session)
+                if available_units:
+                    logger.debug(f"✅ Sightmap fallback: {len(available_units)} available units")
             logger.debug(f"✅ Found PropertyDetailsFloorPlans with {len(available_units)} units")
 
         elif name == "PropertyDetails":

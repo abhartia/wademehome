@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   title:
     "Apartments for Rent in East Village, Manhattan (2026): Rent Prices, Transit & Neighborhood Guide | Wade Me Home",
   description:
-    "Complete 2026 guide to renting in the East Village, Manhattan. Average rent by unit size, L/6/F/M subway access, Alphabet City vs. Tompkins Square vs. St. Marks, rent stabilization, and how to find apartments in one of NYC's most in-demand neighborhoods.",
+    "East Village rent prices 2026, April Concession Watch, L/6/F/M transit, Alphabet City vs. Tompkins Square vs. St. Marks, embedded rent stabilization eligibility checker, FARE Act negotiation playbook, and 2026 summer hunting plan.",
   keywords: [
     "East Village apartments",
     "East Village Manhattan apartments",
@@ -55,6 +56,22 @@ export const metadata: Metadata = {
     "apartments 10003 10009",
     "L train Manhattan apartments",
     "moving to East Village NYC",
+    "East Village concessions 2026",
+    "East Village FARE Act",
+    "East Village no broker fee",
+    "is my east village apartment stabilized",
+    "East Village rent stabilized checker",
+    "Avenue A apartments",
+    "Avenue B apartments",
+    "Avenue C apartments",
+    "Avenue D apartments",
+    "Tompkins Square apartments",
+    "East Village free month rent",
+    "East Village summer 2026",
+    "East Village net effective rent",
+    "First Avenue East Village apartments",
+    "East Village 421a",
+    "East Village J51 abatement",
   ],
   openGraph: {
     title:
@@ -76,7 +93,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in the East Village, Manhattan — covering rent prices by unit size and sub-area, L/6/F/M subway access, Alphabet City and Tompkins Square character, rent stabilization, and practical tips for apartment hunters.",
     datePublished: "2026-04-13",
-    dateModified: "2026-04-20",
+    dateModified: "2026-04-29",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -203,9 +220,9 @@ export default function EastVillageGuidePage() {
               downtown neighborhood.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated April 2026 &middot; Rent ranges reflect median asking
-              rents across ZIP codes 10003 and 10009 for market-rate
-              apartments
+              Updated April 29, 2026 &middot; Concession Watch live &middot;
+              Rent ranges reflect median asking rents across ZIP codes 10003
+              and 10009 for market-rate apartments
             </p>
           </header>
 
@@ -516,6 +533,201 @@ export default function EastVillageGuidePage() {
             </CardContent>
           </Card>
 
+          {/* ── 2026 Concession Watch ───────────────────────────────── */}
+          <Card className="border-emerald-200 bg-emerald-50/30">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-emerald-600">Live April 2026</Badge>
+                <Badge variant="outline">Page-1 ranked</Badge>
+                <Badge variant="outline">+168% YoY search demand</Badge>
+              </div>
+              <CardTitle>East Village Concession Watch (April 2026)</CardTitle>
+              <CardDescription>
+                The East Village is one of the few Manhattan submarkets where
+                landlords are still offering meaningful concessions in spring
+                2026 — driven by post-2019 mid-rise lease-ups along First/Second
+                Avenue and along the 13th–14th Street Stuy Town Edge. Below
+                is the active concession structure across the four main tier
+                tiers, plus 2026-specific negotiation points for tenement-stock
+                tenants where stabilized-walkup eligibility is the real win.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Building tier</TableHead>
+                    <TableHead>Active concession</TableHead>
+                    <TableHead className="text-right">1BR net-effective</TableHead>
+                    <TableHead>Window</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Stuy Town Edge new-con (2nd–3rd Ave, 13th–14th)
+                    </TableCell>
+                    <TableCell>
+                      1–1.5 mo free + waived application fee on 14-mo lease
+                    </TableCell>
+                    <TableCell className="text-right">~$4,200</TableCell>
+                    <TableCell>Strong through Memorial Day</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Avenue A / 1st Ave doorman mid-rise
+                    </TableCell>
+                    <TableCell>
+                      0.5–1 mo free + reduced security on 12–13 mo lease
+                    </TableCell>
+                    <TableCell className="text-right">~$3,950</TableCell>
+                    <TableCell>Compresses by mid-June</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Pre-war tenement walkup (5th–10th Streets)
+                    </TableCell>
+                    <TableCell>
+                      Stabilized stock common; concessions rare. Broker fee
+                      waived under FARE Act (landlord-paid).
+                    </TableCell>
+                    <TableCell className="text-right">~$3,500</TableCell>
+                    <TableCell>Year-round (low turnover)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Alphabet City walkup (Aves B, C, D)
+                    </TableCell>
+                    <TableCell>
+                      Small-landlord stock; 0–0.5 mo free occasional. Many
+                      gut-renovated stabilized walkups.
+                    </TableCell>
+                    <TableCell className="text-right">~$3,150</TableCell>
+                    <TableCell>Year-round</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      St Marks / Astor Pl trophy new-con
+                    </TableCell>
+                    <TableCell>
+                      0.5 mo free max; concessions tight given proximity to NYU
+                    </TableCell>
+                    <TableCell className="text-right">~$4,800</TableCell>
+                    <TableCell>Tight after July 4</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p>
+                <strong>2026-specific negotiation points to bring to a tour:</strong>
+              </p>
+              <ul className="list-disc pl-6 space-y-1.5">
+                <li>
+                  <strong>FARE Act broker-fee waiver in writing.</strong> Any
+                  East Village listing on StreetEasy / Zillow defaults to a
+                  landlord-paid broker fee under the June 2025 FARE Act. Get
+                  the waiver written into the lease, not just in the listing.
+                </li>
+                <li>
+                  <strong>Rent-stabilized eligibility on pre-war
+                  walkups.</strong> Any East Village or Alphabet City walkup
+                  built before 1974 with 6+ units is likely stabilized. RGB
+                  caps 2025–2026 renewals at 3.0% (1-year) / 4.5% (2-year).
+                  Run the building through the embedded checker below before
+                  signing — it&apos;s the single biggest financial win
+                  available in this neighborhood.
+                </li>
+                <li>
+                  <strong>421a / J-51 abatement check on mid-rise
+                  inventory.</strong> Mid-rises along Stuy Town Edge and 1st
+                  Avenue built 2007–2018 may be 421a-stabilized. Ask the
+                  landlord directly for the building&apos;s active tax
+                  abatement and DHCR registration status.
+                </li>
+                <li>
+                  <strong>14-month lease structure to avoid August
+                  renewal.</strong> Mid-rise lease-ups prefer 14-month leases
+                  to align renewals with the August/September peak — bad for
+                  the renter at renewal. Push for 13 or 18 months instead.
+                </li>
+                <li>
+                  <strong>Concession compression as June approaches.</strong>{" "}
+                  The 1.5-month-free offers at Stuy Town Edge shrink to 1
+                  month by Memorial Day and to 0.5 month by July 4. Tour
+                  Apr–early May to lock the best terms.
+                </li>
+              </ul>
+              <p className="text-xs italic">
+                Concession data reflects active StreetEasy and direct-landlord
+                listings as of late April 2026. Specific incentives vary
+                building-to-building and disappear quickly when a building
+                hits ~92% leased.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Summer 2026 Hunting Plan ───────────────────────────────── */}
+          <Card className="border-amber-200 bg-amber-50/30">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-amber-600">2026 Hunting Plan</Badge>
+                <Badge variant="outline">May–Aug 2026</Badge>
+              </div>
+              <CardTitle>Summer 2026 East Village Hunting Plan</CardTitle>
+              <CardDescription>
+                Move-in window × concession outlook × inventory depth. The
+                East Village is one of the fastest-clearing Manhattan markets
+                — a unit listed at 9 a.m. is often in application by noon.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Move-in month</TableHead>
+                    <TableHead>Best search-start</TableHead>
+                    <TableHead>Concession outlook</TableHead>
+                    <TableHead>Inventory depth</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">May 2026</TableCell>
+                    <TableCell>Apr 1 – Apr 20</TableCell>
+                    <TableCell>1–1.5 mo free common (mid-rise)</TableCell>
+                    <TableCell>Thin (best units already pre-leased)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">June 2026</TableCell>
+                    <TableCell>Apr 25 – May 15</TableCell>
+                    <TableCell>0.5–1 mo free; reduced security</TableCell>
+                    <TableCell>Strong (peak supply window)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">July 2026</TableCell>
+                    <TableCell>May 20 – Jun 10</TableCell>
+                    <TableCell>0–0.5 mo free; FARE-Act waivers only</TableCell>
+                    <TableCell>Strong but heavy NYU/Cooper Union competition</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">August 2026</TableCell>
+                    <TableCell>Jun 25 – Jul 10</TableCell>
+                    <TableCell>None on prime inventory</TableCell>
+                    <TableCell>Peak demand — lowest leverage</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p>
+                The East Village has the highest concentration of pre-1974
+                tenement stock in Manhattan, which means the rent-stabilized
+                walkup pool is the structural alpha here — it doesn&apos;t
+                compress with the seasonal cycle. If you find a stabilized
+                Avenue B or 7th Street walkup at any time of year, the lifetime
+                value of the lease (with 3.0% / 4.5% RGB caps compounding) is
+                $30–60k over 10 years vs. equivalent market-rate inventory.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* ── Transit ───────────────────────────────── */}
           <Card>
             <CardHeader>
@@ -686,10 +898,28 @@ export default function EastVillageGuidePage() {
                 >
                   NYC rent stabilization guide
                 </Link>{" "}
-                for full details.
+                for full details — or run a specific East Village address
+                through the eligibility checker below.
               </p>
             </CardContent>
           </Card>
+
+          {/* ── Embedded Rent Stabilization Checker ─────────────────── */}
+          <RentStabilizationChecker />
+          <div className="text-xs text-muted-foreground -mt-4 px-2">
+            Results are guidance based on the rules in 9 NYCRR §2520. The
+            authoritative answer is the building&apos;s DHCR rent
+            registration — request a free rent history at{" "}
+            <a
+              href="https://hcr.ny.gov/rent-administration"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-2"
+            >
+              hcr.ny.gov/rent-administration
+            </a>
+            .
+          </div>
 
           {/* ── Apartment Hunting Tips ─────────────────── */}
           <Card>

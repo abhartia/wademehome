@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calculator, Gavel, Home, Wrench } from "lucide-react";
+import { ArrowRight, Calculator, Gavel, Home, Scale, ShieldCheck, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,11 +13,11 @@ const baseUrl =
 export const metadata: Metadata = {
   title: "Free NYC Renter Tools — Wade Me Home",
   description:
-    "Free, unbiased calculators and checkers for NYC renters: FARE Act broker fee verdicts, net-effective rent, affordability, move-in cost.",
+    "Free, unbiased calculators and checkers for NYC renters: FARE Act broker fee verdicts, net-effective rent, affordability, move-in cost, rent stabilization eligibility, and 1-yr vs 2-yr RGB renewal math.",
   openGraph: {
     title: "Free NYC Renter Tools",
     description:
-      "FARE Act broker fee checker, net-effective rent calculator, NYC affordability tools — all free.",
+      "FARE Act broker fee checker, net-effective rent calculator, NYC affordability tools, rent stabilization eligibility, RGB renewal calculator — all free.",
     url: `${baseUrl}/tools`,
     type: "website",
   },
@@ -69,6 +69,24 @@ const TOOLS: ToolCard[] = [
     badge: "New",
     status: "live",
     icon: Wrench,
+  },
+  {
+    href: "/tools/rent-stabilization-checker",
+    title: "NYC Rent Stabilization Checker",
+    description:
+      "Is your apartment rent stabilized? Year built, unit count, tax abatement → instant verdict, 2025–2026 RGB renewal math, DHCR next steps.",
+    badge: "New",
+    status: "live",
+    icon: ShieldCheck,
+  },
+  {
+    href: "/tools/rgb-renewal-calculator",
+    title: "NYC RGB Renewal Calculator (1-yr vs 2-yr)",
+    description:
+      "Stabilized lease coming up for renewal? Compare the 1-year (3.0%) vs. 2-year (4.5%) cap on real 24-month total cost, see the crossover, and decide.",
+    badge: "New",
+    status: "live",
+    icon: Scale,
   },
 ];
 

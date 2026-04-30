@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -505,6 +506,16 @@ export default function BedStuyPage() {
               </ol>
             </CardContent>
           </Card>
+
+          {/* ── Embedded Rent Stabilization Checker ─────────────────── */}
+          <RentStabilizationChecker />
+          <p className="text-xs text-muted-foreground -mt-4 px-2">
+            Bed-Stuy has the largest concentration of rent-stabilized 6+ unit
+            walkups in Brooklyn — running a specific Tompkins, Marcus Garvey,
+            Stuyvesant, or Lewis Avenue building through this checker before
+            signing a lease is the highest-leverage 60 seconds you can spend
+            in the neighborhood.
+          </p>
 
           <Separator />
 

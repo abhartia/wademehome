@@ -42,6 +42,7 @@ import { ChevronDown, Loader2, Search, TrainFront } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { SearchTransparencyPanel } from "@/components/search/SearchTransparencyPanel";
 import { PriceRangeFilter } from "@/components/search/PriceRangeFilter";
+import posthog from "posthog-js";
 
 const MIN_QUERY_CHARS = 2;
 const DEFAULT_STREAM_SEARCH_HEADLINE = "Property search";
@@ -57,7 +58,7 @@ const EMPTY_PROPERTY_LIST: PropertyDataItem[] = [];
 function composeListingMessage(
   query: string,
   location: { latitude: number; longitude: number },
-  priceFilter: { min: number | null; max: number | null } | null,
+  priceFilter: { min: number | null; max: number | null } | null
 ): string {
   const q = query.trim();
   const priceSegment =
@@ -131,7 +132,9 @@ function NearbyListingsHeaderLine({
           {bbox ? (
             <>None in the current map view - showing {d.properties.length} closest.</>
           ) : (
-            <>None within {rm} mi of map center - showing {d.properties.length} closest.</>
+            <>
+              None within {rm} mi of map center - showing {d.properties.length} closest.
+            </>
           )}
           {isBackgroundRefreshing ? " Updating..." : ""}
         </span>
@@ -248,7 +251,7 @@ function AppSearchInner({
           .filter((m) => m.role === "user")
           .map((m) => stripGeoSuffix(String(m.content ?? "")))
           .filter(Boolean)
-          .slice(-5),
+          .slice(-5)
       ),
     ];
     if (bullets.length === 0) return null;
@@ -275,19 +278,12 @@ function AppSearchInner({
   ];
   const [showTransit, setShowTransit] = useState(false);
   const [enabledTransitSystems, setEnabledTransitSystems] = useState<Set<TransitSystem>>(
-    () =>
-      new Set<TransitSystem>([
-        "path",
-        "nyc_subway",
-        "hblr",
-        "nj_transit_rail",
-        "ferry",
-      ]),
+    () => new Set<TransitSystem>(["path", "nyc_subway", "hblr", "nj_transit_rail", "ferry"])
   );
   const enabledTransitArr = useMemo(
     () => TRANSIT_ALL_SYSTEMS.filter((s) => enabledTransitSystems.has(s)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [enabledTransitSystems],
+    [enabledTransitSystems]
   );
   const transitQuery = useTransitStations({
     enabled: showTransit && enabledTransitArr.length > 0,
@@ -331,7 +327,7 @@ function AppSearchInner({
       setSelectedProperty(property);
       setIsPropertyDetailOpen(true);
     },
-    [setIsPropertyDetailOpen, setSelectedProperty],
+    [setIsPropertyDetailOpen, setSelectedProperty]
   );
 
   return (
@@ -413,13 +409,15 @@ function AppSearchInner({
                           size="sm"
                           className="h-8 shrink-0 gap-1 px-2 text-xs text-muted-foreground"
                           aria-expanded={mapAiPanelOpen}
-                          aria-label={mapAiPanelOpen ? "Hide AI search details" : "Show AI search details"}
+                          aria-label={
+                            mapAiPanelOpen ? "Hide AI search details" : "Show AI search details"
+                          }
                           onClick={() => setMapAiPanelOpen((open) => !open)}
                         >
                           <ChevronDown
                             className={cn(
                               "h-3.5 w-3.5 transition-transform",
-                              mapAiPanelOpen && "rotate-180",
+                              mapAiPanelOpen && "rotate-180"
                             )}
                             aria-hidden
                           />
@@ -428,88 +426,89 @@ function AppSearchInner({
                       </div>
                       {mapAiPanelOpen ? (
                         <div className="max-h-[min(22vh,15rem)] min-h-0 overflow-y-auto border-t border-border/40 px-3 py-2 sm:max-h-[min(40vh,15rem)]">
-                            {displaySearchSummary && (
-                              <div className="mb-2 rounded-md border border-border/50 bg-background/80 px-2.5 py-2">
-                                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                  Active search
+                          {displaySearchSummary && (
+                            <div className="mb-2 rounded-md border border-border/50 bg-background/80 px-2.5 py-2">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                Active search
+                              </p>
+                              {displaySearchSummary.headline ? (
+                                <p className="mt-1 text-sm font-medium text-foreground">
+                                  {displaySearchSummary.headline}
                                 </p>
-                                {displaySearchSummary.headline ? (
-                                  <p className="mt-1 text-sm font-medium text-foreground">
-                                    {displaySearchSummary.headline}
-                                  </p>
-                                ) : null}
-                                {displaySearchSummary.bullets.length > 0 ? (
-                                  <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
-                                    {displaySearchSummary.bullets.map((b, i) => (
-                                      <li key={i}>{b}</li>
-                                    ))}
-                                  </ul>
-                                ) : null}
-                              </div>
-                            )}
-                            {searchFilterBreakdown?.criteria?.length ? (
-                              <SearchTransparencyPanel
-                                criteria={searchFilterBreakdown.criteria}
-                                finalMatched={searchStats?.matched_count ?? null}
-                                stageStats={searchStats}
-                              />
-                            ) : null}
-                            {assistantFullText.length > 0 && (
-                              <div className="mt-1">
-                                <p className="text-[11px] font-medium text-muted-foreground">
-                                  Latest from assistant
+                              ) : null}
+                              {displaySearchSummary.bullets.length > 0 ? (
+                                <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
+                                  {displaySearchSummary.bullets.map((b, i) => (
+                                    <li key={i}>{b}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </div>
+                          )}
+                          {searchFilterBreakdown?.criteria?.length ? (
+                            <SearchTransparencyPanel
+                              criteria={searchFilterBreakdown.criteria}
+                              finalMatched={searchStats?.matched_count ?? null}
+                              stageStats={searchStats}
+                            />
+                          ) : null}
+                          {assistantFullText.length > 0 && (
+                            <div className="mt-1">
+                              <p className="text-[11px] font-medium text-muted-foreground">
+                                Latest from assistant
+                              </p>
+                              {!assistantNeedsExpand ? (
+                                <p className="mt-0.5 whitespace-pre-wrap text-sm leading-snug text-foreground">
+                                  {assistantFullText}
                                 </p>
-                                {!assistantNeedsExpand ? (
-                                  <p className="mt-0.5 whitespace-pre-wrap text-sm leading-snug text-foreground">
-                                    {assistantFullText}
-                                  </p>
-                                ) : (
-                                  <div className="mt-0.5">
-                                    <div
-                                      className={cn(
-                                        "rounded-md text-sm leading-snug text-foreground",
-                                        assistantExpanded
-                                          ? "max-h-60 overflow-y-auto border border-border/50 bg-background/90 p-2"
-                                          : "max-h-24 overflow-hidden",
-                                      )}
-                                    >
-                                      <p className="whitespace-pre-wrap">{assistantFullText}</p>
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      className="mt-1 h-auto gap-1 px-0 py-0.5 text-xs text-primary"
-                                      aria-expanded={assistantExpanded}
-                                      onClick={() => setAssistantExpanded(!assistantExpanded)}
-                                    >
-                                      <ChevronDown
-                                        className={cn(
-                                          "h-3.5 w-3.5 transition-transform",
-                                          assistantExpanded && "rotate-180",
-                                        )}
-                                        aria-hidden
-                                      />
-                                      {assistantExpanded ? "Show less" : "Show full message"}
-                                    </Button>
+                              ) : (
+                                <div className="mt-0.5">
+                                  <div
+                                    className={cn(
+                                      "rounded-md text-sm leading-snug text-foreground",
+                                      assistantExpanded
+                                        ? "max-h-60 overflow-y-auto border border-border/50 bg-background/90 p-2"
+                                        : "max-h-24 overflow-hidden"
+                                    )}
+                                  >
+                                    <p className="whitespace-pre-wrap">{assistantFullText}</p>
                                   </div>
-                                )}
-                              </div>
-                            )}
-                            {phase === "error" && error && (
-                              <p className="mt-2 text-sm text-destructive">{error.message}</p>
-                            )}
-                            {memoryUpdate && (
-                              <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-2">
-                                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
-                                  Memory updated
-                                </p>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                  Saved {memoryUpdate.updated_fields.length} preference
-                                  {memoryUpdate.updated_fields.length === 1 ? "" : "s"} from this turn.
-                                </p>
-                              </div>
-                            )}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mt-1 h-auto gap-1 px-0 py-0.5 text-xs text-primary"
+                                    aria-expanded={assistantExpanded}
+                                    onClick={() => setAssistantExpanded(!assistantExpanded)}
+                                  >
+                                    <ChevronDown
+                                      className={cn(
+                                        "h-3.5 w-3.5 transition-transform",
+                                        assistantExpanded && "rotate-180"
+                                      )}
+                                      aria-hidden
+                                    />
+                                    {assistantExpanded ? "Show less" : "Show full message"}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {phase === "error" && error && (
+                            <p className="mt-2 text-sm text-destructive">{error.message}</p>
+                          )}
+                          {memoryUpdate && (
+                            <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-2">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                                Memory updated
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Saved {memoryUpdate.updated_fields.length} preference
+                                {memoryUpdate.updated_fields.length === 1 ? "" : "s"} from this
+                                turn.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ) : null}
                     </div>
@@ -524,8 +523,7 @@ function AppSearchInner({
               fallbackCenter={browseMapCenter}
               followDataCamera={
                 showingSearchPins ||
-                (!listingSessionActive &&
-                  Boolean(nearbyQuery.data?.used_global_nearest_fallback))
+                (!listingSessionActive && Boolean(nearbyQuery.data?.used_global_nearest_fallback))
               }
               onBrowseCenterChange={listingSessionActive ? undefined : onBrowseMapCenterChange}
               globalNearestFallback={Boolean(nearbyQuery.data?.used_global_nearest_fallback)}
@@ -564,7 +562,7 @@ function AppSearchInner({
                           "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors",
                           on
                             ? "border-transparent bg-foreground text-background"
-                            : "border-border/80 bg-background text-muted-foreground hover:bg-muted",
+                            : "border-border/80 bg-background text-muted-foreground hover:bg-muted"
                         )}
                       >
                         <span
@@ -658,7 +656,7 @@ type AppSearchRuntimeInnerProps = Omit<AppSearchInnerProps, "listingChat"> & {
   chat: ListingSearchStreamApi;
   handleMemoryUpdate: (
     memoryUpdate: ProfileMemoryUpdateState | null,
-    updateVersion: number,
+    updateVersion: number
   ) => void;
 };
 
@@ -667,11 +665,7 @@ type AppSearchRuntimeInnerProps = Omit<AppSearchInnerProps, "listingChat"> & {
  * function identity every render; React treats that as a new component type and remounts the
  * entire subtree (map, list, sheets), which feels like a full page refresh on hover.
  */
-function AppSearchRuntimeInner({
-  chat,
-  handleMemoryUpdate,
-  ...inner
-}: AppSearchRuntimeInnerProps) {
+function AppSearchRuntimeInner({ chat, handleMemoryUpdate, ...inner }: AppSearchRuntimeInnerProps) {
   useEffect(() => {
     handleMemoryUpdate(chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion);
   }, [chat.profileMemoryUpdate, chat.profileMemoryUpdateVersion, handleMemoryUpdate]);
@@ -705,8 +699,8 @@ export function AppSearchClient() {
     approximateBoundsFromCenterZoom(
       DEFAULT_BROWSE_MAP_CENTER.latitude,
       DEFAULT_BROWSE_MAP_CENTER.longitude,
-      11,
-    ),
+      11
+    )
   );
   const [priceMin, setPriceMin] = useState<number | null>(null);
   const [priceMax, setPriceMax] = useState<number | null>(null);
@@ -764,9 +758,7 @@ export function AppSearchClient() {
           isApproxDefaultBrowseCenter(browseMapCenterRef.current);
         if (shouldApplyGeo) {
           setBrowseMapCenter(next);
-          setBrowseBounds(
-            approximateBoundsFromCenterZoom(next.latitude, next.longitude, 11),
-          );
+          setBrowseBounds(approximateBoundsFromCenterZoom(next.latitude, next.longitude, 11));
           didSetInitialBrowseCenterRef.current = true;
           setHasBrowseViewport(true);
         }
@@ -774,7 +766,7 @@ export function AppSearchClient() {
       () => {
         locationRef.current = DEFAULT_BROWSE_MAP_CENTER;
       },
-      { timeout: 5000 },
+      { timeout: 5000 }
     );
   }, []);
 
@@ -822,13 +814,19 @@ export function AppSearchClient() {
   const submitSearchNow = useCallback(() => {
     const q = query.trim();
     if (q.length < MIN_QUERY_CHARS) return;
+    posthog.capture("search_submitted", {
+      query: q,
+      has_price_filter: priceMin !== null || priceMax !== null,
+      price_min: priceMin,
+      price_max: priceMax,
+    });
     setListingSessionActive(true);
     setListingFireVersion((v) => v + 1);
-  }, [query]);
+  }, [query, priceMin, priceMax]);
 
   const onMapMarkerClick = useCallback((property: PropertyDataItem) => {
     setListScrollProperty((prev) =>
-      isSamePropertyListing(prev, property) ? { ...property } : property,
+      isSamePropertyListing(prev, property) ? { ...property } : property
     );
     setSelectedProperty(property);
   }, []);
@@ -851,16 +849,13 @@ export function AppSearchClient() {
       updateProfile(memoryUpdate.patch);
       latestMemoryAppliedVersionRef.current = updateVersion;
     },
-    [updateProfile],
+    [updateProfile]
   );
 
-  const onPriceChange = useCallback(
-    (next: { min: number | null; max: number | null }) => {
-      setPriceMin(next.min);
-      setPriceMax(next.max);
-    },
-    [],
-  );
+  const onPriceChange = useCallback((next: { min: number | null; max: number | null }) => {
+    setPriceMin(next.min);
+    setPriceMax(next.max);
+  }, []);
 
   const innerProps: Omit<AppSearchInnerProps, "listingChat"> = {
     listingSessionActive,
