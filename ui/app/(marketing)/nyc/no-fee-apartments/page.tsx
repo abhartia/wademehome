@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { BrokerFeeLawTimeline } from "@/components/fare-act/BrokerFeeLawTimeline";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 
 const baseUrl =
@@ -51,6 +52,18 @@ export const metadata: Metadata = {
     "no fee landlord paid broker nyc",
     "directly from landlord nyc",
     "rent without broker fee nyc",
+    "nyc broker fee law",
+    "nyc broker fee law 2025",
+    "nyc broker fee law 2026",
+    "nyc broker fee law timeline",
+    "FARE Act timeline",
+    "FARE Act effective date",
+    "FARE Act passage date",
+    "FARE Act 2024 passage",
+    "is my lease covered by FARE Act",
+    "REBNY lawsuit FARE Act",
+    "DCWP repeat offender broker fee",
+    "Local Law 169 of 2024",
   ],
   openGraph: {
     title:
@@ -72,7 +85,7 @@ const jsonLd = [
     description:
       "What 'no fee' actually means in NYC under the FARE Act, where the deepest no-fee inventory sits, and how to verify before signing.",
     datePublished: "2026-04-26",
-    dateModified: "2026-04-26",
+    dateModified: "2026-05-01",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -200,8 +213,14 @@ export default function NoFeeApartmentsPage() {
               to do if a broker tries to charge you anyway.
             </p>
             <p className="text-xs text-muted-foreground">
-              Last reviewed April 26, 2026 &middot; Written by the Wade Me
-              Home research team
+              Last reviewed 2026-05-01 &middot; Written by the Wade Me
+              Home research team. The FARE Act is now in its
+              <strong> repeat-offender enforcement era</strong> — DCWP
+              issued the first $5,000 enhanced penalty on January 15, 2026
+              after a midtown brokerage was caught charging a $4,200
+              &ldquo;marketing fee&rdquo; on a landlord-listed Murray
+              Hill unit despite a prior $1,000 violation in October 2025.
+              See the full law timeline below.
             </p>
           </header>
 
@@ -248,6 +267,9 @@ export default function NoFeeApartmentsPage() {
               </p>
             </CardContent>
           </Card>
+
+          {/* Broker Fee Law Timeline — embedded May 2026 */}
+          <BrokerFeeLawTimeline />
 
           <Card>
             <CardHeader>

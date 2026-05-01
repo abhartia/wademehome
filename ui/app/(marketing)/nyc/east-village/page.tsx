@@ -94,7 +94,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in the East Village, Manhattan — covering rent prices by unit size and sub-area, L/6/F/M subway access, Alphabet City and Tompkins Square character, rent stabilization, and practical tips for apartment hunters.",
     datePublished: "2026-04-13",
-    dateModified: "2026-04-30",
+    dateModified: "2026-05-01",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -538,11 +538,12 @@ export default function EastVillageGuidePage() {
           <Card className="border-emerald-200 bg-emerald-50/30">
             <CardHeader>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-emerald-600">Live April 2026</Badge>
-                <Badge variant="outline">Page-1 ranked</Badge>
-                <Badge variant="outline">+168% YoY search demand</Badge>
+                <Badge className="bg-emerald-600">Live May 2026</Badge>
+                <Badge variant="outline">Page-1 ranked (pos 9.3)</Badge>
+                <Badge variant="outline">+114.3% YoY search demand</Badge>
+                <Badge variant="outline">Updated 2026-05-01</Badge>
               </div>
-              <CardTitle>East Village Concession Watch (April 2026)</CardTitle>
+              <CardTitle>East Village Concession Watch (May 2026)</CardTitle>
               <CardDescription>
                 The East Village is one of the few Manhattan submarkets where
                 landlords are still offering meaningful concessions in spring
@@ -933,6 +934,98 @@ export default function EastVillageGuidePage() {
             </p>
             <RGBRenewalCalculator />
           </div>
+
+          {/* ── May 2026 Demand Surge — 2026-05-01 update ─────────────────── */}
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Live May 2026</Badge>
+                <Badge variant="default">+114.3% YoY search demand</Badge>
+                <Badge variant="default">Highest on the seed list</Badge>
+              </div>
+              <CardTitle>
+                East Village Demand Surge: Why &ldquo;East Village
+                Apartments&rdquo; Doubled YoY
+              </CardTitle>
+              <CardDescription>
+                Google Trends shows search interest for &ldquo;east village
+                apartments&rdquo; is up <strong>+114.3% year-over-year
+                </strong> as of 2026-05-01 — the highest annual increase of
+                any NYC neighborhood we track. Five tactical implications
+                for May/June renters.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <span className="font-semibold text-foreground">
+                  1. Tenement-stock hunting is the asymmetric play.
+                </span>{" "}
+                Pre-1974 6+ unit walkups on 5th–12th Streets and Avenues
+                A/B/C are overwhelmingly stabilized — and that supply is
+                fixed. As market-rate searchers double, stabilized walkups
+                become the structurally underpriced tier (rent rising
+                3.0% RGB while market climbs 5–8%). Run every viewing
+                through the checker above before applying.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  2. Tour windows have shrunk to ~24 hours.
+                </span>{" "}
+                Open houses on stabilized walkups in the East Village now
+                see 30–60 applicants. Apply same-day, with a complete
+                package — two pay stubs, last year&apos;s W-2 or 1099, two
+                months of bank statements, photo ID, prior-landlord
+                reference letter, and credit pull authorization. The
+                landlord will not wait for you to gather paperwork; the
+                next applicant has it ready.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  3. Lease-up new-cons on the Stuy Town Edge are the
+                  concession outliers.
+                </span>{" "}
+                Even with +114% YoY demand, the new-construction towers
+                along 13th–14th Streets between 2nd and 3rd Avenue are
+                still in active lease-up cycles. They&apos;re the
+                exception to the demand-surge story: 1–1.5 months free
+                with waived application fee on 14-month leases is still
+                actively offered. The catch is the price tier — these
+                run ~$4,200 net-effective on a 1BR vs. $3,150 for a
+                stabilized walkup three blocks east.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  4. The FARE Act broker waiver is your downside floor.
+                </span>{" "}
+                With supply tight, brokers occasionally push back on
+                landlord-paid status by relabeling the fee as
+                &ldquo;administrative&rdquo; or &ldquo;marketing.&rdquo;
+                If that happens, run the situation through our{" "}
+                <Link
+                  href="/tools/fare-act-violation-reporter"
+                  className="text-primary underline underline-offset-2"
+                >
+                  FARE Act violation reporter
+                </Link>{" "}
+                — a draft DCWP complaint pre-fills with your details. Do
+                not pay a broker fee on a landlord-listed unit; the law
+                explicitly prohibits it.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  5. The September–November reset still exists, but the
+                  EV reset is shorter than other hoods.
+                </span>{" "}
+                Most NYC neighborhoods see meaningful concession reopen
+                in October. East Village historically resets later
+                (November) and shallower than LIC or Bushwick because
+                the structural supply (stabilized walkups, low turnover)
+                doesn&apos;t expand. If you can&apos;t find anything in
+                May/June, plan for a November tour rather than waiting
+                only until October.
+              </p>
+            </CardContent>
+          </Card>
 
           {/* ── Apartment Hunting Tips ─────────────────── */}
           <Card>

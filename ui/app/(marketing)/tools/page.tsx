@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertOctagon, ArrowRight, Calculator, Gavel, Home, Scale, ShieldCheck, Wrench } from "lucide-react";
+import { AlertOctagon, ArrowRight, Calculator, Gavel, History, Home, Scale, ShieldCheck, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,6 +96,15 @@ const TOOLS: ToolCard[] = [
     badge: "New",
     status: "live",
     icon: AlertOctagon,
+  },
+  {
+    href: "/tools/nyc-broker-fee-law-timeline",
+    title: "NYC Broker Fee Law Timeline (2019–2026)",
+    description:
+      "Interactive 13-event timeline of the NYC broker-fee fight — DOS guidance, REBNY lawsuits, FARE Act passage, June 2025 effective date, DCWP enforcement. Includes a lease-date check.",
+    badge: "New",
+    status: "live",
+    icon: History,
   },
 ];
 

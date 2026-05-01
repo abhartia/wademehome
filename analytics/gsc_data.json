@@ -353,11 +353,18 @@
   ],
   "top_pages_30d": [
     {
+      "page": "https://wademehome.com/",
+      "clicks": 1,
+      "impressions": 9,
+      "ctr": 11.11,
+      "position": 9.2
+    },
+    {
       "page": "https://wademehome.com/properties/1442-hollywood-ave-unit-1--1442-hollywood-ave-the-bronx-ny-10461--40.8427---73.8270",
       "clicks": 1,
-      "impressions": 7,
-      "ctr": 14.29,
-      "position": 8.9
+      "impressions": 8,
+      "ctr": 12.5,
+      "position": 8.8
     },
     {
       "page": "https://wademehome.com/properties/325-329-orchard-street-unit-2nd-floor--325-329-orchard-street-bridgeport-ct-06608--41.1960---73.1783",
@@ -372,6 +379,13 @@
       "impressions": 1,
       "ctr": 100,
       "position": 12
+    },
+    {
+      "page": "https://wademehome.com/properties/5500-zia-road-northeast--5500-zia-road-northeast-albuquerque-nm-87108--35.0797---106.5844",
+      "clicks": 1,
+      "impressions": 5,
+      "ctr": 20.0,
+      "position": 7.6
     },
     {
       "page": "https://wademehome.com/properties/88-lincoln-st-b-7--88-lincoln-st-b-7-eugene-or-97401--44.0590---123.0977",
@@ -423,13 +437,6 @@
       "position": 3
     },
     {
-      "page": "https://wademehome.com/",
-      "clicks": 0,
-      "impressions": 7,
-      "ctr": 0,
-      "position": 4.9
-    },
-    {
       "page": "https://wademehome.com/best-time-to-rent-nyc",
       "clicks": 0,
       "impressions": 4,
@@ -439,9 +446,9 @@
     {
       "page": "https://wademehome.com/blog/conditional-approval-higher-deposit",
       "clicks": 0,
-      "impressions": 4,
+      "impressions": 6,
       "ctr": 0,
-      "position": 9
+      "position": 10.8
     },
     {
       "page": "https://wademehome.com/blog/negotiating-rent-and-lease-terms",
@@ -460,30 +467,30 @@
     {
       "page": "https://wademehome.com/blog/nyc-apartment-scams",
       "clicks": 0,
-      "impressions": 12,
+      "impressions": 16,
       "ctr": 0,
-      "position": 5.6
+      "position": 5.3
     },
     {
       "page": "https://wademehome.com/blog/nyc-fare-act-broker-fee-ban",
       "clicks": 0,
-      "impressions": 51,
+      "impressions": 61,
       "ctr": 0,
-      "position": 10.6
+      "position": 10.3
     },
     {
       "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
       "clicks": 0,
-      "impressions": 82,
+      "impressions": 96,
       "ctr": 0,
-      "position": 23.2
+      "position": 22.1
     },
     {
       "page": "https://wademehome.com/blog/roommate-vs-solo-living",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 4,
       "ctr": 0,
-      "position": 10
+      "position": 9.5
     },
     {
       "page": "https://wademehome.com/blog/security-deposits-move-in-fees",
@@ -495,9 +502,9 @@
     {
       "page": "https://wademehome.com/login",
       "clicks": 0,
-      "impressions": 9,
+      "impressions": 10,
       "ctr": 0,
-      "position": 7
+      "position": 7.1
     },
     {
       "page": "https://wademehome.com/nyc-apartment-movers",
@@ -509,9 +516,9 @@
     {
       "page": "https://wademehome.com/nyc-rent-by-neighborhood",
       "clicks": 0,
-      "impressions": 70,
+      "impressions": 71,
       "ctr": 0,
-      "position": 9.1
+      "position": 9.0
     },
     {
       "page": "https://wademehome.com/nyc/astoria",
@@ -565,9 +572,9 @@
     {
       "page": "https://wademehome.com/properties/10-park-ave--1520-n-park-avenue-tucson-az-85719--32.2410---110.9566",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 6.5
+      "position": 5.7
     },
     {
       "page": "https://wademehome.com/properties/1000-chestnut--1000-chestnut-st-san-francisco-ca-94109--37.8039---122.4201",
@@ -614,9 +621,9 @@
     {
       "page": "https://wademehome.com/properties/1020-verdemar-dr--1020-verdemar-dr-alameda-ca-94501--37.7360---122.2450",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 2,
       "ctr": 0,
-      "position": 10
+      "position": 9.5
     },
     {
       "page": "https://wademehome.com/properties/1025-brookside-drive--1025-brookside-drive-little-rock-ar-72227--34.7624---92.3719",
@@ -675,6 +682,13 @@
       "position": 2
     },
     {
+      "page": "https://wademehome.com/properties/1115-sm-apartments--1115-14th-st-santa-monica-ca-90403--34.0280---118.4898",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 19
+    },
+    {
       "page": "https://wademehome.com/properties/113-jamith-pl-6--113-jamith-pl-6-fort-collins-co-80521--40.5883---105.0976",
       "clicks": 0,
       "impressions": 2,
@@ -682,25 +696,11 @@
       "position": 7.5
     },
     {
-      "page": "https://wademehome.com/properties/1145-east-1st-street--1145-east-1st-street-long-beach-ca-90802--33.7671---118.1779",
+      "page": "https://wademehome.com/properties/1138-washington-ave--bronx-bronx-ny-10456--40.8293---73.9077",
       "clicks": 0,
       "impressions": 1,
       "ctr": 0,
-      "position": 11
-    },
-    {
-      "page": "https://wademehome.com/properties/118-120-grand-street--118-120-grand-street-croton-on-hudson-ny-10520--41.2086---73.8843",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 11
-    },
-    {
-      "page": "https://wademehome.com/properties/118-flats-square--1643-east-118th-st-cleveland-oh-44106--41.5132---81.6019",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 10
+      "position": 9
     }
   ],
   "query_page_30d": [
@@ -1764,22 +1764,29 @@
       "impressions": 168,
       "ctr": 1.79,
       "position": 19.3
+    },
+    {
+      "date": "2026-04-29",
+      "clicks": 2,
+      "impressions": 201,
+      "ctr": 1.0,
+      "position": 18.2
     }
   ],
   "devices_30d": [
     {
-      "device": "DESKTOP",
-      "clicks": 5,
-      "impressions": 2257,
-      "ctr": 0.22,
-      "position": 28.9
+      "device": "MOBILE",
+      "clicks": 7,
+      "impressions": 639,
+      "ctr": 1.1,
+      "position": 24.2
     },
     {
-      "device": "MOBILE",
+      "device": "DESKTOP",
       "clicks": 5,
-      "impressions": 594,
-      "ctr": 0.84,
-      "position": 24.7
+      "impressions": 2412,
+      "ctr": 0.21,
+      "position": 28.2
     },
     {
       "device": "TABLET",
@@ -1792,10 +1799,17 @@
   "countries_30d": [
     {
       "country": "usa",
-      "clicks": 10,
-      "impressions": 2653,
-      "ctr": 0.38,
-      "position": 28.9
+      "clicks": 11,
+      "impressions": 2833,
+      "ctr": 0.39,
+      "position": 28.3
+    },
+    {
+      "country": "can",
+      "clicks": 1,
+      "impressions": 33,
+      "ctr": 3.03,
+      "position": 11.7
     },
     {
       "country": "arg",
@@ -1814,9 +1828,9 @@
     {
       "country": "bgd",
       "clicks": 0,
-      "impressions": 1,
+      "impressions": 3,
       "ctr": 0,
-      "position": 10
+      "position": 8.3
     },
     {
       "country": "bhs",
@@ -1828,23 +1842,16 @@
     {
       "country": "bra",
       "clicks": 0,
-      "impressions": 20,
+      "impressions": 23,
       "ctr": 0,
-      "position": 16.6
-    },
-    {
-      "country": "can",
-      "clicks": 0,
-      "impressions": 31,
-      "ctr": 0,
-      "position": 12
+      "position": 14.9
     },
     {
       "country": "che",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 3,
       "ctr": 0,
-      "position": 12
+      "position": 9.3
     },
     {
       "country": "chn",
@@ -1905,9 +1912,9 @@
     {
       "country": "esp",
       "clicks": 0,
-      "impressions": 5,
+      "impressions": 6,
       "ctr": 0,
-      "position": 23.2
+      "position": 21.8
     },
     {
       "country": "est",
@@ -1926,9 +1933,9 @@
     {
       "country": "gbr",
       "clicks": 0,
-      "impressions": 10,
+      "impressions": 11,
       "ctr": 0,
-      "position": 15.9
+      "position": 15.6
     }
   ]
 }

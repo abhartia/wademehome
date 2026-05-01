@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
 import { FAREActViolationReporter } from "@/components/fare-act/FAREActViolationReporter";
+import { BrokerFeeLawTimeline } from "@/components/fare-act/BrokerFeeLawTimeline";
 import Link from "next/link";
 
 export default function NycFareActBrokerFeeBan() {
@@ -395,6 +396,40 @@ export default function NycFareActBrokerFeeBan() {
               className="text-foreground underline underline-offset-4"
             >
               FARE Act violation reporter
+            </Link>
+            .
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>The full timeline: how we got here (2019 → 2026)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            The NYC FARE Act didn&apos;t come out of nowhere — it&apos;s the
+            culmination of a five-year legal fight that began with the 2019
+            DOS guidance, was blocked by REBNY&apos;s 2020 preliminary
+            injunction in Albany, and ultimately succeeded as a NYC
+            ordinance that sidesteps the state-court constraint. The
+            interactive timeline below tracks every key event from the
+            2019 DOS guidance through the 2024 City Council passage, the
+            June 2025 effective date, the Second Circuit&apos;s September
+            2025 affirmance against REBNY, and DCWP&apos;s January 2026
+            first repeat-offender ruling. Use the lease-date check to
+            confirm which enforcement window your specific lease falls
+            under — pre-FARE, early enforcement, DCWP guidance, or
+            repeat-offender era.
+          </p>
+          <BrokerFeeLawTimeline bare />
+          <p className="text-xs">
+            For the full standalone version with deeper citations, visit{" "}
+            <Link
+              href="/tools/nyc-broker-fee-law-timeline"
+              className="text-foreground underline underline-offset-4"
+            >
+              NYC Broker Fee Law Timeline (2019–2026)
             </Link>
             .
           </p>

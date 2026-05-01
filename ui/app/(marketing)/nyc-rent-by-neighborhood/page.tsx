@@ -659,6 +659,15 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/tools/nyc-broker-fee-law-timeline"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    NYC Broker Fee Law Timeline (2019–2026): FARE Act, REBNY
+                    Lawsuit &amp; DCWP Enforcement
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/cheap-apartments"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

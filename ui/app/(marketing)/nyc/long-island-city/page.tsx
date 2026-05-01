@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -74,6 +76,20 @@ export const metadata: Metadata = {
     "Hunters Point 1 bedroom rent",
     "long island city studio for rent",
     "LIC concession watch 2026",
+    "LIC concession watch May 2026",
+    "LIC rent stabilized apartments",
+    "LIC rent stabilized walkup",
+    "LIC RGB renewal",
+    "LIC 1 year vs 2 year renewal",
+    "LIC FARE Act broker fee",
+    "is my LIC apartment rent stabilized",
+    "LIC luxury tower lease up May 2026",
+    "LIC concessions evaporating peak season",
+    "LIC May 2026 hunting plan",
+    "Hunters Point waterfront May 2026",
+    "Hallets Point lease up 2026",
+    "LIC rent prices May 2026",
+    "long island city apartment hunting May",
   ],
   openGraph: {
     title: "Apartments for Rent in Long Island City, Queens (2026): LIC Rent Prices & Guide",
@@ -94,7 +110,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting apartments in Long Island City (LIC), Queens — covering luxury high-rises vs older walkups, 7/E/M/G subway access, Court Square vs Hunters Point vs Hallets Point, no-fee apartments, and practical apartment hunting advice.",
     datePublished: "2026-04-17",
-    dateModified: "2026-04-27",
+    dateModified: "2026-05-01",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -216,25 +232,30 @@ export default function LongIslandCityGuidePage() {
               finding the right LIC apartment.
             </p>
             <p className="text-xs text-muted-foreground">
-              Reviewed 2026-04-27 &middot; Prices reflect median asking rents
-              for market-rate apartments. Trends shows LIC sub-market demand
-              tracking +18% YoY into the May–August 2026 peak; if you want
-              concessions, lock in by mid-May before lease-up offices
-              tighten.
+              Reviewed 2026-05-01 &middot; Prices reflect median asking rents
+              for market-rate apartments. Google Trends shows LIC apartment
+              search demand has surged to <strong>+31.8% YoY</strong> with the
+              4-week interest peak landing 2026-04-12 (just 19 days ago) —
+              the recovery from the 2025 -20% trough is real. Lease-up tower
+              concessions are still on the market, but supply is tightening
+              for May/June move-ins; lock by mid-May or wait until October.
             </p>
           </header>
 
-          {/* 2026 Concession Watch */}
+          {/* May 2026 Concession Watch */}
           <Card>
             <CardHeader>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">2026 Concession Watch</Badge>
-                <Badge variant="secondary">Updated 2026-04-27</Badge>
+                <Badge variant="secondary">Updated 2026-05-01</Badge>
+                <Badge variant="default">+31.8% YoY demand</Badge>
+                <Badge variant="default">Peak 2026-04-12</Badge>
               </div>
-              <CardTitle>LIC Tower Concession Watch (April 2026)</CardTitle>
+              <CardTitle>LIC Tower Concession Watch (May 2026)</CardTitle>
               <CardDescription>
                 Active concession patterns by sub-area and tower tier — what
-                experienced LIC renters are getting before peak season
+                experienced LIC renters are getting as supply tightens into
+                the May–June peak
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -316,6 +337,142 @@ export default function LongIslandCityGuidePage() {
               </p>
             </CardContent>
           </Card>
+
+          {/* May 2026 LIC Demand Surge — 2026-05-01 update */}
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Live May 2026</Badge>
+                <Badge variant="default">+31.8% YoY search demand</Badge>
+                <Badge variant="default">Peak April 12, 2026</Badge>
+              </div>
+              <CardTitle>
+                LIC Demand Surge: What May 2026 Renters Should Know
+              </CardTitle>
+              <CardDescription>
+                Five neighborhood-specific moves that work right now while
+                lease-up offices are still discounting
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <span className="font-semibold text-foreground">
+                  1. Use the +31.8% YoY surge as leverage in lease-ups, not
+                  excuse for paying more.
+                </span>{" "}
+                Google Trends search interest for &ldquo;long island city
+                apartments&rdquo; is up 31.8% year-over-year and peaked just
+                19 days ago (2026-04-12). Lease-up offices read the same
+                data and use it to thin concessions on Hunters Point. The
+                play: tour Hallets Point and inner Court Square new-cons
+                where the lease-up is still mid-cycle (60–80% leased) — the
+                YoY surge has not yet been fully priced into those buildings.
+                Skip the most-leased Hunters Point towers (they&apos;re
+                already past their concession window).
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  2. Hunt the rent-stabilized walkup tier in Inner Court
+                  Square.
+                </span>{" "}
+                Pre-1974 6+ unit walkups in the 21st Street / 27th Avenue
+                / Vernon Boulevard pockets are predominantly stabilized
+                under NYC law — even when landlords don&apos;t advertise
+                it. The rent saving versus the new-con tower next door is
+                $500–$900/mo on a 1BR, and the renewal increase is capped
+                at the 2025–2026 RGB rate (3.0% / 4.5%) instead of
+                whatever the new tower is repricing at next year. Run the
+                exact unit address through the eligibility checker below.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  3. Get the FARE Act broker waiver in writing before you
+                  apply.
+                </span>{" "}
+                LIC&apos;s big lease-up towers have always been no-fee, but
+                the older walkup stock is the gray zone where small
+                landlords still attempt &ldquo;administrative&rdquo; or
+                &ldquo;marketing&rdquo; fees post-FARE Act. If a broker
+                fee is mentioned at any point in the application, ask for
+                written confirmation that the landlord is paying it under
+                NYC AC §20-699.21, then run the situation through our{" "}
+                <Link
+                  href="/tools/fare-act-violation-reporter"
+                  className="text-primary underline underline-offset-2"
+                >
+                  FARE Act violation reporter
+                </Link>{" "}
+                if it&apos;s not waived.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  4. Lock 14-month leases to put renewal in November.
+                </span>{" "}
+                A 14-month lease signed in May 2026 ends July 2027 —
+                resetting the renewal window to a high-supply month
+                instead of August/September peak. Many LIC lease-up
+                offices accept 13- or 14-month leases without raising
+                base rent because they&apos;re optimizing concession
+                spread, not renewal pricing.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  5. The September–November 2026 reset window is
+                  ~5 months away.
+                </span>{" "}
+                The +31.8% YoY surge is mid-cycle into the May–August
+                peak. By October, summer carryover gets repriced and
+                Hunters Point will reopen 1–2 month free concessions. If
+                you have flexibility on timing, waiting 5 months can save
+                $5,000–$10,000 in net-effective annualized rent on a
+                Hunters Point waterfront unit.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Embedded Rent Stabilization Checker ─────────────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>
+                LIC stabilized share is structurally underpriced.
+              </strong>{" "}
+              Inner Court Square walkups built before 1974 with 6+ units
+              are overwhelmingly stabilized — even when not advertised
+              that way. Run a specific LIC address through the checker
+              below before signing.
+            </p>
+            <RentStabilizationChecker />
+          </div>
+          <div className="text-xs text-muted-foreground -mt-4 px-2">
+            Results are guidance based on the rules in 9 NYCRR §2520. The
+            authoritative answer is the building&apos;s DHCR rent
+            registration — request a free rent history at{" "}
+            <a
+              href="https://hcr.ny.gov/rent-administration"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-2"
+            >
+              hcr.ny.gov/rent-administration
+            </a>
+            .
+          </div>
+
+          {/* ── Embedded RGB Renewal Calculator ─────────────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>
+                If your LIC apartment is rent stabilized, the 1-year vs.
+                2-year renewal decision is real money
+              </strong>{" "}
+              — at the 2025–2026 RGB caps (3.0% / 4.5%) it works out to
+              a ~2.91% crossover next-year RGB. Walkups in Inner Court
+              Square and the small-building stock north of 36th Avenue
+              are the most likely to be stabilized; run your specific
+              rent through the calculator below.
+            </p>
+            <RGBRenewalCalculator />
+          </div>
 
           {/* May 2026 Hunting Plan */}
           <Card>

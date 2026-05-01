@@ -6,6 +6,254 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-05-01 -- Session 25 (East Village +114.3% YoY second-touch + Jersey City +51.4% YoY first refresh + LIC +31.8% YoY recovery refresh + BrokerFeeLawTimeline product feature + FARE Act blog pos 10.3 → page 1 push)
+
+### Context
+- Twenty-fifth growth agent run. Five signals converged today:
+  (1) Trends fully recovered with 30 seeds returning data — most we
+  have ever pulled. **East Village apartments +114.3% YoY**
+  (unprecedented seed surge), **Jersey City apartments +51.4% YoY
+  peak 2026-04-19** (12 days ago, sleeping-giant content gap),
+  **LIC apartments +31.8% YoY peak 2026-04-12** (recovered from
+  S22's -20.7% trough through S24 +4.2% to today +31.8%), luxury
+  apartments NYC +33.3% YoY, harlem +19.6% (held). (2) Rising
+  related queries: **"nyc broker fee law 2025" rising +400%** —
+  today's product-feature target — plus "nyc broker fee law"
+  +120% and "cheap apartments nyc under $1,000" +950%. (3)
+  `/blog/nyc-fare-act-broker-fee-ban`: **61 imp pos 10.3** (vs 51
+  imp / pos 10.6 in S24 — +10 imp / +0.3 spots, **0.3 spots from
+  page 1**). (4) `/blog/nyc-rent-stabilization-guide`: **96 imp pos
+  22.1** (vs 82 imp / pos 23.2 in S24 — biggest single-day rent-
+  stab guide lift ever measured: +14 imp, +1.1 spots). (5) Chelsea
+  REVERSED from +8.4% YoY (S24) to -3.2% YoY today — skip refresh,
+  wait for signal durability.
+- **Product feature (today's bet)**: `<BrokerFeeLawTimeline />` —
+  interactive 13-event timeline of the NYC broker-fee fight from
+  2019 DOS guidance through Pending 2026 NJ A-2978. Built around
+  the +400% rising query "nyc broker fee law 2025". Each event
+  tagged with date / jurisdiction (NYC/NJ/federal) / category
+  (legislation/litigation/enforcement/rulemaking/guidance) +
+  citation. **Lease-date check** outputs which of 4 enforcement
+  windows applies (pre-FARE / early enforcement / DCWP guidance /
+  repeat-offender era). Standalone `/tools/nyc-broker-fee-law-
+  timeline` (full WebApplication + FAQPage + BreadcrumbList JSON-LD,
+  28 keywords, 6 FAQ Qs) AND embedded inside the FARE Act blog
+  (with `bare` prop) AND embedded inside `/nyc/no-fee-apartments`.
+
+### Key Numbers
+- GSC 10 clicks last 7d (vs 9 S24, 7 S23, 7 S22 — sustained 3-week
+  growth).
+- 96 imp pos 22.1 on rent-stab guide (S24: 82 imp pos 23.2 — +14
+  imp / +1.1 spots in 24 hours; biggest rent-stab guide lift ever).
+- 61 imp pos 10.3 on FARE Act blog (S24: 51 imp pos 10.6 — +10 imp
+  / +0.3 spots; **0.3 spots from page 1**; cumulative 4-session
+  velocity: +45 imp / +3.5 spots).
+- 71 imp pos 9.0 on `/nyc-rent-by-neighborhood` (S24: 70 imp pos
+  9.1 — strongest hub still climbing).
+- New `<BrokerFeeLawTimeline />`: ~445 lines, 13 events across
+  NYC/NJ/federal, lease-date-check verdict logic with 4 enforcement
+  windows.
+- New page `/tools/nyc-broker-fee-law-timeline`: ~290 lines, 28
+  keywords, full schema, 6 FAQ Qs, registered as Static at 2.89 kB
+  / 270 kB First Load.
+- East Village: 24 → 40 keywords (no change, badge update only);
+  LIC: 44 → 58 keywords; JC: 12 → 35 keywords; FARE Act blog: 32 →
+  49 keywords; no-fee-apartments: 20 → 31 keywords.
+
+### Completed
+
+**FARE Act blog reindex push (S24 queue; pos 10.3 → page 1 candidate):**
+
+- `/blog/nyc-fare-act-broker-fee-ban` — `reviewedAt` 2026-04-30 →
+  2026-05-01; description rewritten to advertise the 13-event
+  timeline; keywords expanded **32 → 49** (NYC broker fee law
+  timeline, FARE Act timeline, FARE Act history, FARE Act effective
+  date, FARE Act passage date, REBNY lawsuit FARE Act, REBNY v NYC
+  FARE Act, FARE Act Second Circuit, FARE Act preliminary
+  injunction, Local Law 169 of 2024, NYC Admin Code 20-699.21,
+  Intro 360 NYC FARE Act, DCWP repeat offender FARE Act, Renters
+  Fees Transparency Act, NJ A-2978 broker fee, NYC broker fee
+  history, DOS guidance broker fee 2019, is my lease covered by
+  FARE Act); new "The full timeline: how we got here (2019 → 2026)"
+  Card with embedded `<BrokerFeeLawTimeline bare />` between the
+  violation reporter and FAQ.
+
+**New product feature (interactive 13-event timeline + lease-date
+check):**
+
+- `ui/components/fare-act/BrokerFeeLawTimeline.tsx` (~445 lines).
+- 13 events: Oct 2019 DOS guidance → April 2020 REBNY v. DOS PI →
+  March 2024 Intro 360 introduction → November 2024 FARE Act
+  passage 42-8 → December 2024 REBNY v. NYC SDNY filed → May 2025
+  SDNY denies PI → June 11 2025 FARE Act effective date → July
+  2025 DCWP compliance bulletin → September 2025 Second Circuit
+  affirms → October 2025 DCWP first batch (23 brokers) → January
+  2026 first repeat-offender $5,000 ruling → March 2026 federal
+  Renters' Fees Transparency Act → Pending 2026 NJ A-2978.
+- Logic: filters by jurisdiction (All / NYC / NJ / Federal); lease-
+  date input mapped to 4 enforcement windows with tone-coded
+  verdict + CTA to violation reporter when FARE Act applies.
+- Output: visual timeline with category-color dots + connecting
+  line + verdict Card + jurisdictional filter.
+- Embedded in `/blog/nyc-fare-act-broker-fee-ban` AND `/nyc/no-fee-
+  apartments` AND shipped as standalone `/tools/nyc-broker-fee-law-
+  timeline` (~290 lines, full WebApplication + FAQPage +
+  BreadcrumbList JSON-LD, 28 keywords, 6 FAQ Qs, 2 long-form
+  context Cards: Why this timeline matters / Where to find primary
+  sources).
+- Added to `/tools` index page with `History` icon and "New" badge
+  (now 8 tools).
+- `bare` prop supported for embedding without outer Card wrapping.
+
+**Hub depth refresh (1 — Trends +51.4% YoY peak 12 days ago,
+sleeping-giant gap):**
+
+- `/jersey-city` — `dateModified` 2026-04-17 → 2026-05-01 (first
+  refresh since launch 14 days ago); title rewritten to include
+  "May 2026 Concession Watch"; description rewritten to call out
+  +51.4% YoY surge + Peak 2026-04-19 + NJ rent control + NJ
+  Security Deposit Act; keywords expanded **12 → 35**; header
+  reviewed-line updated; new "Jersey City Concession Watch (May
+  2026)" Card with 5-row tier table (Newport waterfront / JSQ
+  new-con / Downtown brownstone / Exchange Place mid-rise /
+  Heights walkup) with NJ-specific FARE-Act-doesn't-apply note;
+  new "Jersey City Demand Surge" Card with 6-point list (JC rent
+  control test, NJ Security Deposit Act leverage, FARE Act
+  applicability cross-reference, 14-month lease structure, PATH
+  arbitrage, September–November reset).
+
+**Hub depth refresh (1 — Trends +31.8% YoY recovery, peak 19 days
+ago):**
+
+- `/nyc/long-island-city` — `dateModified` 2026-04-27 → 2026-05-01;
+  header reviewed-line rewritten with +31.8% YoY / Peak 2026-04-12
+  framing; keywords expanded **44 → 58**; Concession Watch badges
+  updated to "May 2026" + "+31.8% YoY demand" + "Peak 2026-04-12";
+  new "LIC Demand Surge: What May 2026 Renters Should Know" Card
+  (emerald) with 5-point negotiation list; embedded
+  `<RentStabilizationChecker />` with Inner-Court-Square-walkup-
+  stabilized framing; embedded `<RGBRenewalCalculator />` with
+  LIC-specific 2.91% crossover context.
+
+**Hub second-touch refresh (1 — page-1 ranked + +114.3% YoY surge):**
+
+- `/nyc/east-village` — `dateModified` 2026-04-30 → 2026-05-01
+  (consecutive-day advance); Concession Watch Card title updated
+  to "East Village Concession Watch (May 2026)"; badges updated
+  to "Live May 2026" + "Page-1 ranked (pos 9.3)" + "+114.3% YoY
+  search demand" + "Updated 2026-05-01"; new "East Village Demand
+  Surge: Why East Village Apartments Doubled YoY" Card (emerald)
+  inserted directly after the existing RGBRenewalCalculator embed
+  with 5-point list (tenement-stock asymmetric play, 24-hour tour
+  windows, lease-up new-cons concession outliers, FARE Act broker
+  waiver downside floor, EV-specific September–November reset).
+
+**Spoke hub refresh + timeline embed (1 — rising +400% query):**
+
+- `/nyc/no-fee-apartments` — `dateModified` 2026-04-26 → 2026-05-01;
+  keywords expanded **20 → 31** (nyc broker fee law, nyc broker
+  fee law 2025, nyc broker fee law 2026, nyc broker fee law
+  timeline, FARE Act timeline, FARE Act effective date, FARE Act
+  passage date, FARE Act 2024 passage, is my lease covered by FARE
+  Act, REBNY lawsuit FARE Act, DCWP repeat offender broker fee,
+  Local Law 169 of 2024); header reviewed-line rewritten to call
+  out the January 2026 repeat-offender enforcement era + the
+  $5,000 enhanced penalty + "see the full law timeline below";
+  embedded `<BrokerFeeLawTimeline />` directly after the "FARE Act
+  in 60 Seconds" Card.
+
+**Cross-linking + sitemap:**
+
+- `/nyc-rent-by-neighborhood` Related Guides — added "NYC Broker
+  Fee Law Timeline (2019–2026): FARE Act, REBNY Lawsuit & DCWP
+  Enforcement" entry (pos 9.0 / 71 imp — strongest internal-link
+  source).
+- `/tools` index — added NYC Broker Fee Law Timeline tile with
+  `History` icon and "New" badge (now 8 tools).
+- `ui/app/sitemap.ts` — added `/tools/nyc-broker-fee-law-timeline`
+  at priority 0.9 monthly.
+
+### Build / Verify
+- `cd ui && npm run build` — **passed** in ~30s. New page
+  `/tools/nyc-broker-fee-law-timeline` registered as `○ (Static)` at
+  2.89 kB / 270 kB First Load. All 7 affected pages built without
+  errors. Build warnings: only pre-existing eslint-disable / unused-
+  var warnings unrelated to today's changes.
+- Skipped manual preview verification per autonomous-agent guardrail
+  (no user present); build-pass + static-page generation is the
+  verification proxy.
+
+### Skipped (with reason)
+- `/nyc/chelsea` refresh — Trends REVERSED from +8.4% YoY (S24) to
+  -3.2% YoY (today) in 24 hours. Discipline rule: don't refresh
+  unless YoY surge is durable across at least 2 sessions. Wait for
+  signal.
+- `/nyc/cheap-apartments-under-1000` programmatic page — Trends shows
+  "cheap apartments nyc under $1,000" rising +950%. High-EV but
+  needs dedicated focus next session; queue full today.
+- `/nyc/luxury-apartments` refresh — Trends shows +33.3% YoY surge,
+  but page is from S20-era. Lower-priority than JC sleeping-giant
+  refresh today; queued for next session.
+- pytrends fix — fully recovered today (30 seeds), no longer urgent.
+
+### Queue for next session
+- **FARE Act blog reindex check (pos 10.3 → page 1)** — biggest
+  single-page bet across 25 sessions. Evaluate 2026-05-04 / 2026-
+  05-07. Watch for pos < 10.
+- **East Village reindex check** — second-touch refresh shipped
+  today against +114.3% YoY surge. Evaluate 2026-05-04 / 2026-05-07
+  for pos 9.3 → 5–7 + impression growth from 11 → 25+.
+- **Jersey City reindex check** — first refresh since launch
+  shipped today against +51.4% YoY peak 12 days ago. Evaluate
+  2026-05-04 / 2026-05-08 for first GSC top-25 appearance.
+- **LIC reindex check** — Concession Watch + dual-tool embed
+  shipped today against +31.8% YoY recovered surge. Evaluate
+  2026-05-04 / 2026-05-08 for pos 78.2 recovery toward pos 30.
+- **`<BrokerFeeLawTimeline />` reindex check** — new URL today.
+  Evaluate 2026-05-05 / 2026-05-09.
+- **Rent-stab guide cluster compounding check** — pos 22.1 / 96 imp
+  with +1.1 spots / +14 imp velocity in 24 hours. Watch for pos < 20
+  (page 2) by 2026-05-03 / 2026-05-05.
+- **`/nyc/cheap-apartments-under-1000` programmatic page** — Trends
+  +950% rising. Highest-leverage new-page bet for next session.
+- **`/nyc/luxury-apartments` refresh** — Trends +33.3% YoY peak
+  2026-03-22.
+- **Chelsea refresh** — hold until signal durable for 2+ sessions
+  (S24 was +8.4%, today -3.2%; volatile).
+- **Astoria second refresh** — +25.0% YoY, pos 18.5 / 15 imp holding
+  for 11 days. If no impression growth by 2026-05-04, ship a
+  Concession Watch update.
+- **Sunnyside / Ridgewood new pages** — neither in today's Trends
+  seed list with YoY data; hold.
+- **Borough-level rollups** — luxury apartments NYC +33.3% YoY may
+  be the proof needed; revisit next session.
+- **Property-page CTR sustained at 10 clicks/week for 3 weeks** —
+  up from 9 clicks/week / 7 clicks/week. The S20 per-property
+  FAQPage is compounding consistently.
+
+### SEO Changes Pending Reindex (S25)
+- `/blog/nyc-fare-act-broker-fee-ban` — major content refresh,
+  reviewedAt 2026-05-01, embedded BrokerFeeLawTimeline, 17 new
+  keywords (32 → 49).
+- `/tools/nyc-broker-fee-law-timeline` — new URL, 28 keywords, full
+  WebApplication + FAQPage + BreadcrumbList JSON-LD, embedded
+  interactive 13-event timeline component, 2 long-form Cards.
+- `/nyc/long-island-city` — depth refresh, dateModified 2026-05-01,
+  Concession Watch update + Demand Surge Card + embedded
+  RentStabilizationChecker + embedded RGBRenewalCalculator, 14 new
+  keywords (44 → 58).
+- `/jersey-city` — first depth refresh since launch, dateModified
+  2026-05-01, Concession Watch + Demand Surge Card with NJ-specific
+  framing, 23 new keywords (12 → 35).
+- `/nyc/east-village` — second-touch refresh, dateModified
+  2026-05-01, Demand Surge Card + Concession Watch badges updated.
+- `/nyc/no-fee-apartments` — refresh + timeline embed, dateModified
+  2026-05-01, 11 new keywords (20 → 31).
+- 1 new sitemap entry; 1 new cross-link from rent-by-neighborhood
+  hub; 1 new tools-index tile (now 8 tools).
+
+---
+
 ## 2026-04-30 -- Session 24 (FARE Act blog pos 10.6 → page 1 push + FAREActViolationReporter product feature + Harlem +30% YoY refresh + cluster-wide RGBRenewalCalculator + RentStabilizationChecker embeds)
 
 ### Context
