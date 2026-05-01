@@ -21,6 +21,7 @@ import {
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -93,7 +94,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in the East Village, Manhattan — covering rent prices by unit size and sub-area, L/6/F/M subway access, Alphabet City and Tompkins Square character, rent stabilization, and practical tips for apartment hunters.",
     datePublished: "2026-04-13",
-    dateModified: "2026-04-29",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -919,6 +920,18 @@ export default function EastVillageGuidePage() {
               hcr.ny.gov/rent-administration
             </a>
             .
+          </div>
+
+          {/* ── Embedded RGB Renewal Calculator ─────────────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>If your East Village apartment is rent stabilized,
+              the 1-year vs. 2-year renewal decision is real money</strong>{" "}
+              — at the 2025–2026 RGB caps (3.0% / 4.5%) it works out to a
+              ~2.91% crossover next-year RGB. Run your specific rent
+              through the calculator below.
+            </p>
+            <RGBRenewalCalculator />
           </div>
 
           {/* ── Apartment Hunting Tips ─────────────────── */}

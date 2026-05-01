@@ -21,6 +21,7 @@ import {
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -83,7 +84,7 @@ const jsonLd = [
     description:
       "A 2026 guide to renting in Forest Hills, Queens — covering rent prices by unit size, the Forest Hills Gardens Tudor historic district, Austin Street retail spine, art-deco doorman pre-war stock, rent-stabilized buildings, and E/F/M/R express subway access.",
     datePublished: "2026-04-28",
-    dateModified: "2026-04-28",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -687,6 +688,18 @@ export default function ForestHillsPage() {
             in Queens. Run a Queens Boulevard, 67th Avenue, 108th Street, or
             71st Avenue pre-1974 building through the checker before signing.
           </p>
+
+          {/* ── Embedded RGB Renewal Calculator ─────────────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              If your Forest Hills lease is rent stabilized — and given the
+              ~38% stabilized share, the odds are real — the 1-year vs.
+              2-year renewal math is worth running. The 2025–2026 caps are
+              3.0% (1-year) and 4.5% (2-year), with a ~2.91% crossover
+              next-year RGB.
+            </p>
+            <RGBRenewalCalculator />
+          </div>
 
           <Card>
             <CardHeader>

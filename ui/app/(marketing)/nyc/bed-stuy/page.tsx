@@ -21,6 +21,7 @@ import {
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -76,7 +77,7 @@ const jsonLd = [
     description:
       "A 2026 guide to renting in Bed-Stuy, Brooklyn — rent prices by unit size, A/C/G/J/M/Z subway access, sub-area differences, brownstone stock, rent-stabilized supply, and tips for apartment hunters.",
     datePublished: "2026-04-25",
-    dateModified: "2026-04-25",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -516,6 +517,18 @@ export default function BedStuyPage() {
             signing a lease is the highest-leverage 60 seconds you can spend
             in the neighborhood.
           </p>
+
+          {/* ── Embedded RGB Renewal Calculator ─────────────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              If your Bed-Stuy walkup is rent stabilized — and across the
+              brownstone tier the odds are very high — the 1-year (3.0%)
+              vs. 2-year (4.5%) RGB renewal decision is real money over
+              two years. The calculator below works the math on your
+              specific rent and tells you which path wins.
+            </p>
+            <RGBRenewalCalculator />
+          </div>
 
           <Separator />
 

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -75,7 +76,7 @@ const jsonLd = [
     description:
       "A 2026 guide to renting on the Lower East Side — rent prices by unit size, F/J/M/Z access, Tenement Core vs Two Bridges vs Essex Crossing vs East Broadway, walkup vs new-construction stock, and tips for apartment hunters.",
     datePublished: "2026-04-25",
-    dateModified: "2026-04-25",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -493,6 +494,20 @@ export default function LowerEastSidePage() {
               </ol>
             </CardContent>
           </Card>
+
+          {/* ── Embedded Rent-Stabilization Checker ────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>LES has the highest concentration of rent-stabilized
+              walkups in Manhattan</strong> — the pre-1974 6+ unit tenement
+              tier is overwhelmingly stabilized even when landlords don&apos;t
+              advertise it. Run your specific LES address through the
+              eligibility checker below; if it&apos;s stabilized, your max
+              legal renewal is capped by RGB at 3.0% (1-year) or 4.5%
+              (2-year).
+            </p>
+            <RentStabilizationChecker />
+          </div>
 
           <Separator />
 

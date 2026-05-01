@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -55,6 +57,23 @@ export const metadata: Metadata = {
     "Harlem no fee apartments",
     "moving to Harlem",
     "Harlem Manhattan apartments",
+    "Harlem concessions 2026",
+    "Harlem free month rent",
+    "Harlem FARE Act",
+    "Harlem rent stabilized",
+    "Harlem rent stabilized brownstone",
+    "Hamilton Heights rent stabilized",
+    "Central Harlem rent stabilized walkup",
+    "Harlem 2026 rent guide",
+    "is my Harlem apartment stabilized",
+    "Harlem RGB renewal",
+    "Harlem 1 year vs 2 year renewal",
+    "Harlem net effective rent",
+    "Harlem doorman new construction",
+    "Harlem walkup rent stabilized",
+    "South Harlem SoHa apartments",
+    "Strivers Row apartments",
+    "Harlem summer 2026",
   ],
   openGraph: {
     title:
@@ -76,7 +95,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in Harlem, Manhattan — covering rent prices by unit size, 2/3/A/B/C/D train access, Central/West/East Harlem and Hamilton Heights differences, brownstone stock, and practical tips for apartment hunters.",
     datePublished: "2026-04-24",
-    dateModified: "2026-04-24",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -340,6 +359,154 @@ export default function HarlemPage() {
               </Table>
             </CardContent>
           </Card>
+
+          {/* ── Concession Watch (April 2026) ─────────── */}
+          <Card className="border-emerald-300 bg-emerald-50">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-emerald-600">Live April 2026</Badge>
+                <Badge variant="outline">+30% YoY search demand</Badge>
+                <Badge variant="outline">Peak March 22, 2026</Badge>
+              </div>
+              <CardTitle className="mt-2">
+                Harlem Concession Watch (April 2026)
+              </CardTitle>
+              <CardDescription>
+                Live tier-by-tier read on what landlords are giving up to fill
+                Harlem inventory this spring — based on April 2026 listing
+                comps across Central Harlem, South Harlem, East Harlem,
+                Hamilton Heights, and Strivers Row.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Building tier</TableHead>
+                    <TableHead>Active concession</TableHead>
+                    <TableHead>1BR net-effective</TableHead>
+                    <TableHead>Window</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      South Harlem new-con (Adagio, Two Lenox, 1485 Fifth)
+                    </TableCell>
+                    <TableCell>1.0–1.5 mo free + FARE Act broker waiver</TableCell>
+                    <TableCell>$3,150–3,400</TableCell>
+                    <TableCell>Through Memorial Day</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Central Harlem mid-rise doorman (125th corridor)
+                    </TableCell>
+                    <TableCell>1 mo free or $1,000 move-in credit</TableCell>
+                    <TableCell>$2,400–2,700</TableCell>
+                    <TableCell>Compresses by mid-June</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Brownstone walkup (5–6 unit pre-war, often stabilized)
+                    </TableCell>
+                    <TableCell>FARE Act broker waiver only — no rent concession</TableCell>
+                    <TableCell>$1,950–2,400</TableCell>
+                    <TableCell>Walkups go fast in May/June</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      East Harlem rezoning new-con (3rd Ave / 125th E)
+                    </TableCell>
+                    <TableCell>1.5–2 mo free, lease-up specials</TableCell>
+                    <TableCell>$2,650–2,950</TableCell>
+                    <TableCell>Open through July on partial lease-up</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Hamilton Heights / Sugar Hill walkup
+                    </TableCell>
+                    <TableCell>FARE Act waiver + occasional 0.5 mo</TableCell>
+                    <TableCell>$2,000–2,400</TableCell>
+                    <TableCell>Tightest sub-market — May fully booked</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <div className="space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <p className="font-semibold text-foreground">
+                  2026 negotiation points for Harlem renters:
+                </p>
+                <ul className="list-disc space-y-1 pl-6">
+                  <li>
+                    <strong>FARE Act broker-fee waiver in writing.</strong> Most
+                    Harlem listings posted by brokers in April 2026 are
+                    landlord-side — confirm in the lease that no broker fee
+                    is owed by you. If a fee is demanded, run it through the{" "}
+                    <Link
+                      href="/tools/fare-act-violation-reporter"
+                      className="font-medium text-foreground underline underline-offset-4"
+                    >
+                      FARE Act violation reporter
+                    </Link>
+                    .
+                  </li>
+                  <li>
+                    <strong>Rent-stabilized brownstone test.</strong> Many 6+
+                    unit Harlem brownstones built before 1974 default-stabilize
+                    even with no abatement. Run the address through the{" "}
+                    <Link
+                      href="/tools/rent-stabilization-checker"
+                      className="font-medium text-foreground underline underline-offset-4"
+                    >
+                      rent stabilization checker
+                    </Link>{" "}
+                    below — Harlem has one of Manhattan&apos;s highest
+                    stabilized shares outside the Lower East Side.
+                  </li>
+                  <li>
+                    <strong>14-month lease structure</strong> to avoid renewing
+                    in the August/September peak demand cycle. Ask the
+                    landlord to set the renewal date for October/November,
+                    when concession compression hasn&apos;t hit yet.
+                  </li>
+                  <li>
+                    <strong>South Harlem premium.</strong> South Harlem (110th–125th,
+                    St. Nicholas to Central Park North) prices comparably to
+                    UWS at 96th — but the concession is ~30% more generous.
+                    Search both for the same budget.
+                  </li>
+                  <li>
+                    <strong>Concession compression timing.</strong> Listings
+                    open in early May with 1.5 months free. By June 15 most
+                    fall to 1 month, by July 4 to 0.5 month or zero.
+                    Starting your search May 1 vs. July 1 is roughly one
+                    month of rent in negotiating power on a $2,800/mo 1BR.
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Embedded Rent-Stabilization Checker ────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Harlem has one of Manhattan&apos;s highest stabilized shares —
+              run your specific building through the eligibility checker
+              below. The 6+ unit pre-1974 brownstone tier is overwhelmingly
+              stabilized even when landlords don&apos;t advertise it.
+            </p>
+            <RentStabilizationChecker />
+          </div>
+
+          {/* ── Embedded RGB Renewal Calculator ────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              If your Harlem brownstone is rent stabilized, the 2025–2026 RGB
+              gives you a 3.0% one-year cap or 4.5% two-year cap. The
+              calculator below works out your 24-month total cost on each
+              path and tells you which one wins for your situation.
+            </p>
+            <RGBRenewalCalculator />
+          </div>
 
           {/* ── Transit ────────────────────────── */}
           <Card>

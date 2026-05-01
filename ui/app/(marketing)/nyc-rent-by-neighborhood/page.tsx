@@ -651,6 +651,14 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/tools/fare-act-violation-reporter"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    FARE Act Violation Reporter: Was Your Broker Fee Illegal?
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/cheap-apartments"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >

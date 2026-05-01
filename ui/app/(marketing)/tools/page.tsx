@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calculator, Gavel, Home, Scale, ShieldCheck, Wrench } from "lucide-react";
+import { AlertOctagon, ArrowRight, Calculator, Gavel, Home, Scale, ShieldCheck, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -87,6 +87,15 @@ const TOOLS: ToolCard[] = [
     badge: "New",
     status: "live",
     icon: Scale,
+  },
+  {
+    href: "/tools/fare-act-violation-reporter",
+    title: "NYC FARE Act Violation Reporter",
+    description:
+      "Charged a broker fee in NYC? Run the situation against the FARE Act, get a verdict, and copy a ready-to-file DCWP complaint draft.",
+    badge: "New",
+    status: "live",
+    icon: AlertOctagon,
   },
 ];
 

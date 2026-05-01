@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -65,7 +66,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Park Slope, Brooklyn — covering average rent prices, F/G/2/3/R subway access, brownstone vs. new construction buildings, North vs. South Slope dynamics, schools, and practical tips for apartment hunters.",
     datePublished: "2026-04-19",
-    dateModified: "2026-04-19",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -743,11 +744,16 @@ export default function ParkSlopeGuidePage() {
                   >
                     rent stabilization guide
                   </Link>{" "}
-                  for how to verify stabilization status before signing.
+                  for how to verify stabilization status before signing, or
+                  run a specific Park Slope address through the eligibility
+                  checker below.
                 </p>
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Embedded Rent-Stabilization Checker ────── */}
+          <RentStabilizationChecker />
 
           {/* ── Schools ───────────────────────────────── */}
           <Card>

@@ -6,6 +6,203 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-04-30 -- Session 24 (FARE Act blog pos 10.6 → page 1 push + FAREActViolationReporter product feature + Harlem +30% YoY refresh + cluster-wide RGBRenewalCalculator + RentStabilizationChecker embeds)
+
+### Context
+- Twenty-fourth growth agent run. Three signals converged today:
+  (1) **`/blog/nyc-fare-act-broker-fee-ban` jumped to pos 10.6 / 51
+  imp** (vs 36 / 11.4 in S23 — +15 imp, +0.8 spots in 24 hours;
+  **0.6 spots from page 1**) — strongest "page-2-to-page-1"
+  candidate ever measured on a non-property page. (2) Trends finally
+  recovered (6/6 NY-geo seeds returned data, vs 0/5 in S23): **Harlem
+  +30% YoY, peak March 22 2026** (5 weeks ago — recent peak,
+  mid-cycle on spring rental wave); Astoria +35.8% YoY peak July;
+  Chelsea +8.4% YoY peak March 29; LIC recovered from -20.7% to
+  +4.2%. (3) S23 queue items mature: explicit FARE Act Reddit-context
+  Card + RGBRenewalCalculator hood-embed pattern + RentStabilization-
+  Checker for Park Slope/LES.
+- **Product feature (today's bet)**: `<FAREActViolationReporter />` —
+  interactive 8-input FARE Act violation classifier that drafts a
+  copy-paste DCWP complaint pre-filled with the user's details.
+  Routes to small-claims if amount ≤ $10,000, civil court if higher.
+  Includes 12-month DCWP statute-of-limitations check, evidence-
+  quality assessment (verbal vs. text/email/written), and 4 verdict
+  classes (no demand / tenant self-hired / plausible violation /
+  likely violation). Standalone `/tools/fare-act-violation-reporter`
+  (full WebApplication + FAQPage + BreadcrumbList JSON-LD, 20
+  keywords, 6 FAQ Qs) AND embedded inside the FARE Act blog.
+
+### Key Numbers
+- GSC 9 clicks last 7d (vs 7 S23 — sustained 3-week growth).
+- 51 imp pos 10.6 on FARE Act blog (S23: 36 imp pos 11.4 — +15 imp /
+  +0.8 spots in 24 hours; **0.6 spots from page 1**).
+- 82 imp pos 23.2 on rent-stab guide (S23: 76 imp pos 23.8 — slow
+  consolidation continues).
+- 70 imp pos 9.1 on `/nyc-rent-by-neighborhood` (S23: 60 imp pos 9.3
+  — strongest hub still climbing).
+- New `<FAREActViolationReporter />`: ~530 lines, 8 inputs, 4-verdict
+  output, draft DCWP complaint pre-filled with user's details.
+- New page `/tools/fare-act-violation-reporter`: ~330 lines, 20
+  keywords, full schema, 6 FAQ Qs.
+- Harlem: 24 → 41 keywords; FARE Act blog: 17 → 32 keywords.
+- 5 hood pages now host both `<RentStabilizationChecker />` AND
+  `<RGBRenewalCalculator />` (East Village, Forest Hills, UWS,
+  Bed-Stuy, Harlem); 2 host RentStabilizationChecker only (Park
+  Slope, LES); 1 hosts both tools (rent-stab guide article).
+
+### Completed
+
+**FARE Act blog reindex push (S23 queue; pos 10.6 → page 1 candidate):**
+
+- `/blog/nyc-fare-act-broker-fee-ban` — `reviewedAt` 2026-04-24 →
+  2026-04-30; description rewritten to advertise Reddit-context section
+  + violation reporter; keywords expanded **17 → 32**; new "What NYC
+  tenants are asking on r/AskNYC about the FARE Act (April 2026)"
+  Card (emerald) inserted before FAQ with 6 paraphrased Reddit-style
+  Q+A (StreetEasy same-broker fee, late-2025 fee refund, administrative/
+  marketing fee rebranding, landlord-refuses-to-pay-broker, rent-bump
+  pass-through, NJ-vs-NYC); new "Were you charged a fee illegally?"
+  Card with embedded `<FAREActViolationReporter />`.
+
+**New product feature (interactive FARE Act violation classifier +
+DCWP complaint drafter):**
+
+- `ui/components/fare-act/FAREActViolationReporter.tsx` (~530 lines).
+- 8 inputs: landlord-engaged-broker (5 categorical options), broker-
+  demanded-fee, channel of demand (verbal/text/email/written/unknown),
+  payment status (not paid / partial / full), fee amount, monthly
+  rent, date of demand, broker name + unit address.
+- Logic: scores landlord-engagement signals (3-tier strength), weights
+  evidence quality, checks DCWP 12-month statute, sets small-claims
+  eligibility ($10,000 cap), produces tone-coded verdict.
+- Output: 4 verdict types + tone-coded Card with reasons + next
+  steps + **draft DCWP complaint pre-filled with user's details** +
+  copy button + DCWP filing link + small-claims link.
+- Embedded in `/blog/nyc-fare-act-broker-fee-ban` AND shipped as
+  standalone `/tools/fare-act-violation-reporter` (~330 lines, full
+  WebApplication + FAQPage + BreadcrumbList JSON-LD, 20 keywords, 6
+  FAQ Qs, 2 long-form context Cards).
+- Added to `/tools` index page with `AlertOctagon` icon and "New"
+  badge (now 7 tools).
+
+**Hub depth refresh (1 — Trends +30% YoY, peak March 22):**
+
+- `/nyc/harlem` — `dateModified` 2026-04-24 → 2026-04-30; keywords
+  expanded **24 → 41**; new "Harlem Concession Watch (April 2026)"
+  Card (emerald) with 5-row tier table (South Harlem new-con /
+  Central Harlem mid-rise / brownstone walkup / East Harlem rezoning
+  / Hamilton Heights walkup); 5 2026-specific negotiation points
+  (FARE Act broker waiver with cross-link to violation reporter,
+  rent-stabilized brownstone test, 14-month lease structure, South
+  Harlem premium / UWS arbitrage, concession compression timing);
+  embedded `<RentStabilizationChecker />` + `<RGBRenewalCalculator />`
+  with neighborhood-context paragraphs.
+
+**RentStabilizationChecker embedding (2 hood pages — S23 queue):**
+
+- `/nyc/park-slope` — embed inserted just after rent-stab context
+  paragraph; cross-link rewrite invites running a specific Park Slope
+  address through checker; `dateModified` 2026-04-19 → 2026-04-30.
+- `/nyc/lower-east-side` — embed inserted after apartment-hunting tips
+  Card; paired with note ("LES has the highest concentration of rent-
+  stabilized walkups in Manhattan"); `dateModified` 2026-04-25 →
+  2026-04-30.
+
+**RGBRenewalCalculator embedding (4 hood pages — S23 queue):**
+
+- `/nyc/east-village` — embed inserted directly below existing
+  RentStabilizationChecker; `dateModified` 2026-04-29 → 2026-04-30.
+- `/nyc/forest-hills` — embed inserted directly below existing
+  RentStabilizationChecker; `dateModified` 2026-04-28 → 2026-04-30.
+- `/nyc/upper-west-side` — embed inserted directly below existing
+  RentStabilizationChecker; `dateModified` 2026-04-19 → 2026-04-30.
+- `/nyc/bed-stuy` — embed inserted directly below existing
+  RentStabilizationChecker; `dateModified` 2026-04-25 → 2026-04-30.
+
+**Cross-linking + sitemap:**
+
+- `/nyc-rent-by-neighborhood` Related Guides — added "FARE Act
+  Violation Reporter: Was Your Broker Fee Illegal?" entry (pos 9.1 /
+  70 imp — strongest internal-link source).
+- `/tools` index — added FARE Act Violation Reporter tile with
+  `AlertOctagon` icon and "New" badge.
+- `ui/app/sitemap.ts` — added `/tools/fare-act-violation-reporter` at
+  priority 0.9 monthly.
+
+### Build / Verify
+- `cd ui && npm run build` — **passed** in ~30s. New page
+  `/tools/fare-act-violation-reporter` registered as `○ (Static)` at
+  2.46 kB / 271 kB First Load. All 9 affected pages built without
+  errors. Build warnings: only pre-existing eslint-disable / unused-
+  var warnings unrelated to today's changes.
+- Skipped manual preview verification per autonomous-agent guardrail
+  (no user present); build-pass + static-page generation is the
+  verification proxy.
+
+### Skipped (with reason)
+- `/nyc/chelsea` refresh (Trends +8.4% YoY peak March 29) — queued
+  for next session; today's full queue already shipped 8 content
+  moves + product feature, deferring Chelsea is OK because Astoria
+  +35.8% YoY is the higher-priority recent-peak hood and we already
+  have an Astoria refresh in active reindex (10 days post-publish).
+- pytrends fix — partially recovered today (6/6 NY-geo seeds), no
+  longer urgent.
+- FARE Act savings checker + violation reporter cross-pairing on
+  hood pages — pattern queued; today's RGBRenewalCalculator embeds
+  on 4 pages was the higher-leverage pattern given the rent-stab
+  cluster compound thesis.
+
+### Queue for next session
+- **FARE Act blog reindex check** — biggest single-page bet in 24
+  sessions. Evaluate 2026-05-03 / 2026-05-05. Watch for pos < 10
+  (page-1 entry).
+- **Harlem reindex check** — Concession Watch + dual-tool embed
+  shipped today against +30% YoY. Evaluate 2026-05-03 / 2026-05-07
+  for first GSC top-25 appearance.
+- **`<FAREActViolationReporter />` reindex check** — new URL today.
+  Evaluate 2026-05-04 / 2026-05-08.
+- **Rent-stab guide cluster compounding check** — 7 hood pages now
+  reinforce the cluster. Watch for pos 23.2 → 18 (page 2 lower) by
+  2026-05-04 / 2026-05-08.
+- **Park Slope / LES / 4-RGB-Calculator-embed reindex check** —
+  evaluate 2026-05-03 / 2026-05-05.
+- **`/nyc/chelsea` refresh** — +8.4% YoY peak March 29, 2026
+  (recent). Concession Watch + RentStab embed cycle.
+- **Astoria second refresh** — +35.8% YoY (highest of any seed) but
+  pos 18.5 / 15 imp holding for 10 days. If no impression growth
+  by 2026-05-04, ship a Concession Watch update.
+- **Sunnyside / Ridgewood new pages** — Trends pull didn't seed them
+  today; if they show up next session, ship.
+- **FARE Act savings checker + violation reporter cross-pairing on
+  hood pages** — pair both tools on no-fee-apartments / financial-
+  district / east-village / harlem (concession-heavy hoods).
+- **pytrends rate-limit fix** — partially recovered, deferred as
+  non-blocking.
+- **Borough-level rollups** (`/manhattan/luxury-apartments`,
+  `/brooklyn/cheap-apartments`) — still gated on traction proof.
+- **Property-page CTR sustained at 9 clicks/week for 3 weeks** —
+  up from 7 clicks/week sustained 2 weeks. Per-property FAQPage from
+  S20 is compounding.
+
+### SEO Changes Pending Reindex (S24)
+- `/blog/nyc-fare-act-broker-fee-ban` — Reddit-context Card +
+  embedded FAREActViolationReporter, reviewedAt 2026-04-30, 15 new
+  keywords.
+- `/tools/fare-act-violation-reporter` — new URL, 20 keywords, full
+  WebApplication + FAQPage + BreadcrumbList JSON-LD, embedded
+  interactive component, 2 long-form Cards.
+- `/nyc/harlem` — depth refresh, dateModified 2026-04-30, Concession
+  Watch + dual-tool embed, 17 new keywords.
+- `/nyc/park-slope`, `/nyc/lower-east-side` — RentStabilizationChecker
+  embed.
+- `/nyc/east-village`, `/nyc/forest-hills`, `/nyc/upper-west-side`,
+  `/nyc/bed-stuy` — RGBRenewalCalculator embed (each now hosts both
+  tools).
+- 1 new sitemap entry; 1 new cross-link from rent-by-neighborhood;
+  1 new tools-index tile.
+
+---
+
 ## 2026-04-29 -- Session 23 (RGB Renewal Calculator + Bushwick Concession Watch + East Village page-1 compound + RentStabilizationChecker on 3 more hood pages + rent-stab guide consecutive-day push)
 
 ### Context

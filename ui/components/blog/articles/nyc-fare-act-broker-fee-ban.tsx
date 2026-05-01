@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArticleCTA } from "@/components/blog/ArticleCTA";
+import { FAREActViolationReporter } from "@/components/fare-act/FAREActViolationReporter";
 import Link from "next/link";
 
 export default function NycFareActBrokerFeeBan() {
@@ -286,6 +287,117 @@ export default function NycFareActBrokerFeeBan() {
               (a 12% fee on $300K annual rent is $36K).
             </li>
           </ol>
+        </CardContent>
+      </Card>
+
+      <Card className="border-emerald-300 bg-emerald-50">
+        <CardHeader>
+          <CardTitle>What NYC tenants are asking on r/AskNYC about the FARE Act (April 2026)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            We monitor r/AskNYC, r/NYCApartments, and r/AskNYC threads daily for
+            FARE Act questions. Here are the patterns that come up most in
+            April 2026, paraphrased from real tenant posts (with names and
+            buildings stripped). If your situation matches any of these,
+            run it through the violation reporter below — it will tell you
+            whether you have a complaint and draft the DCWP filing for you.
+          </p>
+          <p>
+            <strong>&quot;The broker who showed me the apartment is asking
+            for a 12% fee. The listing was on StreetEasy posted by that same
+            broker. Is this legal?&quot;</strong> No. If the broker posted the
+            listing, the broker has keys, and the broker showed you the
+            unit, the landlord engaged them and you are not on the hook.
+            The fee demand is a textbook FARE Act violation. Save the
+            StreetEasy listing screenshot — it is your strongest exhibit.
+          </p>
+          <p>
+            <strong>&quot;I already paid a broker fee in November 2025 because
+            I didn&apos;t know about the FARE Act. Can I get it back?&quot;</strong>{" "}
+            Yes, if the broker was landlord-engaged. DCWP has been ordering
+            refunds in 2025 and 2026 cases with this fact pattern. You are
+            still inside the typical 12-month DCWP administrative window for
+            a November 2025 demand. File at nyc.gov/dcwp first; if no
+            resolution within 30–60 days, file in NYC Small Claims (no
+            lawyer required, $20 filing fee, $10,000 cap).
+          </p>
+          <p>
+            <strong>&quot;The broker is calling it an &lsquo;administrative
+            fee&rsquo; or &lsquo;application processing fee&rsquo; instead of a
+            broker fee. Does that get around the law?&quot;</strong> No. NYC
+            application fees are capped at $20 by state law (separate from
+            FARE Act). DCWP has explicitly flagged rebranded broker fees —
+            &quot;administrative,&quot; &quot;marketing,&quot; &quot;agency,&quot;
+            &quot;processing&quot; — as violations when the broker was
+            landlord-hired. The label does not change the legal analysis.
+          </p>
+          <p>
+            <strong>&quot;The broker says the landlord refuses to pay the
+            fee, and if I want the apartment I have to. What do I do?&quot;</strong>{" "}
+            Refuse in writing. Tell the broker by text or email that the FARE
+            Act prohibits the demand and that you will report any further
+            request to DCWP. If the landlord then refuses to lease to you, that
+            is itself a separate enforcement issue — you preserve the right
+            to file. In practice, most brokers back down once the tenant
+            cites the law in writing.
+          </p>
+          <p>
+            <strong>&quot;The asking rent is $300 higher than comparable
+            units. Is the landlord pricing in the broker fee?&quot;</strong> Possibly.
+            StreetEasy and Zillow indices show market-rate rents up 5–7% YoY
+            in 2025-2026, with some of that being broker-fee pass-through.
+            But the math still favors tenants: a $300/month bump on a
+            $3,500 unit costs $3,600/year vs. the $4,200–$5,250 broker fee
+            it replaced. You are still ahead by roughly a month. The
+            structural gotcha is that the rent bump rolls into your
+            renewal baseline, while the broker fee was one-time — so on a
+            5+ year tenancy, the math eventually flips. Negotiate hard on
+            the asking rent, not on hidden fees.
+          </p>
+          <p>
+            <strong>&quot;Does the FARE Act help me if I&apos;m looking in
+            Hoboken or Jersey City?&quot;</strong> No. The FARE Act is a New
+            York City ordinance only. In NJ — Hoboken, Jersey City, Newark
+            — tenant-paid broker fees of one-month-to-one-month-plus are
+            still standard. That is one reason no-fee Jersey listings
+            command a premium and why NJ-side advocacy groups are pushing
+            for a state-level version.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Were you charged a fee illegally? Run the situation through our reporter</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            The interactive tool below classifies your situation against the
+            FARE Act&apos;s landlord-engagement test, walks through the small-
+            claims and DCWP enforcement options, and drafts a copy-paste DCWP
+            complaint with your details inserted. Nothing you type is
+            stored — the analysis runs entirely in your browser.
+          </p>
+          <FAREActViolationReporter bare />
+          <p className="text-xs">
+            See also our{" "}
+            <Link
+              href="/tools/fare-act-broker-fee-checker"
+              className="text-foreground underline underline-offset-4"
+            >
+              FARE Act broker-fee savings checker
+            </Link>{" "}
+            (estimates the dollars saved on a no-fee lease) and the
+            standalone{" "}
+            <Link
+              href="/tools/fare-act-violation-reporter"
+              className="text-foreground underline underline-offset-4"
+            >
+              FARE Act violation reporter
+            </Link>
+            .
+          </p>
         </CardContent>
       </Card>
 

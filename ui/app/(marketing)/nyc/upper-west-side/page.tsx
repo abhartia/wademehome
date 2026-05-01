@@ -21,6 +21,7 @@ import {
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
 import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizationChecker";
+import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -66,7 +67,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment on the Upper West Side of Manhattan — covering average rent prices, 1/2/3 and B/C subway access, pre-war vs. new construction buildings, neighborhood character, and practical tips for apartment hunters.",
     datePublished: "2026-04-19",
-    dateModified: "2026-04-19",
+    dateModified: "2026-04-30",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -740,6 +741,19 @@ export default function UpperWestSideGuidePage() {
 
           {/* ── Embedded Rent Stabilization Checker ─────────────────── */}
           <RentStabilizationChecker />
+
+          {/* ── Embedded RGB Renewal Calculator ─────────────────── */}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>UWS has roughly 35% rent-stabilized share</strong> —
+              concentrated in pre-war 6+ unit walkups along West End,
+              Amsterdam, and Columbus between 70th and 110th. If your unit
+              is stabilized, the 1-year vs. 2-year renewal decision is
+              worth running through the calculator below — at the 2025–2026
+              caps (3.0% / 4.5%), the crossover next-year RGB is ~2.91%.
+            </p>
+            <RGBRenewalCalculator />
+          </div>
 
           {/* ── Renter Tips ───────────────────────────── */}
           <Card>
