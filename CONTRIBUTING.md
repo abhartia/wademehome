@@ -57,10 +57,20 @@ Conventional-style is nice but not mandatory. A one-line summary that a reader c
 
 Every PR should:
 
-1. Pass CI (lint, typecheck, tests, CodeQL).
+1. Pass CI (lint, typecheck, tests, CodeQL, openapi-drift).
 2. Include a test for any behavior change — even a tiny one.
 3. Touch only one concern. If you wanted to fix two bugs, open two PRs.
 4. Update docs if you changed a contract. `ARCHITECTURE.md`, `RUNBOOK.md`, or an ADR, depending on scope.
+
+If you add, remove, or rename a backend route or change a request/response
+schema, regenerate the committed OpenAPI spec before pushing:
+
+```bash
+cd ui && npm run openapi:refresh
+```
+
+CI's `openapi-drift` job runs the same export and fails the PR if
+`ui/openapi.json` is out of sync.
 
 ## Filing an ADR
 
