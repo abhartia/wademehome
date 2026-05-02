@@ -55,6 +55,23 @@ export const metadata: Metadata = {
     "no fee apartments Williamsburg",
     "moving to Williamsburg NYC",
     "apartments 11211 11249 11206",
+    "Williamsburg apartments May 2026",
+    "Williamsburg apartments 2026 demand",
+    "Williamsburg search demand 2026",
+    "Williamsburg Concession Watch May 2026",
+    "Williamsburg 44 percent YoY",
+    "Williamsburg waterfront May 2026",
+    "Williamsburg lease up tower 2026",
+    "Williamsburg L train 2026",
+    "Williamsburg vs Greenpoint May 2026",
+    "Williamsburg vs LIC 2026",
+    "Williamsburg pre-peak hunting plan 2026",
+    "Williamsburg rent stabilized walkup",
+    "Williamsburg FARE Act broker fee waiver 2026",
+    "Domino Sugar lease up 2026",
+    "260 Kent lease up 2026",
+    "One Domino Square 2026",
+    "Bedford Avenue apartments May 2026",
   ],
   openGraph: {
     title:
@@ -76,7 +93,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Williamsburg, Brooklyn — covering average rent by unit size, North/South/East Williamsburg price differences, L/G/J/M/Z subway access, best streets, and practical tips for apartment hunters.",
     datePublished: "2026-04-14",
-    dateModified: "2026-04-26",
+    dateModified: "2026-05-02",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -194,9 +211,12 @@ export default function WilliamsburgGuidePage() {
               Act changed Williamsburg broker fees in 2025.
             </p>
             <p className="text-xs text-muted-foreground">
-              Last updated April 2026 &middot; Prices reflect median asking
+              Last updated 2026-05-02 &middot; Prices reflect median asking
               rents for market-rate apartments in Williamsburg ZIP codes 11211,
-              11249, and 11206.
+              11249, and 11206 &middot; Search demand{" "}
+              <span className="font-semibold text-foreground">+44.6% YoY</span>{" "}
+              (Google Trends, NY-geo, 2026-05-02 pull) &mdash; up from +27.7%
+              in our April read
             </p>
           </header>
 
@@ -557,13 +577,19 @@ export default function WilliamsburgGuidePage() {
             </CardContent>
           </Card>
 
-          {/* ── 2026 Concession Watch (refresh added 2026-04-26) ── */}
-          <Card>
+          {/* ── 2026 Concession Watch (refresh updated 2026-05-02) ── */}
+          <Card className="border-emerald-200 bg-emerald-50/30">
             <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-emerald-600">Live May 2026</Badge>
+                <Badge variant="default">+44.6% YoY search demand</Badge>
+                <Badge variant="outline">Updated 2026-05-02</Badge>
+              </div>
               <CardTitle>Williamsburg 2026 Concession Watch &amp; FARE Act Note</CardTitle>
               <CardDescription>
                 What broker-fee and concession activity looks like in
-                Williamsburg under the FARE Act in 2026
+                Williamsburg under the FARE Act in 2026 — refreshed for the
+                +44.6% YoY surge (up from +27.7% in our April read)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -608,13 +634,16 @@ export default function WilliamsburgGuidePage() {
                 </li>
               </ul>
               <p>
-                <strong>Search demand context:</strong> Google Trends
-                shows &ldquo;williamsburg apartments&rdquo; up 27.7%
-                year-over-year as of April 2026 — the largest YoY climb
-                of any established Brooklyn neighborhood. Combined with
-                the FARE Act tilting walkup landlords toward landlord-paid
-                broker fees, the practical math has gotten meaningfully
-                better for renters.
+                <strong>Search demand context (updated 2026-05-02):</strong>{" "}
+                Google Trends shows &ldquo;williamsburg apartments&rdquo; up{" "}
+                <span className="font-semibold text-foreground">+44.6% YoY</span>{" "}
+                as of May 2026, with peak 2025-09-14 (last Sept&apos;s peak,
+                meaning the 4-week window running into May has been pulling
+                forward). That&apos;s up from +27.7% in our April read — the
+                surge is accelerating, not topping out. Combined with the FARE
+                Act tilting walkup landlords toward landlord-paid broker fees,
+                the practical math has gotten meaningfully better for
+                renters who tour before Memorial Day.
               </p>
               <p>
                 See our full{" "}
@@ -632,6 +661,105 @@ export default function WilliamsburgGuidePage() {
                   net-effective-rent calculator
                 </Link>{" "}
                 to compare gross-vs-net pricing.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* May 2026 Williamsburg Demand Surge — 2026-05-02 update */}
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Live May 2026</Badge>
+                <Badge variant="default">+44.6% YoY search demand</Badge>
+                <Badge variant="outline">Up from +27.7% in April</Badge>
+              </div>
+              <CardTitle>
+                Williamsburg Demand Surge: What May 2026 Tour Calculus Looks
+                Like
+              </CardTitle>
+              <CardDescription>
+                Five 2026-specific moves: front-run the Memorial Day
+                concession compression, use Greenpoint as the comparison
+                anchor, hunt East Williamsburg walkups, and read the L train
+                weekend-shutdown calendar before signing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <span className="font-semibold text-foreground">
+                  1. Memorial Day is the concession-compression deadline.
+                </span>{" "}
+                One Domino Square and 260 Kent are still pricing 1–2 months
+                free on 13-month leases as of early May. By Memorial Day,
+                that compresses to 1 month max, and by July 4 it&apos;s
+                typically 0–0.5 months. The +44.6% YoY surge means leasing
+                offices have fewer empty days to fill — they will compress
+                concessions sooner than the 2025 calendar suggested. If
+                you&apos;re comparing a $4,200 net-effective tower 1BR
+                today, that same unit lists at $4,500 net-effective in
+                July. Tour now or expect to pay 7% more for the same unit.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  2. Greenpoint is now the right comparison anchor, not LIC.
+                </span>{" "}
+                Greenpoint is +236.6% YoY (the biggest neighborhood surge
+                we&apos;ve ever measured) but still asks $3,650 net-effective
+                on a Greenpoint Landing waterfront 1BR vs. $4,200 net-
+                effective in Williamsburg waterfront. That&apos;s a $550/mo
+                spread for what is functionally the same NYC Ferry stop and
+                a one-stop G train ride. If your hunting is Williamsburg
+                waterfront, run a parallel tour at Eagle &amp; West or One
+                Blue Slip — the price spread has widened in the 14 days
+                since we measured it.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  3. East Williamsburg walkups under $3,000 are the real
+                  May 2026 alpha.
+                </span>{" "}
+                The +44.6% YoY surge concentrates on Bedford-spine and
+                waterfront searches. East Williamsburg (closer to the
+                Morgan / Jefferson L stops) still has FARE-Act-waivered
+                walkup 1BRs at $2,700–$2,950 — a 30% rent discount on a
+                12-min commute differential. Pre-1974 6+ unit walkups along
+                Grand Street and Devoe Street are very likely
+                rent-stabilized. Use our{" "}
+                <Link
+                  href="/tools/rent-stabilization-checker"
+                  className="text-primary underline underline-offset-2"
+                >
+                  rent stabilization checker
+                </Link>{" "}
+                before signing.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  4. The L train weekend-shutdown calendar matters more in
+                  2026.
+                </span>{" "}
+                L weekend GO (general orders, MTA&apos;s shorthand for
+                planned outages) hit Bedford Ave on 6 weekends through
+                spring 2026, with shuttle bus replacement to Lorimer.
+                Williamsburg leasing offices will not lower rent over this
+                — but they will accept a 14-month lease starting June 1
+                that crosses the August schedule reset. If your job is
+                fully in-person 5 days/week and your office is past Union
+                Square, run the math on the J/M/Z (Marcy Avenue) instead.
+                Marcy is a 4-min walk from Bedford and has zero weekend
+                shutdowns.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  5. The September–November 2026 reset window is shrinking.
+                </span>{" "}
+                Williamsburg typically reopens lease-up concessions in
+                October for the 4-week post-summer reset. With +44.6% YoY
+                pulling demand into May, expect 2026&apos;s reset to be
+                shorter (~2 weeks), narrower (1 month max free), and
+                concentrated in the post-2018 mid-rise tier rather than the
+                Domino / Kent waterfront stock. Sign now if you can; the
+                September flex disappears in 2026.
               </p>
             </CardContent>
           </Card>

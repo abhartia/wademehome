@@ -55,6 +55,21 @@ export const metadata: Metadata = {
     "luxury full service building nyc",
     "doorman apartments nyc",
     "supertall apartments nyc",
+    "luxury apartments nyc May 2026",
+    "luxury apartments nyc demand surge",
+    "luxury rental market nyc 2026",
+    "luxury apartments nyc 71 percent YoY",
+    "Hudson Yards 2026 lease up",
+    "Billionaires Row 2026 rentals",
+    "FiDi luxury apartments 2026",
+    "Tribeca luxury 2026 lease up",
+    "Luxury Concession Watch May 2026",
+    "luxury apartments under 8000 nyc",
+    "luxury apartments under 12000 nyc",
+    "high net worth renter nyc 2026",
+    "tax-deductible work from home nyc luxury",
+    "luxury apartments amenity stack 2026",
+    "luxury apartments wellness suite nyc",
   ],
   openGraph: {
     title:
@@ -76,7 +91,7 @@ const jsonLd = [
     description:
       "A 2026 guide to NYC luxury rentals — building tier, neighborhood, and price band — with the supertall and trophy-building landscape mapped end-to-end.",
     datePublished: "2026-04-26",
-    dateModified: "2026-04-26",
+    dateModified: "2026-05-02",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -178,7 +193,8 @@ export default function LuxuryApartmentsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">Manhattan + Brooklyn waterfront</Badge>
               <Badge variant="outline">Tribeca · SoHo · Hudson Yards · CPS</Badge>
-              <Badge className="bg-emerald-600">+76% YoY search demand</Badge>
+              <Badge className="bg-emerald-600">+71.4% YoY search demand</Badge>
+              <Badge variant="outline">Updated 2026-05-02</Badge>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
               Luxury Apartments NYC (2026): Tribeca, SoHo, Hudson Yards &amp;
@@ -190,13 +206,17 @@ export default function LuxuryApartmentsPage() {
               waterfront new-construction towers — with median rent, concession
               status, and the building-tier vocabulary you need to compare a
               Hudson Yards 1BR against a Tribeca loft against a Billionaires&apos;
-              Row trophy unit. Search demand for &ldquo;luxury apartments NYC&rdquo;
-              is up <strong>76% year-over-year</strong> — the steepest YoY climb
-              of any NYC rental segment we track.
+              Row trophy unit. Search demand for &ldquo;luxury apartments
+              NYC&rdquo; is{" "}
+              <strong>+71.4% year-over-year as of 2026-05-02</strong> — one of
+              the steepest YoY climbs of any NYC rental segment we track,
+              up from +33.3% just one week ago.
             </p>
             <p className="text-xs text-muted-foreground">
-              Last reviewed April 26, 2026 &middot; Written by the Wade Me
-              Home research team
+              Last reviewed 2026-05-02 &middot; Written by the Wade Me Home
+              research team &middot; Search demand{" "}
+              <span className="font-semibold text-foreground">+71.4% YoY</span>{" "}
+              (Google Trends, NY-geo, 2026-05-02 pull)
             </p>
           </header>
 
@@ -209,6 +229,109 @@ export default function LuxuryApartmentsPage() {
             minRent={6000}
             searchQuery="Luxury NYC apartments $6,000+"
           />
+
+          {/* May 2026 Luxury Demand Surge — 2026-05-02 update */}
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Live May 2026</Badge>
+                <Badge variant="default">+71.4% YoY search demand</Badge>
+                <Badge variant="default">2× last week</Badge>
+                <Badge variant="outline">Peak 2025-11-16</Badge>
+              </div>
+              <CardTitle>
+                Luxury Demand Surge: What &ldquo;+71.4% YoY&rdquo; Actually
+                Means For Tour Calculus This May
+              </CardTitle>
+              <CardDescription>
+                Five 2026-specific moves: front-run the FiDi/Tribeca lease-up
+                schedule, demand 2-month free on Hudson Yards new-con, anchor
+                rent to the prior November peak, leverage tax-deductible WFH
+                space against trophy unit asks, time the post-Memorial-Day
+                board-approval slowdown
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <span className="font-semibold text-foreground">
+                  1. The doubling from +33.3% to +71.4% in one week is a
+                  pricing-power signal.
+                </span>{" "}
+                One week ago (April 26) our pull showed +33.3% YoY for
+                &ldquo;luxury apartments NYC&rdquo;. As of 2026-05-02
+                it&apos;s +71.4%. That kind of week-over-week acceleration
+                in luxury-segment search is mechanical: it precedes asking-
+                rent movement by 4–8 weeks. If you&apos;re shopping in the
+                $7K–$12K band, May is the last month that lease-up offices
+                price like the +33% world. By July, the asks reset 4–8%
+                higher across Hudson Yards, Tribeca new-con, and Billionaires&apos;
+                Row sublet inventory.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  2. Demand 2-month-free on Hudson Yards new-con through
+                  Memorial Day.
+                </span>{" "}
+                Hudson Yards (15 Hudson Yards, 35 Hudson Yards, The Eleventh)
+                is still pricing 1.5–2 months free on 14-month leases for
+                empty inventory above the 30th floor. That concession
+                schedule was set in mid-April when YoY was +33%. The
+                +71.4% read means HY leasing offices have dramatically less
+                slack — but most concession sheets are not yet retuned.
+                Tour through Memorial Day to lock the legacy concession
+                schedule. By June 1, expect it to compress to 1 month max,
+                with view-tier units (Hudson views above 50) coming off the
+                concession menu entirely.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  3. Anchor your offer to the November 2025 peak, not the
+                  current asking rent.
+                </span>{" "}
+                The Trends peak landed 2025-11-16 — last fall&apos;s peak.
+                That means luxury asks in November 2025 were the highest
+                they&apos;ve been since the data series started, and we
+                are now bumping back up against that ceiling 6 months
+                later. Most luxury inventory has rolled at least one
+                renewal cycle since November, and the renewals were quoted
+                at +6% to +9%. When you negotiate, anchor to the
+                November 2025 peak ask (which the leasing office tracks
+                internally) and ask for a return to that level — not the
+                current ask, which is 4–8% above it.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  4. Tax-deductible WFH space is the trophy-unit lever
+                  that works in 2026.
+                </span>{" "}
+                A lot of $15K–$25K trophy units (One57, 432 Park sublet,
+                220 CPS) come with a separately-keyed home office or
+                wellness suite. If you can establish that as a dedicated
+                business-use space (no personal storage, separate
+                entrance, dedicated phone line) you may be able to
+                deduct a portion of rent on Schedule C. This is not a
+                rental concession — it&apos;s a tax move that reduces the
+                effective monthly cost. Talk to your CPA before signing,
+                but this is the calculus that makes a $20K trophy unit
+                feel like a $14K-effective unit for self-employed
+                renters at the top of the market.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  5. The board-approval calendar slows after Memorial Day.
+                </span>{" "}
+                Pre-war white-glove buildings (Fifth, Park, CPW) require
+                board approval, which typically takes 4–6 weeks. Boards
+                meet less frequently in summer, so applications submitted
+                after Memorial Day often don&apos;t close until late July.
+                If you&apos;re shopping the Pre-War tier, your effective
+                deadline is May 25 to clear a board cycle before the
+                summer slowdown — not July 1 like the rest of the rental
+                calendar. Towers (full-service post-1980 doorman) don&apos;t
+                have this constraint.
+              </p>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

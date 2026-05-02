@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertOctagon, ArrowRight, Calculator, Gavel, History, Home, Scale, ShieldCheck, Wrench } from "lucide-react";
+import { AlertOctagon, ArrowRight, Calculator, Gavel, History, Home, Scale, ShieldCheck, Train, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,6 +105,15 @@ const TOOLS: ToolCard[] = [
     badge: "New",
     status: "live",
     icon: History,
+  },
+  {
+    href: "/tools/path-commute-roi-calculator",
+    title: "PATH Commute ROI Calculator",
+    description:
+      "Is JC or Hoboken really cheaper than Manhattan? Real PATH ride times + walks + transfers + SmartLink, with annualized $/hour value-of-time math.",
+    badge: "New",
+    status: "live",
+    icon: Train,
   },
 ];
 

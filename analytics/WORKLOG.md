@@ -6,6 +6,227 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-05-02 -- Session 26 (Greenpoint +236.6% YoY biggest-surge-ever refresh + Luxury Apartments +71.4% YoY 1-week-doubling refresh + Williamsburg +44.6% YoY intervention refresh + Astoria +35.6% YoY second-touch + Chelsea +33.9% YoY first-Concession-Watch + PathCommuteRoiCalculator product feature shipped to JC + Hoboken hubs)
+
+### Context
+- Twenty-sixth growth agent run. The largest single-day Trends signal
+  stack of any session so far:
+  (1) **Greenpoint apartments +236.6% YoY** (vs +158% record S22) —
+  the largest neighborhood surge ever measured, peak 2026-04-05, ~16
+  weeks ahead of seasonal expectation. (2) **Luxury apartments NYC
+  +71.4% YoY** (vs +33.3% S25 — doubled in 1 week). (3) **Williamsburg
+  +44.6% YoY** (vs +27.7% in April). (4) **Astoria +35.6% YoY**
+  (sustained 3 sessions). (5) **Chelsea +33.9% YoY** (bounced back
+  from S25's transient -3.2%). (6) GSC: **rent-stab guide BROKE PAGE 2
+  threshold**: 104 imp pos 21.5 (vs 96 / 22.1 in S25 — +8 imp / +0.6
+  spots up). FARE Act blog 79 imp pos 10.4 (vs 61 / 10.3 — slight
+  position dip but +18 imp; cumulative 5-session velocity +63 imp /
+  +3.4 spots).
+- **Product feature (today's bet — built yesterday, shipped today)**:
+  `<PathCommuteRoiCalculator />` — was built 2026-05-01 evening
+  (~635 lines, 6 PATH origins × 6 Manhattan destinations × walks +
+  transfers + SmartLink + $/hour value of time → net annual ROI +
+  break-even hourly) but never integrated into hub pages. Today:
+  shipped JC + Hoboken hub embeds + cross-link from rent-by-
+  neighborhood pos 9.0 authority hub. The standalone page,
+  embed page, sitemap entry, tools-index tile were all already
+  present in git as uncommitted work.
+
+### Key Numbers
+- GSC: 79 imp pos 10.4 on FARE Act blog (vs 61 / 10.3 — +18 imp /
+  -0.1 spots; 5-session cumulative +63 imp / +3.4 spots up).
+- 104 imp pos 21.5 on rent-stab guide (vs 96 / 22.1 — **broke page 2
+  threshold for first time**; +8 imp / +0.6 spots in 24h).
+- 74 imp pos 9.1 on `/nyc-rent-by-neighborhood` (held vs 71 / 9.0).
+- Daily impressions sustained 100–700 imp/day for 12 consecutive days.
+- 35 trend summaries returned today (best run; vs 30 in S25, 6 in
+  S24, 0 in S23).
+- 8 content/product moves shipped:
+  - `/jersey-city` — embed + 8 keywords + dateMod bump
+  - `/hoboken` — embed + 7 keywords + dateMod bump
+  - `/nyc/greenpoint` — Concession Watch retitle + 6-pt Demand Surge
+    Card + 15 keywords (42 → 57)
+  - `/nyc/williamsburg` — Concession Watch update + 5-pt Demand Surge
+    Card + 16 keywords (24 → 40)
+  - `/nyc/luxury-apartments` — header refresh + 5-pt Demand Surge
+    Card + 14 keywords (24 → 38)
+  - `/nyc/astoria` — Concession Watch retitle + 3-pt Demand Surge
+    Card
+  - `/nyc/chelsea` — first-ever Concession Watch (4-row tier table) +
+    4-pt Demand Surge Card + 12 keywords (20 → 32)
+  - `/nyc-rent-by-neighborhood` — 1 new cross-link
+
+### Completed
+
+**Product feature (shipped to hubs):**
+
+- `/jersey-city` — `dateModified` 2026-05-01 → 2026-05-02; embedded
+  `<PathCommuteRoiCalculator />` directly after May 2026 Demand Surge
+  Card (point #5 PATH-arbitrage sets up the tool perfectly); 8 new
+  keywords (PATH commute calculator, JC vs Manhattan calculator,
+  Newport to WTC PATH, Grove Street to WTC PATH, JSQ commute time,
+  PATH SmartLink monthly cost 2026, Jersey City value of time
+  commute, is Jersey City worth the commute).
+- `/hoboken` — `dateModified` 2026-04-24 → 2026-05-02 (first refresh
+  since launch); embedded `<PathCommuteRoiCalculator />` directly
+  after PATH & Transit Card; 7 new keywords (Hoboken PATH commute
+  calculator, Hoboken vs Manhattan rent calculator, Hoboken to 33rd
+  Street time, Hoboken to WTC time, PATH SmartLink monthly cost 2026,
+  Hoboken value of time commute, is Hoboken worth the commute).
+- `/nyc-rent-by-neighborhood` — added PathCommuteRoiCalculator entry
+  in Related Guides (now 6 cross-linked tools/guides); pos 9.0 / 71
+  imp authority hub — strongest internal-link source.
+
+**Hub depth refreshes (5 — Trends-driven):**
+
+- `/nyc/greenpoint` — `dateModified` 2026-04-28 → 2026-05-02; header
+  reviewed-line rewritten with +236.6% YoY framing; keywords expanded
+  **42 → 57**; Concession Watch retitled "April 2026" → "May 2026";
+  badges updated to "+236.6% YoY search demand" + "Peak 2026-04-05"
+  + "Updated 2026-05-02"; description rewritten to call out the
+  S22 → today acceleration (+158% → +236.6%); new 6-point Demand
+  Surge Card after the Concession Watch (lease-up surge leverage,
+  Manhattan Ave walkup stabilization, Peak 2026-04-05 implication,
+  14-month lease structure, G train scaling problem + NYC Ferry East
+  River addition, reset window shrinkage).
+- `/nyc/williamsburg` — `dateModified` 2026-04-26 → 2026-05-02;
+  header reviewed-line rewritten with +44.6% YoY framing (up from
+  +27.7% in April); keywords expanded **24 → 40**; Concession Watch
+  retitled to add May 2026 + +44.6% YoY badges; search-demand
+  context paragraph rewritten with the +27.7% → +44.6%
+  acceleration narrative; new 5-point Demand Surge Card (Memorial
+  Day compression, Greenpoint as anchor comparison $550/mo spread,
+  East Williamsburg walkup stabilization play, L weekend GO calendar
+  + Marcy Avenue J/M/Z alternative, reset window shrinkage).
+- `/nyc/luxury-apartments` — `dateModified` 2026-04-26 → 2026-05-02;
+  header rewritten: +76% → +71.4% YoY framing; description rewritten
+  to call out the 1-week doubling from +33.3% (S25) → +71.4% (today);
+  keywords expanded **24 → 38**; new 5-point Demand Surge Card
+  inserted directly after live listings (1-week doubling pricing-
+  power signal, Hudson Yards 2-month-free legacy concession schedule
+  expiring Memorial Day, November 2025 peak as negotiation anchor,
+  tax-deductible WFH dedicated-space math, pre-war white-glove
+  board-approval calendar slowdown).
+- `/nyc/astoria` — `dateModified` 2026-04-26 → 2026-05-02;
+  Concession Watch retitled "Astoria 2026 Concession Watch" →
+  "Astoria 2026 Concession Watch (May 2026)"; new badges
+  ("Live May 2026", "+35.6% YoY", "Updated 2026-05-02");
+  description rewritten with sustained-3-session framing; new
+  3-point Demand Surge Card (N/W Astoria-Ditmars weekend GO calendar,
+  Steinway / 30th Ave walkup stabilization play, 14-month lease
+  lock on Hallets Point / Astoria Cove).
+- `/nyc/chelsea` — `dateModified` 2026-04-24 → 2026-05-02 (first
+  refresh since launch); header badges updated: +38.6% → +33.9% YoY;
+  new "Updated 2026-05-02" badge; description rewritten with peak
+  2026-03-22 framing and the bounce-back-from-S25 narrative;
+  keywords expanded **20 → 32**; inserted Chelsea's first
+  Concession Watch (4-row tier table: High Line corridor lease-up
+  $5,800 net-eff 1.5–2 mo free, Mercantile/Atelier 2010-era $5,200
+  0.5–1 mo free, 8th Ave mid-rise $4,700 0.5 mo free, pre-war
+  walkup $3,600 stabilized); new 4-point Demand Surge Card (High
+  Line corridor lease-up Memorial Day expiration, 8th/9th 2010-era
+  mid-rise as best price/quality, L train 14th-Eighth weekend GO,
+  pre-1974 6+ unit walkup stabilization play on W 19th, W 20s,
+  W 22nd).
+
+### Build / Verify
+- `npm run build` — **passed**. Both new tool routes registered as
+  Static: `/tools/path-commute-roi-calculator` (1.99 kB / 270 kB),
+  `/tools/path-commute-roi-calculator/embed` (5.53 kB / 215 kB).
+  All 8 affected pages built without errors.
+- Build warnings: only pre-existing eslint-disable / unused-var
+  warnings unrelated to today's changes (error.tsx, global-error.tsx).
+- Skipped manual preview verification per autonomous-agent operating
+  guardrail (no user present to drive a browser session).
+
+### Skipped (with reason)
+- `/nyc/cheap-apartments-under-1000` programmatic page — Trends
+  signal "cheap apartments nyc under $1,000" was +950% rising in
+  S25 but the seed didn't surface in today's RELATED_SEEDS pull;
+  build out next session with seed list extended.
+- LIC second refresh — yesterday's S25 refresh is still in early
+  reindex window. Wait for signal before second-touch.
+- East Village third refresh — same logic; consecutive-day refreshes
+  shipped S24 / S25.
+- Hoboken Demand Surge Card with hood-specific 5-pt list — Hoboken's
+  PathCommuteRoiCalculator embed is the primary lift today; full
+  Demand Surge Card can ship after seeing reindex response.
+
+### Queue for next session
+- **Greenpoint reindex check** — biggest single-day surge measured
+  ever. Evaluate 2026-05-05 / 2026-05-09 for first GSC top-25
+  appearance. Watch for impressions > 20 + pos 60 → pos 30.
+- **Luxury Apartments reindex check** — major refresh shipped today
+  against +71.4% YoY (2× in 1 week). Evaluate 2026-05-05 / 2026-05-09.
+- **Williamsburg reindex check (intervention bet)** — refresh
+  against pos 63.8 / 40 imp declining cyclical. Evaluate 2026-05-05
+  / 2026-05-09 for pos 63.8 → pos 30. If no move by 2026-05-09, the
+  issue is link/SEO authority, not content — escalate.
+- **Chelsea reindex check** — first Concession Watch + Demand Surge
+  Card. Evaluate 2026-05-05 / 2026-05-08.
+- **Astoria second-touch reindex check** — second refresh in 7 days.
+  Evaluate 2026-05-05 / 2026-05-09 for impression growth from 15 →
+  30+ and pos 18.5 → pos 12–14.
+- **PathCommuteRoiCalculator reindex check** — new URL today.
+  Evaluate 2026-05-06 / 2026-05-10 for first impressions on
+  "PATH commute calculator" / "is JC worth the commute" /
+  "Hoboken vs Manhattan" queries.
+- **FARE Act blog reindex check (pos 10.4 → page 1)** — still 0.4
+  spots from page 1. Evaluate 2026-05-05 / 2026-05-08. Yesterday's
+  BrokerFeeLawTimeline embed now ~36 hours into reindex window.
+- **Rent-stab guide cluster compounding check** — pos 21.5 / 104 imp
+  with +0.6 spots / +8 imp velocity in 24 hours. Watch for sub-pos-20
+  by 2026-05-05 / 2026-05-08.
+- **East Village + Jersey City + LIC reindex checks (S25 ships)** —
+  S25 ships now ~36 hours into reindex window. Evaluate 2026-05-05 /
+  2026-05-08.
+- **`<BrokerFeeLawTimeline />` reindex check (S25 ship)** — new URL
+  shipped 2026-05-01. Evaluate 2026-05-05 / 2026-05-09.
+- **`/nyc/cheap-apartments-under-1000` programmatic page** — extend
+  RELATED_SEEDS in pull_trends.py to surface "cheap apartments nyc
+  under $1,000" and ship the page.
+- **Hoboken Demand Surge Card** — once PATH calculator embed shows
+  reindex response, ship a hood-specific 5-pt Demand Surge Card to
+  match the JC pattern.
+- **LIC + JC sub-hood deep cross-links** — if today's reindex is
+  positive (Trends +128.8% / +57.8% on the seeds), shipping a
+  deeper cross-link from PathCommuteRoiCalculator standalone page
+  back into JC sub-hood pages (Newport, Downtown, JSQ) is the next
+  move.
+- **Sunnyside / Ridgewood / Bushwick deep-dive new pages** — none
+  surfaced YoY data today; hold until they appear in seeds.
+- **Property-page CTR sustained at 10 clicks/week for 3 weeks** —
+  per-property FAQPage from S20 continues compounding at this rate.
+
+### SEO Changes Pending Reindex (S26)
+- `/jersey-city` — depth refresh, dateModified 2026-05-02, embedded
+  PathCommuteRoiCalculator after Demand Surge Card, 8 new keywords.
+- `/hoboken` — depth refresh, dateModified 2026-05-02 (first refresh
+  since launch), embedded PathCommuteRoiCalculator after PATH &
+  Transit Card, 7 new keywords.
+- `/nyc/greenpoint` — major depth refresh, dateModified 2026-05-02,
+  Concession Watch retitled May 2026 / +236.6% YoY, new 6-point
+  Demand Surge Card, 15 new keywords (42 → 57).
+- `/nyc/williamsburg` — major depth refresh, dateModified 2026-05-02,
+  Concession Watch updated to May 2026 / +44.6% YoY, new 5-point
+  Demand Surge Card, 16 new keywords (24 → 40).
+- `/nyc/luxury-apartments` — major depth refresh, dateModified
+  2026-05-02, header updated to +71.4% YoY, new 5-point Demand
+  Surge Card, 14 new keywords (24 → 38).
+- `/nyc/astoria` — second-touch refresh, dateModified 2026-05-02,
+  Concession Watch retitled May 2026 / +35.6% YoY, new 3-point
+  Demand Surge Card.
+- `/nyc/chelsea` — major depth refresh, dateModified 2026-05-02,
+  first-ever Concession Watch (4-row tier table), new 4-point
+  Demand Surge Card, 12 new keywords (20 → 32).
+- `/nyc-rent-by-neighborhood` — 1 new cross-link to
+  PathCommuteRoiCalculator (now 6 cross-linked tools/guides).
+- Carry-forward S22–S25 ships — all in active reindex window.
+- Per-property FAQPage + generateMetadata changes from S20/S20-b
+  continue to compound (10 clicks/week sustained 3 weeks running).
+
+---
+
 ## 2026-05-01 -- Session 25 (East Village +114.3% YoY second-touch + Jersey City +51.4% YoY first refresh + LIC +31.8% YoY recovery refresh + BrokerFeeLawTimeline product feature + FARE Act blog pos 10.3 → page 1 push)
 
 ### Context

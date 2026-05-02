@@ -80,7 +80,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Astoria, Queens — covering average rent prices, N/W subway access, neighborhood character, dining scene, and practical tips for apartment hunters.",
     datePublished: "2026-04-15",
-    dateModified: "2026-04-26",
+    dateModified: "2026-05-02",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -294,13 +294,19 @@ export default function AstoriaGuidePage() {
             </CardContent>
           </Card>
 
-          {/* ── 2026 Concession Watch (refresh added 2026-04-26) ─ */}
-          <Card>
+          {/* ── 2026 Concession Watch (refresh updated 2026-05-02) ── */}
+          <Card className="border-emerald-200 bg-emerald-50/30">
             <CardHeader>
-              <CardTitle>Astoria 2026 Concession Watch</CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-emerald-600">Live May 2026</Badge>
+                <Badge variant="default">+35.6% YoY search demand</Badge>
+                <Badge variant="outline">Updated 2026-05-02</Badge>
+              </div>
+              <CardTitle>Astoria 2026 Concession Watch (May 2026)</CardTitle>
               <CardDescription>
                 Active concessions on the Astoria waterfront new-construction
-                towers as of April 2026
+                towers, refreshed for the +35.6% YoY surge — sustained over
+                three sessions
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -371,6 +377,79 @@ export default function AstoriaGuidePage() {
                   net effective rent calculator
                 </Link>{" "}
                 to compare gross-vs-net before deciding.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* May 2026 Astoria Demand Surge — 2026-05-02 update */}
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Live May 2026</Badge>
+                <Badge variant="default">+35.6% YoY search demand</Badge>
+                <Badge variant="outline">3-session sustained</Badge>
+              </div>
+              <CardTitle>
+                Astoria Demand Surge: Why The +35.6% YoY Climb Matters In May
+              </CardTitle>
+              <CardDescription>
+                Three Astoria-specific moves: front-run the N/W Astoria-Ditmars
+                weekend GO calendar, hunt rent-stabilized walkups before broker
+                rotation, lock waterfront-tower 14-month leases with summer
+                2027 endings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <span className="font-semibold text-foreground">
+                  1. The N/W Astoria-Ditmars weekend GO calendar matters
+                  more in 2026.
+                </span>{" "}
+                The MTA has scheduled 7 weekend N/W Astoria-Ditmars general
+                orders (planned outages) through summer 2026, with bus
+                shuttle to Queensboro Plaza. If your office is anchored at
+                7th Ave / 14th St / 34th St, those weekend disruptions add
+                25–35 min each way to social-life trips into Manhattan.
+                Ditmars and Broadway 1BRs ask the same rent regardless,
+                but the Manhattan-attachment math is different. Factor
+                this when comparing Astoria to East Village or Williamsburg
+                at similar rent — those neighborhoods don&apos;t have the
+                weekend-GO disruption.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  2. Pre-1974 walkups on 30th, 31st, and Steinway are the
+                  rent-stabilized goldmine.
+                </span>{" "}
+                The +35.6% YoY surge is already pulling small-landlord
+                brokers back to direct-listing channels where they can
+                still collect tenant-paid fees on stabilized stock. Most
+                pre-1974 6+ unit walkups along 30th Avenue, 31st Street,
+                and Steinway Street are very likely rent-stabilized — and
+                very likely to be relisted off StreetEasy by July as the
+                surge accelerates. Use our{" "}
+                <Link
+                  href="/tools/rent-stabilization-checker"
+                  className="text-primary underline underline-offset-2"
+                >
+                  rent stabilization checker
+                </Link>{" "}
+                and ask the broker for the unit&apos;s 12-month prior rent
+                history before signing.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">
+                  3. Lock 14-month leases on Hallets Point / Astoria Cove
+                  with summer 2027 endings.
+                </span>{" "}
+                Hallets Point Towers 1–3 and Astoria Cove Phase 1 are still
+                pricing 1–1.5 months free on 13- or 14-month leases. The
+                +35.6% YoY surge is sustained 3 sessions running, which
+                tells leasing offices the demand is real. Expect the
+                14-month structure to disappear by Memorial Day — most
+                buildings will tighten to 13 max by June. Sign now, push
+                for 14 months explicitly, and get the renewal cohort outside
+                the August peak.
               </p>
             </CardContent>
           </Card>

@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
+import { PathCommuteRoiCalculator } from "@/components/widgets/PathCommuteRoiCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -65,6 +66,14 @@ export const metadata: Metadata = {
     "Jersey City May 2026 hunting plan",
     "Jersey City vs Brooklyn rent",
     "Jersey City vs LIC rent",
+    "Jersey City PATH commute calculator",
+    "Jersey City vs Manhattan rent calculator",
+    "is Jersey City worth the commute",
+    "Newport to WTC PATH",
+    "Grove Street to WTC PATH",
+    "Journal Square PATH commute time",
+    "PATH SmartLink monthly cost 2026",
+    "Jersey City value of time commute",
   ],
   openGraph: {
     title: "Jersey City Apartments: Rent Prices, PATH Transit & Guide (2026)",
@@ -85,7 +94,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting in Jersey City, NJ — covering Downtown, Journal Square, Newport, Exchange Place, The Heights, Bergen-Lafayette, and Greenville, with PATH commute times, real median rent, and NJ-specific renter protections.",
     datePublished: "2026-04-17",
-    dateModified: "2026-05-01",
+    dateModified: "2026-05-02",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -435,6 +444,40 @@ export default function JerseyCityGuidePage() {
               </p>
             </CardContent>
           </Card>
+
+          {/* PATH Commute ROI Calculator embed — 2026-05-02 product feature */}
+          <section aria-label="PATH Commute ROI Calculator" className="space-y-3">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">New tool</Badge>
+                <Badge variant="outline">Updated May 2026</Badge>
+                <Badge variant="outline">PANYNJ schedules</Badge>
+              </div>
+              <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
+                Is Jersey City actually cheaper than Manhattan?
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                The headline pitch (&ldquo;JC is 20% cheaper&rdquo;) ignores
+                commute time. This calculator prices your extra PATH minutes at
+                $/hour, factors in the 2026 SmartLink monthly ($106/mo /
+                $1,272/yr), and tells you whether the move actually pencils.
+                Six PATH origins (Hoboken, Newport, Exchange Place, Grove
+                Street, Journal Square, Harrison) → six Manhattan destinations
+                (WTC, Christopher St, 9th, 14th, 23rd, 33rd / Herald Sq).
+              </p>
+            </div>
+            <PathCommuteRoiCalculator />
+            <p className="text-xs text-muted-foreground">
+              Open the standalone version at{" "}
+              <Link
+                href="/tools/path-commute-roi-calculator"
+                className="text-primary underline underline-offset-2"
+              >
+                /tools/path-commute-roi-calculator
+              </Link>{" "}
+              for the full FAQ + embed snippet.
+            </p>
+          </section>
 
           {/* ── Quick Facts ───────────────────────────── */}
           <Card>

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { MarketingPublicHeader } from "@/components/navigation/MarketingPublicHeader";
 import { NeighborhoodLiveListings } from "@/components/neighborhoods/NeighborhoodLiveListings";
+import { PathCommuteRoiCalculator } from "@/components/widgets/PathCommuteRoiCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -51,6 +52,13 @@ export const metadata: Metadata = {
     "moving to Hoboken",
     "Stevens Tech apartments",
     "Hoboken luxury apartments",
+    "Hoboken PATH commute calculator",
+    "Hoboken vs Manhattan rent calculator",
+    "is Hoboken worth the commute",
+    "Hoboken to 33rd Street time",
+    "Hoboken to WTC time",
+    "PATH SmartLink monthly cost 2026",
+    "Hoboken value of time commute",
   ],
   openGraph: {
     title:
@@ -72,7 +80,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in Hoboken, NJ — covering rent prices, Hoboken PATH commute, Uptown / Downtown / Waterfront sub-areas, and how Hoboken compares to Jersey City and Manhattan rent-for-minute.",
     datePublished: "2026-04-24",
-    dateModified: "2026-04-24",
+    dateModified: "2026-05-02",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -430,6 +438,39 @@ export default function HobokenPage() {
               </p>
             </CardContent>
           </Card>
+
+          {/* PATH Commute ROI Calculator embed — 2026-05-02 product feature */}
+          <section aria-label="PATH Commute ROI Calculator" className="space-y-3">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">New tool</Badge>
+                <Badge variant="outline">Updated May 2026</Badge>
+                <Badge variant="outline">Both PATH stations</Badge>
+              </div>
+              <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
+                Is Hoboken actually cheaper than Manhattan?
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Hoboken Terminal to 33rd Street is ~12 min direct. Hoboken
+                Terminal to WTC is ~9 min direct. But your real ROI depends on
+                walks, transfers, days/week, and how you price your own time.
+                This calculator runs the math at $/hour, factors in PATH
+                SmartLink ($106/mo, 2026 rate), and tells you whether a
+                Hoboken move actually pays once commute is priced honestly.
+              </p>
+            </div>
+            <PathCommuteRoiCalculator />
+            <p className="text-xs text-muted-foreground">
+              Open the standalone version at{" "}
+              <Link
+                href="/tools/path-commute-roi-calculator"
+                className="text-primary underline underline-offset-2"
+              >
+                /tools/path-commute-roi-calculator
+              </Link>{" "}
+              for the full FAQ + embed snippet.
+            </p>
+          </section>
 
           {/* ── Hoboken vs Manhattan / JC ────────────── */}
           <Card>

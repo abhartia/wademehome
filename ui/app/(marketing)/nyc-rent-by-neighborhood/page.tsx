@@ -668,6 +668,15 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/tools/path-commute-roi-calculator"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    PATH Commute ROI Calculator: Is JC or Hoboken Worth the
+                    Commute? (2026)
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/cheap-apartments"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
