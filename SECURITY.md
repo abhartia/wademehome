@@ -42,15 +42,22 @@ Nation-state actors, side-channel attacks, and physical attacks on Azure are exp
 
 ### Headers
 
-[api/src/core/security_headers.py](api/src/core/security_headers.py) sets on every response:
+[api/src/core/security_headers.py](api/src/core/security_headers.py) sets on every API response:
 
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Permissions-Policy` — locked down by default
-- `Content-Security-Policy` — `self` + Mapbox origins only
+- `Content-Security-Policy` — opt-in via `CONTENT_SECURITY_POLICY` env
 - `Strict-Transport-Security` — on when `HSTS_ENABLED=1` (default)
+
+The Next.js frontend ships the same control surface for HTML responses
+via [ui/lib/security/headers.ts](ui/lib/security/headers.ts), wired
+through `next.config.ts`. `X-Frame-Options: DENY` is suppressed on
+`/tools/<slug>/embed/**` so partner widgets stay iframable; everything
+else is frame-denied. See
+[ADR-0007](docs/adr/0007-frontend-security-headers.md).
 
 ### SQL
 
