@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { securityHeaderRules } from "./lib/security/headers";
+
 const API_PROXY_TARGET =
   process.env.NEXT_PUBLIC_API_PROXY_TARGET ?? "http://localhost:8000";
 
@@ -30,6 +32,9 @@ const nextConfig: NextConfig = {
         destination: "https://us.i.posthog.com/:path*",
       },
     ];
+  },
+  async headers() {
+    return securityHeaderRules();
   },
   skipTrailingSlashRedirect: true,
   images: {

@@ -12,6 +12,7 @@ Format: Context → Decision → Alternatives → Consequences. One page max.
 | 0004 | [Self-hosted feature flags](0004-self-hosted-feature-flags.md) | Accepted |
 | 0005 | [Liveness / readiness probe split](0005-liveness-readiness-split.md) | Accepted |
 | 0006 | [Database connection pool hardening](0006-db-connection-hardening.md) | Accepted |
+| 0007 | [Frontend security headers](0007-frontend-security-headers.md) | Accepted |
 
 ## Adding a new ADR
 
