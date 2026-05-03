@@ -28,15 +28,25 @@ const baseUrl =
 
 export const metadata: Metadata = {
   title:
-    "Hoboken Apartments: Rent Prices, PATH Commute & 2026 Neighborhood Guide | Wade Me Home",
+    "Hoboken Apartments (May 2026): +136.7% YoY Demand, Rent Prices, PATH Commute Guide | Wade Me Home",
   description:
-    "Complete 2026 guide to renting in Hoboken, NJ. Median rent by unit size, Hoboken PATH to Manhattan (9 min to WTC, 12 min to 33rd St), Uptown vs Downtown vs Waterfront, NJ renter protections, and how Hoboken compares to Jersey City and the East Village at the same rent.",
+    "Hoboken apartment search demand surged +136.7% YoY (peak 2026-05-03) — biggest single-week shift of any NYC-metro neighborhood. May 2026 Concession Watch, median rent by unit size, Hoboken PATH to Manhattan (9 min WTC, 12 min 33rd St), Uptown vs Downtown vs Waterfront tiers, NJ renter protections, and how Hoboken compares to Jersey City and the East Village rent-for-minute.",
   keywords: [
     "Hoboken apartments",
     "Hoboken apartments for rent",
     "apartments for rent in Hoboken",
     "Hoboken rent",
     "Hoboken rent prices 2026",
+    "Hoboken rent prices May 2026",
+    "Hoboken apartments May 2026",
+    "Hoboken Concession Watch",
+    "Hoboken concession watch May 2026",
+    "Hoboken apartments demand surge",
+    "Hoboken apartments 136% YoY",
+    "Hoboken rent surge 2026",
+    "Hoboken vs Manhattan May 2026",
+    "Hoboken Memorial Day rent",
+    "Hoboken pre-peak hunting",
     "Hoboken studio rent",
     "Hoboken 1 bedroom rent",
     "Hoboken 2 bedroom rent",
@@ -59,6 +69,11 @@ export const metadata: Metadata = {
     "Hoboken to WTC time",
     "PATH SmartLink monthly cost 2026",
     "Hoboken value of time commute",
+    "Maxwell Place concessions",
+    "W Residences Hoboken rent",
+    "Hudson Tea Building Hoboken",
+    "1100 Maxwell Hoboken",
+    "Hoboken net effective rent",
   ],
   openGraph: {
     title:
@@ -80,7 +95,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in Hoboken, NJ — covering rent prices, Hoboken PATH commute, Uptown / Downtown / Waterfront sub-areas, and how Hoboken compares to Jersey City and Manhattan rent-for-minute.",
     datePublished: "2026-04-24",
-    dateModified: "2026-05-02",
+    dateModified: "2026-05-03",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -179,21 +194,32 @@ export default function HobokenPage() {
               <Badge variant="outline">07030</Badge>
               <Badge variant="outline">Hoboken PATH</Badge>
               <Badge variant="outline">Mile Square</Badge>
+              <Badge variant="default">+136.7% YoY search demand</Badge>
+              <Badge variant="outline">Peak 2026-05-03</Badge>
+              <Badge variant="outline">Updated 2026-05-03</Badge>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Hoboken Apartments: Rent Prices, PATH Commute & 2026
-              Neighborhood Guide
+              Hoboken Apartments: Rent Prices, PATH Commute & May 2026
+              Concession Watch
             </h1>
             <p className="text-sm text-muted-foreground">
               Hoboken is the dense, walkable one-square-mile city directly
               across the Hudson from Manhattan. Hoboken Terminal PATH is nine
               minutes to World Trade Center and twelve to 33rd Street — faster
-              than the 1 train from the Upper West Side. Here is what rent
-              actually costs, what you get at each price tier, and how
-              Hoboken compares to Jersey City and Manhattan on rent-for-minute.
+              than the 1 train from the Upper West Side. As of today, Google
+              Trends shows Hoboken apartment search demand
+              <span className="font-semibold text-foreground"> +136.7% year
+              over year</span>, with the four-week peak landing on
+              <span className="font-semibold text-foreground"> 2026-05-03</span>
+              {" "}— the largest single-week shift of any NYC-metro neighborhood
+              in our coverage (Hoboken read -8.6% YoY just five days ago).
+              Below: median rent by unit size, what tier of building each price
+              gets you, the May 2026 Concession Watch, the PATH-commute ROI
+              calculator, and how Hoboken compares to Jersey City and
+              Manhattan rent-for-minute.
             </p>
             <p className="text-xs text-muted-foreground">
-              Last reviewed April 24, 2026 &middot; Written by the Wade Me Home
+              Last reviewed May 3, 2026 &middot; Written by the Wade Me Home
               research team
             </p>
           </header>
@@ -263,7 +289,7 @@ export default function HobokenPage() {
                     Trend (YoY)
                   </p>
                   <p className="text-lg font-semibold text-foreground">
-                    +4.7% search demand
+                    +136.7% search demand
                   </p>
                 </div>
               </div>
@@ -471,6 +497,173 @@ export default function HobokenPage() {
               for the full FAQ + embed snippet.
             </p>
           </section>
+
+          {/* ── Hoboken May 2026 Concession Watch (added 2026-05-03 — +136.7% YoY surge) */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">+136.7% YoY search demand</Badge>
+                <Badge variant="outline">Peak 2026-05-03</Badge>
+                <Badge variant="outline">Live May 2026</Badge>
+              </div>
+              <CardTitle>Hoboken Concession Watch (May 2026)</CardTitle>
+              <CardDescription>
+                Hoboken just flipped from -8.6% YoY (April 28) to{" "}
+                <span className="font-semibold">+136.7% YoY today</span>{" "}
+                (peak 2026-05-03). That kind of one-week shift compresses
+                concessions on lease-up waterfront towers within 4–6 weeks —
+                here is what is still available before retune. Net effective
+                rent shown after concession adjustment.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tier</TableHead>
+                    <TableHead>Asking 1BR</TableHead>
+                    <TableHead>Concession (Q2 2026)</TableHead>
+                    <TableHead>Net Effective</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Maxwell Place / Hudson Tea / 1100 Maxwell
+                      (waterfront luxury)
+                    </TableCell>
+                    <TableCell>$4,200 – $4,800</TableCell>
+                    <TableCell>1.5 mo free on 13 mo</TableCell>
+                    <TableCell>$3,719 – $4,250</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      W Residences / 7 Seventy House / Avalon Hoboken
+                    </TableCell>
+                    <TableCell>$3,800 – $4,400</TableCell>
+                    <TableCell>1 mo free on 13 mo</TableCell>
+                    <TableCell>$3,508 – $4,062</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Downtown brownstone (4th–10th, near Washington)
+                    </TableCell>
+                    <TableCell>$3,400 – $3,800</TableCell>
+                    <TableCell>0 – 0.5 mo free</TableCell>
+                    <TableCell>$3,269 – $3,800</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Uptown 9th St PATH walkup (10th–15th)
+                    </TableCell>
+                    <TableCell>$3,000 – $3,400</TableCell>
+                    <TableCell>0 mo free (sold-out market)</TableCell>
+                    <TableCell>$3,000 – $3,400</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Western edge / Stevens spillover walkup
+                    </TableCell>
+                    <TableCell>$2,800 – $3,100</TableCell>
+                    <TableCell>0 mo free</TableCell>
+                    <TableCell>$2,800 – $3,100</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Net-effective is asking rent minus annualized concession on a
+                13-month lease. NJ has no FARE Act, so net-effective is the
+                tenant&apos;s real cost — broker fee where applicable layers on
+                top. The waterfront tier&apos;s 1.5 mo free was already pulled
+                back from 2 mo free in early April; expect another half-month
+                pullback before Memorial Day if the YoY surge holds.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Hoboken Demand Surge Card (added 2026-05-03) */}
+          <Card className="border-emerald-300 bg-emerald-50/40 dark:border-emerald-900 dark:bg-emerald-950/20">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">+136.7% YoY search demand</Badge>
+                <Badge variant="outline">Biggest 1-week shift in coverage</Badge>
+                <Badge variant="outline">Updated 2026-05-03</Badge>
+              </div>
+              <CardTitle>
+                Hoboken Demand Surge: What May 2026 Renters Should Know
+              </CardTitle>
+              <CardDescription>
+                Five hood-specific reads on what the +136.7% YoY shift means
+                for your tour-and-sign timing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <ol className="list-decimal space-y-3 pl-6">
+                <li>
+                  <strong>The shift is mechanical, not noise.</strong>{" "}
+                  Hoboken read -8.6% YoY on April 28 and +136.7% YoY today.
+                  That is not a category trend — Jersey City moved from
+                  +57.8% to +66.7% over the same window, and the broader
+                  &quot;NYC apartments for rent&quot; category is at -4.1%.
+                  The Hoboken-specific signal is the +400% rising query
+                  &quot;nyc broker fee law 2025&quot; in NJ Trends, which we
+                  read as Manhattan FARE-Act-priced-out renters discovering
+                  Hoboken as the no-broker-fee alternative ~9 minutes from WTC.
+                </li>
+                <li>
+                  <strong>
+                    Memorial Day is the concession-pullback deadline.
+                  </strong>{" "}
+                  Maxwell Place, W Residences, and Hudson Tea are still
+                  honoring 1–1.5 months free on 13-month leases applied
+                  for in April. May 1–May 27 inventory is the last batch
+                  priced before the surge data is in their lease-up
+                  underwriter&apos;s spreadsheet. Expect Memorial Day to
+                  trigger a half-month-free pullback across the waterfront
+                  tier — a $4,400 1BR loses ~$170/mo of net-effective leverage.
+                </li>
+                <li>
+                  <strong>
+                    NJ has no FARE Act — but Hoboken landlords mostly
+                    self-comply.
+                  </strong>{" "}
+                  Hoboken&apos;s convention is no-fee on the large management
+                  companies (Applied, Bozzuto, Equity, AvalonBay). What
+                  changed in May 2026 is that small-landlord Stevens-spillover
+                  walkups in the western edge are starting to charge brokers
+                  again — surge demand gives them pricing power they
+                  didn&apos;t have at -8.6% YoY. Verify no-fee on every
+                  individual listing; do not assume the Hoboken default still
+                  holds in the western blocks.
+                </li>
+                <li>
+                  <strong>
+                    9th Street PATH apartments compound the time savings.
+                  </strong>{" "}
+                  Hoboken Terminal PATH is the headline (~9 min to WTC,
+                  ~12 min to 33rd) but the 9th St / Hoboken station gets
+                  Uptown residents to WTC in ~11 min — less walking on either
+                  end. Use the PATH Commute ROI Calculator above to value
+                  the 5–8 min walk delta against the $200–$400/mo rent
+                  delta between Uptown and Downtown — for any commuter who
+                  values their time at $40+/hour, Uptown 9th St typically
+                  wins net.
+                </li>
+                <li>
+                  <strong>
+                    13-month lease is the structural play.
+                  </strong>{" "}
+                  Hoboken waterfront towers offer 1–2 mo free on 13-month
+                  leases (vs flat asking on 12). That extra month in the
+                  lease push your first renewal to month 14, putting
+                  renewal in the September–November Hoboken reset window
+                  (lower demand) instead of the May–July peak. Renewing
+                  out of season is worth ~$150–$300/mo in negotiating
+                  leverage.
+                </li>
+              </ol>
+            </CardContent>
+          </Card>
 
           {/* ── Hoboken vs Manhattan / JC ────────────── */}
           <Card>

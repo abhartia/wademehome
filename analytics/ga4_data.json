@@ -1,27 +1,21 @@
 {
   "traffic_summary_30d": {
     "activeUsers": "12",
-    "sessions": "68",
-    "screenPageViews": "551",
-    "averageSessionDuration": "774.79999177941181",
-    "bounceRate": "0.17647058823529413",
+    "sessions": "61",
+    "screenPageViews": "520",
+    "averageSessionDuration": "749.08432655737693",
+    "bounceRate": "0.21311475409836064",
     "newUsers": "11"
   },
   "traffic_summary_prev_30d": {
-    "activeUsers": "8",
-    "sessions": "55",
-    "screenPageViews": "426",
-    "averageSessionDuration": "1156.5688523272727",
-    "bounceRate": "0.25454545454545452",
-    "newUsers": "8"
+    "activeUsers": "9",
+    "sessions": "64",
+    "screenPageViews": "469",
+    "averageSessionDuration": "1138.187972546875",
+    "bounceRate": "0.234375",
+    "newUsers": "9"
   },
   "daily_trend": [
-    {
-      "date": "20260402",
-      "activeUsers": "2",
-      "sessions": "9",
-      "screenPageViews": "43"
-    },
     {
       "date": "20260403",
       "activeUsers": "2",
@@ -117,15 +111,21 @@
       "activeUsers": "1",
       "sessions": "1",
       "screenPageViews": "1"
+    },
+    {
+      "date": "20260502",
+      "activeUsers": "1",
+      "sessions": "2",
+      "screenPageViews": "12"
     }
   ],
   "top_pages": [
     {
       "pagePath": "/",
-      "screenPageViews": "111",
+      "screenPageViews": "113",
       "activeUsers": "10",
-      "averageSessionDuration": "306.52591141025641",
-      "bounceRate": "0.076923076923076927"
+      "averageSessionDuration": "335.11323711111106",
+      "bounceRate": "0.1111111111111111"
     },
     {
       "pagePath": "/groups",
@@ -136,10 +136,10 @@
     },
     {
       "pagePath": "/login",
-      "screenPageViews": "60",
-      "activeUsers": "7",
-      "averageSessionDuration": "485.87101215789477",
-      "bounceRate": "0.052631578947368418"
+      "screenPageViews": "52",
+      "activeUsers": "6",
+      "averageSessionDuration": "507.236364",
+      "bounceRate": "0.0625"
     },
     {
       "pagePath": "/app",
@@ -150,17 +150,10 @@
     },
     {
       "pagePath": "/search",
-      "screenPageViews": "40",
+      "screenPageViews": "33",
       "activeUsers": "3",
-      "averageSessionDuration": "474.32712290909092",
-      "bounceRate": "0.090909090909090912"
-    },
-    {
-      "pagePath": "/property-manager/analysis",
-      "screenPageViews": "19",
-      "activeUsers": "1",
-      "averageSessionDuration": "851.08979628571433",
-      "bounceRate": "0.14285714285714285"
+      "averageSessionDuration": "567.70174688888892",
+      "bounceRate": "0.1111111111111111"
     },
     {
       "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
@@ -196,6 +189,13 @@
       "activeUsers": "2",
       "averageSessionDuration": "58.750078333333335",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/properties/11-25-45th-avenue-5c--11-25-45th-avenue-5c-long-island-city-ny-11101--40.7472---73.9530",
+      "screenPageViews": "6",
+      "activeUsers": "1",
+      "averageSessionDuration": "1051.4921595",
+      "bounceRate": "1"
     },
     {
       "pagePath": "/tours",
@@ -240,13 +240,6 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/admin/inventory",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "averageSessionDuration": "138.77585475",
-      "bounceRate": "0.25"
-    },
-    {
       "pagePath": "/admin/reviews/verifications",
       "screenPageViews": "3",
       "activeUsers": "1",
@@ -289,28 +282,35 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/admin/property-managers",
+      "pagePath": "/applicants/register/1Ayu5iSXCJwhii8FxqZrC8sEV2Yp5uHlI_qh4W7xsD0",
       "screenPageViews": "2",
       "activeUsers": "1",
-      "averageSessionDuration": "13.935038666666665",
-      "bounceRate": "0.33333333333333331"
+      "averageSessionDuration": "25.864821",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/best-time-to-rent-nyc",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "averageSessionDuration": "28.990377",
+      "bounceRate": "0"
     }
   ],
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "67",
+      "sessions": "60",
       "activeUsers": "12",
-      "screenPageViews": "550",
-      "avgDuration": "786.364170761194",
-      "bounceRate": "0.16417910447761194"
+      "screenPageViews": "509",
+      "avgDuration": "724.97428106666666",
+      "bounceRate": "0.2"
     },
     {
       "channel": "Unassigned",
-      "sessions": "1",
-      "activeUsers": "1",
-      "screenPageViews": "1",
-      "avgDuration": "0",
+      "sessions": "2",
+      "activeUsers": "2",
+      "screenPageViews": "11",
+      "avgDuration": "1097.843528",
       "bounceRate": "1"
     }
   ],
@@ -318,15 +318,15 @@
   "devices": [
     {
       "device": "desktop",
-      "sessions": "68",
+      "sessions": "61",
       "activeUsers": "12",
-      "bounceRate": "0.17647058823529413"
+      "bounceRate": "0.21311475409836064"
     }
   ],
   "countries": [
     {
       "country": "United States",
-      "sessions": "46",
+      "sessions": "39",
       "activeUsers": "11"
     },
     {
@@ -338,38 +338,33 @@
   "events": [
     {
       "event": "page_view",
-      "eventCount": "551",
+      "eventCount": "520",
       "totalUsers": "12"
     },
     {
       "event": "scroll",
-      "eventCount": "226",
+      "eventCount": "207",
       "totalUsers": "12"
     },
     {
       "event": "user_engagement",
-      "eventCount": "101",
+      "eventCount": "86",
       "totalUsers": "9"
     },
     {
       "event": "session_start",
-      "eventCount": "67",
+      "eventCount": "60",
       "totalUsers": "12"
     },
     {
       "event": "form_start",
-      "eventCount": "15",
-      "totalUsers": "6"
+      "eventCount": "12",
+      "totalUsers": "5"
     },
     {
       "event": "first_visit",
       "eventCount": "11",
       "totalUsers": "11"
-    },
-    {
-      "event": "click",
-      "eventCount": "8",
-      "totalUsers": "1"
     },
     {
       "event": "view_search_results",
@@ -410,27 +405,19 @@
     },
     {
       "week": "202618",
-      "activeUsers": "3",
-      "sessions": "5",
-      "screenPageViews": "28"
+      "activeUsers": "4",
+      "sessions": "7",
+      "screenPageViews": "40"
     }
   ],
   "all_pages_with_titles": [
     {
       "pagePath": "/",
       "pageTitle": "Wade Me Home: Rental search & renter tools",
-      "screenPageViews": "110",
+      "screenPageViews": "112",
       "activeUsers": "10",
-      "avgDuration": "306.36845571794868",
-      "bounceRate": "0.076923076923076927"
-    },
-    {
-      "pagePath": "/login",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "59",
-      "activeUsers": "7",
-      "avgDuration": "485.32520947368425",
-      "bounceRate": "0.052631578947368418"
+      "avgDuration": "334.94266011111108",
+      "bounceRate": "0.1111111111111111"
     },
     {
       "pagePath": "/groups",
@@ -439,6 +426,14 @@
       "activeUsers": "3",
       "avgDuration": "405.55153725",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/login",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "51",
+      "activeUsers": "6",
+      "avgDuration": "506.5882233125",
+      "bounceRate": "0.0625"
     },
     {
       "pagePath": "/app",
@@ -451,18 +446,10 @@
     {
       "pagePath": "/search",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "40",
+      "screenPageViews": "33",
       "activeUsers": "3",
-      "avgDuration": "474.32712290909092",
-      "bounceRate": "0.090909090909090912"
-    },
-    {
-      "pagePath": "/property-manager/analysis",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "19",
-      "activeUsers": "1",
-      "avgDuration": "851.08979628571433",
-      "bounceRate": "0.14285714285714285"
+      "avgDuration": "567.70174688888892",
+      "bounceRate": "0.1111111111111111"
     },
     {
       "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
@@ -513,6 +500,14 @@
       "bounceRate": "0"
     },
     {
+      "pagePath": "/properties/11-25-45th-avenue-5c--11-25-45th-avenue-5c-long-island-city-ny-11101--40.7472---73.9530",
+      "pageTitle": "11 25 45th Avenue 5c | Wade Me Home",
+      "screenPageViews": "6",
+      "activeUsers": "1",
+      "avgDuration": "1051.4921595",
+      "bounceRate": "1"
+    },
+    {
       "pagePath": "/tours",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "6",
@@ -561,14 +556,6 @@
       "bounceRate": "0"
     },
     {
-      "pagePath": "/admin/inventory",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "3",
-      "activeUsers": "1",
-      "avgDuration": "138.77585475",
-      "bounceRate": "0.25"
-    },
-    {
       "pagePath": "/admin/reviews/verifications",
       "pageTitle": "Wade Me Home",
       "screenPageViews": "3",
@@ -607,14 +594,6 @@
       "activeUsers": "1",
       "avgDuration": "211.006493",
       "bounceRate": "0"
-    },
-    {
-      "pagePath": "/admin/property-managers",
-      "pageTitle": "Wade Me Home",
-      "screenPageViews": "2",
-      "activeUsers": "1",
-      "avgDuration": "13.935038666666665",
-      "bounceRate": "0.33333333333333331"
     },
     {
       "pagePath": "/applicants/register/1Ayu5iSXCJwhii8FxqZrC8sEV2Yp5uHlI_qh4W7xsD0",
@@ -815,18 +794,34 @@
       "activeUsers": "1",
       "avgDuration": "3.698414",
       "bounceRate": "0"
+    },
+    {
+      "pagePath": "/groups/fdf19953-b163-4fc7-8f3b-4b49c6622e6a",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "5.087998",
+      "bounceRate": "0"
+    },
+    {
+      "pagePath": "/hoboken/apartments-under-3000",
+      "pageTitle": "Wade Me Home",
+      "screenPageViews": "2",
+      "activeUsers": "1",
+      "avgDuration": "96.939556",
+      "bounceRate": "0"
     }
   ],
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "67",
+      "sessions": "60",
       "activeUsers": "12"
     },
     {
       "source": "(not set)",
-      "sessions": "1",
-      "activeUsers": "1"
+      "sessions": "2",
+      "activeUsers": "2"
     }
   ]
 }

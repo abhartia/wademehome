@@ -360,11 +360,18 @@
       "position": 9.2
     },
     {
+      "page": "https://wademehome.com/properties/105-buckingham-road-brooklyn-ny-11226--po-box-372-woodmere-ny-11598--40.6320---73.7126",
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 100,
+      "position": 7
+    },
+    {
       "page": "https://wademehome.com/properties/1442-hollywood-ave-unit-1--1442-hollywood-ave-the-bronx-ny-10461--40.8427---73.8270",
       "clicks": 1,
-      "impressions": 8,
-      "ctr": 12.5,
-      "position": 8.8
+      "impressions": 10,
+      "ctr": 10.0,
+      "position": 7.6
     },
     {
       "page": "https://wademehome.com/properties/1571-9-irving-street--1571-9-irving-street-rahway-nj-07065--40.6099---74.2764",
@@ -390,9 +397,9 @@
     {
       "page": "https://wademehome.com/properties/5500-zia-road-northeast--5500-zia-road-northeast-albuquerque-nm-87108--35.0797---106.5844",
       "clicks": 1,
-      "impressions": 5,
-      "ctr": 20.0,
-      "position": 7.6
+      "impressions": 6,
+      "ctr": 16.67,
+      "position": 7.5
     },
     {
       "page": "https://wademehome.com/properties/88-lincoln-st-b-7--88-lincoln-st-b-7-eugene-or-97401--44.0590---123.0977",
@@ -460,9 +467,9 @@
     {
       "page": "https://wademehome.com/blog/conditional-approval-higher-deposit",
       "clicks": 0,
-      "impressions": 8,
+      "impressions": 13,
       "ctr": 0,
-      "position": 10.9
+      "position": 8.6
     },
     {
       "page": "https://wademehome.com/blog/negotiating-rent-and-lease-terms",
@@ -474,30 +481,30 @@
     {
       "page": "https://wademehome.com/blog/neighborhood-research-for-renters",
       "clicks": 0,
-      "impressions": 4,
+      "impressions": 5,
       "ctr": 0,
-      "position": 13.8
+      "position": 14
     },
     {
       "page": "https://wademehome.com/blog/nyc-apartment-scams",
       "clicks": 0,
-      "impressions": 17,
+      "impressions": 20,
       "ctr": 0,
-      "position": 5.6
+      "position": 5.8
     },
     {
       "page": "https://wademehome.com/blog/nyc-fare-act-broker-fee-ban",
       "clicks": 0,
-      "impressions": 79,
+      "impressions": 104,
       "ctr": 0,
-      "position": 10.4
+      "position": 9.5
     },
     {
       "page": "https://wademehome.com/blog/nyc-rent-stabilization-guide",
       "clicks": 0,
-      "impressions": 104,
+      "impressions": 110,
       "ctr": 0,
-      "position": 21.5
+      "position": 21.4
     },
     {
       "page": "https://wademehome.com/blog/roommate-vs-solo-living",
@@ -528,9 +535,16 @@
       "position": 67.5
     },
     {
+      "page": "https://wademehome.com/nyc-moving-checklist",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 74
+    },
+    {
       "page": "https://wademehome.com/nyc-rent-by-neighborhood",
       "clicks": 0,
-      "impressions": 74,
+      "impressions": 81,
       "ctr": 0,
       "position": 9.1
     },
@@ -619,6 +633,13 @@
       "position": 37
     },
     {
+      "page": "https://wademehome.com/properties/10112-10182-black-mtn-rd--10112-10182-black-mtn-rd-san-diego-ca-92126--32.7157---117.1611",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5
+    },
+    {
       "page": "https://wademehome.com/properties/102-cottage-st--102-cottage-st-jersey-city-nj-07306--40.7349---74.0639",
       "clicks": 0,
       "impressions": 2,
@@ -635,9 +656,9 @@
     {
       "page": "https://wademehome.com/properties/1020-verdemar-dr--1020-verdemar-dr-alameda-ca-94501--37.7360---122.2450",
       "clicks": 0,
-      "impressions": 2,
+      "impressions": 4,
       "ctr": 0,
-      "position": 9.5
+      "position": 9
     },
     {
       "page": "https://wademehome.com/properties/1025-brookside-drive--1025-brookside-drive-little-rock-ar-72227--34.7624---92.3719",
@@ -680,27 +701,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 8
-    },
-    {
-      "page": "https://wademehome.com/properties/11-park-place--11-park-place-bloomfield-nj-07003--40.7960---74.1962",
-      "clicks": 0,
-      "impressions": 2,
-      "ctr": 0,
-      "position": 42.5
-    },
-    {
-      "page": "https://wademehome.com/properties/1101-w-1st-street-126--1101-w-1st-street-126-charlotte-nc-28202--35.2309---80.8572",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 2
-    },
-    {
-      "page": "https://wademehome.com/properties/1115-sm-apartments--1115-14th-st-santa-monica-ca-90403--34.0280---118.4898",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 19
     }
   ],
   "query_page_30d": [
@@ -1225,6 +1225,14 @@
       "position": 21
     },
     {
+      "query": "120 and 220 bend",
+      "page": "https://wademehome.com/properties/120-220-bend--220-west-bend-street-vineyard-ut-84059--40.3118---111.7577",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 42
+    },
+    {
       "query": "120 kingston st boston ma 02111",
       "page": "https://wademehome.com/properties/radian--120-kingston-street-boston-ma-02111--42.3523---71.0591",
       "clicks": 0,
@@ -1495,14 +1503,6 @@
       "impressions": 1,
       "ctr": 0,
       "position": 37
-    },
-    {
-      "query": "1600 glenarm denver co",
-      "page": "https://wademehome.com/properties/1600-glenarm-place--1600-glenarm-place-denver-co-80202--39.7447---104.9896",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 88
     }
   ],
   "daily_trend_90d": [
@@ -1778,22 +1778,29 @@
       "impressions": 380,
       "ctr": 0.53,
       "position": 11.2
+    },
+    {
+      "date": "2026-05-01",
+      "clicks": 1,
+      "impressions": 454,
+      "ctr": 0.22,
+      "position": 8.6
     }
   ],
   "devices_30d": [
     {
-      "device": "DESKTOP",
-      "clicks": 7,
-      "impressions": 2749,
-      "ctr": 0.25,
-      "position": 26.0
+      "device": "MOBILE",
+      "clicks": 8,
+      "impressions": 712,
+      "ctr": 1.12,
+      "position": 23.4
     },
     {
-      "device": "MOBILE",
+      "device": "DESKTOP",
       "clicks": 7,
-      "impressions": 681,
-      "ctr": 1.03,
-      "position": 23.9
+      "impressions": 3172,
+      "ctr": 0.22,
+      "position": 23.7
     },
     {
       "device": "TABLET",
@@ -1806,17 +1813,17 @@
   "countries_30d": [
     {
       "country": "usa",
-      "clicks": 13,
-      "impressions": 3186,
-      "ctr": 0.41,
-      "position": 26.4
+      "clicks": 14,
+      "impressions": 3619,
+      "ctr": 0.39,
+      "position": 24.3
     },
     {
       "country": "can",
       "clicks": 1,
-      "impressions": 39,
-      "ctr": 2.56,
-      "position": 11.4
+      "impressions": 43,
+      "ctr": 2.33,
+      "position": 10.9
     },
     {
       "country": "are",
@@ -1849,9 +1856,9 @@
     {
       "country": "bgd",
       "clicks": 0,
-      "impressions": 3,
+      "impressions": 4,
       "ctr": 0,
-      "position": 8.3
+      "position": 7.8
     },
     {
       "country": "bhs",
@@ -1933,9 +1940,9 @@
     {
       "country": "esp",
       "clicks": 0,
-      "impressions": 8,
+      "impressions": 10,
       "ctr": 0,
-      "position": 19.1
+      "position": 17.1
     },
     {
       "country": "est",

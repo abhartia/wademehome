@@ -195,11 +195,11 @@ export const blogArticles: BlogArticleMeta[] = [
   },
   {
     slug: "nyc-fare-act-broker-fee-ban",
-    title: "NYC Broker Fee Ban Explained: What the FARE Act Means for Renters in 2025-2026",
+    title: "NYC Broker Fee Ban (FARE Act): Who Pays in 2026, How to Get a Refund + DCWP Complaint Tool",
     description:
-      "The FARE Act ended tenant-paid broker fees in NYC. Learn who pays now, how much you save, DCWP enforcement one year later, the full 13-event broker-fee-law timeline (2019 → 2026, including REBNY's failed Second Circuit appeal), six common r/AskNYC FARE Act questions answered, and an interactive violation reporter that drafts a copy-paste DCWP complaint.",
+      "Charged a broker fee in NYC in 2025 or 2026? You can probably get it back. The FARE Act made landlord-hired brokers pay their own fee — DCWP has issued $5,000 repeat-offender penalties since January 2026. Includes the 13-event law timeline (2019 → 2026), a free DCWP complaint drafter, the six r/AskNYC questions everyone asks, and the May 2026 enforcement update.",
     publishedAt: "2026-04-11",
-    reviewedAt: "2026-05-01",
+    reviewedAt: "2026-05-03",
     keywords: [
       "NYC broker fee ban",
       "FARE Act NYC",

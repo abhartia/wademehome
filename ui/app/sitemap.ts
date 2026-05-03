@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { blogArticles } from "@/lib/blog/articles";
-import { listingsFetch } from "@/lib/listings/listingsApi";
 import {
   NYC_NEIGHBORHOODS,
   UNDER_PRICE_TIERS,
@@ -10,25 +9,50 @@ import { JC_NEIGHBORHOODS } from "@/lib/neighborhoods/jerseyCityNeighborhoods";
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wademehome.com";
 
+// Regenerate the sitemap hourly at runtime instead of only at build time.
+// At build time the listings API is typically unreachable (relative bases
+// like "/_api" require the Next.js server to be running, which it isn't
+// during `next build`). At request time the server is up and we can hit
+// the proxy target directly. Without this, GSC was indexing ~7,000
+// property URLs only via internal-link discovery and never seeing them
+// in the sitemap, which slowed re-crawl on stale listings (a major
+// contributor to the 217 Soft 404s in GSC's Why-pages-aren't-indexed
+// report).
+export const revalidate = 3600;
+
+function resolveSitemapApiBase(): string | null {
+  // Prefer an explicit, fully-qualified URL meant for server-side use.
+  // Fall back to the public proxy target (server-side resolvable),
+  // and finally the public API base if it's already absolute.
+  const candidates = [
+    process.env.SITEMAP_API_BASE_URL,
+    process.env.NEXT_PUBLIC_API_PROXY_TARGET,
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    process.env.NEXT_PUBLIC_CHAT_API_URL,
+  ];
+  for (const c of candidates) {
+    if (c && /^https?:\/\//.test(c)) {
+      return c.replace(/\/$/, "");
+    }
+  }
+  return null;
+}
+
 async function fetchPropertyKeys(): Promise<string[]> {
-  // The listings API is reachable at build time only when both a fully
-  // qualified base URL is configured AND the backend is online. Relative
-  // bases like "/_api" work for in-browser requests but not during
-  // `next build`, where there is no Next.js app server to proxy through.
-  // Skip in those cases so CI doesn't hang waiting for a host that doesn't
-  // exist — property URLs are added to the sitemap when the runtime pulls
-  // fresh data on subsequent rebuilds.
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_CHAT_API_URL ??
-    "";
-  if (!apiBase || apiBase.startsWith("/")) return [];
+  const base = resolveSitemapApiBase();
+  if (!base) return [];
+
+  const headers: Record<string, string> = {};
+  const token = process.env.NEXT_PUBLIC_CHAT_API_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   try {
-    const data = await listingsFetch<{ keys: string[] }>(
-      "/listings/sitemap-keys",
-      { signal: AbortSignal.timeout(15_000) },
-    );
+    const response = await fetch(`${base}/listings/sitemap-keys`, {
+      headers,
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { keys?: string[] };
     return data.keys ?? [];
   } catch {
     return [];
@@ -175,6 +199,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/nyc/upper-west-side/no-fee-apartments`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/nyc/park-slope`,

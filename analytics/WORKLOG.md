@@ -6,6 +6,327 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-05-03 -- Session 27 (FARE Act blog HIT PAGE 1 pos 9.5 + Hoboken -8.6% → +136.7% YoY 5-day flip refresh + UWS -38.2% → +36.2% YoY flip refresh + UWS no-fee programmatic spoke product feature + Greenpoint +245.9% peak-landed-today touch + East Village +197.1% re-explosion touch + GSC indexing infra fix: Soft-404 → noindex meta + sitemap revalidate + thin-content gating)
+
+### Context
+- Twenty-seventh growth agent run. Three converging signals:
+  (1) **`/blog/nyc-fare-act-broker-fee-ban` BROKE PAGE 1**: 104 imp
+  pos **9.5** (vs 79 / 10.4 in S26 — +25 imp, +0.9 spots up).
+  Cumulative 6-session push S22 → today: +88 imp / +4.3 spots up.
+  But 0 clicks at pos 9.5 means the title didn't earn the click —
+  today's title rewrite addresses CTR, not position.
+  (2) **Hoboken apartments +136.7% YoY** (vs -8.6% S26 — biggest
+  1-week sentiment shift ever measured; peak 2026-05-03 today).
+  (3) **Upper West Side apartments +36.2% YoY** (vs -38.2% S26 —
+  flipped from negative; second-largest 1-week swing) +
+  **+32,850% rising "upper west side apartments for rent no fee"** —
+  strongest commercial-intent rising query of the week.
+- **Product feature (today's bet)**:
+  `/nyc/upper-west-side/no-fee-apartments` programmatic spoke
+  (~430 lines) — full Article + FAQPage + BreadcrumbList JSON-LD,
+  33 keywords, NeighborhoodLiveListings widget, 7-row UWS no-fee
+  building tier table (Equity / Glenwood / AvalonBay / Stonehenge /
+  Manhattan Valley lease-up / small-landlord walkup / brokered
+  post-war), 3-step verification process Card, embedded
+  `<BrokerFeeLawTimeline />`. Catches the +32,850% rising query
+  directly + cross-references the FARE Act enforcement context.
+- User was present mid-run and asked about (a) overall site
+  performance, (b) GSC indexing breakdown (7,012 indexed / 370
+  not indexed). Answered inline and queued the sitemap-property-
+  URL-resilience improvement for a future infra session.
+
+### Key Numbers
+- **HEADLINE: FARE Act blog 104 imp / pos 9.5 — PAGE 1 BROKEN**
+  (vs 79 / 10.4 S26, 16 / 13.8 S22). Cumulative 6-session push:
+  +88 imp / +4.3 spots up.
+- 110 imp pos 21.4 on rent-stab guide (vs 104 / 21.5 S26 — held
+  page-2 threshold; cumulative 6-session: +50 imp / +6.0 spots up).
+- 81 imp pos 9.1 on `/nyc-rent-by-neighborhood` (vs 74 / 9.1 S26 —
+  +7 imp, holding strong page-1).
+- Daily imp trend hit **454 on 2026-05-01** (vs 380 prior day).
+  13 consecutive days at 100–700 imp/day.
+- 35 trend summaries returned today (matching S26's record best).
+- 8 content/product moves shipped:
+  - `/hoboken` major depth refresh — first Concession Watch
+    (5-row table) + 5-pt Demand Surge Card + 15 new keywords
+    (26 → 41) + +136.7% YoY framing throughout.
+  - `/nyc/upper-west-side` major depth refresh — first Concession
+    Watch (4-row table) + first Demand Surge Card (5-pt) + 19 new
+    keywords (13 → 32) + +36.2% YoY framing throughout.
+  - `/nyc/upper-west-side/no-fee-apartments` — NEW programmatic
+    spoke (~430 lines).
+  - `/blog/nyc-fare-act-broker-fee-ban` — title rewritten for
+    click-through (the page-1-but-no-clicks pattern); description
+    rewritten; new May 2026 enforcement hero callout at top of
+    article; anchor IDs on violation reporter and timeline embeds.
+  - `/nyc/greenpoint` — quick refresh, +236.6% → +245.9% YoY,
+    peak 2026-04-05 → 2026-05-03 (peak landed today).
+  - `/nyc/east-village` — quick refresh, +114.3% → +197.1% YoY
+    re-explosion framing.
+  - `/nyc-rent-by-neighborhood` — 1 new cross-link to UWS no-fee
+    spoke.
+  - `/nyc/no-fee-apartments` — 1 new cross-link to UWS no-fee spoke.
+  - `ui/app/sitemap.ts` — UWS no-fee spoke registered at priority
+    0.85.
+
+### Completed
+
+**Product feature (NEW programmatic spoke):**
+
+- `/nyc/upper-west-side/no-fee-apartments` — NEW page (~430 lines)
+  catching the +32,850% rising query "upper west side apartments
+  for rent no fee" directly.
+- Full Article + FAQPage (6 Qs: are all UWS apartments no-fee
+  under FARE Act / which buildings are reliably no-fee /
+  verification process / are no-fee more expensive / why is UWS
+  no-fee search up / what if a broker tries to charge anyway) +
+  BreadcrumbList JSON-LD.
+- 33 keywords (upper west side apartments for rent no fee, UWS
+  no fee apartments, no fee Upper West Side, FARE Act upper west
+  side, Equity Residential UWS, AvalonBay UWS no fee, Glenwood
+  UWS no fee, Stonehenge UWS, no fee 10023/10024/10025, no fee
+  Manhattan Valley, no fee Lincoln Square, etc.).
+- NeighborhoodLiveListings widget mounted with searchQuery="Upper
+  West Side no fee apartments" at UWS lat/lng radius 0.8 mi.
+- 60-second-read FARE Act + UWS context Card.
+- UWS no-fee building tier table (7 rows: Equity Residential /
+  Glenwood / AvalonBay / Stonehenge / Manhattan Valley lease-up /
+  small-landlord pre-war walkup / brokered single-asset post-war)
+  with reliability badges ("Reliably no-fee" vs "Verify per-listing").
+- 3-step verification process Card.
+- BrokerFeeLawTimeline embed for the lease-date-to-enforcement-
+  window check.
+- 8-tile Related Guides section.
+- Added to sitemap at priority 0.85 monthly.
+- Cross-linked from `/nyc/upper-west-side`, `/nyc-rent-by-neighborhood`,
+  and `/nyc/no-fee-apartments`.
+
+**Hub depth refreshes (2 — Trends-driven, biggest 1-week shifts ever):**
+
+- `/hoboken` — `dateModified` 2026-05-02 → 2026-05-03; title
+  rewritten "+136.7% YoY Demand, May 2026 Concession Watch";
+  description rewritten with -8.6% → +136.7% 5-day shift framing;
+  keywords 26 → 41; header reviewed-line rewritten with peak
+  2026-05-03 + the largest-1-week-shift-of-any-NYC-metro-neighborhood
+  framing; new badges (+136.7% YoY / Peak 2026-05-03 / Updated
+  2026-05-03); Quick Facts YoY card +4.7% → +136.7%; first
+  Concession Watch (5-row tier table: Maxwell Place / Hudson Tea /
+  1100 Maxwell waterfront luxury at $4,200–$4,800 with 1.5 mo free;
+  W Residences / 7 Seventy / Avalon at 1 mo free; Downtown brownstone
+  at 0–0.5 mo free; Uptown 9th St walkup at 0 mo free; Western edge
+  Stevens spillover at 0 mo free); new 5-point Demand Surge Card.
+- `/nyc/upper-west-side` — `dateModified` 2026-04-30 → 2026-05-03;
+  title rewritten "+36.2% YoY Demand, No-Fee Inventory, Rent Prices
+  & Transit"; description rewritten with -38.2% → +36.2% flip +
+  +32,850% rising no-fee query; keywords 13 → 32; header reviewed-
+  line rewritten; first Concession Watch (4-row tier table: 72nd–79th
+  doorman / Riverside Drive luxury at $4,800–$5,400 with 0–0.5 mo
+  free; 79th–96th pre-war non-doorman 1BR at 0 mo free sold-out;
+  96th–110th Manhattan Valley lease-up tower at $3,500–$4,200 with
+  1–1.5 mo free; pre-1974 6+ unit walkup at 0 mo free RGB-capped);
+  first Demand Surge Card (5-point list including +32,850% no-fee
+  callout, Manhattan Valley asymmetric play, pre-1974 walkup
+  rent-stab gold, 14-month lease lock).
+
+**Hub quick-touch refreshes (2 — Trends still moving):**
+
+- `/nyc/greenpoint` — `dateModified` 2026-05-02 → 2026-05-03;
+  +236.6% → +245.9% YoY (still accelerating); Peak 2026-04-05 →
+  Peak 2026-05-03 (peak just landed today, ~3 months ahead of
+  typical July-August peak); Concession Watch description rewritten
+  with the trajectory +158% (S22) → +236.6% (S26) → +245.9% (today,
+  still accelerating).
+- `/nyc/east-village` — `dateModified` 2026-05-01 → 2026-05-03;
+  Concession Watch badges updated +114.3% → +197.1% YoY + new
+  "Re-explosion vs +43.4% S26" badge; May 2026 Demand Surge Card
+  retitled "Why East Village Apartments Just Re-Exploded" +
+  description rewritten with the post-FARE-Act-discovery-cohort-
+  circling-back narrative.
+
+**FARE Act blog page-1 click-through optimization:**
+
+- `/blog/nyc-fare-act-broker-fee-ban` — title rewritten for
+  click-through ("How to Get a Refund + DCWP Complaint Tool"
+  vs the descriptive "What the FARE Act Means for Renters");
+  description rewritten with "Charged a broker fee in NYC in 2025
+  or 2026? You can probably get it back" + $5,000 repeat-offender
+  + DCWP-complaint-drafter framing; reviewedAt 2026-05-01 →
+  2026-05-03; new May 2026 enforcement hero callout Card at the
+  top of the article body with two-step action callout (violation
+  reporter + timeline) and #anchor links; #violation-reporter and
+  #timeline IDs added to the existing Cards; mid-article copy
+  updated with January-2026-$5,000-repeat-offender-penalty
+  reference.
+
+**Cross-linking + sitemap:**
+
+- `/nyc-rent-by-neighborhood` Related Guides — added "No-Fee Upper
+  West Side Apartments (May 2026): FARE Act Inventory Guide" entry
+  (pos 9.1 / 81 imp authority hub — strongest internal-link source).
+- `/nyc/no-fee-apartments` Related Guides — added the same entry.
+- `ui/app/sitemap.ts` — added `/nyc/upper-west-side/no-fee-apartments`
+  at priority 0.85 monthly.
+
+### Build / Verify
+- `npm run build` — **passed**. New page
+  `/nyc/upper-west-side/no-fee-apartments` registered as Static at
+  2.49 kB / 291 kB First Load. All 7 affected pages built without
+  errors.
+- Build warnings: only pre-existing eslint-disable / unused-var
+  warnings unrelated to today's changes (error.tsx, global-error.tsx).
+- Skipped manual preview verification per autonomous-agent operating
+  guardrail.
+
+### Skipped (with reason)
+- `/nyc/chelsea` refresh — Trends signal flipped back to -8.4%
+  YoY (vs +33.9% S26). High-volatility seed — wait for signal
+  durability before re-touch.
+- `/nyc/harlem` refresh — flipped from +19.6% S26 to -15.1% YoY.
+  Same volatility-skip rationale as Chelsea.
+- `/nyc/williamsburg` second-touch refresh — yesterday's S26 major
+  depth refresh is still in early reindex window. Wait for signal
+  before second-touch.
+- `/jersey-city` refresh — Trends sustained at +66.7% YoY (vs
+  +57.8% S26) but yesterday's PathCommuteRoiCalculator embed is
+  still in early reindex window. Wait for signal.
+- `/nyc/luxury-apartments` refresh — Trends calmed from +71.4%
+  S26 to +42.1% today. Yesterday's major depth refresh is still
+  in early reindex window.
+- `/nyc/long-island-city` refresh — calmed from +31.8% S26 to
+  +13.7% today. S25 refresh still in reindex window.
+- Hoboken-specific no-fee spoke — Hoboken hub's first Concession
+  Watch shipped today is the primary lift; spoke can ship after
+  reindex response is in.
+
+### Queue for next session
+- **FARE Act blog click-through evaluation** — title/description
+  rewrite shipped today against pos-9.5-but-0-clicks. Evaluate
+  2026-05-06 / 2026-05-10 for first clicks. If still 0 at 110+
+  imp, next move is structured FAQ-at-the-top so Google pulls
+  "How do I get my broker fee refunded?" as the snippet.
+- **Hoboken reindex check** — major refresh today against +136.7%
+  YoY (5-day shift from -8.6%). Evaluate 2026-05-06 / 2026-05-10
+  for first impressions on "Hoboken Concession Watch", "Maxwell
+  Place concessions", "Hoboken May 2026" queries.
+- **UWS reindex check** — major refresh + new programmatic spoke
+  shipped today. Evaluate 2026-05-06 / 2026-05-10 for first
+  impressions on "upper west side apartments for rent no fee" /
+  "UWS Concession Watch" queries. Highest-leverage URL of the
+  session.
+- **Greenpoint reindex check** — quick refresh today, peak landed
+  today. Evaluate 2026-05-06 / 2026-05-10.
+- **East Village reindex check** — quick refresh today. Evaluate
+  2026-05-06 / 2026-05-10.
+- **Hoboken-specific no-fee spoke** — if today's Hoboken refresh
+  reindexes positively + holds +100% YoY, ship `/hoboken/no-fee-
+  apartments` mirroring the UWS no-fee pattern.
+- **Williamsburg pos 63.8 intervention check** — refresh shipped
+  S26. Evaluate 2026-05-06 / 2026-05-10 for pos 63.8 → pos 30. If
+  no move, escalate to link-engine (issue is likely SEO authority,
+  not content).
+- **`/nyc/cheap-apartments-under-1000` programmatic page** —
+  carry-forward from S25/S26. Extend RELATED_SEEDS in pull_trends.py
+  to surface "cheap apartments nyc under $1,000" and ship the page.
+- **`<BrokerFeeLawTimeline />` standalone tool reindex check** —
+  shipped 2026-05-01 + now embedded on UWS no-fee spoke. Evaluate
+  2026-05-06 / 2026-05-10.
+- **PathCommuteRoiCalculator reindex check** — shipped 2026-05-02.
+  Evaluate 2026-05-06 / 2026-05-10.
+- **Sitemap property-URL resilience** — currently
+  `fetchPropertyKeys()` returns `[]` when the API base isn't
+  reachable at build time, so live sitemap.xml has 0 `/properties/`
+  URLs. The 7,012 indexed property pages on GSC come from internal-
+  link discovery via NeighborhoodLiveListings widgets. Adding a
+  cache-and-stale-fall-through (fetch keys at build, fall back to
+  a checked-in JSON cache file if API is offline) would let the
+  sitemap actively refresh property URLs. Queued for an infra
+  session.
+- **Property-page CTR sustained at 10 clicks/week for 4 weeks** —
+  per-property FAQPage from S20 continues compounding.
+
+### Late-session ship (GSC indexing infrastructure)
+
+User shared the "Why pages aren't indexed" breakdown mid-session
+(217 Soft 404 / 148 Crawled-not-indexed / 5 redirect / 0 Discovered-
+not-indexed) and requested no deferral. Three coordinated indexing
+infrastructure fixes shipped:
+
+- **`/properties/[propertyKey]/page.tsx`** — `fetchProperty` rewritten
+  to return a discriminated union (`ok` / `missing` / `error`) so we
+  can distinguish a real 404 (listing rotated out — call notFound())
+  from a transient API failure (don't 404, just noindex). Added
+  `resolveServerApiBase()` env-walk so server-side fetch resolves to
+  an absolute URL (was hitting `/_api` relative which silently fails
+  server-side). Added `isThinForIndexing()` — listings with fewer
+  than 2 of 4 SERP-critical fields (rent_range / bedroom_range /
+  address / images) get `robots: noindex`. notFound() called from
+  both generateMetadata and the page component. Soft 404 / Crawled-
+  not-indexed buckets will de-index over ~30 days as Google re-
+  crawls.
+- **`/properties/[propertyKey]/not-found.tsx`** — NEW segment-level
+  not-found UI with three internal-link CTAs (NYC Rent by
+  Neighborhood / Search / Blog) so users who land on stale URLs
+  stay on the site.
+- **`ui/app/sitemap.ts`** — added `export const revalidate = 3600`
+  so the sitemap regenerates hourly at runtime (was build-time only,
+  meaning property URLs never made it into sitemap because the build
+  has no API access). Added `resolveSitemapApiBase()` env-walk to
+  resolve absolute server-side URL. Switched from `listingsFetch`
+  (relative-URL-blocking) to direct `fetch`. In production this will
+  populate ~7,000 property URLs into sitemap.xml.
+
+Build verified clean. Standalone server tested at
+`node .next/standalone/server.js` — fake property URL returns the
+not-found UI with `<meta name="robots" content="noindex, follow">`
+in the response body. Next.js 15 streams a 200 status header even
+when notFound() is called, but the noindex meta in the body is the
+operative SEO signal Google reads — equivalent to a 404 for de-
+indexing purposes (~30-day cycle).
+
+### SEO Changes Pending Reindex (S27)
+- `/hoboken` — major depth refresh, dateModified 2026-05-03,
+  +136.7% YoY framing throughout, first Concession Watch (5-row
+  tier table), 5-point Demand Surge Card, 15 new keywords (26 → 41).
+- `/nyc/upper-west-side` — major depth refresh, dateModified
+  2026-05-03, +36.2% YoY framing throughout, first Concession
+  Watch (4-row tier table), first Demand Surge Card, 19 new
+  keywords (13 → 32).
+- `/nyc/upper-west-side/no-fee-apartments` — NEW programmatic spoke
+  (~430 lines), Article + FAQPage (6 Qs) + BreadcrumbList JSON-LD,
+  33 keywords, NeighborhoodLiveListings widget, BrokerFeeLawTimeline
+  embed.
+- `/blog/nyc-fare-act-broker-fee-ban` — title + description rewritten
+  for click-through, reviewedAt 2026-05-03, May 2026 enforcement
+  hero callout at top of article, anchor IDs on violation reporter
+  and timeline.
+- `/nyc/greenpoint` — quick refresh, +236.6% → +245.9% YoY, peak
+  2026-04-05 → 2026-05-03, dateModified 2026-05-03.
+- `/nyc/east-village` — quick refresh, +114.3% → +197.1% YoY,
+  dateModified 2026-05-03.
+- `/nyc-rent-by-neighborhood` — 1 new cross-link.
+- `/nyc/no-fee-apartments` — 1 new cross-link.
+- Sitemap — UWS no-fee spoke registered + hourly revalidate
+  (`export const revalidate = 3600`) + server-resolvable API base
+  (env-walk through SITEMAP_API_BASE_URL → NEXT_PUBLIC_API_PROXY_TARGET
+  → NEXT_PUBLIC_API_BASE_URL → NEXT_PUBLIC_CHAT_API_URL with
+  localhost:8000 dev fallback). In production this will populate
+  ~7,000 property URLs that previously only got into Google via
+  internal-link discovery.
+- `ui/app/(marketing)/properties/[propertyKey]/page.tsx` — Soft 404
+  fix. Three-state fetch result (ok/missing/error). When kind ===
+  "missing", calls notFound() from both generateMetadata and the
+  page component. Thin-content noindex (isThinForIndexing requires
+  ≥2 of rent_range/bedroom_range/address/images). Transient-error
+  noindex.
+- `ui/app/(marketing)/properties/[propertyKey]/not-found.tsx` — NEW
+  segment-level not-found UI ("Listing no longer available") with
+  three internal-link CTAs to keep bounced users on site.
+- Carry-forward S22–S26 ships — all in active reindex window.
+- Per-property FAQPage + generateMetadata changes from S20/S20-b
+  continue to compound (10 clicks/week sustained 4 weeks running).
+
+---
+
 ## 2026-05-02 -- Session 26 (Greenpoint +236.6% YoY biggest-surge-ever refresh + Luxury Apartments +71.4% YoY 1-week-doubling refresh + Williamsburg +44.6% YoY intervention refresh + Astoria +35.6% YoY second-touch + Chelsea +33.9% YoY first-Concession-Watch + PathCommuteRoiCalculator product feature shipped to JC + Hoboken hubs)
 
 ### Context

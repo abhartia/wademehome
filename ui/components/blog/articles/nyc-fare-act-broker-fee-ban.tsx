@@ -7,20 +7,62 @@ import Link from "next/link";
 export default function NycFareActBrokerFeeBan() {
   return (
     <div className="space-y-6">
+      {/* ── May 2026 enforcement update — page-1 hero callout (added 2026-05-03) ── */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardHeader>
+          <CardTitle>
+            May 2026 update: $5,000 repeat-offender penalties are live —
+            here is how to get a wrongly-charged broker fee refunded
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            <strong>Reviewed May 3, 2026.</strong> If you signed a New York
+            City lease on or after June 11, 2025, and a broker the landlord
+            hired charged you a fee — even if it was labeled
+            &quot;administrative,&quot; &quot;application,&quot; or
+            &quot;marketing&quot; — that fee is almost certainly a FARE Act
+            violation, and you can recover it. DCWP issued its first round
+            of $5,000 repeat-offender penalties in January 2026 and has
+            been adding ~25 brokerage names per month to its public
+            enforcement docket.
+          </p>
+          <p>
+            The two practical steps are below: (1) the{" "}
+            <Link href="#violation-reporter" className="text-primary underline">
+              FARE Act Violation Reporter
+            </Link>{" "}
+            drafts a copy-paste DCWP complaint based on what you paid and
+            who charged you, and (2) the{" "}
+            <Link href="#timeline" className="text-primary underline">
+              13-event broker-fee-law timeline
+            </Link>{" "}
+            shows exactly which enforcement window applies to your lease
+            date — that determines whether you go DCWP, small-claims, or
+            both. Most refunds resolve in 6–10 weeks once DCWP opens the
+            file. The state legislature&apos;s Renters&apos; Fees
+            Transparency Act (March 2026) and NJ A-2978 (pending) extend
+            similar protections; a NJ-A-2978 update sits at the bottom of
+            this article.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>2026 update: what a year of the FARE Act has actually meant</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
           <p>
-            <strong>Reviewed April 2026.</strong> The FARE Act turned ten months old
+            <strong>Reviewed May 3, 2026.</strong> The FARE Act turned ten months old
             this spring and the early-return data is now in. The NYC Department of
             Consumer and Worker Protection (DCWP) has logged well over 1,500 tenant
             complaints since June 2025, with the overwhelming majority alleging a
             landlord-hired broker tried to charge the tenant. Most of those
             complaints have resolved with the fee refunded and a warning letter, but
             DCWP has also issued the first round of $2,000-per-violation fines
-            against repeat-offender brokerages.
+            against repeat-offender brokerages — and as of January 2026, has
+            started imposing the enhanced $5,000 repeat-offender penalty.
           </p>
           <p>
             The market response is what Reddit threads keep asking about. The
@@ -368,7 +410,7 @@ export default function NycFareActBrokerFeeBan() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="violation-reporter">
         <CardHeader>
           <CardTitle>Were you charged a fee illegally? Run the situation through our reporter</CardTitle>
         </CardHeader>
@@ -402,7 +444,7 @@ export default function NycFareActBrokerFeeBan() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="timeline">
         <CardHeader>
           <CardTitle>The full timeline: how we got here (2019 → 2026)</CardTitle>
         </CardHeader>

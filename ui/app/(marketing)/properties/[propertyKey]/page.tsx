@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
-import { listingsFetch } from "@/lib/listings/listingsApi";
+import { listingsAuthHeaders } from "@/lib/listings/listingsApi";
 import { normalizePropertyDataItem } from "@/lib/properties/normalizePropertyDataItem";
 import type { PropertyDataItem as ApiPropertyRow } from "@/lib/api/generated/types.gen";
 import PropertyDetailsClient from "./PropertyDetailsClient";
@@ -12,7 +13,38 @@ const baseUrl =
 
 type Props = { params: Promise<{ propertyKey: string }> };
 
-async function fetchProperty(propertyKey: string): Promise<PropertyDataItem | null> {
+type FetchResult =
+  | { kind: "ok"; property: PropertyDataItem }
+  | { kind: "missing" } // listing genuinely doesn't exist (API returned 404) → render 404
+  | { kind: "error" }; // transient or env failure → render the soft "Property unavailable" client shell
+
+// Server-side, the listings API base must be a fully-qualified URL. The
+// browser-facing NEXT_PUBLIC_API_BASE_URL is often a relative proxy path
+// like "/_api" which fetch() can't resolve from a server component. Fall
+// back through the proxy target (server-resolvable), then a dev default
+// matching next.config.ts's API_PROXY_TARGET default.
+function resolveServerApiBase(): string | null {
+  const candidates = [
+    process.env.SITEMAP_API_BASE_URL,
+    process.env.NEXT_PUBLIC_API_PROXY_TARGET,
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    process.env.NEXT_PUBLIC_CHAT_API_URL,
+  ];
+  for (const c of candidates) {
+    if (c && /^https?:\/\//.test(c)) {
+      return c.replace(/\/$/, "");
+    }
+  }
+  // Dev fallback — matches the default in next.config.ts. In production the
+  // deployment env is expected to set an absolute URL; we don't want to
+  // silently route to localhost there.
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:8000";
+  }
+  return null;
+}
+
+async function fetchProperty(propertyKey: string): Promise<FetchResult> {
   // Forward the browser's cookies so the API can identify the contributor —
   // private user-added listings 404 otherwise (visibility check in
   // /listings/by-property-key). Public rows resolve either way.
@@ -26,15 +58,54 @@ async function fetchProperty(propertyKey: string): Promise<PropertyDataItem | nu
   } catch {
     // outside a request scope (build-time metadata probe) — continue anonymously
   }
-  try {
-    const raw = await listingsFetch<ApiPropertyRow>(
-      `/listings/by-property-key?property_key=${encodeURIComponent(propertyKey)}`,
-      cookieHeader ? { headers: { cookie: cookieHeader } } : undefined,
-    );
-    return normalizePropertyDataItem(raw);
-  } catch {
-    return null;
+
+  const base = resolveServerApiBase();
+  if (!base) {
+    // env issue (no API base configured) — not a real 404
+    return { kind: "error" };
   }
+
+  const url = `${base}/listings/by-property-key?property_key=${encodeURIComponent(propertyKey)}`;
+  const headers: Record<string, string> = { ...listingsAuthHeaders() };
+  if (cookieHeader) headers.cookie = cookieHeader;
+
+  try {
+    const response = await fetch(url, {
+      credentials: "include",
+      headers,
+    });
+    if (response.status === 404) {
+      // Listing genuinely doesn't exist — caller should serve a real 404 so
+      // Google de-indexes the URL instead of accumulating Soft 404s.
+      return { kind: "missing" };
+    }
+    if (!response.ok) {
+      // 5xx, network-level failure, etc. — keep the soft client-shell behavior
+      // because the listing might still exist; do not 404.
+      return { kind: "error" };
+    }
+    const raw = (await response.json()) as ApiPropertyRow;
+    return { kind: "ok", property: normalizePropertyDataItem(raw) };
+  } catch {
+    return { kind: "error" };
+  }
+}
+
+// A property is considered too thin to index when key SERP-ranking fields
+// are all missing. Indexing thin pages just bloats Google's "Crawled —
+// currently not indexed" bucket and wastes crawl budget on URLs that will
+// never rank. Better to noindex them and let crawl budget go to listings
+// that have actual data.
+function isThinForIndexing(p: PropertyDataItem): boolean {
+  const hasRent = Boolean(p.rent_range);
+  const hasBedroom = Boolean(p.bedroom_range);
+  const hasAddress = Boolean(p.address);
+  const hasImages = (p.images_urls?.length ?? 0) > 0;
+  // Require at least 2 of the 4 SERP-critical fields. Listings that satisfy
+  // 0 or 1 are placeholder rows — common for newly-scraped addresses where
+  // the description hasn't filled in yet.
+  const filled = [hasRent, hasBedroom, hasAddress, hasImages].filter(Boolean).length;
+  return filled < 2;
 }
 
 function humanizeSlug(slug: string): string {
@@ -44,14 +115,45 @@ function humanizeSlug(slug: string): string {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { propertyKey } = await params;
   const decoded = decodeURIComponent(propertyKey);
-  const property = await fetchProperty(decoded);
+  const result = await fetchProperty(decoded);
 
-  if (!property) {
+  if (result.kind === "missing") {
+    // Listing rotated out — call notFound() so the response is served with
+    // a real 404 status and Google de-indexes the URL within ~30 days.
+    // Calling notFound() from generateMetadata is required (in addition to
+    // the page component) for the status code to be set correctly.
+    notFound();
+  }
+
+  if (result.kind === "error") {
+    // Transient or env error — keep the soft "Property" stub but noindex
+    // it so Google doesn't classify the page as Soft 404 if our API is
+    // briefly unreachable when Googlebot crawls.
     const parts = decoded.split("--");
     const name = parts[0] ? humanizeSlug(parts[0]) : "Property";
     return {
       title: `${name} | Wade Me Home`,
       description: `View rental listing for ${name} on Wade Me Home.`,
+      robots: { index: false, follow: true },
+    };
+  }
+
+  const { property } = result;
+
+  // If the listing is real but too thin to be SERP-useful, mark it
+  // noindex while keeping the page accessible to product traffic.
+  // This addresses GSC's "Crawled — currently not indexed" bucket
+  // (~148 pages today): Google fetches, sees thin content, declines.
+  // Telling it ourselves up-front saves crawl budget for real listings.
+  if (isThinForIndexing(property)) {
+    return {
+      title: property.name
+        ? `${property.name} | Wade Me Home`
+        : `Property | Wade Me Home`,
+      description: property.address
+        ? `Listing at ${property.address} on Wade Me Home. View details, photos, and floor plans.`
+        : `View rental listing on Wade Me Home.`,
+      robots: { index: false, follow: true },
     };
   }
 
@@ -202,7 +304,17 @@ function buildJsonLd(property: PropertyDataItem, propertyKey: string) {
 export default async function PropertyDetailsPage({ params }: Props) {
   const { propertyKey } = await params;
   const decoded = decodeURIComponent(propertyKey);
-  const property = await fetchProperty(decoded);
+  const result = await fetchProperty(decoded);
+
+  // The listing is gone — return a real 404 status so Google de-indexes
+  // the URL within its normal cycle (~30 days) instead of indefinitely
+  // counting it as a Soft 404. This was the largest single bucket in
+  // GSC's "Why pages aren't indexed" report (217 pages on 2026-05-03).
+  if (result.kind === "missing") {
+    notFound();
+  }
+
+  const property = result.kind === "ok" ? result.property : null;
 
   return (
     <>

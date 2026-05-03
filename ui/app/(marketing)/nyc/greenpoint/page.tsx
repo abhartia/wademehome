@@ -108,7 +108,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in Greenpoint, Brooklyn — covering rent prices by unit size and sub-area, G train and ferry access, the Greenpoint Landing waterfront development, Polish heritage, McCarren Park, and practical tips for apartment hunters.",
     datePublished: "2026-04-20",
-    dateModified: "2026-05-02",
+    dateModified: "2026-05-03",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -226,9 +226,9 @@ export default function GreenpointGuidePage() {
               apartment in Brooklyn&apos;s northern waterfront neighborhood.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated 2026-05-02 &middot; Rent ranges reflect median asking
+              Updated 2026-05-03 &middot; Rent ranges reflect median asking
               rents in ZIP code 11222 for market-rate apartments &middot;
-              Search demand <span className="font-semibold text-foreground">+236.6% YoY</span>{" "}
+              Search demand <span className="font-semibold text-foreground">+245.9% YoY</span>{" "}
               (Google Trends, NY-geo, 2026-05-02 pull) &mdash; the largest
               YoY surge of any neighborhood we track
             </p>
@@ -537,17 +537,21 @@ export default function GreenpointGuidePage() {
             <CardHeader>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="bg-emerald-600">Live May 2026</Badge>
-                <Badge variant="default">+236.6% YoY search demand</Badge>
-                <Badge variant="outline">Peak 2026-04-05</Badge>
-                <Badge variant="outline">Updated 2026-05-02</Badge>
+                <Badge variant="default">+245.9% YoY search demand</Badge>
+                <Badge variant="outline">Peak 2026-05-03</Badge>
+                <Badge variant="outline">Updated 2026-05-03</Badge>
               </div>
               <CardTitle>Greenpoint Tower Concession Watch (May 2026)</CardTitle>
               <CardDescription>
-                Greenpoint search demand jumped from +158% YoY (S22, our prior
-                read) to <span className="font-semibold">+236.6% YoY today
-                (2026-05-02)</span> — the largest single-neighborhood Trends
-                surge we have ever measured. The 4-week peak landed
-                2026-04-05, ~4 weeks ahead of an ordinary July–August peak.
+                Greenpoint search demand jumped from +158% YoY (S22) to{" "}
+                +236.6% (S26, 2026-05-02) to{" "}
+                <span className="font-semibold">+245.9% YoY today
+                (2026-05-03)</span> — the largest single-neighborhood Trends
+                surge we have ever measured, and{" "}
+                <span className="font-semibold">still accelerating</span>.
+                The 4-week peak just landed 2026-05-03 — that is the actual
+                Greenpoint peak, ~3 months ahead of the ordinary July–August
+                peak.
                 Below is the active concession structure across the waterfront
                 tower lease-ups, plus 2026-specific negotiation points to
                 bring to your tour.
@@ -672,9 +676,9 @@ export default function GreenpointGuidePage() {
             <CardHeader>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">Live May 2026</Badge>
-                <Badge variant="default">+236.6% YoY search demand</Badge>
+                <Badge variant="default">+245.9% YoY search demand</Badge>
                 <Badge variant="default">Largest surge tracked</Badge>
-                <Badge variant="outline">Peak 2026-04-05</Badge>
+                <Badge variant="outline">Peak 2026-05-03</Badge>
               </div>
               <CardTitle>
                 Greenpoint Demand Surge: Why May 2026 Is the Tightest Window
@@ -689,12 +693,12 @@ export default function GreenpointGuidePage() {
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
                 <span className="font-semibold text-foreground">
-                  1. Use the +236.6% YoY surge as leverage in lease-up
+                  1. Use the +245.9% YoY surge as leverage in lease-up
                   negotiations — but only on the lease-up tier.
                 </span>{" "}
                 Greenpoint Landing, Eagle &amp; West, and One Blue Slip are
                 still pricing concessions like the +158% S22 read. The
-                +236.6% YoY surge isn&apos;t yet priced into May lease-up
+                +245.9% YoY surge isn&apos;t yet priced into May lease-up
                 offers because the leasing teams set their concession
                 schedules in April based on March demand. If you tour now,
                 you&apos;re catching the last week of pre-surge concession
@@ -735,7 +739,7 @@ export default function GreenpointGuidePage() {
                 demand on a market that already pulled forward most of its
                 early-tour activity. The rent quotes you see today are at
                 their seasonal-low for 2026 by 8–12 weeks; once they reset
-                in late June / early July, the +236.6% YoY surge translates
+                in late June / early July, the +245.9% YoY surge translates
                 into 4–6% asking-rent pressure on top of seasonal patterns.
               </p>
               <p>
@@ -755,7 +759,7 @@ export default function GreenpointGuidePage() {
                 <span className="font-semibold text-foreground">
                   5. The G train hasn&apos;t scaled. NYC Ferry has.
                 </span>{" "}
-                The +236.6% YoY surge is dumping more renters onto a G
+                The +245.9% YoY surge is dumping more renters onto a G
                 train that still runs 4-car sets at 8-12 minute headways
                 outside peak. The result: the Greenpoint Avenue G platform
                 is markedly more crowded vs. April 2025. NYC Ferry East
@@ -771,7 +775,7 @@ export default function GreenpointGuidePage() {
                   narrower than usual.
                 </span>{" "}
                 Most NYC neighborhoods see lease-up concessions reopen in
-                October as summer carryover gets repriced. With +236.6% YoY
+                October as summer carryover gets repriced. With +245.9% YoY
                 pulling demand into early peak, expect Greenpoint
                 concessions to reopen later (~November) and at a tighter
                 spread (1 month max, vs. typical 1.5–2 months). If you can

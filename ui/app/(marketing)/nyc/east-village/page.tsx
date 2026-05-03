@@ -94,7 +94,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in the East Village, Manhattan — covering rent prices by unit size and sub-area, L/6/F/M subway access, Alphabet City and Tompkins Square character, rent stabilization, and practical tips for apartment hunters.",
     datePublished: "2026-04-13",
-    dateModified: "2026-05-01",
+    dateModified: "2026-05-03",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -540,8 +540,9 @@ export default function EastVillageGuidePage() {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="bg-emerald-600">Live May 2026</Badge>
                 <Badge variant="outline">Page-1 ranked (pos 9.3)</Badge>
-                <Badge variant="outline">+114.3% YoY search demand</Badge>
-                <Badge variant="outline">Updated 2026-05-01</Badge>
+                <Badge variant="outline">+197.1% YoY search demand</Badge>
+                <Badge variant="outline">Re-explosion vs +43.4% S26</Badge>
+                <Badge variant="outline">Updated 2026-05-03</Badge>
               </div>
               <CardTitle>East Village Concession Watch (May 2026)</CardTitle>
               <CardDescription>
@@ -940,19 +941,22 @@ export default function EastVillageGuidePage() {
             <CardHeader>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">Live May 2026</Badge>
-                <Badge variant="default">+114.3% YoY search demand</Badge>
-                <Badge variant="default">Highest on the seed list</Badge>
+                <Badge variant="default">+197.1% YoY search demand</Badge>
+                <Badge variant="default">Re-explosion vs +43.4% (S26)</Badge>
+                <Badge variant="outline">Updated 2026-05-03</Badge>
               </div>
               <CardTitle>
                 East Village Demand Surge: Why &ldquo;East Village
-                Apartments&rdquo; Doubled YoY
+                Apartments&rdquo; Just Re-Exploded
               </CardTitle>
               <CardDescription>
                 Google Trends shows search interest for &ldquo;east village
-                apartments&rdquo; is up <strong>+114.3% year-over-year
-                </strong> as of 2026-05-01 — the highest annual increase of
-                any NYC neighborhood we track. Five tactical implications
-                for May/June renters.
+                apartments&rdquo; is up <strong>+197.1% year-over-year
+                </strong> as of 2026-05-03 — re-acceleration from +43.4% YoY
+                last session (S26, 2026-05-02). The post-FARE-Act discovery
+                cohort that initially rotated to Williamsburg / Greenpoint
+                is now circling back to the Manhattan-side $3,500 1BR tier.
+                Five tactical implications for May/June renters.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">

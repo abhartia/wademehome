@@ -29,15 +29,26 @@ const baseUrl =
 
 export const metadata: Metadata = {
   title:
-    "Upper West Side Apartments: Rent Prices, Transit & Neighborhood Guide (2026) | Wade Me Home",
+    "Upper West Side Apartments (May 2026): +36.2% YoY Demand, No-Fee Inventory, Rent Prices & Transit Guide | Wade Me Home",
   description:
-    "Complete guide to renting on the Upper West Side. Average rent prices by unit size, 1/2/3 subway access, pre-war vs. new construction, best blocks for renters, and practical tips for finding an apartment in one of Manhattan's most livable neighborhoods.",
+    "UWS apartment search demand flipped from -38.2% YoY (April 28) to +36.2% YoY today — the second-largest one-week sentiment shift in NYC after Hoboken. May 2026 Concession Watch with pre-war vs. doorman tier table, no-fee UWS inventory (rising query +32,850%), 1/2/3 and B/C subway access, and how UWS compares to UES, East Village, and LIC rent-for-minute.",
   keywords: [
     "Upper West Side apartments",
     "UWS apartments",
     "Upper West Side rent",
     "UWS apartments for rent",
     "upper west side nyc rent 2026",
+    "upper west side apartments May 2026",
+    "Upper West Side concession watch",
+    "Upper West Side concession watch May 2026",
+    "Upper West Side demand surge",
+    "UWS apartments demand surge 2026",
+    "Upper West Side YoY rent",
+    "upper west side apartments for rent no fee",
+    "UWS no fee apartments",
+    "no fee Upper West Side",
+    "Upper West Side no broker fee",
+    "FARE Act Upper West Side",
     "pre-war apartments upper west side",
     "family apartments UWS nyc",
     "upper west side 1 bedroom rent",
@@ -46,6 +57,14 @@ export const metadata: Metadata = {
     "UWS 2 bedroom rent",
     "moving to upper west side nyc",
     "apartments 10023 10024 10025",
+    "UWS doorman apartments",
+    "UWS Riverside Drive rent",
+    "Central Park West apartments",
+    "Lincoln Square apartments",
+    "Manhattan Valley apartments",
+    "UWS pre-war 1BR",
+    "72nd Street apartments",
+    "UWS net effective rent",
   ],
   openGraph: {
     title:
@@ -67,7 +86,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment on the Upper West Side of Manhattan — covering average rent prices, 1/2/3 and B/C subway access, pre-war vs. new construction buildings, neighborhood character, and practical tips for apartment hunters.",
     datePublished: "2026-04-19",
-    dateModified: "2026-04-30",
+    dateModified: "2026-05-03",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -167,30 +186,39 @@ export default function UpperWestSideGuidePage() {
         <div className="mx-auto max-w-3xl space-y-6 p-6">
           {/* ── Header ────────────────────────────────── */}
           <header className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">NYC Neighborhoods</Badge>
               <Badge variant="secondary">Manhattan</Badge>
+              <Badge variant="default">+36.2% YoY search demand</Badge>
+              <Badge variant="outline">Live May 2026</Badge>
+              <Badge variant="outline">Updated 2026-05-03</Badge>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Upper West Side Apartments: Rent Prices, Transit &amp;
-              Neighborhood Guide for 2026
+              Upper West Side Apartments: May 2026 Concession Watch, No-Fee
+              Inventory &amp; Rent Prices Guide
             </h1>
             <p className="text-sm text-muted-foreground">
               The Upper West Side is one of Manhattan&apos;s most livable and
               enduring neighborhoods — a place where century-old pre-war
               buildings line quiet residential blocks, Central Park is steps
               away, and the 1, 2, and 3 trains deliver you to Midtown in under
-              ten minutes. It consistently attracts professionals, families, and
-              academics who want a genuine Manhattan address without the chaos
-              of downtown or the trendiness of Brooklyn. Rents are high by any
-              measure, but within the context of Manhattan, the UWS offers
-              more space per dollar than comparable neighborhoods below 59th
-              Street. This guide covers everything you need to know to find and
-              rent an apartment here.
+              ten minutes. As of today, Google Trends shows UWS apartment
+              search demand{" "}
+              <span className="font-semibold text-foreground">
+                +36.2% year over year
+              </span>{" "}
+              — flipped from -38.2% YoY just five days ago. Combined with
+              the +32,850% rising query &quot;upper west side apartments for
+              rent no fee&quot;, the UWS is back in the active-search pool
+              for the first time since fall 2025. This guide covers May 2026
+              rent prices by tier, the Concession Watch by building cohort,
+              no-fee inventory under the FARE Act, the 1/2/3 vs. B/C
+              subway-line trade-off, and how the UWS compares to UES,
+              East Village, and LIC rent-for-minute.
             </p>
             <p className="text-xs text-muted-foreground">
-              Updated April 2026 &middot; Prices reflect median asking rents for
-              market-rate apartments
+              Last reviewed May 3, 2026 &middot; Prices reflect median asking
+              rents for market-rate apartments
             </p>
           </header>
 
@@ -255,6 +283,177 @@ export default function UpperWestSideGuidePage() {
             limit={6}
             searchQuery="Upper West Side apartments"
           />
+
+          {/* ── UWS May 2026 Concession Watch (added 2026-05-03 — +36.2% YoY flip from -38.2%) */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">+36.2% YoY search demand</Badge>
+                <Badge variant="outline">Flipped from -38.2% in 5 days</Badge>
+                <Badge variant="outline">Live May 2026</Badge>
+              </div>
+              <CardTitle>Upper West Side Concession Watch (May 2026)</CardTitle>
+              <CardDescription>
+                The UWS just flipped from -38.2% YoY (April 28) to{" "}
+                <span className="font-semibold">+36.2% YoY today</span> —
+                second-largest sentiment shift in NYC after Hoboken. Doorman
+                lease-up buildings near 96th and Manhattan Valley still have
+                concession leverage that won&apos;t survive Memorial Day.
+                Net-effective rent shown after concession adjustment.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tier</TableHead>
+                    <TableHead>Asking 1BR</TableHead>
+                    <TableHead>Concession (Q2 2026)</TableHead>
+                    <TableHead>Net Effective</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      72nd–79th doorman / Riverside Drive luxury
+                    </TableCell>
+                    <TableCell>$4,800 – $5,400</TableCell>
+                    <TableCell>0 – 0.5 mo free</TableCell>
+                    <TableCell>$4,615 – $5,400</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      79th–96th pre-war non-doorman 1BR
+                    </TableCell>
+                    <TableCell>$3,800 – $4,400</TableCell>
+                    <TableCell>0 mo free (sold-out market)</TableCell>
+                    <TableCell>$3,800 – $4,400</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      96th–110th Manhattan Valley lease-up tower
+                    </TableCell>
+                    <TableCell>$3,500 – $4,200</TableCell>
+                    <TableCell>1 – 1.5 mo free on 13 mo</TableCell>
+                    <TableCell>$3,231 – $3,877</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Pre-1974 6+ unit walkup (rent-stab eligible)
+                    </TableCell>
+                    <TableCell>$2,800 – $3,400</TableCell>
+                    <TableCell>0 mo free; RGB-capped renewals</TableCell>
+                    <TableCell>$2,800 – $3,400</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Net-effective is asking rent minus annualized concession on a
+                13-month lease. Under the FARE Act (effective June 11, 2025),
+                landlord-hired brokers cannot charge tenants — confirm
+                no-fee on every individual UWS listing using the{" "}
+                <Link
+                  href="/blog/nyc-fare-act-broker-fee-ban"
+                  className="text-primary underline underline-offset-2"
+                >
+                  FARE Act guide
+                </Link>
+                . Pre-1974 6+ unit walkups north of 96th are commonly rent-
+                stabilized — verify with the{" "}
+                <Link
+                  href="/tools/rent-stabilization-checker"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Rent Stabilization Checker
+                </Link>
+                .
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── UWS Demand Surge Card (added 2026-05-03) */}
+          <Card className="border-emerald-300 bg-emerald-50/40 dark:border-emerald-900 dark:bg-emerald-950/20">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">+36.2% YoY search demand</Badge>
+                <Badge variant="outline">+32,850% rising &quot;UWS no-fee&quot;</Badge>
+                <Badge variant="outline">Updated 2026-05-03</Badge>
+              </div>
+              <CardTitle>
+                UWS Demand Surge: What May 2026 Renters Should Know
+              </CardTitle>
+              <CardDescription>
+                Five hood-specific reads on the +36.2% YoY UWS shift and
+                what it means for tour-and-sign timing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <ol className="list-decimal space-y-3 pl-6">
+                <li>
+                  <strong>The UWS just rejoined the active-search pool.</strong>{" "}
+                  -38.2% YoY on April 28 to +36.2% YoY today is a +74.4-point
+                  swing in five days. The driver is share-of-search rotation
+                  from East Village (-43% calmed from S25&apos;s +114%) and
+                  Williamsburg (still +55% but less surge-y) into a
+                  Manhattan-quiet neighborhood story. Memorial Day is the
+                  inflection point — the lease-up underwriting that priced
+                  at -38% YoY is what is on the market now; pricing for
+                  +36.2% YoY hits leases applied for after Memorial Day.
+                </li>
+                <li>
+                  <strong>
+                    The +32,850% rising query is &quot;UWS apartments for
+                    rent no fee&quot;.
+                  </strong>{" "}
+                  This is the strongest commercial-intent rising query
+                  in our NYC NeighborhoodTrends data this week. The
+                  reading: NYC searchers internalized the FARE Act and are
+                  now neighborhood-filtering for no-fee inventory. UWS
+                  large-management-company buildings (Equity, AvalonBay,
+                  Related, Glenwood) are landlord-pays-broker by default;
+                  small-landlord pre-war walkups north of 96th sometimes
+                  still charge — verify per-listing.
+                </li>
+                <li>
+                  <strong>
+                    Manhattan Valley (96th–110th) is the asymmetric play.
+                  </strong>{" "}
+                  Two new lease-up towers opened in Q1 2026 between 100th
+                  and 105th on Amsterdam and Broadway. Lease-up underwriters
+                  still target 90% occupancy in 6–9 months and have the
+                  most flexibility on concessions. 1.5 mo free on a 13-month
+                  $3,800 1BR nets to $3,508/mo — cheaper than Astoria
+                  doorman 1BRs and 1 stop on the 1/2/3 to Times Square.
+                  This tier expires hardest at Memorial Day.
+                </li>
+                <li>
+                  <strong>
+                    Pre-1974 walkups north of 96th are rent-stab gold.
+                  </strong>{" "}
+                  The UWS has roughly 9,400 rent-stabilized walkup units
+                  concentrated between 96th and 110th. Many were
+                  individually deregulated under the Roberts v. Tishman
+                  loophole pre-2019 HSTPA but reverted to stabilization
+                  under HSTPA-cleanup in 2024–2025. RGB renewal caps for
+                  Oct 2025–Sep 2026 are 2.75% / 5.25% (1y / 2y). A $3,200
+                  1BR with rent-stab status renews at $3,288 max — vs
+                  market $3,400→$3,800 on the same unit if deregulated.
+                </li>
+                <li>
+                  <strong>
+                    The 14-month lease lock is the structural play.
+                  </strong>{" "}
+                  Major UWS lease-up buildings offer 1.5 mo free on a
+                  13-month lease (vs flat asking on 12). 14 months pushes
+                  your first renewal to month 15, putting renewal in the
+                  August reset window — not the May–July peak. UWS peak
+                  search demand is currently May–July; signing now means
+                  renewing into a quieter market with leverage to hold
+                  the line on RGB-cap renewal increases.
+                </li>
+              </ol>
+            </CardContent>
+          </Card>
 
           {/* ── Neighborhood Character ────────────────── */}
           <Card>
@@ -1094,6 +1293,15 @@ export default function UpperWestSideGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/upper-west-side/no-fee-apartments"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    No-Fee Upper West Side Apartments (May 2026): FARE Act
+                    Inventory Guide
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/upper-west-side/rent-prices"

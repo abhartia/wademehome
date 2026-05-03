@@ -677,6 +677,15 @@ export default function NYCRentByNeighborhoodPage() {
                 </li>
                 <li>
                   <Link
+                    href="/nyc/upper-west-side/no-fee-apartments"
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    No-Fee Upper West Side Apartments (May 2026): FARE Act
+                    Inventory Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/nyc/cheap-apartments"
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                   >
