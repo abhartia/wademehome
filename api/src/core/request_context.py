@@ -7,6 +7,7 @@ module can read them without threading plumbing through call sites. Bound by
 
 from __future__ import annotations
 
+import re
 import uuid
 from contextvars import ContextVar
 
@@ -16,6 +17,16 @@ _REQUEST_ID: ContextVar[str | None] = ContextVar("request_id", default=None)
 _USER_ID: ContextVar[str | None] = ContextVar("user_id", default=None)
 
 REQUEST_ID_HEADER = "x-request-id"
+
+# Accept upstream-supplied IDs only when they look like an opaque token: a
+# conservative charset that covers UUIDs (with or without dashes), W3C
+# `traceparent`-style hex, ULIDs, and the short alphanumerics most LBs emit.
+# Anything else (control chars, whitespace, oversized blobs, header-splitting
+# payloads) gets discarded and we mint our own UUID. Bounding the length also
+# caps how much per-request bookkeeping a hostile client can force into logs.
+_REQUEST_ID_MIN_LEN = 8
+_REQUEST_ID_MAX_LEN = 128
+_REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 def get_request_id() -> str | None:
@@ -29,6 +40,21 @@ def get_user_id() -> str | None:
 def set_user_id(user_id: str | None) -> None:
     """Bind user_id for the current async task (called by auth layer)."""
     _USER_ID.set(user_id)
+
+
+def _sanitize_incoming_request_id(raw: str) -> str | None:
+    """Return ``raw`` if it's a safe-looking opaque ID, else None.
+
+    Validates length and charset; rejects anything that could break log
+    parsing, response-header serialization, or correlation across systems.
+    """
+    if not raw:
+        return None
+    if len(raw) < _REQUEST_ID_MIN_LEN or len(raw) > _REQUEST_ID_MAX_LEN:
+        return None
+    if not _REQUEST_ID_PATTERN.fullmatch(raw):
+        return None
+    return raw
 
 
 class RequestContextMiddleware:
@@ -46,8 +72,12 @@ class RequestContextMiddleware:
             return
 
         headers = dict(scope.get("headers", []))
-        incoming = headers.get(REQUEST_ID_HEADER.encode(), b"").decode("utf-8").strip()
-        request_id = incoming or uuid.uuid4().hex
+        raw_incoming = headers.get(REQUEST_ID_HEADER.encode(), b"")
+        try:
+            incoming = raw_incoming.decode("ascii").strip()
+        except UnicodeDecodeError:
+            incoming = ""
+        request_id = _sanitize_incoming_request_id(incoming) or uuid.uuid4().hex
 
         rid_token = _REQUEST_ID.set(request_id)
         uid_token = _USER_ID.set(None)
