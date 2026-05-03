@@ -2,7 +2,12 @@
 
 import type { PropertyDataItem } from "@/components/annotations/UIEventsTypes";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -137,7 +142,10 @@ export function PropertyImageGallery({
           <DialogTitle className="sr-only">
             {property.name} — photo {activeIndex + 1} of {urls.length}
           </DialogTitle>
-          <div className="relative flex min-h-[min(60vh,800px)] w-full items-center justify-center rounded-lg bg-black/20 p-2 sm:min-h-[min(85vh,800px)]">
+          <DialogDescription className="sr-only">
+            Use the previous and next buttons or arrow keys to browse photos.
+          </DialogDescription>
+          <div className="relative flex min-h-[min(85vh,800px)] w-full items-center justify-center rounded-lg bg-black/20 p-2">
             {!failed[activeIndex] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

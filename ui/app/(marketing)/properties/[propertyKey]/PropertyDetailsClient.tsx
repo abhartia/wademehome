@@ -251,70 +251,70 @@ export default function PropertyDetailsClient({
             </p>
           ) : null}
 
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-            {user ? (
+          <section className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              {user ? (
+                <Button size="lg" className="h-11" onClick={openTourConfirm}>
+                  Request Tour
+                </Button>
+              ) : (
+                <Button size="lg" className="h-11" asChild>
+                  <Link href="/login">Request Tour</Link>
+                </Button>
+              )}
+              {user ? (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-11"
+                  onClick={async () => {
+                    const response = await toggleFavorite.mutateAsync({
+                      propertyKey,
+                      propertyName: property.name,
+                      propertyAddress: property.address,
+                    });
+                    posthog.capture("property_saved", {
+                      property_key: propertyKey,
+                      property_name: property.name,
+                      favorited: response.favorited,
+                    });
+                    toast.success(
+                      response.favorited ? "Saved to favorites" : "Removed from favorites"
+                    );
+                  }}
+                >
+                  {isFavorited ? "Unsave" : "Save"}
+                </Button>
+              ) : (
+                <Button size="lg" variant="outline" className="h-11" asChild>
+                  <Link href="/login">Save</Link>
+                </Button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               <Button
+                size="lg"
+                variant="outline"
+                className="h-11"
                 onClick={async () => {
-                  const response = await toggleFavorite.mutateAsync({
-                    propertyKey,
-                    propertyName: property.name,
-                    propertyAddress: property.address,
-                  });
-                  posthog.capture("property_saved", {
+                  await shareListingUrl({ url: window.location.href, title: property.name });
+                  posthog.capture("property_shared", {
                     property_key: propertyKey,
                     property_name: property.name,
-                    favorited: response.favorited,
                   });
-                  toast.success(
-                    response.favorited ? "Saved to favorites" : "Removed from favorites"
-                  );
                 }}
               >
-                {isFavorited ? "Unsave" : "Save"}
+                Share
               </Button>
-            ) : (
-              <Button asChild>
-                <Link href="/login">Save</Link>
-              </Button>
-            )}
-            {user ? (
-              <Button variant="outline" onClick={openTourConfirm}>
-                Request Tour
-              </Button>
-            ) : (
-              <Button variant="outline" asChild>
-                <Link href="/login">Request Tour</Link>
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await shareListingUrl({ url: window.location.href, title: property.name });
-                posthog.capture("property_shared", {
-                  property_key: propertyKey,
-                  property_name: property.name,
-                });
-              }}
-            >
-              Share
-            </Button>
-            {property.listing_url ? (
-              <Button variant="outline" asChild>
-                <a href={property.listing_url} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
-                  Original source
-                </a>
-              </Button>
-            ) : null}
-            <Button variant="outline" onClick={() => toast.info("Contact flow coming next")}>
-              Contact
-            </Button>
-            <Button variant="outline" onClick={() => toast.info("Added to compare shortlist")}>
-              Compare
-            </Button>
-            <Button variant="outline" onClick={() => toast.info("Application flow coming next")}>
-              Apply
-            </Button>
+              {property.listing_url ? (
+                <Button size="lg" variant="outline" className="h-11" asChild>
+                  <a href={property.listing_url} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                    Original
+                  </a>
+                </Button>
+              ) : null}
+            </div>
           </section>
 
           <section className="space-y-2">

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 
@@ -42,6 +43,9 @@ export type AnswerPageProps = {
   jurisdictionTag?: string;
   reviewedAt: string;
   sections: AnswerSection[];
+  embed?: ReactNode;
+  embedHeading?: string;
+  embedBlurb?: string;
   relatedTools: AnswerRelatedTool[];
   relatedQuestions: AnswerRelatedQuestion[];
   relatedReadingHref?: string;
@@ -186,6 +190,24 @@ export function AnswerPageTemplate(props: AnswerPageProps) {
             </CardContent>
           </Card>
         ))}
+
+        {props.embed ? (
+          <Card>
+            {props.embedHeading ? (
+              <CardHeader>
+                <CardTitle>{props.embedHeading}</CardTitle>
+                {props.embedBlurb ? (
+                  <p className="text-sm text-muted-foreground">
+                    {props.embedBlurb}
+                  </p>
+                ) : null}
+              </CardHeader>
+            ) : null}
+            <CardContent className={props.embedHeading ? "" : "pt-6"}>
+              {props.embed}
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Separator />
 

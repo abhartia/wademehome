@@ -280,23 +280,14 @@ export function PropertyDetailSheet({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <Button onClick={onSaveFavorite} disabled={toggleFavorite.isPending}>
-              {isFavorited ? "Unsave" : "Save"}
-            </Button>
-            <Button variant="outline" onClick={onRequestTour} disabled={createTourRequest.isPending}>
+            <Button onClick={onRequestTour} disabled={createTourRequest.isPending}>
               Request Tour
             </Button>
-            <Button variant="outline" onClick={() => toast.info("Contact flow coming next")}>
-              Contact
-            </Button>
-            <Button variant="outline" onClick={() => toast.info("Added to compare shortlist")}>
-              Compare
+            <Button variant="outline" onClick={onSaveFavorite} disabled={toggleFavorite.isPending}>
+              {isFavorited ? "Unsave" : "Save"}
             </Button>
             <Button variant="outline" onClick={shareListing}>
               Share
-            </Button>
-            <Button variant="outline" onClick={() => toast.info("Application flow coming next")}>
-              Apply
             </Button>
           </div>
 

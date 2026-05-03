@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AnswerPageTemplate } from "@/components/answers/AnswerPageTemplate";
+import { PathCommuteRoiCalculator } from "@/components/widgets/PathCommuteRoiCalculator";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -39,7 +40,7 @@ export default function Page() {
       question="Does the FARE Act apply to Jersey City and Hoboken?"
       jurisdictionTag="NJ — FARE Act does not apply"
       badges={["NJ tenant rights"]}
-      reviewedAt="2026-04-30"
+      reviewedAt="2026-05-02"
       shortAnswer="No. The FARE Act is a New York City ordinance (NYC Admin. Code §§ 20-699.20–20-699.27). It does not apply in Jersey City, Hoboken, Newark, or anywhere else in New Jersey. NJ broker-fee practice is governed by state law and individual lease terms — and in practice most large NJ rental complexes operate direct-leased / no-fee even without a FARE Act."
       bottomLine="If you are renting in JC, Hoboken, or anywhere in NJ, the FARE Act gives you no leverage — but the typical NJ luxury complex (LeFrak, Roseland, Toll, Tarragon) is direct-leased through an in-house team and charges no broker fee anyway. The FARE Act question rarely comes up on those buildings."
       sections={[
@@ -74,7 +75,16 @@ export default function Page() {
           ],
         },
       ]}
+      embedHeading="Run the JC / Hoboken vs. Manhattan trade-off"
+      embedBlurb="Door-to-door PATH commute time + rent savings + your hourly value of time. The FARE Act savings you give up by leaving NYC are part of the math — set the savings to ~$1,500–4,000 (typical pre-FARE Manhattan broker fee on a $4–6K rent) to model that piece."
+      embed={<PathCommuteRoiCalculator bare />}
       relatedTools={[
+        {
+          href: "/tools/path-commute-roi-calculator",
+          title: "PATH Commute ROI Calculator",
+          blurb:
+            "JC/Hoboken vs. Manhattan rent + PATH time + value-of-time math.",
+        },
         {
           href: "/tools/move-in-cost-estimator",
           title: "Move-in cost estimator",

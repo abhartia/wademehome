@@ -694,6 +694,61 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.75,
     },
+    // Second /answers/ batch (S12, 2026-05-02).
+    {
+      url: `${baseUrl}/answers/what-is-no-fee-apartment-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/first-last-security-deposit-legal-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/gross-vs-net-effective-rent`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-application-fee-cap`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/break-lease-renovation-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/dhcr-rent-history-request-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-moving-cost-2026`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/how-much-was-typical-nyc-broker-fee-before-fare-act`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/free-market-rent-increase-renewal-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogArticles.map((a) => ({
