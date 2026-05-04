@@ -62,18 +62,31 @@ def test_csp_can_be_disabled_via_env(monkeypatch):
     assert b"content-security-policy" not in headers
 
 
+def _csp_directives(csp: str) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for raw in csp.split(";"):
+        parts = raw.strip().split()
+        if not parts:
+            continue
+        out[parts[0]] = parts[1:]
+    return out
+
+
 def test_docs_paths_get_permissive_csp(monkeypatch):
     # FastAPI docs UI loads Swagger / ReDoc bundles from cdn.jsdelivr.net; the
     # JSON-only default CSP would block them. The docs-specific CSP allows
     # those origins while keeping frame-ancestors locked down.
     monkeypatch.delenv("CONTENT_SECURITY_POLICY", raising=False)
     monkeypatch.delenv("CONTENT_SECURITY_POLICY_DOCS", raising=False)
+    jsdelivr = "https://cdn.jsdelivr.net"
     mw = SecurityHeadersMiddleware(_inner)
     for path in ("/docs", "/docs/oauth2-redirect", "/redoc"):
         sent = _collect(mw, {"type": "http", "method": "GET", "path": path, "headers": []})
         csp = _headers(sent).get(b"content-security-policy", b"").decode()
-        assert "https://cdn.jsdelivr.net" in csp, f"docs path {path} missing jsdelivr in CSP"
-        assert "frame-ancestors 'none'" in csp
+        directives = _csp_directives(csp)
+        assert jsdelivr in directives.get("script-src", []), f"docs path {path} missing jsdelivr in script-src"
+        assert jsdelivr in directives.get("style-src", []), f"docs path {path} missing jsdelivr in style-src"
+        assert directives.get("frame-ancestors") == ["'none'"]
 
 
 def test_passes_through_non_http_scope():
