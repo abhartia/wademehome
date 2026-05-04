@@ -25,10 +25,13 @@ def test_security_headers_present(client):
     r = client.get("/health")
     assert r.headers.get("x-content-type-options") == "nosniff"
     assert r.headers.get("x-frame-options") == "DENY"
+    assert r.headers.get("cross-origin-resource-policy") == "same-origin"
     assert "referrer-policy" in {k.lower() for k in r.headers}
     assert "permissions-policy" in {k.lower() for k in r.headers}
-    # CSP is opt-in (set CONTENT_SECURITY_POLICY env to enable).
-    assert "content-security-policy" not in {k.lower() for k in r.headers}
+    # JSON-API default CSP locks the page down; override via CONTENT_SECURITY_POLICY env.
+    csp = r.headers.get("content-security-policy", "")
+    assert "default-src 'none'" in csp
+    assert "frame-ancestors 'none'" in csp
 
 
 def test_v1_mirror_mounted(fastapi_client):
