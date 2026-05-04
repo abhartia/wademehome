@@ -779,6 +779,55 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.75,
     },
+    // Third /answers/ batch (S13, 2026-05-03).
+    {
+      url: `${baseUrl}/answers/rent-stabilization-vacancy-decontrol-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/421a-rent-stabilization-coverage-nyc`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/j-51-tax-abatement-rent-stabilization`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-sublet-rules-lease-assignment`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-eviction-notice-timeline`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-heat-hot-water-complaint`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-bedbug-disclosure-law`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/answers/nyc-pet-fee-legality`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
   ];
 
   const blogEntries: MetadataRoute.Sitemap = blogArticles.map((a) => ({

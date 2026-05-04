@@ -21,7 +21,7 @@ const URL = `${baseUrl}/answers`;
 export const metadata: Metadata = {
   title: "NYC Renter Answers — FARE Act, Rent Stabilization, Lease Law (2026)",
   description:
-    "Concise, sourced answers to the questions NYC renters actually ask: FARE Act broker-fee rules, HSTPA deposit caps, rent-stabilization eligibility, RGB renewal caps, DHCR rent history, application-fee limits, and what to do when charged illegally.",
+    "Concise, sourced answers to 25 questions NYC renters actually ask: FARE Act broker-fee rules, HSTPA deposit caps, rent-stabilization (421-a, J-51, vacancy decontrol), RGB renewal caps, DHCR rent history, sublet rights, eviction timelines, heat / hot water complaints, bedbug disclosure, and pet-fee legality.",
   keywords: [
     "NYC renter questions",
     "FARE Act questions",
@@ -33,6 +33,13 @@ export const metadata: Metadata = {
     "NYC lease law questions",
     "DHCR rent history NYC",
     "NYC moving cost questions",
+    "NYC sublet rules",
+    "NYC eviction timeline",
+    "NYC heat hot water rules",
+    "NYC bedbug disclosure",
+    "NYC pet fee legal",
+    "421-a rent stabilization",
+    "J-51 rent stabilization",
   ],
   openGraph: {
     title:
@@ -171,6 +178,65 @@ const ANSWERS = [
       "$4,500–$15,500 typical for a 1BR. First + security + movers + COI + utilities. Broker fee is usually $0 thanks to the FARE Act.",
     cluster: "Cross-topic",
   },
+  // Third /answers/ batch (S13, 2026-05-03).
+  {
+    slug: "rent-stabilization-vacancy-decontrol-nyc",
+    question: "Did HSTPA end vacancy decontrol in NYC?",
+    summary:
+      "Yes. The 2019 HSTPA permanently ended high-rent vacancy decontrol, the 20% vacancy bonus, and high-income deregulation. Once stabilized, units stay stabilized.",
+    cluster: "Rent stabilization",
+  },
+  {
+    slug: "421a-rent-stabilization-coverage-nyc",
+    question: "Are 421-a apartments rent-stabilized in NYC?",
+    summary:
+      "Yes — for the duration of the abatement (10–35 years). Whether they convert to free-market after depends on construction year and program version.",
+    cluster: "Rent stabilization",
+  },
+  {
+    slug: "j-51-tax-abatement-rent-stabilization",
+    question:
+      "Does a J-51 tax abatement make my NYC apartment rent-stabilized?",
+    summary:
+      "Yes — for as long as the J-51 benefit runs. Roberts v. Tishman Speyer (2009) closed the deregulation loophole permanently.",
+    cluster: "Rent stabilization",
+  },
+  {
+    slug: "nyc-sublet-rules-lease-assignment",
+    question: "Can I sublet my NYC apartment?",
+    summary:
+      "Yes — RPL § 226-b gives tenants in 4+ unit buildings a non-waivable right to sublet. Landlord consent is required but cannot be unreasonably withheld.",
+    cluster: "Tenant rights",
+  },
+  {
+    slug: "nyc-eviction-notice-timeline",
+    question: "How long does NYC eviction take?",
+    summary:
+      "4–18+ months from first late rent to physical eviction. 14-day rent demand → court → judgment → 14-day marshal notice. Self-help eviction is illegal.",
+    cluster: "Tenant rights",
+  },
+  {
+    slug: "nyc-heat-hot-water-complaint",
+    question:
+      "What are NYC's heat-and-hot-water rules and how do I file a complaint?",
+    summary:
+      "Heat Season Oct 1–May 31. 68°F day / 62°F night when outside is below 55°F. Hot water 120°F year-round. File via 311 — HPD inspectors respond.",
+    cluster: "Tenant rights",
+  },
+  {
+    slug: "nyc-bedbug-disclosure-law",
+    question: "What does NYC's bedbug-disclosure law require?",
+    summary:
+      "Every NYC landlord must give a Bedbug Disclosure Form at every lease and renewal showing the unit and building's prior-year infestation history.",
+    cluster: "Tenant rights",
+  },
+  {
+    slug: "nyc-pet-fee-legality",
+    question: "Are pet fees and pet deposits legal in NYC?",
+    summary:
+      "Non-refundable pet fees: no (HSTPA caps total deposits at one month). Pet rent on stabilized units: illegal. ESAs and service animals: never chargeable.",
+    cluster: "Tenant rights",
+  },
 ];
 
 const collectionJsonLd = {
@@ -210,13 +276,13 @@ const CLUSTERS: Array<{
   {
     title: "Rent stabilization & RGB renewals",
     blurb:
-      "Whether your unit is stabilized, the lawful 2025–2026 renewal increase, and how to pull the DHCR rent history that proves it.",
+      "Whether your unit is stabilized (including 421-a and J-51 tax-abated buildings), the lawful 2025–2026 renewal cap, what HSTPA's end of vacancy decontrol means today, and how to pull the DHCR rent history that proves it.",
     filter: (a) => a.cluster === "Rent stabilization",
   },
   {
     title: "NYC tenant rights & lease law",
     blurb:
-      "HSTPA deposit caps, the $20 application-fee cap, lease termination during renovations, and free-market renewal-increase notice rules.",
+      "HSTPA deposit caps, the $20 application-fee cap, sublet and assignment rights under RPL § 226-b, the eviction timeline, heat/hot-water complaint rules, bedbug disclosure, and pet-fee legality.",
     filter: (a) => a.cluster === "Tenant rights",
   },
   {
@@ -244,7 +310,7 @@ export default function AnswersIndexPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">NYC renter answers</Badge>
             <Badge className="bg-emerald-600">2026 edition</Badge>
-            <Badge variant="outline">17 questions answered</Badge>
+            <Badge variant="outline">25 questions answered</Badge>
           </div>
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
             Concise answers to the questions NYC renters actually ask
@@ -253,7 +319,7 @@ export default function AnswersIndexPage() {
             Each answer cross-links to a free tool that runs your specific
             facts — FARE Act violation classifier, rent stabilization checker,
             RGB renewal calculator, move-in cost estimator, PATH commute ROI.
-            Reviewed May 2026.
+            Updated May 3, 2026.
           </p>
         </header>
 
@@ -353,7 +419,7 @@ export default function AnswersIndexPage() {
         </Card>
 
         <p className="text-xs text-muted-foreground">
-          Reviewed 2026-05-02. Informational only — not legal advice. For
+          Reviewed 2026-05-03. Informational only — not legal advice. For
           contested or high-dollar disputes, contact{" "}
           <a
             href="https://legalaidnyc.org/get-help/housing-problems/"
