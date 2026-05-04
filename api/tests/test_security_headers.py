@@ -72,7 +72,7 @@ def test_docs_paths_get_permissive_csp(monkeypatch):
     for path in ("/docs", "/docs/oauth2-redirect", "/redoc"):
         sent = _collect(mw, {"type": "http", "method": "GET", "path": path, "headers": []})
         csp = _headers(sent).get(b"content-security-policy", b"").decode()
-        assert "cdn.jsdelivr.net" in csp, f"docs path {path} missing jsdelivr in CSP"
+        assert "https://cdn.jsdelivr.net" in csp, f"docs path {path} missing jsdelivr in CSP"
         assert "frame-ancestors 'none'" in csp
 
 
