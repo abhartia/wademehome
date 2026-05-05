@@ -23,6 +23,7 @@ class FavoriteResponse(BaseModel):
 
 class FavoriteListResponse(BaseModel):
     favorites: list[FavoriteResponse]
+    total: int = 0
 
 
 class FavoriteToggleResponse(BaseModel):
@@ -61,6 +62,7 @@ class GroupNoteResponse(BaseModel):
 
 class GroupNotesListResponse(BaseModel):
     notes: list[GroupNoteResponse]
+    total: int = 0
 
 
 class CommentedPropertyResponse(BaseModel):
@@ -75,6 +77,7 @@ class CommentedPropertyResponse(BaseModel):
 
 class CommentedPropertiesListResponse(BaseModel):
     properties: list[CommentedPropertyResponse]
+    total: int = 0
 
 
 ReactionKind = Literal["thumbs_up", "thumbs_down", "heart"]
@@ -95,6 +98,7 @@ class ReactionEntry(BaseModel):
 
 class ReactionListResponse(BaseModel):
     reactions: list[ReactionEntry]
+    total: int = 0
 
 
 class ReactionToggleResponse(BaseModel):
