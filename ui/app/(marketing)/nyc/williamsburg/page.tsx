@@ -93,7 +93,7 @@ const jsonLd = [
     description:
       "A comprehensive guide to renting an apartment in Williamsburg, Brooklyn — covering average rent by unit size, North/South/East Williamsburg price differences, L/G/J/M/Z subway access, best streets, and practical tips for apartment hunters.",
     datePublished: "2026-04-14",
-    dateModified: "2026-05-02",
+    dateModified: "2026-05-05",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -1470,6 +1470,15 @@ export default function WilliamsburgGuidePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link
+                    href="/nyc/williamsburg/no-fee-apartments"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    No-Fee Williamsburg Apartments: Two Trees, Domino,
+                    The Edge &amp; FARE Act Inventory (May 2026)
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/nyc/williamsburg/rent-prices"

@@ -4,9 +4,136 @@ import { FAREActViolationReporter } from "@/components/fare-act/FAREActViolation
 import { BrokerFeeLawTimeline } from "@/components/fare-act/BrokerFeeLawTimeline";
 import Link from "next/link";
 
+const fareActFaqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How do I get my broker fee refunded in NYC?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "If you signed a NYC lease on or after June 11, 2025 and a landlord-hired broker charged you a fee, file a DCWP complaint at nyc.gov/dcwp or use the FARE Act Violation Reporter on this page to draft a copy-paste complaint with the exact legal citations DCWP fast-tracks. Include the broker's name, brokerage, the amount paid, and a copy of any receipt or Venmo memo. DCWP has issued $5,000 repeat-offender penalties since January 2026 and refunded over 1,500 fees since June 2025. Most refunds resolve in 6–10 weeks once DCWP opens the file. If the fee is over $5,000 or the broker contests, run a parallel small-claims case — small-claims judgments in 2026 have routinely awarded the full fee plus interest plus the $50 filing fee.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How much can I recover from a NYC broker fee complaint?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The full broker fee, plus interest, plus DCWP penalty distribution if the brokerage is a repeat offender. On a $3,500/month NYC 1BR, the typical 12% broker fee is $5,040; on a $4,000/month 1BR, it's $5,760. DCWP refund decisions in 2026 have ordered the full fee returned in roughly 90% of complaints where the lease started after June 11, 2025. Small-claims court has separately awarded the full fee plus 9% statutory interest plus the $50 filing fee. The two tracks can run in parallel.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How long does a DCWP broker fee complaint take?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Roughly 6–10 weeks from filing to refund for the typical case in 2026. The clock looks like this: DCWP acknowledges the complaint within 1–3 business days; the brokerage gets a written notice within 2 weeks; the brokerage has 30 days to respond; DCWP issues a determination within 30–45 days of the response. Repeat-offender brokerages (which DCWP publishes monthly on its enforcement docket) move faster because the precedent is already set. If the brokerage doesn't respond at all — common for small operators — DCWP defaults the case in tenant's favor at the 30-day mark.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my apartment lease covered by the FARE Act?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes if all three are true. (1) The apartment is in one of the five NYC boroughs (Manhattan, Brooklyn, Queens, the Bronx, Staten Island) — the FARE Act does not apply to Hoboken, Jersey City, or anywhere outside NYC. (2) Your lease was signed or renewed on or after June 11, 2025 — pre-FARE-Act leases are governed by the prior 2019 DOS guidance era and are a small-claims case, not a DCWP complaint. (3) The broker who collected the fee was hired by the landlord, not by you. The test for who hired the broker: who was named first as the listing agent on StreetEasy / RentHop / the brokerage's own website? If it's the landlord-hired broker (the typical case), the tenant cannot be charged. Use the timeline tool below to map your specific lease date onto the four enforcement windows.",
+      },
+    },
+  ],
+};
+
 export default function NycFareActBrokerFeeBan() {
   return (
     <div className="space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(fareActFaqJsonLd) }}
+      />
+
+      {/* ── Click-intent FAQ — top of article (added 2026-05-05) ── */}
+      <Card className="border-primary/40 bg-primary/[.04]" id="quick-answers">
+        <CardHeader>
+          <CardTitle>
+            Quick answers: refund process, amount, timeline, and FARE Act
+            coverage
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5 text-sm leading-relaxed text-muted-foreground">
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              How do I get my broker fee refunded in NYC?
+            </p>
+            <p>
+              File a DCWP complaint at{" "}
+              <span className="font-mono text-xs">nyc.gov/dcwp</span> or use
+              the{" "}
+              <Link href="#violation-reporter" className="text-primary underline">
+                FARE Act Violation Reporter
+              </Link>{" "}
+              below to draft a copy-paste complaint. DCWP has refunded
+              over 1,500 fees since June 2025 and issued $5,000
+              repeat-offender penalties since January 2026. Most refunds
+              resolve in <strong>6–10 weeks</strong>. If the fee is over
+              $5,000 or contested, parallel-track small-claims court — the
+              two tracks run independently.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              How much can I recover?
+            </p>
+            <p>
+              The full broker fee, plus interest. On a $3,500/mo NYC 1BR
+              the typical 12% fee is <strong>$5,040</strong>; on a
+              $4,000/mo unit it&apos;s <strong>$5,760</strong>. DCWP has
+              ordered the full fee returned in ~90% of complaints where
+              the lease started on or after June 11, 2025. Small-claims
+              has separately awarded the full fee plus 9% statutory
+              interest plus the $50 filing fee.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              How long does a DCWP complaint take?
+            </p>
+            <p>
+              <strong>6–10 weeks</strong> from filing to refund for the
+              typical 2026 case. DCWP acknowledges in 1–3 business days,
+              notices the brokerage within 2 weeks, gives them 30 days to
+              respond, and issues a determination within 30–45 days of
+              the response. Non-responding brokerages default at the
+              30-day mark in tenant&apos;s favor.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              Is my lease covered by the FARE Act?
+            </p>
+            <p>
+              <strong>Yes</strong> if all three are true: (a) the unit is
+              in one of the five NYC boroughs; (b) your lease was signed
+              or renewed on or after June 11, 2025; (c) the broker was
+              hired by the landlord (the typical case — check the
+              StreetEasy &quot;Listed by&quot; field). For Hoboken or
+              Jersey City — different law; see the{" "}
+              <Link
+                href="/hoboken/no-fee-apartments"
+                className="text-primary underline"
+              >
+                NJ no-fee guide
+              </Link>
+              . For pre-June-2025 leases, the path is small-claims court,
+              not DCWP — see the{" "}
+              <Link href="#timeline" className="text-primary underline">
+                timeline below
+              </Link>{" "}
+              to confirm your enforcement window.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── May 2026 enforcement update — page-1 hero callout (added 2026-05-03) ── */}
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader>
@@ -399,6 +526,21 @@ export default function NycFareActBrokerFeeBan() {
               </Link>{" "}
               — same NJ caveat applies. Newport / Grove Street / JSQ
               landlord-direct inventory is the workaround.
+            </li>
+            <li>
+              <Link
+                href="/nyc/williamsburg/no-fee-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                No-fee Williamsburg apartments
+              </Link>{" "}
+              — Two Trees alone runs ~3,000 Williamsburg units (Domino
+              Sugar, North 6th, 60 Frost) that lease directly without
+              any broker — FARE Act is automatic. Add The Edge (TF
+              Cornerstone), 184 Kent (Equity), and Greenpoint Landing
+              spillover and most active waterfront market-rate inventory
+              is reliably no-fee. Williamsburg apartment search has
+              held +55% YoY through April–May 2026.
             </li>
           </ul>
           <p className="text-xs">

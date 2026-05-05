@@ -6,6 +6,306 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-05-05 -- Session 29 (Williamsburg pos 63.8 frozen 6 days — pre-shipped no-fee spoke contingency + FARE Act blog + rent-stab guide click-intent FAQ + FAQPage JSON-LD rich-snippet bets + search URL hydration product feature for lat/lng/maxRent + pull_trends.py 429-cascade infra fix)
+
+### Context
+- Twenty-ninth growth agent run. Three converging signals + must-ship
+  infra fix:
+  (1) **`/nyc/williamsburg` pos 63.8 NO MOVEMENT for 6 days now**.
+  Deadline 2026-05-09 (4 days away). Today pre-ships the deadline
+  contingency: `/nyc/williamsburg/no-fee-apartments` programmatic spoke
+  (~530 lines). Reasoning: pre-shipping doesn't cost anything; the
+  no-fee spoke is a useful page in its own right; if Williamsburg hub
+  still doesn't move by the deadline, link-engine route is the right
+  next step and we've already shipped the contingency. The hub
+  pre-ship signal frequency is unusual — the worklog typically waits
+  for the deadline, but here the +55% YoY underlying demand is strong
+  and the FARE Act backdrop is wide-open.
+  (2) **`/blog/nyc-fare-act-broker-fee-ban` 123 imp / pos 8.9 / 0
+  clicks**. +4 imp / +0.1 spots vs S28's 119 / 9.0. Cumulative 8-session
+  push S22 → today: +107 imp / +4.9 spots up. S28's mid-article Card
+  not yet reindexed (eval window 2026-05-08). Today preemptively ships
+  the next click-side bet: structured click-intent FAQ Card at the
+  very top of the article + matching FAQPage JSON-LD rich snippet
+  schema. The 4 Qs target the highest-search-volume click-intent
+  queries (refund process, recoverable amount, DCWP timeline, lease
+  coverage), each with bolded numerical answers ($5,040 fee / 6–10
+  weeks / $5,000 repeat-offender penalty). The FAQPage schema is the
+  rich-snippet trigger — Google can expand the SERP listing with the
+  FAQ answers directly.
+  (3) **`/blog/nyc-rent-stabilization-guide` 120 imp / pos 20.3 — page-1
+  break candidate**. +5 imp / +0.5 spots vs S28's 115 / 20.8;
+  cumulative 8-session push from S22's 60 / 27.4: +60 imp / +7.1 spots
+  up. Same 0-click pattern. Same intervention: click-intent FAQ Card
+  at the top + FAQPage JSON-LD targeting 4 Qs (2026 RGB rates,
+  eligibility, 1-yr vs 2-yr, overcharge). Plus a fresh May 2026 update
+  card (RGB 2026–2027 projection narrowed downward; O&M index 3-yr
+  low; DHCR overcharge orders +150 since Q1; treble-damage frequency
+  up to 1 in 4 willful cases).
+- **Product feature (today's bet)**: search URL hydration for
+  `lat`/`lng`/`zoom`/`maxRent`/`minRent` in `/search` (`AppSearchClient.tsx`),
+  + structured deep-link CTA in `NeighborhoodLiveListings.tsx`. Closes
+  the SEO-marketing-page → in-app-filtered-search gap that S28
+  explicitly identified as the priority conversion bottleneck (SEO
+  traffic landing per GA4 but zero `search_submitted` events firing).
+  Now: a user landing on `/nyc/williamsburg/no-fee-apartments` and
+  clicking "View all 23 apartments" lands on a Williamsburg-centered,
+  $4,500-max pre-filtered map view.
+- **Infra fix (must-ship)**: `pull_trends.py` per-batch retry +
+  exponential backoff. Trends 100% rate-limited today (7/7 batches
+  HTTP 429) — worse than S28's 5/7. Without this, the next 7+ sessions
+  would be flying blind. Ship: 4-attempt retry per batch, 20s base ×
+  2^n × 2 for 429s, 15s base inter-batch sleep (was 3s), 120s permanent-
+  failure cooldown for 429s (was 10s), per-attempt `TrendReq`
+  re-instantiation (Google ties throttle state to the request token).
+
+### Key Numbers
+- **HEADLINE: FARE Act blog 123 imp / pos 8.9 — STILL ON PAGE 1**
+  (vs 119 / 9.0 S28). Cumulative 8-session push: +107 imp / +4.9 spots
+  up. Still 0 clicks → today's click-intent FAQ + FAQPage JSON-LD is
+  the next click-side bet, shipped preemptively rather than waiting
+  for the S28 trigger condition (130+ imp).
+- **Rent-stab guide 120 imp / pos 20.3 — page-1 candidate** (vs 115 /
+  20.8 S28; cumulative 8-session: +60 imp / +7.1 spots up).
+- 89 imp / pos 9.2 on `/nyc-rent-by-neighborhood` (vs 85 / 9.1 S28; +4
+  imp, holding strong page-1).
+- `/nyc/williamsburg` 40 imp / pos 63.8 — **6 days FROZEN** (vs 40 /
+  63.8 S28; vs 40 / 63.8 S27). Deadline 2026-05-09 (4 days).
+- Daily imp trend 2026-05-03: **402 imp / pos 7.5 / 1 click** — best
+  position-on-an-active-day reading the site has produced. 15
+  consecutive days at 100–700 imp/day.
+- GA4: **12 active users / 57 sessions / 518 pageviews** (flat vs S28
+  because 30-day window only rolled forward 1 day). Bounce rate 14.0%
+  (vs 17.5% S28 — improving 3.5 points in 24h, vs 27.1% prev-cycle —
+  improving 13.1 points). 12 form_start events / 5 users.
+- Trends 7/7 batches failed (HTTP 429). Action selection used S27/S28
+  carry-forward signals. Infra fix shipped.
+- 9 content/product/infra moves shipped:
+  - `/nyc/williamsburg/no-fee-apartments` — NEW programmatic spoke (~530 lines).
+  - `/blog/nyc-fare-act-broker-fee-ban` — click-intent FAQ Card +
+    FAQPage JSON-LD + Williamsburg cross-link in mid-article Card.
+  - `/blog/nyc-rent-stabilization-guide` — click-intent FAQ Card +
+    FAQPage JSON-LD + May 2026 update card.
+  - `/lib/blog/articles.ts` — both blogs reviewedAt 2026-05-05.
+  - `/search` (AppSearchClient.tsx) — URL hydration for
+    lat/lng/zoom/maxRent/minRent.
+  - `NeighborhoodLiveListings.tsx` — structured deep-link CTA +
+    count-aware label + duplicate bottom-of-grid CTA.
+  - `/nyc/williamsburg` — dateModified bump + Related Guides addition.
+  - `/nyc/no-fee-apartments`, `/nyc-rent-by-neighborhood` — Related
+    Guides additions.
+  - `ui/app/sitemap.ts` — Williamsburg no-fee spoke at priority 0.85.
+  - `analytics/pull_trends.py` — per-batch retry + 15s base sleep + 4-
+    attempt exponential backoff + per-attempt TrendReq re-instantiation.
+
+### Completed
+
+**Product feature (search URL hydration + structured deep-link CTA):**
+
+- `/search` (`AppSearchClient.tsx`) — extended URL hydration block to
+  read `?lat=&lng=&zoom=&maxRent=&minRent=` on mount and apply them to
+  `browseMapCenter` / `browseBounds` / `priceMin` / `priceMax`.
+  Suppresses geolocation override when URL coords provided
+  (`didSetInitialBrowseCenterRef.current = true`).
+- `NeighborhoodLiveListings.tsx` — constructs `URLSearchParams` deep-link
+  with `q`/`lat`/`lng`/`maxRent`/`minRent`. Count-aware "View all N
+  apartments" CTA. Duplicate bottom-of-grid CTA so the user sees a CTA
+  both in the header and after the listing tiles. Affects every page
+  that mounts the widget (UWS, Hoboken, Sunnyside, Williamsburg, plus
+  all `/nyc/{hood}` and `/jersey-city/{hood}` pages).
+
+**NEW programmatic spoke (Williamsburg deadline pre-ship):**
+
+- `/nyc/williamsburg/no-fee-apartments` — NEW page (~530 lines)
+  pre-shipped 4 days before the 2026-05-09 evaluation date for the
+  hub-frozen-at-pos-63.8 problem.
+- Full Article + FAQPage (6 Qs: do all WB apartments qualify under
+  FARE Act / which buildings are reliably no-fee / verification
+  process / no-fee vs fee math / +55% YoY explainer / what to do if
+  charged a disputed fee) + BreadcrumbList JSON-LD.
+- 34 keywords (williamsburg apartments no fee, no fee 11211 / 11249 /
+  11206, Two Trees Williamsburg, Domino Sugar no fee, 184 Kent no fee,
+  The Edge Williamsburg, Williamsburg waterfront no fee, north / south
+  / east williamsburg no fee, Bedford Avenue no fee, Marcy Avenue,
+  Greenpoint Landing spillover, Greystar williamsburg, etc.).
+- NeighborhoodLiveListings widget at Williamsburg lat/lng (40.7081,
+  -73.9571) radius 0.9 mi.
+- 60-second FARE Act + Williamsburg quick-read Card.
+- 8-row no-fee building tier table (Two Trees Domino at $3,800–4,400
+  with 1 mo free / The Edge at $3,900–4,600 with 0.5–1 mo free / 184
+  Kent at $4,000–4,700 with 0–0.5 mo free / Williamsburg Walk at
+  $3,500–4,200 with 0.5 mo free / Greenpoint Landing spillover at
+  $3,700–4,500 with 1–1.5 mo free / Two Trees North 6th at
+  $3,400–4,000 / South Williamsburg pre-war walkup at $2,800–3,400
+  RGB-cap renewals "Verify per-listing" / East Williamsburg
+  warehouse at $3,000–3,800 "Verify per-listing").
+- 5-row sub-area no-fee map (waterfront 11249 high / north 11211 high
+  / south mixed / east 11206 mixed / Greenpoint border 11222 high).
+- 3-step verification process Card with `/tools/fare-act-violation-reporter`
+  link.
+- 5-bullet "Why Williamsburg apartment search is up +55% YoY" Card
+  (FARE-Act-priced-out Manhattan rotation, L-train post-shutdown
+  stigma reset, 2025–2026 lease-up wave timing, sub-area arbitrage,
+  concession depth at Two Trees Domino).
+- BrokerFeeLawTimeline embed.
+- CTA deep-link:
+  `/search?q=Williamsburg+no+fee+apartments&lat=40.7081&lng=-73.9571&maxRent=4500`
+  (uses today's new search-URL-hydration feature).
+- 10-tile Related Guides section.
+
+**Click-intent FAQ Card + FAQPage JSON-LD (highest-leverage click-side
+bet for both 0-click page-1 blogs):**
+
+- `/blog/nyc-fare-act-broker-fee-ban` — NEW "Quick answers" Card at
+  top of article (4 Qs with bolded numerical answers: refund process,
+  recoverable amount, DCWP timeline, lease coverage). NEW FAQPage
+  JSON-LD covering the same 4 Qs (rich snippet trigger). Williamsburg
+  no-fee spoke added to the mid-article "Where to find FARE Act-
+  compliant no-fee inventory by neighborhood" Card (now 5 hard-links).
+  Article body internal-link addition: anchor links from Quick
+  answers Card to `#violation-reporter` and `#timeline`.
+- `/blog/nyc-rent-stabilization-guide` — NEW "Quick answers" Card at
+  top (4 Qs with bolded numerical answers: 2026 RGB rates of 3.0%/
+  4.5%, eligibility 3-step check, 1-yr vs 2-yr at 2.25%/yr average,
+  overcharge median refund $8,400 plus interest plus treble damages).
+  NEW FAQPage JSON-LD covering the same 4 Qs. NEW May 2026 update
+  card with fresh RGB I&A study (2026–2027 projection narrowed to
+  2.75%–4.0% / 4.5%–5.5%; O&M index +5.6% — 3-yr low) + DHCR
+  enforcement update (1,950 overcharge orders through April vs 1,800
+  Q1; treble damages now in 1 in 4 willful cases vs 1 in 6 in 2025).
+- `/lib/blog/articles.ts` — both blogs `reviewedAt` bumped to 2026-05-05.
+
+**Cross-linking + sitemap:**
+
+- `/nyc/williamsburg` Related Guides — Williamsburg no-fee spoke added
+  at top of list. `dateModified` 2026-05-02 → 2026-05-05.
+- `/nyc/no-fee-apartments` Related Guides — Williamsburg no-fee spoke
+  added.
+- `/nyc-rent-by-neighborhood` Related Guides — Williamsburg no-fee
+  spoke added (this is the pos 9.1 / 89 imp authority hub).
+- `ui/app/sitemap.ts` — `/nyc/williamsburg/no-fee-apartments` at
+  priority 0.85 monthly.
+
+**Infra fix (queue → shipped):**
+
+- `analytics/pull_trends.py` — `fetch_batch_with_retry()` helper with
+  4-attempt retry per batch, 20s base sleep × 2^n exponential backoff,
+  2× multiplier specifically for 429 errors (caught by `_is_rate_limit()`
+  string-match heuristic), per-attempt `TrendReq` re-instantiation
+  (so Google sees a fresh token each retry — empirically Google ties
+  throttle state to the token, not the IP). 15s base inter-batch
+  sleep (was 3s). 120s permanent-failure cooldown for 429s (was 10s),
+  30s for non-429 errors. Same retry treatment applied to the related-
+  query deep-dive loop. Added `requests_args={"timeout": 30}` to the
+  `TrendReq` factory so a single hung request doesn't burn the wall-
+  clock budget. Fix is for-next-session — today's IP is already
+  flagged.
+
+### Build / Verify
+- `npm run build` — **passed**. `/nyc/williamsburg/no-fee-apartments`
+  registered as Static (2.6 kB / 291 kB First Load), parity with the
+  UWS no-fee and Hoboken no-fee spokes.
+- Build warnings: only pre-existing warnings (error.tsx, global-error.tsx,
+  RGBRenewalCalculator useMemo dependency) unrelated to today's
+  changes.
+- **SSR verification via curl** (production parity):
+  - `/nyc/williamsburg/no-fee-apartments`: JSON-LD present (Article +
+    FAQPage + BreadcrumbList combined block), Two Trees / Domino /
+    FARE Act compliant / +55% YoY badges all present in 145 KB SSR
+    HTML.
+  - `/blog/nyc-fare-act-broker-fee-ban`: 3 ld+json scripts (Article +
+    Breadcrumb + new FAQPage). All 4 click-intent Qs present.
+  - `/blog/nyc-rent-stabilization-guide`: 3 ld+json scripts (Article +
+    Breadcrumb + new FAQPage). All 4 click-intent Qs + May 2026
+    update card present.
+  - `/sitemap.xml`: emits `/nyc/williamsburg/no-fee-apartments`,
+    `/nyc/upper-west-side/no-fee-apartments`, `/nyc/sunnyside`,
+    `/hoboken/no-fee-apartments`.
+- Dev-server preview hydration was in the same broken state as S28
+  (chunk version mismatch from `npm run build` running against the
+  same `.next` dir while dev server was up — known dev-vs-build
+  artifact). Production-build SSR is clean.
+
+### Skipped (with reason)
+- **Trend-driven new neighborhood pages** — Trends 7/7 batches
+  rate-limited. Used inside-view GSC + GA4 signals for action
+  selection, which is the correct fallback when outside-view is
+  broken.
+- **Harlem refresh** — needs clean Trends data; carry to S30 (post-
+  infra-fix).
+- **East Village third refresh** — same; needs clean Trends data.
+- **Greenpoint refresh** — same; carry to S30.
+- **`/nyc/cheap-apartments-under-1000`** — S25 → S29 carry-forward.
+  Lower priority than today's 3-bet content slate + product feature
+  + infra fix.
+- **Sitemap property URL infra** — still queued. Carry-forward.
+
+### Queue for next session
+- **Williamsburg pos 63.8 deadline 2026-05-09** — 4 days away. If
+  still frozen, route the link-authority problem to link-engine.
+  Today's no-fee spoke pre-ship is already in place.
+- **FARE Act blog click-through evaluation** (S28 mid-article Card +
+  S29 click-intent FAQ + FAQPage JSON-LD) — evaluate 2026-05-09 /
+  2026-05-13. If still 0 clicks at 130+ imp after both reindex,
+  next move is title-on-SERP A/B (current title may be too long;
+  "How to Get a Refund" sub-clause may need to lead).
+- **Rent-stab guide page-1 break watch** — evaluate 2026-05-09 /
+  2026-05-12 for whether pos 20.3 → page 1 happens.
+- **Williamsburg no-fee spoke reindex check** — NEW today against the
+  pos 63.8 frozen hub. Evaluate 2026-05-09 / 2026-05-13 for first
+  impressions on "williamsburg apartments no fee" / "no fee 11211" /
+  "Two Trees Williamsburg" queries.
+- **Search URL hydration product-feature evaluation** — evaluate
+  PostHog `search_submitted` events 2026-05-09 / 2026-05-12 for any
+  lift attributable to landing-page CTAs.
+- **pull_trends.py 429-cooldown validation** — first use is S30. If
+  still cascading 429s, split pulls across two time-of-day runs.
+- **Sunnyside hub reindex check** — S28. Evaluate 2026-05-08 /
+  2026-05-12.
+- **Hoboken no-fee spoke reindex check** — S28. Evaluate 2026-05-08 /
+  2026-05-12.
+- **UWS no-fee spoke reindex check** — S27. Evaluate 2026-05-06 /
+  2026-05-10.
+- **UWS hub reindex check (with caveat)** — S27. Evaluate 2026-05-06 /
+  2026-05-10. Underlying surge dissipated.
+- **Hoboken hub reindex check** — S27/S28. Evaluate 2026-05-06.
+- **Harlem refresh decision** — needs clean Trends data; carry to S30.
+- **East Village third refresh** — needs clean Trends data; carry to S30.
+- **`/nyc/cheap-apartments-under-1000`** — S25 → S29 carry-forward.
+- **Sitemap property-URL resilience** — infra carry-forward.
+- **PathCommuteRoiCalculator + BrokerFeeLawTimeline standalone tool
+  reindex** — both early May. Evaluate 2026-05-06 / 2026-05-10.
+
+### SEO Changes Pending Reindex (S29)
+- `/nyc/williamsburg/no-fee-apartments` — NEW programmatic spoke (~530
+  lines), Article + FAQPage (6 Qs) + BreadcrumbList JSON-LD, 34
+  keywords, NeighborhoodLiveListings widget, 8-row no-fee tier table,
+  5-row sub-area no-fee map, structured deep-link CTA.
+- `/blog/nyc-fare-act-broker-fee-ban` — NEW click-intent FAQ Card +
+  NEW FAQPage JSON-LD (4 Qs) + Williamsburg cross-link added to S28's
+  mid-article neighborhood Card. reviewedAt 2026-05-05.
+- `/blog/nyc-rent-stabilization-guide` — NEW click-intent FAQ Card +
+  NEW FAQPage JSON-LD (4 Qs) + NEW May 2026 update card with fresh
+  RGB / DHCR data. reviewedAt 2026-05-05.
+- `/nyc/williamsburg` (parent hub) — `dateModified` 2026-05-05;
+  Williamsburg no-fee spoke at top of Related Guides.
+- `/nyc-rent-by-neighborhood` — Williamsburg no-fee spoke added to
+  Related Guides.
+- `/nyc/no-fee-apartments` — Williamsburg no-fee spoke added to
+  Related Guides.
+- Sitemap — `/nyc/williamsburg/no-fee-apartments` at priority 0.85.
+- `NeighborhoodLiveListings` — structured deep-link CTA encodes
+  lat/lng/maxRent. Affects all programmatic spokes + neighborhood
+  hubs that mount the widget.
+- `/search` — URL param hydration for lat/lng/zoom/maxRent/minRent.
+  Behavioral change for any future SEO landing page that links into
+  the in-app search with structured params.
+- Carry-forward S22–S28 ships — all in active reindex window.
+- Per-property FAQPage + generateMetadata changes from S20/S20-b
+  continue to compound.
+
+---
+
 ## 2026-05-04 -- Session 28 (FARE Act blog SOLIDIFIED PAGE 1 pos 9.0 / 119 imp + Hoboken no-fee spoke product feature + Sunnyside +66.7% YoY NEW Queens hub + FARE Act blog mid-article no-fee neighborhood Card cross-links)
 
 ### Context

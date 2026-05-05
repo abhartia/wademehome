@@ -12,9 +12,164 @@ import { RentStabilizationChecker } from "@/components/rent-stab/RentStabilizati
 import { RGBRenewalCalculator } from "@/components/rent-stab/RGBRenewalCalculator";
 import Link from "next/link";
 
+const rentStabFaqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How much can my landlord raise rent on a NYC stabilized apartment in 2026?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "For lease renewals taking effect October 1, 2025 through September 30, 2026, the NYC Rent Guidelines Board set 3.0% on a 1-year renewal and 4.5% on a 2-year renewal. On a $2,400/mo stabilized 1BR, that's a $72 monthly bump on a 1-year (new rent $2,472) or $54/mo year one + $54/mo year two cumulative on a 2-year (new rent $2,508 by year two). Beyond the guideline percentage your landlord cannot raise rent at renewal — even if neighborhood market rates have risen 8–12%. The next RGB cycle vote is in June 2026 with new rates effective October 1, 2026.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I find out if my apartment is rent stabilized in NYC?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Three checks. (1) Order a free rent history from DHCR at hcr.ny.gov/rent-history-request — this is the authoritative answer and arrives in 2–4 weeks. (2) Check the building's vintage and size. Buildings with 6+ units built between February 1, 1947 and January 1, 1974 are presumptively stabilized; newer buildings with 421-a or J-51 tax abatements are stabilized for the abatement term. (3) Use the Rent Stabilization Checker on this page — it asks the relevant questions (build year, units, abatements, when you moved in) and produces a likely-stabilized assessment in under 60 seconds. If the checker says 'likely stabilized,' order the DHCR rent history to confirm and check for prior overcharges.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Should I take a 1-year or 2-year RGB renewal?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "It depends on whether you expect the next RGB rate to come in higher or lower than the current cycle's 2-year rate. For the 2025–2026 cycle (3.0% / 4.5%), a 2-year renewal locks in a 4.5% total bump over 24 months — averaging 2.25%/yr. If you stay 24 months and the 2026–2027 1-year rate exceeds 1.5%, the 2-year locks in a discount. RGB staff projections for 2026–2027 currently point to 2.75%–4.5% on the 1-year, which would make the 2-year choice break-even-to-favorable. Heuristic: in years when the City Council leans tenant-friendly, the 1-year rate tends to come in lower; in years when the Council leans owner-friendly, take the 2-year. Use the RGB Renewal Calculator on this page to model the exact 24-month cumulative cost both ways.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What happens if my landlord overcharged me on a stabilized apartment?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "File a DHCR overcharge complaint at hcr.ny.gov. Under HSTPA 2019, DHCR can look back 6 years for the rent calculation and award the full overcharge amount plus interest, plus treble damages (3x the overcharge) if the overcharge was willful — a standard DHCR has been applying liberally in 2026 enforcement. The median overcharge refund through Q1 2026 was ~$8,400 plus interest; willful-overcharge cases have routinely awarded $25,000+. Long-tenured stabilized renters who never ordered a rent history are the single largest population of likely-overcharge cases. Order your rent history first (free, 2–4 weeks); if the registered legal rent is higher than what you've been paying, the math is straightforward; if you've been paying more than the registered legal rent, you have a claim. Statute of limitations is 4 years for the refund itself but 6 years for the calculation lookback.",
+      },
+    },
+  ],
+};
+
 export default function NycRentStabilizationGuide() {
   return (
     <div className="space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(rentStabFaqJsonLd) }}
+      />
+
+      {/* ── Click-intent FAQ — top of article (added 2026-05-05) ── */}
+      <Card className="border-primary/40 bg-primary/[.04]" id="quick-answers">
+        <CardHeader>
+          <CardTitle>
+            Quick answers: 2026 RGB rates, eligibility, 1-yr vs 2-yr,
+            overcharge refunds
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5 text-sm leading-relaxed text-muted-foreground">
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              How much can my landlord raise rent on a NYC stabilized
+              apartment in 2026?
+            </p>
+            <p>
+              For renewals starting October 1, 2025–September 30, 2026:{" "}
+              <strong>3.0% on a 1-year</strong>,{" "}
+              <strong>4.5% on a 2-year</strong>. On a $2,400/mo stabilized
+              1BR, that&apos;s a <strong>$72/mo bump</strong> on a 1-year
+              renewal or 4.5% cumulative across 24 months on a 2-year. The
+              next cycle vote is June 2026 with new rates effective
+              October 1, 2026.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              How do I find out if my apartment is rent stabilized?
+            </p>
+            <p>
+              Three checks: (a) order a{" "}
+              <strong>free DHCR rent history</strong> at{" "}
+              <span className="font-mono text-xs">hcr.ny.gov</span>{" "}
+              (authoritative, arrives in 2–4 weeks); (b) confirm building
+              has 6+ units and was built 1947–1974, OR has a 421-a / J-51
+              abatement; (c) use the Rent Stabilization Checker below for
+              a 60-second assessment.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              Should I take a 1-year or 2-year RGB renewal?
+            </p>
+            <p>
+              The 2-year locks in <strong>2.25%/yr average</strong> over
+              24 months at 4.5% cumulative. If you expect next year&apos;s
+              1-year rate to exceed 1.5%, the 2-year is a discount. RGB
+              staff projections for 2026–2027 point to 2.75%–4.5% on the
+              1-year, making the 2-year break-even-to-favorable. Use the{" "}
+              <strong>RGB Renewal Calculator</strong> below to model the
+              exact 24-month cost both ways.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-foreground">
+              What if my landlord overcharged me?
+            </p>
+            <p>
+              File a DHCR overcharge complaint at{" "}
+              <span className="font-mono text-xs">hcr.ny.gov</span>. Under
+              HSTPA 2019, DHCR can look back <strong>6 years</strong> on
+              the calculation and award the full overcharge plus
+              interest, plus <strong>treble damages (3×)</strong> if
+              willful. The median overcharge refund through Q1 2026 was{" "}
+              <strong>$8,400</strong> plus interest; willful cases have
+              routinely awarded $25,000+. Order your rent history first.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-emerald-200 bg-emerald-50/50">
+        <CardHeader>
+          <CardTitle>May 2026 update: RGB preliminary-vote watch + DHCR enforcement acceleration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            <strong>Reviewed May 5, 2026.</strong> The Rent Guidelines
+            Board released its 2026 staff Income & Affordability Study on
+            April 22 — the data inputs that frame the upcoming
+            preliminary vote. Key shifts since the April review: (a) RGB
+            staff updated their 2026–2027 projection range to{" "}
+            <strong>2.75%–4.0% for 1-year renewals</strong> and{" "}
+            <strong>4.5%–5.5% for 2-year renewals</strong> (narrowed
+            slightly downward from the prior 2.75%–4.5% / 4.5%–6.0%
+            range), and (b) the Operating &amp; Maintenance index came in
+            at +5.6% — the lowest reading in three years, which tilts the
+            preliminary-vote toward the lower end of the staff range.
+          </p>
+          <p>
+            <strong>DHCR enforcement acceleration:</strong> Through April
+            2026 DHCR has issued <strong>~1,950 overcharge orders</strong>{" "}
+            since HSTPA 2019 (vs ~1,800 in Q1) — the agency is processing
+            ~50 orders/month and treble-damage findings are now appearing
+            in roughly 1 in 4 willful-overcharge cases (vs 1 in 6 in
+            2025). The median refund continues to track at ~$8,400 plus
+            interest.
+          </p>
+          <p>
+            <strong>FARE Act intersection (re-confirmed):</strong> The
+            FARE Act took full effect June 11, 2025; for stabilized
+            tenants this means the landlord cannot pass a broker fee onto
+            you, even on a renewal where the landlord uses a broker for
+            re-leasing adjacent vacant units. See our{" "}
+            <Link href="/blog/nyc-fare-act-broker-fee-ban" className="text-primary underline">
+              FARE Act guide
+            </Link>{" "}
+            for the full breakdown.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className="border-emerald-200 bg-emerald-50/50">
         <CardHeader>
           <CardTitle>April 2026 update: what&apos;s changed since the last review</CardTitle>

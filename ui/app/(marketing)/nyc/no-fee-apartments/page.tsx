@@ -708,6 +708,15 @@ export default function NoFeeApartmentsPage() {
                     Inventory (+136.7% YoY)
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/nyc/williamsburg/no-fee-apartments"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    No-Fee Williamsburg Apartments (May 2026): Two Trees,
+                    Domino, The Edge &amp; FARE Act Inventory
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

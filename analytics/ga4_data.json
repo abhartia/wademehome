@@ -3,8 +3,8 @@
     "activeUsers": "12",
     "sessions": "57",
     "screenPageViews": "518",
-    "averageSessionDuration": "791.82152159649115",
-    "bounceRate": "0.17543859649122806",
+    "averageSessionDuration": "791.69614678947369",
+    "bounceRate": "0.14035087719298245",
     "newUsers": "11"
   },
   "traffic_summary_prev_30d": {
@@ -124,8 +124,8 @@
       "pagePath": "/",
       "screenPageViews": "115",
       "activeUsers": "10",
-      "averageSessionDuration": "342.88558431428572",
-      "bounceRate": "0.085714285714285715"
+      "averageSessionDuration": "342.68140248571427",
+      "bounceRate": "0.028571428571428571"
     },
     {
       "pagePath": "/groups",
@@ -301,16 +301,16 @@
       "channel": "Direct",
       "sessions": "56",
       "activeUsers": "12",
-      "screenPageViews": "515",
-      "avgDuration": "805.69167994642851",
-      "bounceRate": "0.16071428571428573"
+      "screenPageViews": "517",
+      "avgDuration": "805.83357798214286",
+      "bounceRate": "0.125"
     },
     {
       "channel": "Unassigned",
-      "sessions": "3",
-      "activeUsers": "3",
-      "screenPageViews": "3",
-      "avgDuration": "5.0308846666666662",
+      "sessions": "1",
+      "activeUsers": "1",
+      "screenPageViews": "1",
+      "avgDuration": "0",
       "bounceRate": "1"
     }
   ],
@@ -320,7 +320,7 @@
       "device": "desktop",
       "sessions": "57",
       "activeUsers": "12",
-      "bounceRate": "0.17543859649122806"
+      "bounceRate": "0.14035087719298245"
     }
   ],
   "countries": [
@@ -416,8 +416,8 @@
       "pageTitle": "Wade Me Home: Rental search & renter tools",
       "screenPageViews": "114",
       "activeUsers": "10",
-      "avgDuration": "342.71013368571431",
-      "bounceRate": "0.085714285714285715"
+      "avgDuration": "342.50595185714286",
+      "bounceRate": "0.028571428571428571"
     },
     {
       "pagePath": "/groups",
@@ -820,8 +820,8 @@
     },
     {
       "source": "(not set)",
-      "sessions": "3",
-      "activeUsers": "3"
+      "sessions": "1",
+      "activeUsers": "1"
     }
   ]
 }

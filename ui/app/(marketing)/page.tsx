@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(guestHomeSiteOrigin());
   const title = "Wade Me Home: Rental search & renter tools";
   const socialImage = {
-    url: "/opengraph-image.png?v=20260323-1",
+    url: "/og-image.png",
     width: 1200,
     height: 630,
     alt: "Wade Me Home rental search and renter tools",

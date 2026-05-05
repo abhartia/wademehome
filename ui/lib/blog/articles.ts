@@ -199,7 +199,7 @@ export const blogArticles: BlogArticleMeta[] = [
     description:
       "Charged a broker fee in NYC in 2025 or 2026? You can probably get it back. The FARE Act made landlord-hired brokers pay their own fee — DCWP has issued $5,000 repeat-offender penalties since January 2026. Includes the 13-event law timeline (2019 → 2026), a free DCWP complaint drafter, the six r/AskNYC questions everyone asks, and the May 2026 enforcement update.",
     publishedAt: "2026-04-11",
-    reviewedAt: "2026-05-04",
+    reviewedAt: "2026-05-05",
     keywords: [
       "NYC broker fee ban",
       "FARE Act NYC",
@@ -259,7 +259,7 @@ export const blogArticles: BlogArticleMeta[] = [
     description:
       "Annual rent increase rules for NYC rent stabilized apartments: 2025-2026 RGB rates (3% one-year, 4.5% two-year), full 2015–2026 Rent Guidelines Board history, 2026–2027 forecast, IAI/MCI surcharge math, an interactive eligibility checker, an interactive 1-year vs 2-year RGB renewal calculator, lease renewal rights, and what to do if you're being overcharged.",
     publishedAt: "2026-04-12",
-    reviewedAt: "2026-04-29",
+    reviewedAt: "2026-05-05",
     author: "Wade Me Home Editorial Team",
     keywords: [
       "NYC rent stabilization",

@@ -132,7 +132,16 @@ export function NeighborhoodLiveListings({
 
   const baseSearch = searchQuery ?? `${neighborhoodName} apartments`;
   const priceSuffix = maxRent ? ` under $${maxRent.toLocaleString()}` : "";
-  const searchHref = `/search?q=${encodeURIComponent(baseSearch + priceSuffix)}`;
+  // Build a structured deep-link so the in-app search hydrates the same lat/lng/
+  // price filters the SEO landing page is showing — no re-locate, no re-filter.
+  const searchParams = new URLSearchParams({
+    q: baseSearch + priceSuffix,
+    lat: latitude.toFixed(4),
+    lng: longitude.toFixed(4),
+  });
+  if (maxRent && maxRent > 0) searchParams.set("maxRent", String(maxRent));
+  if (minRent && minRent > 0) searchParams.set("minRent", String(minRent));
+  const searchHref = `/search?${searchParams.toString()}`;
 
   const groups = nearbyQuery.data?.properties
     ? groupPropertiesByBuilding(nearbyQuery.data.properties)
@@ -185,6 +194,11 @@ export function NeighborhoodLiveListings({
     );
   }
 
+  const seeAllLabel =
+    totalInRadius > representatives.length
+      ? `View all ${totalInRadius} apartments`
+      : "See all";
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -198,7 +212,7 @@ export function NeighborhoodLiveListings({
           </CardDescription>
         </div>
         <Button asChild variant="outline" size="sm" className="shrink-0">
-          <Link href={searchHref}>See all</Link>
+          <Link href={searchHref}>{seeAllLabel}</Link>
         </Button>
       </CardHeader>
       <CardContent>
@@ -210,11 +224,16 @@ export function NeighborhoodLiveListings({
             />
           ))}
         </div>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Showing {representatives.length} of {totalInRadius} apartments within{" "}
-          {radiusMiles} miles of {neighborhoodName}. Rent ranges are live from
-          landlords and refresh continuously.
-        </p>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            Showing {representatives.length} of {totalInRadius} apartments
+            within {radiusMiles} miles of {neighborhoodName}. Rent ranges
+            are live from landlords and refresh continuously.
+          </p>
+          <Button asChild size="sm" className="shrink-0">
+            <Link href={searchHref}>{seeAllLabel}</Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

@@ -773,6 +773,33 @@ export function AppSearchClient() {
   useEffect(() => {
     if (didHydrateQueryFromUrlRef.current) return;
     const urlQ = (searchParams.get("q") ?? "").trim();
+
+    // Hydrate map center + bounds from ?lat=&lng= (with optional &zoom= override).
+    // Marketing pages deep-link into the in-app search with neighborhood-anchored
+    // coordinates so SEO traffic doesn't have to re-locate themselves.
+    const urlLatRaw = searchParams.get("lat");
+    const urlLngRaw = searchParams.get("lng");
+    const urlLat = urlLatRaw !== null ? Number(urlLatRaw) : NaN;
+    const urlLng = urlLngRaw !== null ? Number(urlLngRaw) : NaN;
+    const urlZoomRaw = searchParams.get("zoom");
+    const urlZoom = urlZoomRaw !== null ? Number(urlZoomRaw) : 13;
+    if (Number.isFinite(urlLat) && Number.isFinite(urlLng)) {
+      setBrowseMapCenter({ latitude: urlLat, longitude: urlLng });
+      setBrowseBounds(
+        approximateBoundsFromCenterZoom(urlLat, urlLng, Number.isFinite(urlZoom) ? urlZoom : 13)
+      );
+      setHasBrowseViewport(true);
+      didSetInitialBrowseCenterRef.current = true;
+    }
+
+    // Hydrate price filters from ?maxRent= / &minRent=
+    const urlMaxRaw = searchParams.get("maxRent");
+    const urlMinRaw = searchParams.get("minRent");
+    const urlMax = urlMaxRaw !== null ? Number(urlMaxRaw) : NaN;
+    const urlMin = urlMinRaw !== null ? Number(urlMinRaw) : NaN;
+    if (Number.isFinite(urlMax) && urlMax > 0) setPriceMax(urlMax);
+    if (Number.isFinite(urlMin) && urlMin > 0) setPriceMin(urlMin);
+
     if (urlQ.length >= MIN_QUERY_CHARS) {
       setQuery(urlQ);
       setListingSessionActive(true);

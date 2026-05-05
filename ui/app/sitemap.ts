@@ -141,6 +141,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.75,
     },
     {
+      url: `${baseUrl}/nyc/williamsburg/no-fee-apartments`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/nyc/greenpoint`,
       lastModified: new Date(),
       changeFrequency: "monthly",
