@@ -37,24 +37,29 @@ router = APIRouter(prefix="/properties", tags=["properties"])
 @router.get("/favorites", response_model=FavoriteListResponse)
 def list_favorites(
     group_id: uuid.UUID | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     _, scope_group_id = resolve_scope(group_id, user, db)
-    stmt = (
-        select(PropertyFavorites, Users.email)
-        .join(Users, Users.id == PropertyFavorites.user_id, isouter=True)
-        .order_by(PropertyFavorites.created_at.desc())
-    )
     if scope_group_id is None:
-        stmt = stmt.where(
+        scope_filter = (
             PropertyFavorites.user_id == user.id,
             PropertyFavorites.group_id.is_(None),
         )
     else:
-        stmt = stmt.where(PropertyFavorites.group_id == scope_group_id)
+        scope_filter = (PropertyFavorites.group_id == scope_group_id,)
 
-    rows = db.execute(stmt).all()
+    total = db.execute(select(func.count()).select_from(PropertyFavorites).where(*scope_filter)).scalar_one()
+    rows = db.execute(
+        select(PropertyFavorites, Users.email)
+        .join(Users, Users.id == PropertyFavorites.user_id, isouter=True)
+        .where(*scope_filter)
+        .order_by(PropertyFavorites.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    ).all()
     return FavoriteListResponse(
         favorites=[
             FavoriteResponse(
@@ -66,7 +71,8 @@ def list_favorites(
                 added_by_email=row.email,
             )
             for row in rows
-        ]
+        ],
+        total=int(total),
     )
 
 
@@ -172,6 +178,8 @@ def upsert_property_note(
 @router.get("/commented", response_model=CommentedPropertiesListResponse)
 def list_commented_properties(
     group_id: uuid.UUID = Query(...),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -186,6 +194,7 @@ def list_commented_properties(
         .group_by(PropertyNotes.property_key)
         .subquery()
     )
+    total = db.execute(select(func.count()).select_from(agg)).scalar_one()
     latest_note = aliased(PropertyNotes)
     rows = db.execute(
         select(
@@ -210,6 +219,8 @@ def list_commented_properties(
             isouter=True,
         )
         .order_by(agg.c.latest_at.desc())
+        .limit(limit)
+        .offset(offset)
     ).all()
     seen: set[str] = set()
     properties: list[CommentedPropertyResponse] = []
@@ -233,25 +244,31 @@ def list_commented_properties(
                 latest_note_author_email=row.author_email,
             )
         )
-    return CommentedPropertiesListResponse(properties=properties)
+    return CommentedPropertiesListResponse(properties=properties, total=int(total))
 
 
 @router.get("/group-notes/{property_key}", response_model=GroupNotesListResponse)
 def list_group_notes(
     property_key: str,
     group_id: uuid.UUID = Query(...),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     resolve_scope(group_id, user, db)
+    scope_filter = (
+        PropertyNotes.group_id == group_id,
+        PropertyNotes.property_key == property_key,
+    )
+    total = db.execute(select(func.count()).select_from(PropertyNotes).where(*scope_filter)).scalar_one()
     rows = db.execute(
         select(PropertyNotes, Users.email)
         .join(Users, Users.id == PropertyNotes.user_id)
-        .where(
-            PropertyNotes.group_id == group_id,
-            PropertyNotes.property_key == property_key,
-        )
+        .where(*scope_filter)
         .order_by(PropertyNotes.created_at.asc())
+        .limit(limit)
+        .offset(offset)
     ).all()
     return GroupNotesListResponse(
         notes=[
@@ -265,7 +282,8 @@ def list_group_notes(
                 updated_at=row.PropertyNotes.updated_at,
             )
             for row in rows
-        ]
+        ],
+        total=int(total),
     )
 
 
@@ -317,18 +335,24 @@ def delete_group_note(
 def list_reactions(
     property_key: str,
     group_id: uuid.UUID = Query(...),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     user: Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     resolve_scope(group_id, user, db)
+    scope_filter = (
+        PropertyReactions.group_id == group_id,
+        PropertyReactions.property_key == property_key,
+    )
+    total = db.execute(select(func.count()).select_from(PropertyReactions).where(*scope_filter)).scalar_one()
     rows = db.execute(
         select(PropertyReactions, Users.email)
         .join(Users, Users.id == PropertyReactions.user_id)
-        .where(
-            PropertyReactions.group_id == group_id,
-            PropertyReactions.property_key == property_key,
-        )
+        .where(*scope_filter)
         .order_by(PropertyReactions.created_at.asc())
+        .limit(limit)
+        .offset(offset)
     ).all()
     return ReactionListResponse(
         reactions=[
@@ -339,7 +363,8 @@ def list_reactions(
                 created_at=r.PropertyReactions.created_at,
             )
             for r in rows
-        ]
+        ],
+        total=int(total),
     )
 
 
