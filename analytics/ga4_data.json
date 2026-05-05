@@ -1,27 +1,21 @@
 {
   "traffic_summary_30d": {
     "activeUsers": "12",
-    "sessions": "61",
-    "screenPageViews": "520",
-    "averageSessionDuration": "749.08432655737693",
-    "bounceRate": "0.21311475409836064",
+    "sessions": "57",
+    "screenPageViews": "518",
+    "averageSessionDuration": "791.82152159649115",
+    "bounceRate": "0.17543859649122806",
     "newUsers": "11"
   },
   "traffic_summary_prev_30d": {
-    "activeUsers": "9",
-    "sessions": "64",
-    "screenPageViews": "469",
-    "averageSessionDuration": "1138.187972546875",
-    "bounceRate": "0.234375",
-    "newUsers": "9"
+    "activeUsers": "10",
+    "sessions": "70",
+    "screenPageViews": "476",
+    "averageSessionDuration": "1041.4110499285714",
+    "bounceRate": "0.27142857142857141",
+    "newUsers": "10"
   },
   "daily_trend": [
-    {
-      "date": "20260403",
-      "activeUsers": "2",
-      "sessions": "6",
-      "screenPageViews": "7"
-    },
     {
       "date": "20260406",
       "activeUsers": "1",
@@ -117,15 +111,21 @@
       "activeUsers": "1",
       "sessions": "2",
       "screenPageViews": "12"
+    },
+    {
+      "date": "20260503",
+      "activeUsers": "2",
+      "sessions": "2",
+      "screenPageViews": "5"
     }
   ],
   "top_pages": [
     {
       "pagePath": "/",
-      "screenPageViews": "113",
+      "screenPageViews": "115",
       "activeUsers": "10",
-      "averageSessionDuration": "335.11323711111106",
-      "bounceRate": "0.1111111111111111"
+      "averageSessionDuration": "342.88558431428572",
+      "bounceRate": "0.085714285714285715"
     },
     {
       "pagePath": "/groups",
@@ -150,10 +150,10 @@
     },
     {
       "pagePath": "/search",
-      "screenPageViews": "33",
+      "screenPageViews": "31",
       "activeUsers": "3",
-      "averageSessionDuration": "567.70174688888892",
-      "bounceRate": "0.1111111111111111"
+      "averageSessionDuration": "728.80908485714281",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
@@ -194,8 +194,8 @@
       "pagePath": "/properties/11-25-45th-avenue-5c--11-25-45th-avenue-5c-long-island-city-ny-11101--40.7472---73.9530",
       "screenPageViews": "6",
       "activeUsers": "1",
-      "averageSessionDuration": "1051.4921595",
-      "bounceRate": "1"
+      "averageSessionDuration": "822.5354435",
+      "bounceRate": "0.5"
     },
     {
       "pagePath": "/tours",
@@ -299,18 +299,18 @@
   "traffic_sources": [
     {
       "channel": "Direct",
-      "sessions": "60",
+      "sessions": "56",
       "activeUsers": "12",
-      "screenPageViews": "509",
-      "avgDuration": "724.97428106666666",
-      "bounceRate": "0.2"
+      "screenPageViews": "515",
+      "avgDuration": "805.69167994642851",
+      "bounceRate": "0.16071428571428573"
     },
     {
       "channel": "Unassigned",
-      "sessions": "2",
-      "activeUsers": "2",
-      "screenPageViews": "11",
-      "avgDuration": "1097.843528",
+      "sessions": "3",
+      "activeUsers": "3",
+      "screenPageViews": "3",
+      "avgDuration": "5.0308846666666662",
       "bounceRate": "1"
     }
   ],
@@ -318,15 +318,15 @@
   "devices": [
     {
       "device": "desktop",
-      "sessions": "61",
+      "sessions": "57",
       "activeUsers": "12",
-      "bounceRate": "0.21311475409836064"
+      "bounceRate": "0.17543859649122806"
     }
   ],
   "countries": [
     {
       "country": "United States",
-      "sessions": "39",
+      "sessions": "35",
       "activeUsers": "11"
     },
     {
@@ -338,7 +338,7 @@
   "events": [
     {
       "event": "page_view",
-      "eventCount": "520",
+      "eventCount": "518",
       "totalUsers": "12"
     },
     {
@@ -348,12 +348,12 @@
     },
     {
       "event": "user_engagement",
-      "eventCount": "86",
+      "eventCount": "83",
       "totalUsers": "9"
     },
     {
       "event": "session_start",
-      "eventCount": "60",
+      "eventCount": "56",
       "totalUsers": "12"
     },
     {
@@ -405,19 +405,19 @@
     },
     {
       "week": "202618",
-      "activeUsers": "4",
-      "sessions": "7",
-      "screenPageViews": "40"
+      "activeUsers": "5",
+      "sessions": "9",
+      "screenPageViews": "45"
     }
   ],
   "all_pages_with_titles": [
     {
       "pagePath": "/",
       "pageTitle": "Wade Me Home: Rental search & renter tools",
-      "screenPageViews": "112",
+      "screenPageViews": "114",
       "activeUsers": "10",
-      "avgDuration": "334.94266011111108",
-      "bounceRate": "0.1111111111111111"
+      "avgDuration": "342.71013368571431",
+      "bounceRate": "0.085714285714285715"
     },
     {
       "pagePath": "/groups",
@@ -446,10 +446,10 @@
     {
       "pagePath": "/search",
       "pageTitle": "Wade Me Home",
-      "screenPageViews": "33",
+      "screenPageViews": "31",
       "activeUsers": "3",
-      "avgDuration": "567.70174688888892",
-      "bounceRate": "0.1111111111111111"
+      "avgDuration": "728.80908485714281",
+      "bounceRate": "0"
     },
     {
       "pagePath": "/properties/listing--106-glenwood-ave-jersey-city-nj-07306--40.7283---74.0718",
@@ -504,8 +504,8 @@
       "pageTitle": "11 25 45th Avenue 5c | Wade Me Home",
       "screenPageViews": "6",
       "activeUsers": "1",
-      "avgDuration": "1051.4921595",
-      "bounceRate": "1"
+      "avgDuration": "822.5354435",
+      "bounceRate": "0.5"
     },
     {
       "pagePath": "/tours",
@@ -815,13 +815,13 @@
   "referrers": [
     {
       "source": "(direct)",
-      "sessions": "60",
+      "sessions": "56",
       "activeUsers": "12"
     },
     {
       "source": "(not set)",
-      "sessions": "2",
-      "activeUsers": "2"
+      "sessions": "3",
+      "activeUsers": "3"
     }
   ]
 }

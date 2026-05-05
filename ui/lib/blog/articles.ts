@@ -199,7 +199,7 @@ export const blogArticles: BlogArticleMeta[] = [
     description:
       "Charged a broker fee in NYC in 2025 or 2026? You can probably get it back. The FARE Act made landlord-hired brokers pay their own fee — DCWP has issued $5,000 repeat-offender penalties since January 2026. Includes the 13-event law timeline (2019 → 2026), a free DCWP complaint drafter, the six r/AskNYC questions everyone asks, and the May 2026 enforcement update.",
     publishedAt: "2026-04-11",
-    reviewedAt: "2026-05-03",
+    reviewedAt: "2026-05-04",
     keywords: [
       "NYC broker fee ban",
       "FARE Act NYC",

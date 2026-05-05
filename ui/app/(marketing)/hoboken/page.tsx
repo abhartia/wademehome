@@ -95,7 +95,7 @@ const jsonLd = [
     description:
       "A comprehensive 2026 guide to renting an apartment in Hoboken, NJ — covering rent prices, Hoboken PATH commute, Uptown / Downtown / Waterfront sub-areas, and how Hoboken compares to Jersey City and Manhattan rent-for-minute.",
     datePublished: "2026-04-24",
-    dateModified: "2026-05-03",
+    dateModified: "2026-05-04",
     publisher: {
       "@type": "Organization",
       name: "Wade Me Home",
@@ -834,6 +834,15 @@ export default function HobokenPage() {
             </CardHeader>
             <CardContent>
               <ul className="grid gap-2 text-sm sm:grid-cols-2">
+                <li>
+                  <Link
+                    href="/hoboken/no-fee-apartments"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    No-Fee Hoboken Apartments (May 2026): Landlord-Direct
+                    Inventory Guide
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/hoboken/rent-prices"

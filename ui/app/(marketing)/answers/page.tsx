@@ -21,7 +21,7 @@ const URL = `${baseUrl}/answers`;
 export const metadata: Metadata = {
   title: "NYC Renter Answers — FARE Act, Rent Stabilization, Lease Law (2026)",
   description:
-    "Concise, sourced answers to 25 questions NYC renters actually ask: FARE Act broker-fee rules, HSTPA deposit caps, rent-stabilization (421-a, J-51, vacancy decontrol), RGB renewal caps, DHCR rent history, sublet rights, eviction timelines, heat / hot water complaints, bedbug disclosure, and pet-fee legality.",
+    "Concise, sourced answers to 33 questions NYC renters actually ask: FARE Act broker-fee rules, HSTPA deposit caps, rent stabilization (421-a, J-51, vacancy decontrol, succession, vacancy lease), RGB renewal caps, DHCR rent history, sublet rights, eviction timelines, illegal lockouts, repair-and-deduct, warranty of habitability, lead-paint and bedbug disclosure, pet-fee legality, the tenant-blacklist ban, and the buyout-disclosure law.",
   keywords: [
     "NYC renter questions",
     "FARE Act questions",
@@ -40,6 +40,14 @@ export const metadata: Metadata = {
     "NYC pet fee legal",
     "421-a rent stabilization",
     "J-51 rent stabilization",
+    "NYC succession rights",
+    "NYC vacancy lease stabilized",
+    "NYC illegal lockout",
+    "NYC repair and deduct",
+    "NYC warranty of habitability",
+    "NYC lead paint disclosure",
+    "NYC tenant blacklist",
+    "NYC buyout disclosure",
   ],
   openGraph: {
     title:
@@ -131,7 +139,7 @@ const ANSWERS = [
     question: "Is asking for first, last, and security legal in NYC?",
     summary:
       "No. The 2019 HSTPA caps move-in deposits at one month's rent. First + last + security adds an unlawful third month.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — lease & money",
   },
   {
     slug: "nyc-application-fee-cap",
@@ -139,14 +147,14 @@ const ANSWERS = [
       "What's the maximum application or credit-check fee a NYC landlord can charge?",
     summary:
       "$20 per applicant, total — covers background and credit checks combined (RPL § 238-a). The cap is statewide.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — lease & money",
   },
   {
     slug: "break-lease-renovation-nyc",
     question: "Can my NYC landlord break my lease for renovations?",
     summary:
       "No. A signed NYC lease binds the landlord too. Buyouts are negotiated, not imposed. Rent-stabilized tenants have stronger protections.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — lease & money",
   },
   {
     slug: "free-market-rent-increase-renewal-nyc",
@@ -154,7 +162,7 @@ const ANSWERS = [
       "How much can a NYC landlord raise my rent at renewal if I'm not rent-stabilized?",
     summary:
       "No statutory cap — but HSTPA § 226-c requires 30/60/90-day written notice for any increase over 5%, scaled to tenancy length.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — lease & money",
   },
   {
     slug: "can-landlord-raise-rent-after-fare-act",
@@ -206,14 +214,14 @@ const ANSWERS = [
     question: "Can I sublet my NYC apartment?",
     summary:
       "Yes — RPL § 226-b gives tenants in 4+ unit buildings a non-waivable right to sublet. Landlord consent is required but cannot be unreasonably withheld.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — lease & money",
   },
   {
     slug: "nyc-eviction-notice-timeline",
     question: "How long does NYC eviction take?",
     summary:
       "4–18+ months from first late rent to physical eviction. 14-day rent demand → court → judgment → 14-day marshal notice. Self-help eviction is illegal.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — habitability",
   },
   {
     slug: "nyc-heat-hot-water-complaint",
@@ -221,21 +229,86 @@ const ANSWERS = [
       "What are NYC's heat-and-hot-water rules and how do I file a complaint?",
     summary:
       "Heat Season Oct 1–May 31. 68°F day / 62°F night when outside is below 55°F. Hot water 120°F year-round. File via 311 — HPD inspectors respond.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — habitability",
   },
   {
     slug: "nyc-bedbug-disclosure-law",
     question: "What does NYC's bedbug-disclosure law require?",
     summary:
       "Every NYC landlord must give a Bedbug Disclosure Form at every lease and renewal showing the unit and building's prior-year infestation history.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — habitability",
   },
   {
     slug: "nyc-pet-fee-legality",
     question: "Are pet fees and pet deposits legal in NYC?",
     summary:
       "Non-refundable pet fees: no (HSTPA caps total deposits at one month). Pet rent on stabilized units: illegal. ESAs and service animals: never chargeable.",
-    cluster: "Tenant rights",
+    cluster: "Tenant rights — lease & money",
+  },
+  // Reclassify S10 + S12 + S13 tenant-rights pages into the post-S14 split.
+  // First-last-security, application-fee-cap, break-lease-renovation,
+  // free-market-rent-renewal, sublet-rules → lease & money.
+  // Eviction-timeline, heat-hot-water, bedbug-disclosure → habitability.
+  // Fourth /answers/ batch (S14, 2026-05-04). 8 new pages.
+  {
+    slug: "succession-rights-rent-stabilized-nyc",
+    question:
+      "Who has succession rights to a NYC rent-stabilized apartment?",
+    summary:
+      "Family members who lived with the named tenant 2+ years (1+ for seniors / disabled) succeed at the existing legal regulated rent. 9 NYCRR § 2523.5(b); Braschi.",
+    cluster: "Rent stabilization",
+  },
+  {
+    slug: "vacancy-lease-rent-stabilized-nyc",
+    question:
+      "What happens to a NYC rent-stabilized rent when the unit goes vacant?",
+    summary:
+      "Vacancy lease starts at the prior tenant's legal regulated rent. HSTPA 2019 ended the 20% vacancy bonus, longevity adjustment, and high-rent vacancy decontrol.",
+    cluster: "Rent stabilization",
+  },
+  {
+    slug: "nyc-illegal-lockout-damages",
+    question:
+      "What can I do if my NYC landlord illegally locks me out?",
+    summary:
+      "Call 911 — NYPD enforces re-entry. RPAPL § 768 + NYC Admin Code § 26-521. Treble damages, $10,000 civil penalties, attorney's fees. Self-help is a Class A misdemeanor.",
+    cluster: "Tenant rights — habitability",
+  },
+  {
+    slug: "nyc-repair-and-deduct",
+    question: "Can I repair and deduct from rent in NYC?",
+    summary:
+      "Yes — under RPL § 235-b plus common law — with written notice, habitability-level breach, licensed vendor, and full documentation. HP-action is the safer alternative.",
+    cluster: "Tenant rights — habitability",
+  },
+  {
+    slug: "nyc-lead-paint-disclosure",
+    question: "What does NYC's lead-paint disclosure law require?",
+    summary:
+      "Pre-1960 NYC building + child under 6 = Local Law 1 obligations: annual OCS-1 notice, annual inspection, 21-day remediation, XRF on turnover. Class C violations.",
+    cluster: "Tenant rights — habitability",
+  },
+  {
+    slug: "nyc-warranty-of-habitability",
+    question: "What does the NYC warranty of habitability cover?",
+    summary:
+      "RPL § 235-b — fit for habitation, fit for intended uses, free of life-or-safety hazards. Cannot be waived. Three remedies: abatement, HP-action, repair-and-deduct.",
+    cluster: "Tenant rights — habitability",
+  },
+  {
+    slug: "nyc-tenant-blacklist-housing-court",
+    question:
+      "Is the NYC tenant blacklist legal — can a landlord deny me for an old Housing Court case?",
+    summary:
+      "No. HSTPA 2019 banned it under RPL § 227-f. $500–$1,000 statutory damages plus attorney's fees. FCRA's 7-year purge applies on top.",
+    cluster: "Tenant rights — lease & money",
+  },
+  {
+    slug: "nyc-buyout-disclosure-law",
+    question: "What does NYC's buyout-offer disclosure law require?",
+    summary:
+      "Written disclosures (right to refuse, right to attorney consultation, 180-day no-contact) under § 27-2004(a)(48). Each violation $1,000–$10,000 plus attorney's fees.",
+    cluster: "Tenant rights — lease & money",
   },
 ];
 
@@ -276,14 +349,20 @@ const CLUSTERS: Array<{
   {
     title: "Rent stabilization & RGB renewals",
     blurb:
-      "Whether your unit is stabilized (including 421-a and J-51 tax-abated buildings), the lawful 2025–2026 renewal cap, what HSTPA's end of vacancy decontrol means today, and how to pull the DHCR rent history that proves it.",
+      "Whether your unit is stabilized (including 421-a and J-51 tax-abated buildings), the lawful 2025–2026 renewal cap, what HSTPA's end of vacancy decontrol means today, how the vacancy lease rent is calculated post-HSTPA, who succeeds to a stabilized lease, and how to pull the DHCR rent history that proves it.",
     filter: (a) => a.cluster === "Rent stabilization",
   },
   {
-    title: "NYC tenant rights & lease law",
+    title: "NYC tenant rights — habitability & enforcement",
     blurb:
-      "HSTPA deposit caps, the $20 application-fee cap, sublet and assignment rights under RPL § 226-b, the eviction timeline, heat/hot-water complaint rules, bedbug disclosure, and pet-fee legality.",
-    filter: (a) => a.cluster === "Tenant rights",
+      "RPL § 235-b warranty of habitability, the eviction timeline, illegal-lockout damages and re-entry, repair-and-deduct vs HP-action, the 311 / HPD complaint path, heat-and-hot-water rules, bedbug disclosure, and Local Law 1 lead-paint obligations.",
+    filter: (a) => a.cluster === "Tenant rights — habitability",
+  },
+  {
+    title: "NYC tenant rights — lease & money rules",
+    blurb:
+      "HSTPA deposit caps, the $20 application-fee cap, sublet and assignment rights under RPL § 226-b, free-market rent renewal mechanics, lease-break grounds, pet-fee legality, the RPL § 227-f tenant-blacklist ban, and the buyout-disclosure law.",
+    filter: (a) => a.cluster === "Tenant rights — lease & money",
   },
   {
     title: "Rent math & cross-topic",
@@ -310,7 +389,7 @@ export default function AnswersIndexPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">NYC renter answers</Badge>
             <Badge className="bg-emerald-600">2026 edition</Badge>
-            <Badge variant="outline">25 questions answered</Badge>
+            <Badge variant="outline">33 questions answered</Badge>
           </div>
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
             Concise answers to the questions NYC renters actually ask
@@ -319,7 +398,7 @@ export default function AnswersIndexPage() {
             Each answer cross-links to a free tool that runs your specific
             facts — FARE Act violation classifier, rent stabilization checker,
             RGB renewal calculator, move-in cost estimator, PATH commute ROI.
-            Updated May 3, 2026.
+            Updated May 4, 2026.
           </p>
         </header>
 
@@ -419,7 +498,7 @@ export default function AnswersIndexPage() {
         </Card>
 
         <p className="text-xs text-muted-foreground">
-          Reviewed 2026-05-03. Informational only — not legal advice. For
+          Reviewed 2026-05-04. Informational only — not legal advice. For
           contested or high-dollar disputes, contact{" "}
           <a
             href="https://legalaidnyc.org/get-help/housing-problems/"

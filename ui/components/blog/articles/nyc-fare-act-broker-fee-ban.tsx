@@ -333,6 +333,85 @@ export default function NycFareActBrokerFeeBan() {
         </CardContent>
       </Card>
 
+      {/* ── Neighborhood no-fee inventory cross-link Card (added 2026-05-04) ── */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardHeader>
+          <CardTitle>
+            Where to find FARE Act-compliant no-fee inventory by
+            neighborhood (May 2026)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            Below are the neighborhood-level no-fee inventory guides we
+            actively maintain. Each tracks the reliably-no-fee
+            management-company tier, the &quot;verify per-listing&quot;
+            mid-tier, and the small-landlord fee-attempt gotchas. Useful
+            if you are searching a specific neighborhood and want to
+            skip straight to the landlord-direct buildings.
+          </p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <Link
+                href="/nyc/upper-west-side/no-fee-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                No-fee Upper West Side apartments
+              </Link>{" "}
+              — Equity, AvalonBay, Glenwood, Stonehenge, plus the
+              Manhattan Valley lease-up at $3,500–$4,200 with
+              1–1.5 months free. UWS apartment search demand flipped to
+              +36.2% YoY in May 2026.
+            </li>
+            <li>
+              <Link
+                href="/nyc/no-fee-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                NYC no-fee apartments — parent guide
+              </Link>{" "}
+              — the post-FARE-Act move-in cost sheet (rent + security +
+              $20 application fee, period), how to spot a disguised
+              &quot;marketing fee,&quot; and the deepest landlord-direct
+              inventory across all five boroughs.
+            </li>
+            <li>
+              <Link
+                href="/hoboken/no-fee-apartments"
+                className="text-foreground underline underline-offset-4"
+              >
+                No-fee Hoboken apartments
+              </Link>{" "}
+              — note that the FARE Act does NOT cross the Hudson, so NJ
+              broker fees of one-month-plus are still standard. The real
+              no-fee tier is concentrated in the waterfront luxury
+              towers (Maxwell Place, W Residences, Hudson Tea, 1100
+              Maxwell) that lease through their own offices. Hoboken
+              apartment search just hit +136.7% YoY — biggest one-week
+              metro shift of 2026.
+            </li>
+            <li>
+              <Link
+                href="/jersey-city"
+                className="text-foreground underline underline-offset-4"
+              >
+                Jersey City apartments
+              </Link>{" "}
+              — same NJ caveat applies. Newport / Grove Street / JSQ
+              landlord-direct inventory is the workaround.
+            </li>
+          </ul>
+          <p className="text-xs">
+            More neighborhood-specific no-fee guides ship as the
+            rising-query data warrants. If you searched for a
+            neighborhood that is not in this list and the FARE Act is
+            relevant to your search, drop the neighborhood name in the
+            FARE Act Violation Reporter below — we use that signal to
+            prioritize what to publish next.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className="border-emerald-300 bg-emerald-50">
         <CardHeader>
           <CardTitle>What NYC tenants are asking on r/AskNYC about the FARE Act (April 2026)</CardTitle>

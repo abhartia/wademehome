@@ -699,6 +699,15 @@ export default function NoFeeApartmentsPage() {
                     Inventory Guide
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/hoboken/no-fee-apartments"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    No-Fee Hoboken Apartments (May 2026): Landlord-Direct
+                    Inventory (+136.7% YoY)
+                  </Link>
+                </li>
               </ul>
             </CardContent>
           </Card>

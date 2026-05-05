@@ -6,6 +6,249 @@ This file is the institutional memory for the wademehome-growth scheduled agent.
 
 ---
 
+## 2026-05-04 -- Session 28 (FARE Act blog SOLIDIFIED PAGE 1 pos 9.0 / 119 imp + Hoboken no-fee spoke product feature + Sunnyside +66.7% YoY NEW Queens hub + FARE Act blog mid-article no-fee neighborhood Card cross-links)
+
+### Context
+- Twenty-eighth growth agent run. Three converging signals:
+  (1) **`/blog/nyc-fare-act-broker-fee-ban` SOLIDIFIED ON PAGE 1**:
+  119 imp pos **9.0** (vs 104 / 9.5 in S27 — +15 imp, +0.5 spots up
+  in 24h; cumulative 7-session push S22 → today: +103 imp / +4.8
+  spots up). Yesterday's title rewrite reindexed cleanly. Still 0
+  clicks at 119 imp — today's intervention is a click-side bet,
+  not a position-side bet.
+  (2) **Sunnyside Queens +66.7% YoY** — strongest single-week riser
+  among the Queens neighborhoods this pipeline tracks (well ahead of
+  Astoria +26.5% and LIC +8.8%). No `/nyc/sunnyside` page existed.
+  (3) **Hoboken hub depth refresh from S27 (+136.7% YoY) needed a
+  no-fee spoke companion** to capture the rising query stream — same
+  pattern that worked for UWS yesterday (+32,850% rising query →
+  no-fee spoke).
+- **Product feature (today's bet)**: `/hoboken/no-fee-apartments`
+  programmatic spoke (~430 lines) + `/nyc/sunnyside` NEW hub
+  (~430 lines). Ship both same-day so the three FARE-Act-priced-out
+  rotation directions (UWS-no-fee from S27 = Manhattan rotation;
+  Hoboken-no-fee = PATH-NJ rotation; Sunnyside = Outer-NYC rotation)
+  all have indexable landing surfaces.
+- **Highest-leverage internal-link change of the week**: `/blog/nyc-
+  fare-act-broker-fee-ban` body update — NEW mid-article Card
+  "Where to find FARE Act-compliant no-fee inventory by
+  neighborhood" with 4 hard-links to no-fee spokes. The page is at
+  pos 9.0 / 119 imp / 0 clicks; converting reader interest into a
+  no-fee neighborhood landing instead of bouncing them is the right
+  click-side intervention.
+- Trends pull was Google-rate-limited (HTTP 429) on 5 of 7 batches.
+  Action selection used today's partial pull + S27's full data
+  (still load-bearing).
+
+### Key Numbers
+- **HEADLINE: FARE Act blog 119 imp pos 9.0 — PAGE 1 SOLIDIFIED**
+  (vs 104 / 9.5 S27, 16 / 13.8 S22). Cumulative 7-session push:
+  +103 imp / +4.8 spots up. Still 0 clicks → today's mid-article
+  Card update is the next click-side bet.
+- 115 imp pos 20.8 on rent-stab guide (vs 110 / 21.4 S27 — +5 imp,
+  +0.6 spots; cumulative 7-session: +55 imp / +6.6 spots up).
+- 85 imp pos 9.1 on `/nyc-rent-by-neighborhood` (vs 81 / 9.1 S27 —
+  +4 imp, holding strong page-1).
+- Daily imp trend hit **449 on 2026-05-02** (vs 454 prior day).
+  14 consecutive days at 100–700 imp/day.
+- GA4: **12 active users / 57 sessions / 518 pageviews** (vs 10 /
+  70 / 476 prev — +20% users, +9% pageviews, bounce dropped 9.6
+  points to 17.5%).
+- 8 content/product moves shipped:
+  - `/hoboken/no-fee-apartments` — NEW programmatic spoke (~430 lines).
+  - `/nyc/sunnyside` — NEW hub page (~430 lines).
+  - `/blog/nyc-fare-act-broker-fee-ban` — NEW mid-article no-fee
+    neighborhood Card with 4 hard-links.
+  - `/lib/blog/articles.ts` — FARE Act blog reviewedAt bump.
+  - `/hoboken` — dateModified bump + cross-link to new spoke.
+  - `/nyc-rent-by-neighborhood` — 2 new Related Guides entries.
+  - `/nyc/no-fee-apartments` — 1 new Related Guides entry.
+  - `ui/app/sitemap.ts` — 2 new entries.
+
+### Completed
+
+**Product feature (NEW programmatic spoke + NEW hub):**
+
+- `/hoboken/no-fee-apartments` — NEW page (~430 lines) catching
+  Hoboken no-fee rising query stream + +136.7% YoY demand surge.
+- Full Article + FAQPage (6 Qs: does FARE Act apply to Hoboken /
+  reliably-no-fee buildings / verification process / are no-fee
+  more expensive / why is Hoboken no-fee search rising / what to
+  do if charged a disputed fee) + BreadcrumbList JSON-LD.
+- 34 keywords (hoboken apartments no fee, no fee apartments
+  hoboken, Maxwell Place no fee, W Residences Hoboken no fee,
+  Hudson Tea no fee, 1100 Maxwell, 7 Seventy Hoboken, Avalon
+  Hoboken, Equity Residential Hoboken, BLDG Management,
+  no fee 07030, FARE Act NJ, NJ A-2978, +136.7% YoY, etc.).
+- NeighborhoodLiveListings widget at Hoboken lat/lng (40.7437,
+  -74.0324) radius 1.0 mi.
+- 60-second NJ-FARE-Act-doesn't-apply legal-context Card.
+- Hoboken no-fee building tier table (8 rows: Maxwell Place /
+  W Residences / Hudson Tea / 7 Seventy / Avalon — Reliably
+  no-fee; BLDG mid-rise — Verify per-listing; Uptown brownstone
+  / Downtown brownstone — Assume 1-mo fee).
+- 3-step verification process Card with NJ-specific legal
+  framing (no DCWP backstop — written confirmation IS the
+  protection).
+- 5-bullet "Why Hoboken no-fee search is up +136.7% YoY"
+  Card (5-day sentiment flip, PATH arbitrage, no-fee filter as
+  natural refinement, Memorial Day compression, Stevens Tech
+  demand pulse).
+- 8-tile Related Guides section.
+
+- `/nyc/sunnyside` — NEW hub page (~430 lines) addressing the
+  +66.7% YoY Queens riser previously unaddressed.
+- Full Article + FAQPage (6 Qs: rent / 7-train commute /
+  Sunnyside Gardens / why search up / vs LIC / no-fee under FARE
+  Act) + BreadcrumbList JSON-LD.
+- 30 keywords (sunnyside apartments, sunnyside queens, 11104,
+  Sunnyside Gardens, Sunnyside 7 train, 46th-Bliss, Sunnyside
+  Greenpoint Avenue, Sunnyside vs LIC, Sunnyside vs Astoria,
+  Sunnyside Yards rezoning, Sunnyside Court Square commute,
+  Sunnyside Hunter College commute, Sunnyside Grand Central
+  commute, etc.).
+- NeighborhoodLiveListings widget at Sunnyside lat/lng (40.7409,
+  -73.9217) radius 0.7 mi.
+- 5-bullet Demand Surge Card explaining the +66.7% YoY drivers
+  (LIC spillover, FARE Act rotation extends to Queens,
+  Sunnyside Yards rezoning visibility, Memorial Day compression,
+  7 Express stop pattern).
+- 4-row median rent by unit size table with vs-LIC delta.
+- 5-row sub-area tier table (LIC border / Sunnyside Gardens /
+  Queens Blvd corridor / South / Woodside-adjacent).
+- 3-row 7-train commute reference table (Court Square / Grand
+  Central / Hudson Yards from each Sunnyside stop, Express vs
+  Local times).
+- 6-tile Related Guides section.
+
+**FARE Act blog mid-article cross-link Card (highest-leverage
+internal-link change of the week):**
+
+- `/blog/nyc-fare-act-broker-fee-ban` — NEW Card "Where to find
+  FARE Act-compliant no-fee inventory by neighborhood (May 2026)"
+  inserted before the r/AskNYC FAQ Card. 4 hard-links: UWS no-fee
+  (with +36.2% YoY framing), parent NYC no-fee guide, Hoboken
+  no-fee (with NJ caveat + +136.7% YoY framing), Jersey City
+  parent. Each link has 30–60 word explanatory copy.
+- `/lib/blog/articles.ts` — `reviewedAt` 2026-05-03 → 2026-05-04
+  freshness bump. Today's body update is the freshness signal
+  Google reads.
+
+**Hub depth refreshes (1 — sibling-spoke driven):**
+
+- `/hoboken` — `dateModified` 2026-05-03 → 2026-05-04 to signal
+  the new sibling spoke + cross-link addition. Hoboken no-fee
+  spoke added to top of Related Guides list.
+
+**Cross-linking + sitemap:**
+
+- `/nyc-rent-by-neighborhood` Related Guides — 2 new entries
+  (Hoboken no-fee spoke with +136.7% YoY framing; Sunnyside
+  Queens hub with +66.7% YoY framing). Pos 9.1 / 85 imp authority
+  hub — strongest internal-link source on the site.
+- `/nyc/no-fee-apartments` Related Guides — Hoboken no-fee spoke
+  added.
+- `ui/app/sitemap.ts` — 2 new entries: `/nyc/sunnyside` at
+  priority 0.85 monthly; `/hoboken/no-fee-apartments` at priority
+  0.85 monthly.
+
+### Build / Verify
+- `npm run build` — **passed**. Both new pages registered as Static:
+  `/hoboken/no-fee-apartments` (1.06 kB / 284 kB First Load),
+  `/nyc/sunnyside` (884 B / 284 kB First Load). All affected pages
+  built without errors.
+- Build warnings: only pre-existing eslint-disable / unused-var
+  warnings unrelated to today's changes.
+- Preview verification: SSR HTML for both new pages confirmed via
+  `curl localhost:3000/<path>` — all SEO content present (titles,
+  meta descriptions, JSON-LD, building tier tables, +136.7% YoY /
+  +66.7% YoY badges, proper-noun anchors, internal cross-links).
+  Sitemap.xml SSR confirmed both new entries emitted. Dev-server
+  hydration was in a broken state during preview screenshot due
+  to `npm run build` running against the same `.next` dir while
+  dev server was up (chunk version mismatch — known dev-vs-build
+  artifact, not a code regression). Production build verified clean.
+
+### Skipped (with reason)
+- **Williamsburg pos 63.8 intervention** — refresh from S26 is now
+  5 days into reindex window with zero movement. Queue says
+  evaluate 2026-05-09 before escalating to link-engine. Wait.
+- **Harlem refresh** — flipped from -15.1% S27 to +21.9% YoY
+  today. High-volatility seed; wait one more session for signal
+  durability.
+- **East Village third refresh** — calming from +197.1% to +54.4%.
+  S27 quick-touch still in reindex.
+- **Greenpoint refresh** — S27 quick-touch still in reindex window.
+- **`/nyc/cheap-apartments-under-1000`** — carry-forward S25 → S28.
+  Lower priority than today's +66.7% Sunnyside signal.
+- **Sitemap property-URL infra fix** — still queued for an infra
+  session.
+
+### Queue for next session
+- **FARE Act blog mid-article Card click-through evaluation** —
+  shipped today against pos 9.0 / 119 imp / 0 clicks. Evaluate
+  2026-05-08 / 2026-05-12 for click-through delta. Next move if
+  still 0 clicks at 130+ imp: structured FAQ-at-the-top with
+  rich-snippet schema for "how do I get my broker fee refunded".
+- **Hoboken no-fee spoke reindex check** — NEW today against the
+  +136.7% YoY hub backdrop. Evaluate 2026-05-08 / 2026-05-12 for
+  first impressions on "hoboken no fee apartments" / "Maxwell
+  Place no fee" / "no broker fee NJ" queries.
+- **Sunnyside hub reindex check** — NEW today against +66.7%
+  YoY surge. Pre-peak by 4 months. Evaluate 2026-05-08 / 2026-05-12
+  for first impressions on "sunnyside queens apartments" /
+  "sunnyside rent" / "sunnyside vs LIC".
+- **UWS no-fee spoke reindex check** — S27 ship + +30,950% rising
+  query still active. Highest-signal URL in the no-fee cluster.
+  Evaluate 2026-05-06 / 2026-05-10.
+- **UWS hub reindex check (with caveat)** — S27 depth refresh
+  shipped against the signal that just calmed back to -11.8% YoY
+  today. Reindex should still drive impressions but the underlying
+  demand surge dissipated. Evaluate 2026-05-06 / 2026-05-10.
+- **Hoboken hub reindex check** — S27 first Concession Watch +
+  Demand Surge Card now ~24 hours into reindex. Today's
+  dateModified bump + sibling-spoke cross-link adds another
+  freshness signal.
+- **Williamsburg pos 63.8 deadline 2026-05-09** — if no movement,
+  ship `/nyc/williamsburg/no-fee-apartments` programmatic spoke
+  AND route the linkability problem to link-engine.
+- **Harlem refresh decision** — Trends flipped to +21.9% YoY
+  today. One more session of signal verification before refresh.
+- **`/nyc/cheap-apartments-under-1000`** programmatic page — carry-
+  forward S25 → S28.
+- **PathCommuteRoiCalculator + BrokerFeeLawTimeline standalone tool
+  reindex** — both shipped early May. Evaluate 2026-05-06 / 2026-05-10.
+- **Sitemap property-URL resilience** — infra carry-forward.
+- **pull_trends.py rate-limit hardening** — 5 of 7 batches failed
+  with 429 today. Add per-batch backoff or split time-of-day pulls.
+  Queue for an infra session.
+
+### SEO Changes Pending Reindex (S28)
+- `/hoboken/no-fee-apartments` — NEW programmatic spoke (~430 lines),
+  Article + FAQPage (6 Qs) + BreadcrumbList JSON-LD, 34 keywords,
+  NeighborhoodLiveListings widget, 8-row no-fee tier table with
+  Reliably/Verify/Assume-1mo-fee classifications, NJ-specific
+  legal framing distinct from NYC FARE Act.
+- `/nyc/sunnyside` — NEW hub page (~430 lines), Article + FAQPage
+  (6 Qs) + BreadcrumbList JSON-LD, 30 keywords, NeighborhoodLiveListings
+  widget, 4-row median rent table, 5-row sub-area tier table, 3-row
+  7-train commute reference table, 5-bullet Demand Surge Card.
+- `/blog/nyc-fare-act-broker-fee-ban` — NEW mid-article "Where to find
+  FARE Act-compliant no-fee inventory by neighborhood (May 2026)" Card
+  with 4 hard-links (UWS no-fee, parent NYC no-fee, Hoboken no-fee,
+  Jersey City). reviewedAt 2026-05-04.
+- `/hoboken` — `dateModified` 2026-05-04; Hoboken no-fee spoke added
+  to top of Related Guides.
+- `/nyc-rent-by-neighborhood` — 2 new Related Guides entries.
+- `/nyc/no-fee-apartments` — 1 new Related Guides entry.
+- Sitemap — `/nyc/sunnyside` + `/hoboken/no-fee-apartments` registered
+  at priority 0.85.
+- Carry-forward S22–S27 ships — all in active reindex window.
+- Per-property FAQPage + generateMetadata changes from S20/S20-b
+  continue to compound.
+
+---
+
 ## 2026-05-03 -- Session 27 (FARE Act blog HIT PAGE 1 pos 9.5 + Hoboken -8.6% → +136.7% YoY 5-day flip refresh + UWS -38.2% → +36.2% YoY flip refresh + UWS no-fee programmatic spoke product feature + Greenpoint +245.9% peak-landed-today touch + East Village +197.1% re-explosion touch + GSC indexing infra fix: Soft-404 → noindex meta + sitemap revalidate + thin-content gating)
 
 ### Context
